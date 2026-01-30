@@ -890,7 +890,6 @@ def _tvos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_location = bundle_location,
             bundle_name = bundle_name,
-            embed_target_dossiers = False,
             embedded_targets = ctx.attr.frameworks,
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,

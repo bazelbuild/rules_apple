@@ -220,7 +220,6 @@ def _codesigning_dossier_partial_impl(
         bundle_extension,
         bundle_location = None,
         bundle_name,
-        embed_target_dossiers = True,
         embedded_targets = [],
         entitlements = None,
         output_discriminator,
@@ -245,7 +244,7 @@ def _codesigning_dossier_partial_impl(
         bundle_paths = _location_map(rule_descriptor),
         bundle_relative_contents = rule_descriptor.bundle_locations.bundle_relative_contents,
         embedded_dossier_info_depsets = embedded_dossier_infos_depsets,
-    ) if embed_target_dossiers else []
+    )
 
     output_dossier = actions.declare_file("%s_dossier.zip" % rule_label.name)
 
@@ -276,29 +275,17 @@ def _codesigning_dossier_partial_impl(
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
-    embedded_dossier_depset = None
-    if embed_target_dossiers and dossier_info:
-        embedded_dossier_depset = depset(direct = [dossier_info])
-    elif not embed_target_dossiers:
-        if dossier_info:
-            embedded_dossier_depset = depset(
-                direct = [dossier_info],
-                transitive = embedded_dossier_infos_depsets,
-            )
-        else:
-            embedded_dossier_depset = depset(
-                transitive = embedded_dossier_infos_depsets,
-            )
-
-    providers = [_AppleCodesigningDossierInfo(
-        embedded_dossiers = embedded_dossier_depset,
-    )] if embedded_dossier_depset else []
-
-    providers.append(
+    providers = [
         new_applecodesigningdossierinfo(
             dossier = output_dossier,
         ),
-    )
+    ]
+    if dossier_info:
+        providers.append(
+            _AppleCodesigningDossierInfo(
+                embedded_dossiers = depset(direct = [dossier_info]),
+            ),
+        )
 
     tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
 
@@ -350,7 +337,6 @@ def codesigning_dossier_partial(
         bundle_extension,
         bundle_location = None,
         bundle_name,
-        embed_target_dossiers = True,
         embedded_targets = [],
         entitlements = None,
         rule_descriptor,
@@ -370,10 +356,6 @@ def codesigning_dossier_partial(
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
-      embed_target_dossiers: If True, this target's dossier will embed all transitive dossiers
-            _only_ propagated through the targets given in embedded_targets. If False, the
-            dossiers for embedded bundles will be propagated downstream for a top level target
-            to bundle them.
       embedded_targets: The list of targets that propagate codesigning dossiers to bundle or
             propagate.
       entitlements: Optional entitlements for this bundle.
@@ -399,7 +381,6 @@ def codesigning_dossier_partial(
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,
-        embed_target_dossiers = embed_target_dossiers,
         embedded_targets = embedded_targets,
         entitlements = entitlements,
         output_discriminator = output_discriminator,
