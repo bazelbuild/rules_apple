@@ -213,11 +213,13 @@ macos_application(
 macos_application(
     name = "app_with_ext",
     bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     extensions = [":ext"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -245,10 +247,12 @@ macos_extension(
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
     bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",

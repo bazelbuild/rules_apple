@@ -328,7 +328,9 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../../../Frameworks",
             ],
         ),
-        # macos_bundle
+        # TODO: b/65168941 - macos_framework should be added here, making SURE that its own
+        # bundle_relative_contents is set to "Versions/A" instead of the macOS standard of
+        # "Contents". Will need to set that through the bundle_locations correctly.
         apple_product_type.bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = ".bundle",

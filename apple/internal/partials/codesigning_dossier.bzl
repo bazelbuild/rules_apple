@@ -56,7 +56,11 @@ Depset of structs with codesigning dossier information to be embedded in another
     },
 )
 
-_VALID_LOCATIONS = set([
+# All locations are expected to be relative to the bundle contents directory, which is "Contents" on
+# macOS for all but frameworks, "Versions/A" for macOS frameworks, and the bundle root on iOS
+# derived platforms. If this assumption does not hold, then this set and "_location_map" below must
+# be updated to take the full bundle location into account, like processor.bzl does.
+_VALID_LOCATIONS_RELATIVE_CONTENTS = set([
     processor.location.app_clip,
     processor.location.extension,
     processor.location.framework,
@@ -66,7 +70,7 @@ _VALID_LOCATIONS = set([
 ])
 
 def _location_map(rule_descriptor):
-    """Given a rule descriptor, returns a map of locations to actual paths within the bundle for the location.
+    """Given a rule descriptor, returns a map of locations to relative paths within bundle contents.
 
     Args:
       rule_descriptor: The rule descriptor to build lookup for.
@@ -105,11 +109,15 @@ def _codesigning_dossier_info(codesigning_dossier, bundle_extension, bundle_loca
 
 def _embedded_codesign_dossiers_from_dossier_infos(
         bundle_paths,
+        bundle_relative_contents,
         embedded_dossier_info_depsets = []):
     """Resolves depsets of codesigning dossier info objects into a list of embedded dossiers.
 
     Args:
       bundle_paths: A map of bundle locations to paths in the bundle.
+      bundle_relative_contents: The path fragment describing the root of the bundle relative to its
+        contents. Expected to be "Contents" on macOS for all but macOS frameworks, "Versions/A" for
+        modern macOS frameworks, and "" on iOS derived platforms.
       embedded_dossier_info_depsets: Depsets of embedded dossier info structs to extract.
 
     Returns:
@@ -122,6 +130,7 @@ def _embedded_codesign_dossiers_from_dossier_infos(
         for dossier_info in embedded_dossier_infos:
             bundle_filename = dossier_info.bundle_name + dossier_info.bundle_extension
             relative_bundle_path = paths.join(
+                bundle_relative_contents,
                 bundle_paths[dossier_info.bundle_location],
                 bundle_filename,
             )
@@ -222,10 +231,10 @@ def _codesigning_dossier_partial_impl(
         rule_label):
     """Implementation of codesigning_dossier_partial"""
 
-    if bundle_location and bundle_location not in _VALID_LOCATIONS:
+    if bundle_location and bundle_location not in _VALID_LOCATIONS_RELATIVE_CONTENTS:
         fail(("Bundle location %s is not a valid location to embed a signed " +
               "binary - valid locations are %s") %
-             bundle_location, _VALID_LOCATIONS)
+             bundle_location, _VALID_LOCATIONS_RELATIVE_CONTENTS)
     embedded_dossier_infos_depsets = [
         x[_AppleCodesigningDossierInfo].embedded_dossiers
         for x in embedded_targets
@@ -234,6 +243,7 @@ def _codesigning_dossier_partial_impl(
 
     embedded_codesign_dossiers = _embedded_codesign_dossiers_from_dossier_infos(
         bundle_paths = _location_map(rule_descriptor),
+        bundle_relative_contents = rule_descriptor.bundle_locations.bundle_relative_contents,
         embedded_dossier_info_depsets = embedded_dossier_infos_depsets,
     ) if embed_target_dossiers else []
 
