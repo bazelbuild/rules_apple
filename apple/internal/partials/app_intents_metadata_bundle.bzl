@@ -38,6 +38,7 @@ def _app_intents_metadata_bundle_partial_impl(
         features,
         label,
         platform_prerequisites,
+        static_metadata_files = [],
         json_tool):
     """Implementation of the AppIntents metadata bundle partial."""
     if not deps:
@@ -111,6 +112,7 @@ def _app_intents_metadata_bundle_partial_impl(
             for intent_module_name in dep[AppIntentsInfo].intent_module_names
         ],
         label = label,
+        static_metadata_files = static_metadata_files,
         source_files = [
             swift_source_file
             for dep in deps[first_cc_toolchain_key]
@@ -146,6 +148,7 @@ def app_intents_metadata_bundle_partial(
         features,
         label,
         platform_prerequisites,
+        static_metadata_files = [],
         json_tool):
     """Constructor for the AppIntents metadata bundle processing partial.
 
@@ -161,6 +164,7 @@ def app_intents_metadata_bundle_partial(
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        static_metadata_files: List of AppIntents metadata files for dependency modules.
         json_tool: A `files_to_run` wrapping Python's `json.tool` module
             (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
             JSON handling.
@@ -177,5 +181,6 @@ def app_intents_metadata_bundle_partial(
         features = features,
         label = label,
         platform_prerequisites = platform_prerequisites,
+        static_metadata_files = static_metadata_files,
         json_tool = json_tool,
     )
