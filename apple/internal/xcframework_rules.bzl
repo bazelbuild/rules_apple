@@ -1229,8 +1229,6 @@ def _create_xcframework_codesigning_dossier(
         rule_label,
         xcode_config):
     """Generates the codesigning dossier for an XCFramework."""
-    output_dossier = actions.declare_file("%s_dossier.zip" % rule_label.name)
-
     codesign_identity = codesigning_support.preferred_codesigning_identity(
         build_settings = build_settings,
         # Never adhoc sign XCFrameworks; the SDK signing requires a valid code signing identity
@@ -1238,17 +1236,16 @@ def _create_xcframework_codesigning_dossier(
         requires_adhoc_signing = False,
     )
 
-    codesigning_support.generate_codesigning_dossier_action(
+    output_dossier = codesigning_support.generate_dossier_file(
         actions = actions,
         apple_fragment = apple_fragment,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = [],
         entitlements = None,
-        label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
-        output_dossier = output_dossier,
         provisioning_profile = None,
+        rule_label = rule_label,
         target_signs_with_entitlements = False,  # Frameworks are never signed with entitlements.
         xcode_config = xcode_config,
     )

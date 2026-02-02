@@ -283,9 +283,11 @@ def _macos_application_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
+            additional_contents = ctx.attr.additional_contents,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
+            bundle_location = processor.location.bundle,
             bundle_name = bundle_name,
             embedded_targets = embedded_targets,
             entitlements = entitlements,
@@ -587,6 +589,7 @@ def _macos_bundle_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
+            additional_contents = ctx.attr.additional_contents,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
@@ -861,6 +864,7 @@ def _macos_extension_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
+            additional_contents = ctx.attr.additional_contents,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
@@ -1103,6 +1107,7 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.codesigning_dossier_partial(
             actions = actions,
+            additional_contents = ctx.attr.additional_contents,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,

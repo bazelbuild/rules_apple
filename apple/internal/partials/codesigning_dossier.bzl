@@ -50,8 +50,18 @@ _AppleCodesigningDossierInfo = provider(
 Private provider to propagate codesigning dossier information.
 """,
     fields = {
-        "embedded_dossiers": """
-Depset of structs with codesigning dossier information to be embedded in another target.
+        "direct_embedded_dossier": """
+A struct with codesigning dossier information to be embedded in another target, with the following
+fields:
+  * bundle_location: The location within the bundle to sign this artifact. This is typically based
+      on processor.location values, and in that case will be resolved to the relative path of the
+      bundle root when writing out the JSON for the dossier.
+  * bundle_filename: The file name of the artifact to be signed.
+  * dossier_file: The dossier zip file that provides context and inputs for signing.
+  * user_defined_location: Whether the bundle_location was specified by the user. i.e. if the
+      location was defined through "additional_contents". If true, the `bundle_location` will be
+      a custom relative path within the bundle contents to the artifact to sign, which will be used
+      directly when generating the JSON for the dossier.
 """,
     },
 )
@@ -62,6 +72,7 @@ Depset of structs with codesigning dossier information to be embedded in another
 # be updated to take the full bundle location into account, like processor.bzl does.
 _VALID_LOCATIONS_RELATIVE_CONTENTS = set([
     processor.location.app_clip,
+    processor.location.bundle,
     processor.location.extension,
     processor.location.framework,
     processor.location.plugin,
@@ -81,6 +92,7 @@ def _location_map(rule_descriptor):
     resolved = rule_descriptor.bundle_locations
     return {
         processor.location.app_clip: resolved.contents_relative_app_clips,
+        processor.location.bundle: "",
         processor.location.extension: resolved.contents_relative_extensions,
         processor.location.framework: resolved.contents_relative_frameworks,
         processor.location.plugin: resolved.contents_relative_plugins,
@@ -88,29 +100,11 @@ def _location_map(rule_descriptor):
         processor.location.xpc_service: resolved.contents_relative_xpc_service,
     }
 
-def _codesigning_dossier_info(codesigning_dossier, bundle_extension, bundle_location, bundle_name):
-    """Creates a struct containing information for a codesigning dossier.
-
-    Args:
-      codesigning_dossier: The rule descriptor to build lookup for.
-      bundle_extension: The extension for the bundle.
-      bundle_location: Location of this bundle when embedded.
-      bundle_name: The name of the output bundle.
-
-    Returns:
-      Struct representing the codesigning dossier for use in _AppleCodesigningDossierInfo.
-    """
-    return struct(
-        codesigning_dossier = codesigning_dossier,
-        bundle_extension = bundle_extension,
-        bundle_location = bundle_location,
-        bundle_name = bundle_name,
-    )
-
 def _embedded_codesign_dossiers_from_dossier_infos(
+        *,
         bundle_paths,
         bundle_relative_contents,
-        embedded_dossier_info_depsets = []):
+        embedded_dossier_infos = []):
     """Resolves depsets of codesigning dossier info objects into a list of embedded dossiers.
 
     Args:
@@ -118,30 +112,34 @@ def _embedded_codesign_dossiers_from_dossier_infos(
       bundle_relative_contents: The path fragment describing the root of the bundle relative to its
         contents. Expected to be "Contents" on macOS for all but macOS frameworks, "Versions/A" for
         modern macOS frameworks, and "" on iOS derived platforms.
-      embedded_dossier_info_depsets: Depsets of embedded dossier info structs to extract.
+      embedded_dossier_infos: Lists of embedded dossier info structs to extract.
 
     Returns:
-      List of codesign dossiers embedded in locations computed using the map provided.
+      List of codesign dossiers embedded in locations computed using the map provided or the user
+      defined location if specified. Each element is a struct with the following fields:
+        * relative_bundle_path: The path to the artifact to sign relative to the bundle root.
+        * dossier_file: The dossier zip file that provides context and inputs for signing.
     """
     existing_bundle_paths = set()
     embedded_codesign_dossiers = []
-    for dossier_info_depset in embedded_dossier_info_depsets:
-        embedded_dossier_infos = dossier_info_depset.to_list()
-        for dossier_info in embedded_dossier_infos:
-            bundle_filename = dossier_info.bundle_name + dossier_info.bundle_extension
-            relative_bundle_path = paths.join(
-                bundle_relative_contents,
-                bundle_paths[dossier_info.bundle_location],
-                bundle_filename,
-            )
-            if relative_bundle_path in existing_bundle_paths:
-                continue
-            existing_bundle_paths.add(relative_bundle_path)
-            dossier = codesigning_support.embedded_codesigning_dossier(
-                relative_bundle_path,
-                dossier_info.codesigning_dossier,
-            )
-            embedded_codesign_dossiers.append(dossier)
+    for dossier_info in embedded_dossier_infos:
+        if dossier_info.user_defined_location:
+            contents_relative_path = dossier_info.bundle_location
+        else:
+            contents_relative_path = bundle_paths[dossier_info.bundle_location]
+        relative_bundle_path = paths.join(
+            bundle_relative_contents,
+            contents_relative_path,
+            dossier_info.bundle_filename,
+        )
+        if relative_bundle_path in existing_bundle_paths:
+            continue
+        existing_bundle_paths.add(relative_bundle_path)
+        dossier = struct(
+            relative_bundle_path = relative_bundle_path,
+            dossier_file = dossier_info.dossier_file,
+        )
+        embedded_codesign_dossiers.append(dossier)
     return embedded_codesign_dossiers
 
 def _create_combined_zip_artifact(
@@ -213,6 +211,7 @@ def _create_combined_zip_artifact(
 def _codesigning_dossier_partial_impl(
         *,
         actions,
+        additional_contents = {},
         apple_mac_toolchain_info,
         mac_exec_group,
         apple_xplat_toolchain_info,
@@ -231,61 +230,75 @@ def _codesigning_dossier_partial_impl(
     """Implementation of codesigning_dossier_partial"""
 
     if bundle_location and bundle_location not in _VALID_LOCATIONS_RELATIVE_CONTENTS:
-        fail(("Bundle location %s is not a valid location to embed a signed " +
+        fail(("Internal Error: Bundle location %s is not a valid location to embed a signed " +
               "binary - valid locations are %s") %
              bundle_location, _VALID_LOCATIONS_RELATIVE_CONTENTS)
-    embedded_dossier_infos_depsets = [
-        x[_AppleCodesigningDossierInfo].embedded_dossiers
+
+    embedded_dossier_infos = [
+        x[_AppleCodesigningDossierInfo].direct_embedded_dossier
         for x in embedded_targets
         if _AppleCodesigningDossierInfo in x
     ]
 
+    # If additional_contents were provided, then amend to the embedded_dossier_infos if any
+    # _AppleCodesigningDossierInfo providers were found within, rewriting the bundle_location with
+    # the user specified content relative path while preserving bundle_filename and dossier_file.
+    embedded_dossier_infos.extend([
+        struct(
+            bundle_location = content_relative_path,
+            bundle_filename = (
+                x[_AppleCodesigningDossierInfo].direct_embedded_dossier.bundle_filename
+            ),
+            dossier_file = x[_AppleCodesigningDossierInfo].direct_embedded_dossier.dossier_file,
+            user_defined_location = True,
+        )
+        for x, content_relative_path in additional_contents.items()
+        if _AppleCodesigningDossierInfo in x
+    ])
+
     embedded_codesign_dossiers = _embedded_codesign_dossiers_from_dossier_infos(
         bundle_paths = _location_map(rule_descriptor),
         bundle_relative_contents = rule_descriptor.bundle_locations.bundle_relative_contents,
-        embedded_dossier_info_depsets = embedded_dossier_infos_depsets,
+        embedded_dossier_infos = embedded_dossier_infos,
     )
-
-    output_dossier = actions.declare_file("%s_dossier.zip" % rule_label.name)
-
-    dossier_info = _codesigning_dossier_info(
-        codesigning_dossier = output_dossier,
-        bundle_extension = bundle_extension,
-        bundle_location = bundle_location,
-        bundle_name = bundle_name,
-    ) if bundle_location else None
 
     codesign_identity = codesigning_support.preferred_codesigning_identity(
         build_settings = platform_prerequisites.build_settings,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
 
-    codesigning_support.generate_codesigning_dossier_action(
+    dossier_file = codesigning_support.generate_dossier_file(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = embedded_codesign_dossiers,
         entitlements = entitlements,
-        label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
-        output_dossier = output_dossier,
         provisioning_profile = provisioning_profile,
+        rule_label = rule_label,
         target_signs_with_entitlements = platform_prerequisites.platform.is_device,
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
     providers = [
         new_applecodesigningdossierinfo(
-            dossier = output_dossier,
+            dossier = dossier_file,
         ),
     ]
-    if dossier_info:
-        providers.append(
-            _AppleCodesigningDossierInfo(
-                embedded_dossiers = depset(direct = [dossier_info]),
+
+    # Propagate the internal provider for an embedded dossier if the bundle_location was set. This
+    # communicates down a need to embed this "embedded dossier" into the dossier generated by the
+    # parent target.
+    if bundle_location:
+        providers.append(_AppleCodesigningDossierInfo(
+            direct_embedded_dossier = struct(
+                bundle_location = bundle_location,
+                bundle_filename = bundle_name + bundle_extension,
+                dossier_file = dossier_file,
+                user_defined_location = False,
             ),
-        )
+        ))
 
     tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
 
@@ -309,7 +322,7 @@ def _codesigning_dossier_partial_impl(
         _create_combined_zip_artifact(
             actions = actions,
             bundletool = apple_xplat_toolchain_info.bundletool,
-            dossier_merge_zip = output_dossier,
+            dossier_merge_zip = dossier_file,
             input_archive = output_archive,
             output_combined_zip = output_combined_zip,
             output_discriminator = output_discriminator,
@@ -322,7 +335,7 @@ def _codesigning_dossier_partial_impl(
     return struct(
         output_groups = {
             "combined_dossier_zip": depset(combined_zip_files),
-            "dossier": depset([output_dossier]),
+            "dossier": depset([dossier_file]),
         },
         providers = providers,
     )
@@ -330,6 +343,7 @@ def _codesigning_dossier_partial_impl(
 def codesigning_dossier_partial(
         *,
         actions,
+        additional_contents = {},
         apple_mac_toolchain_info,
         mac_exec_group,
         apple_xplat_toolchain_info,
@@ -349,6 +363,8 @@ def codesigning_dossier_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      additional_contents: Additional contents to include in the codesigning dossier, which can have
+            user specified paths into the bundle.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       mac_exec_group: The exec_group associated with apple_mac_toolchain
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
@@ -374,6 +390,7 @@ def codesigning_dossier_partial(
     return partial.make(
         _codesigning_dossier_partial_impl,
         actions = actions,
+        additional_contents = additional_contents,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,

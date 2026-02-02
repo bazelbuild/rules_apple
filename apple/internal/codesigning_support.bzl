@@ -429,7 +429,7 @@ def _codesigning_command(
         provisioning_profile = provisioning_profile,
     )
 
-def _generate_codesigning_dossier_action(
+def _generate_dossier_file(
         *,
         actions,
         apple_fragment,
@@ -437,32 +437,36 @@ def _generate_codesigning_dossier_action(
         dossier_codesigningtool,
         embedded_dossiers,
         entitlements,
-        output_dossier,
-        label_name,
+        rule_label,
         mac_exec_group,
         provisioning_profile,
         target_signs_with_entitlements,
         xcode_config):
-    """Generates a codesigning dossier based on parameters.
+    """Generates an action for a codesigning dossier file based on parameters.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_fragment: The apple fragment from `ctx.fragments.apple` to use for the action.
       codesign_identity: The identity for the dossier to sign with.
       dossier_codesigningtool: The files_to_run for the code signing tool.
-      embedded_dossiers: An optional List of Structs generated from
-         `embedded_codesigning_dossier` that should also be included in this
-          dossier.
+      embedded_dossiers: An optional List of structs indicating which dossiers to embed in the
+          generated dossier. Each struct should have the following fields:
+            * relative_bundle_path: The path to the artifact to sign relative to the bundle root.
+            * dossier_file: The dossier zip file that provides context and inputs for signing.
       entitlements: Optional file representing the entitlements to sign with. May be `None`.
-      label_name: Name of the target being built.
       mac_exec_group: Th exec_group associated with dossier_codesigningtool.
-      output_dossier: The `File` representing the output dossier file - the zipped dossier will be
-          placed here.
       provisioning_profile: The provisioning profile file. May be `None`.
+      rule_label: The label of the rule being built.
       target_signs_with_entitlements: Whether the target platform needs signing with entitlements,
           which is true for non-simulator builds.
       xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+
+    Returns:
+      The `File` representing the generated dossier zip file.
     """
+    label_name = rule_label.name
+    dossier_file = actions.declare_file("%s_dossier.zip" % label_name)
+
     input_files = [x.dossier_file for x in embedded_dossiers]
 
     mnemonic = "GenerateCodesigningDossier"
@@ -470,7 +474,7 @@ def _generate_codesigning_dossier_action(
 
     args = actions.args()
     args.add("create")
-    args.add("--output-path", output_dossier)
+    args.add("--output-path", dossier_file)
 
     # Try to use the identity passed through, if any. Use the ad-hoc pseudo-identity if no identity
     # or provisioning profile is passed through.
@@ -517,10 +521,12 @@ def _generate_codesigning_dossier_action(
         },
         inputs = input_files,
         mnemonic = mnemonic,
-        outputs = [output_dossier],
+        outputs = [dossier_file],
         progress_message = progress_message,
         xcode_config = xcode_config,
     )
+
+    return dossier_file
 
 def _post_process_and_sign_archive_action(
         *,
@@ -763,22 +769,10 @@ def _sign_binary_action(
         exec_group = mac_exec_group,
     )
 
-def _embedded_codesigning_dossier(relative_bundle_path, dossier_file):
-    """Returns a struct describing a dossier to be embedded in another dossier.
-
-    Args:
-      dossier_file: The File representing the zipped dossier to be embedded.
-      relative_bundle_path: The string path of the artifact this dossier
-        describes relative to the root of the bundle it is embedded in.
-        E.g. 'PlugIns/NetworkExtension.appex'
-    """
-    return struct(relative_bundle_path = relative_bundle_path, dossier_file = dossier_file)
-
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
-    embedded_codesigning_dossier = _embedded_codesigning_dossier,
-    generate_codesigning_dossier_action = _generate_codesigning_dossier_action,
+    generate_dossier_file = _generate_dossier_file,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     preferred_codesigning_identity = _preferred_codesigning_identity,
     sign_binary_action = _sign_binary_action,
