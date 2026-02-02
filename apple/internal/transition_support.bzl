@@ -112,11 +112,13 @@ _WATCHOS_PLATFORM_TO_ENV_ARCH = {
     Label("//buildenv/platforms/apple/simulator:watchos_x86_64"): "x86_64",
 }
 
-# Set the default architecture for all platforms as 64-bit Intel.
-# TODO(b/246375874): Consider changing the default when a build is invoked from an Apple Silicon
-# Mac. The --host_cpu command line option is not guaranteed to reflect the actual host device that
-# dispatched the invocation.
-_DEFAULT_ARCH = "x86_64"
+_DEFAULT_ARCH = {
+    "ios": "sim_arm64",
+    "macos": "x86_64",
+    "tvos": "sim_arm64",
+    "visionos": "sim_arm64",
+    "watchos": "arm64",
+}
 
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
@@ -210,10 +212,7 @@ def _environment_archs(*, platform_type, minimum_os_version, settings):
                     settings = settings,
                 )
         if not environment_archs:
-            if platform_type == "visionos":
-                environment_archs = ["sim_arm64"]
-            else:
-                environment_archs = [_DEFAULT_ARCH]
+            environment_archs = [_DEFAULT_ARCH[platform_type]]
     return environment_archs
 
 def _cpu_string(*, environment_arch, platform_type, settings = {}):
@@ -245,35 +244,35 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         )
         if env_arch:
             return "ios_{}".format(env_arch)
-        return "ios_x86_64"
+        return "ios_{}".format(_DEFAULT_ARCH[platform_type])
     if platform_type == "macos":
         if environment_arch:
             return "darwin_{}".format(environment_arch)
         macos_cpus = settings["//command_line_option:macos_cpus"]
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
-        return "darwin_x86_64"
+        return "darwin_{}".format(_DEFAULT_ARCH[platform_type])
     if platform_type == "tvos":
         if environment_arch:
             return "tvos_{}".format(environment_arch)
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
-        return "tvos_x86_64"
+        return "tvos_{}".format(_DEFAULT_ARCH[platform_type])
     if platform_type == "visionos":
         if environment_arch:
             return "visionos_{}".format(environment_arch)
         visionos_cpus = settings["//command_line_option:visionos_cpus"]
         if visionos_cpus:
             return "visionos_{}".format(visionos_cpus[0])
-        return "visionos_sim_arm64"
+        return "visionos_{}".format(_DEFAULT_ARCH[platform_type])
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
-        return "watchos_x86_64"
+        return "watchos_{}".format(_DEFAULT_ARCH[platform_type])
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
 
@@ -772,7 +771,7 @@ def _xcframework_base_transition_impl(settings, attr):
     # underlying actions, and allow for toolchain resolution in the future.
     return _command_line_options(
         building_apple_bundle = False,
-        environment_arch = _DEFAULT_ARCH,
+        environment_arch = _DEFAULT_ARCH["macos"],
         features = requested_features,
         force_bundle_outputs = False,
         minimum_os_version = None,
