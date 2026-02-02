@@ -196,6 +196,9 @@ macos_application(
     name = "app_bundling_app",
     additional_contents = {
         ":app_basic_swift": "Helpers",
+        ":cmd_app_info_plists": "Helpers",
+        ":bundle": "PlugIns",
+        ":dylib": "Frameworks",
     },
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
@@ -596,10 +599,12 @@ macos_bundle(
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
     bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",

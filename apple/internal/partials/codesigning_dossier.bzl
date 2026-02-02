@@ -72,6 +72,7 @@ fields:
 # be updated to take the full bundle location into account, like processor.bzl does.
 _VALID_LOCATIONS_RELATIVE_CONTENTS = set([
     processor.location.app_clip,
+    processor.location.binary,
     processor.location.bundle,
     processor.location.extension,
     processor.location.framework,
@@ -92,6 +93,7 @@ def _location_map(rule_descriptor):
     resolved = rule_descriptor.bundle_locations
     return {
         processor.location.app_clip: resolved.contents_relative_app_clips,
+        processor.location.binary: resolved.contents_relative_binary,
         processor.location.bundle: "",
         processor.location.extension: resolved.contents_relative_extensions,
         processor.location.framework: resolved.contents_relative_frameworks,
@@ -212,21 +214,22 @@ def _codesigning_dossier_partial_impl(
         *,
         actions,
         additional_contents = {},
+        allow_combined_zip_output = True,
         apple_mac_toolchain_info,
-        mac_exec_group,
         apple_xplat_toolchain_info,
-        xplat_exec_group,
         bundle_extension,
         bundle_location = None,
         bundle_name,
         embedded_targets = [],
         entitlements = None,
+        mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         predeclared_outputs,
         provisioning_profile = None,
         rule_descriptor,
-        rule_label):
+        rule_label,
+        xplat_exec_group):
     """Implementation of codesigning_dossier_partial"""
 
     if bundle_location and bundle_location not in _VALID_LOCATIONS_RELATIVE_CONTENTS:
@@ -304,7 +307,7 @@ def _codesigning_dossier_partial_impl(
 
     combined_zip_files = []
 
-    if not tree_artifact_is_enabled:
+    if not tree_artifact_is_enabled and allow_combined_zip_output:
         # The combined zip is only created when the rule's output is a zip file; if it's a tree
         # artifact, we supply the bits necessary to create a combined zip in a downstream rule via
         # the contents of the AppleBundleArchiveSupportInfo provider.
@@ -344,37 +347,38 @@ def codesigning_dossier_partial(
         *,
         actions,
         additional_contents = {},
+        allow_combined_zip_output = True,
         apple_mac_toolchain_info,
-        mac_exec_group,
         apple_xplat_toolchain_info,
-        xplat_exec_group,
         bundle_extension,
         bundle_location = None,
         bundle_name,
         embedded_targets = [],
         entitlements = None,
+        mac_exec_group,
         rule_descriptor,
         rule_label,
         output_discriminator = None,
         platform_prerequisites,
         predeclared_outputs,
-        provisioning_profile = None):
+        provisioning_profile = None,
+        xplat_exec_group):
     """Creates a struct containing information for a codesigning dossier.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       additional_contents: Additional contents to include in the codesigning dossier, which can have
             user specified paths into the bundle.
+      allow_combined_zip_output: Whether or not to allow the creation of a combined zip output.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-      mac_exec_group: The exec_group associated with apple_mac_toolchain
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
       embedded_targets: The list of targets that propagate codesigning dossiers to bundle or
             propagate.
       entitlements: Optional entitlements for this bundle.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
@@ -382,6 +386,7 @@ def codesigning_dossier_partial(
       provisioning_profile: Optional File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the rule being built.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
 
     Returns:
       A partial that returns the codesigning dossier, if one was requested.
@@ -391,19 +396,20 @@ def codesigning_dossier_partial(
         _codesigning_dossier_partial_impl,
         actions = actions,
         additional_contents = additional_contents,
+        allow_combined_zip_output = allow_combined_zip_output,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        mac_exec_group = mac_exec_group,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        xplat_exec_group = xplat_exec_group,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,
         embedded_targets = embedded_targets,
         entitlements = entitlements,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
+        xplat_exec_group = xplat_exec_group,
     )

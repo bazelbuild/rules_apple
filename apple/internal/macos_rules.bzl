@@ -595,6 +595,7 @@ def _macos_bundle_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_location = processor.location.plugin,
             bundle_name = bundle_name,
+            entitlements = entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1402,7 +1403,23 @@ def _macos_command_line_application_impl(ctx):
         version = ctx.attr.version,
         xplat_exec_group = xplat_exec_group,
     )
-
+    codesigning_dossier_partial = partials.codesigning_dossier_partial(
+        actions = actions,
+        allow_combined_zip_output = False,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        bundle_location = processor.location.binary,
+        bundle_name = bundle_name,
+        entitlements = entitlements,
+        mac_exec_group = mac_exec_group,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+        xplat_exec_group = xplat_exec_group,
+    )
     processor_result = processor.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1413,7 +1430,7 @@ def _macos_command_line_application_impl(ctx):
         cc_configured_features = cc_configured_features,
         entitlements = None,  # Signing with entitlements in a separate action.
         mac_exec_group = mac_exec_group,
-        partials = [debug_outputs_partial],
+        partials = [debug_outputs_partial, codesigning_dossier_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1423,17 +1440,27 @@ def _macos_command_line_application_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
     output_file = actions.declare_file(label.name)
-    codesigning_support.sign_binary_action(
-        actions = actions,
-        entitlements = entitlements,
-        input_binary = binary_artifact,
-        mac_exec_group = mac_exec_group,
-        output_binary = output_file,
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-        codesigningtool = apple_mac_toolchain_info.codesigningtool,
-        rule_descriptor = rule_descriptor,
-    )
+    if "disable_legacy_signing" not in cc_configured_features.enabled_features:
+        codesigning_support.sign_binary_action(
+            actions = actions,
+            entitlements = entitlements,
+            input_binary = binary_artifact,
+            mac_exec_group = mac_exec_group,
+            output_binary = output_file,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
+            rule_descriptor = rule_descriptor,
+        )
+    else:
+        ctx.actions.run_shell(
+            inputs = [binary_artifact],
+            outputs = [output_file],
+            command = "cp -f \"$1\" \"$2\"",
+            arguments = [binary_artifact.path, output_file.path],
+            mnemonic = "CopyBinary",
+            progress_message = "Copying binary",
+        )
 
     runfiles = []
     if clang_rt_dylibs.should_package_clang_runtime(cc_configured_features = cc_configured_features):
@@ -1565,6 +1592,29 @@ def _macos_dylib_impl(ctx):
         version = None,
         xplat_exec_group = xplat_exec_group,
     )
+    codesigning_dossier_partial = partials.codesigning_dossier_partial(
+        actions = actions,
+        allow_combined_zip_output = False,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundle_extension = bundle_extension,
+        # When a dylib is embedded in another bundle, it must go into a "Frameworks" directory, and
+        # it must be signed with the parent bundle's provisioning profile. However, we do want to
+        # allow for signing the dylib when it is the sole output of a build; bundle_location = None
+        # allows for the dossier to be generated but not propagated to the parent bundle.
+        bundle_location = None,
+        bundle_name = bundle_name,
+        # dylibs do not need entitlements, as the entitlements are instead declared by the
+        # executable that loads the dylib.
+        entitlements = None,
+        mac_exec_group = mac_exec_group,
+        platform_prerequisites = platform_prerequisites,
+        predeclared_outputs = predeclared_outputs,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+        rule_label = label,
+        xplat_exec_group = xplat_exec_group,
+    )
 
     processor_result = processor.process(
         actions = actions,
@@ -1576,7 +1626,7 @@ def _macos_dylib_impl(ctx):
         cc_configured_features = cc_configured_features,
         entitlements = None,  # Signing with entitlements in a separate action.
         mac_exec_group = mac_exec_group,
-        partials = [debug_outputs_partial],
+        partials = [debug_outputs_partial, codesigning_dossier_partial],
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1586,17 +1636,27 @@ def _macos_dylib_impl(ctx):
         xplat_exec_group = xplat_exec_group,
     )
     output_file = actions.declare_file(label.name + ".dylib")
-    codesigning_support.sign_binary_action(
-        actions = actions,
-        entitlements = None,
-        input_binary = binary_artifact,
-        mac_exec_group = mac_exec_group,
-        output_binary = output_file,
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-        codesigningtool = apple_mac_toolchain_info.codesigningtool,
-        rule_descriptor = rule_descriptor,
-    )
+    if "disable_legacy_signing" not in cc_configured_features.enabled_features:
+        codesigning_support.sign_binary_action(
+            actions = actions,
+            entitlements = None,
+            input_binary = binary_artifact,
+            mac_exec_group = mac_exec_group,
+            output_binary = output_file,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
+            rule_descriptor = rule_descriptor,
+        )
+    else:
+        ctx.actions.run_shell(
+            inputs = [binary_artifact],
+            outputs = [output_file],
+            command = "cp -f \"$1\" \"$2\"",
+            arguments = [binary_artifact.path, output_file.path],
+            mnemonic = "CopyDylib",
+            progress_message = "Copying dylib",
+        )
 
     return [
         new_applebinaryinfo(
