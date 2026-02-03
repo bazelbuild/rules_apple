@@ -72,15 +72,21 @@ def _coverage_files_aspect_impl(target, ctx):
 
     # Collect dependencies coverage files.
     for dep in getattr(rule_attrs, "deps", []):
-        coverage_files.append(dep[_CoverageFilesInfo].coverage_files)
+        if _CoverageFilesInfo in dep:
+            coverage_files.append(dep[_CoverageFilesInfo].coverage_files)
 
     for fmwk in getattr(rule_attrs, "frameworks", []):
-        coverage_files.append(fmwk[_CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(fmwk[_CoverageFilesInfo].covered_binaries)
+        if _CoverageFilesInfo in fmwk:
+            coverage_files.append(fmwk[_CoverageFilesInfo].coverage_files)
+            transitive_binaries_sets.append(fmwk[_CoverageFilesInfo].covered_binaries)
 
-    if hasattr(rule_attrs, "test_host") and rule_attrs.test_host:
+    if (hasattr(rule_attrs, "test_host") and
+        rule_attrs.test_host and
+        _CoverageFilesInfo in rule_attrs.test_host):
         coverage_files.append(rule_attrs.test_host[_CoverageFilesInfo].coverage_files)
-        transitive_binaries_sets.append(rule_attrs.test_host[_CoverageFilesInfo].covered_binaries)
+        transitive_binaries_sets.append(
+            rule_attrs.test_host[_CoverageFilesInfo].covered_binaries,
+        )
 
     return [
         _CoverageFilesInfo(
@@ -296,7 +302,7 @@ def _apple_test_rule_impl(
     if test_host_artifact:
         direct_runfiles.append(test_host_artifact)
 
-    if ctx.configuration.coverage_enabled:
+    if ctx.configuration.coverage_enabled and _CoverageFilesInfo in test_bundle_target:
         covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
 
         execution_environment |= _get_coverage_execution_environment(
