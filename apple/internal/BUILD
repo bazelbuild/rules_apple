@@ -756,6 +756,7 @@ bzl_library(
         ":rule_attrs",
         ":rule_factory",
         ":rule_support",
+        ":run_support",
         ":stub_support",
         ":swift_support",
         "//apple:providers",
