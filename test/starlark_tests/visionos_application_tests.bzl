@@ -226,9 +226,7 @@ def visionos_application_test_suite(name):
                 "Contents/Info.plist",
             ],
         },
-        tags = [
-            name,
-        ],
+        tags = [name],
     )
 
     infoplist_contents_test(
