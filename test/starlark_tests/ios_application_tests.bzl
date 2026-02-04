@@ -237,9 +237,6 @@ All requested architectures must be either device or simulator architectures."""
 
     archive_contents_test(
         name = "{}_swift_embedded_span_compatibility_dylib_not_thinned_for_device".format(name),
-        build_settings = {
-            build_settings_labels.disable_swift_stdlib_binary_thinning: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
         cpus = {
@@ -256,9 +253,6 @@ All requested architectures must be either device or simulator architectures."""
     )
     archive_contents_test(
         name = "{}_swift_support_span_compatibility_dylib_not_thinned_for_device".format(name),
-        build_settings = {
-            build_settings_labels.disable_swift_stdlib_binary_thinning: "True",
-        },
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
         cpus = {

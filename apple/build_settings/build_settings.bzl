@@ -24,13 +24,6 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
-    "disable_swift_stdlib_binary_thinning": struct(
-        doc = """
-Disables binary thinning for Swift stdlib binaries, matching the most recent Xcode handling for
-Swift support dylibs.
-""",
-        default = True,
-    ),
     "force_plisttool_on_mac": struct(
         doc = """
 Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency
