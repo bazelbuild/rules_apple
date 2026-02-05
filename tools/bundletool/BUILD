@@ -3,6 +3,7 @@ licenses(["notice"])
 py_binary(
     name = "bundletool",
     srcs = ["bundletool.py"],
+    strict_deps = False,
     visibility = [
         "//apple/internal/toolchains:__subpackages__",
     ],

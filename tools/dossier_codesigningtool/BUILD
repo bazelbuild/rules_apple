@@ -6,6 +6,7 @@ licenses(["notice"])
 py_binary(
     name = "dossier_codesigning_reader",
     srcs = ["dossier_codesigning_reader.py"],
+    strict_deps = False,
     deps = [":dossier_codesigning_reader_lib"],
 )
 
