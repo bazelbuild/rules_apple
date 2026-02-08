@@ -74,7 +74,7 @@ metadata_file_list="{metadata_file_list}"
 static_metadata_files=({static_metadata_file_paths})
 : > "$metadata_file_list"
 for file in "${{static_metadata_files[@]}}"; do
-  printf '%s/%s\\n' "$PWD" "$file" >> "$metadata_file_list"
+  printf '%s/extract.actionsdata\\n' "$file" >> "$metadata_file_list"
 done
 """.format(
             metadata_file_list = metadata_file_list.path,
@@ -108,7 +108,7 @@ Could not find a module name for app_intents. One is required for App Intents me
         before_each = "--source-files",
     )
     if metadata_file_list:
-        args.add("--metadata-file-list", metadata_file_list.path)
+        args.add("--static-metadata-file-list", metadata_file_list.path)
     transitive_inputs = [depset(source_files)]
     if static_metadata_files:
         transitive_inputs.append(depset(static_metadata_files))

@@ -97,20 +97,15 @@ def _app_intents_metadata_bundle_partial_impl(
     first_cc_toolchain_key = cc_toolchains.keys()[0]
 
     per_dep_metadata_bundles = []
-    for idx, dep in enumerate(deps[first_cc_toolchain_key]):
-        intent_module_names = dep[AppIntentsInfo].intent_module_names
-        if not intent_module_names:
-            fail(
-                "Could not find a module name for app_intents in {}".format(dep.label),
-            )
+    for dep in deps[first_cc_toolchain_key]:
         per_dep_metadata_bundles.append(
             generate_app_intents_metadata_bundle(
                 actions = actions,
                 apple_fragment = platform_prerequisites.apple_fragment,
                 bundle_binary = fat_stub_binary,
                 constvalues_files = dep[AppIntentsInfo].swiftconstvalues_files,
-                intents_module_names = intent_module_names,
-                label = label.relative(intent_module_names[0]),
+                intents_module_names = dep[AppIntentsInfo].intent_module_names,
+                label = label.relative(dep[AppIntentsInfo].intent_module_names[0]),
                 static_metadata_files = [],
                 source_files = dep[AppIntentsInfo].swift_source_files,
                 target_triples = [
@@ -122,15 +117,30 @@ def _app_intents_metadata_bundle_partial_impl(
             ),
         )
 
+    # Merge multiple intent metadatas into a single.
+    dummy_source_file = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = "{}_app_intents_dummy_source.swift".format(label.name),
+    )
+    dummy_constvalues_file = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = "{}_app_intents_dummy_constvalues.swiftconstvalues".format(label.name),
+    )
+    actions.write(output = dummy_source_file, content = "")
+    actions.write(output = dummy_constvalues_file, content = "[]")
     metadata_bundle = generate_app_intents_metadata_bundle(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         bundle_binary = fat_stub_binary,
-        constvalues_files = [],
+        constvalues_files = [dummy_constvalues_file],
         intents_module_names = ["{}AppIntents".format(label.name)],
         label = label,
-        static_metadata_files = static_metadata_files + per_dep_metadata_bundles,
-        source_files = [],
+        static_metadata_files = per_dep_metadata_bundles,
+        source_files = [dummy_source_file],
         target_triples = [
             cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
             for cc_toolchain in cc_toolchains.values()
@@ -161,7 +171,6 @@ def app_intents_metadata_bundle_partial(
         features,
         label,
         platform_prerequisites,
-        static_metadata_files = [],
         json_tool):
     """Constructor for the AppIntents metadata bundle processing partial.
 
@@ -194,6 +203,5 @@ def app_intents_metadata_bundle_partial(
         features = features,
         label = label,
         platform_prerequisites = platform_prerequisites,
-        static_metadata_files = static_metadata_files,
         json_tool = json_tool,
     )
