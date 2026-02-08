@@ -41,7 +41,8 @@ def generate_app_intents_metadata_bundle(
         intents_module_names: List of Strings with the module names corresponding to the modules
             found which have intents compiled.
         label: Label for the current target (`ctx.label`).
-        dependency_metadata_bundles: List of Metadata.appintents bundles for dependency modules.
+        dependency_metadata_bundles: List of Metadata.appintents bundles of dependency modules, 
+            only works on Xcode 26+ toolchain.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
