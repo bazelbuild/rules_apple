@@ -117,7 +117,7 @@ def _app_intents_metadata_bundle_partial_impl(
                     xcode_version_config = platform_prerequisites.xcode_version_config,
                     json_tool = json_tool,
                 ),
-            )        
+            )
 
         # Merge multiple intent metadatas into a single.
         dummy_source_file = intermediates.file(
