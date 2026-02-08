@@ -1306,6 +1306,25 @@ watchos_application(
     ],
 )
 
+watchos_application(
+    name = "app_with_app_intent_and_widget_configuration_intent",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:widget_configuration_intent",
+    ],
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 
