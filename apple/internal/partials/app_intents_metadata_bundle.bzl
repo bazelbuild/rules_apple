@@ -105,7 +105,7 @@ def _app_intents_metadata_bundle_partial_impl(
                 bundle_binary = fat_stub_binary,
                 constvalues_files = dep[AppIntentsInfo].swiftconstvalues_files,
                 intents_module_names = dep[AppIntentsInfo].intent_module_names,
-                label = label.relative(dep[AppIntentsInfo].intent_module_names[0]),
+                label = label.relative(label.name + dep[AppIntentsInfo].intent_module_names[0]),
                 dependency_metadata_bundles = [],
                 source_files = dep[AppIntentsInfo].swift_source_files,
                 target_triples = [
