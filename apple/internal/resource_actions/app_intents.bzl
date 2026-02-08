@@ -25,7 +25,7 @@ def generate_app_intents_metadata_bundle(
         constvalues_files,
         intents_module_names,
         label,
-        static_metadata_files,
+        dependency_metadata_bundles,
         source_files,
         target_triples,
         xcode_version_config,
@@ -41,7 +41,7 @@ def generate_app_intents_metadata_bundle(
         intents_module_names: List of Strings with the module names corresponding to the modules
             found which have intents compiled.
         label: Label for the current target (`ctx.label`).
-        static_metadata_files: List of AppIntents metadata files for dependency modules.
+        dependency_metadata_bundles: List of Metadata.appintents bundles for dependency modules.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
@@ -59,27 +59,20 @@ def generate_app_intents_metadata_bundle(
         dir_name = "Metadata.appintents",
     )
 
-    metadata_file_list = None
-    metadata_file_list_setup = ""
-    if static_metadata_files:
-        metadata_file_list = intermediates.file(
+    static_metadata_file_list = None
+    if dependency_metadata_bundles:
+        static_metadata_file_list = intermediates.file(
             actions = actions,
             target_name = label.name,
             output_discriminator = None,
             file_name = "{}.DependencyStaticMetadataFileList".format(label.name),
         )
-        static_metadata_file_paths = [f.path for f in static_metadata_files]
-        metadata_file_list_setup = """\
-metadata_file_list="{metadata_file_list}"
-static_metadata_files=({static_metadata_file_paths})
-: > "$metadata_file_list"
-for file in "${{static_metadata_files[@]}}"; do
-  printf '%s/extract.actionsdata\\n' "$file" >> "$metadata_file_list"
-done
-""".format(
-            metadata_file_list = metadata_file_list.path,
-            static_metadata_file_paths = " ".join(static_metadata_file_paths),
-        )
+        
+        static_metadata_file_list_content = "\n".join([
+            "{}{}".format(f.path, "/extract.actionsdata")
+            for f in dependency_metadata_bundles
+        ]) + "\n"
+        actions.write(output = static_metadata_file_list, content = static_metadata_file_list_content)
 
     args = actions.args()
     args.add("/usr/bin/xcrun")
@@ -107,11 +100,12 @@ Could not find a module name for app_intents. One is required for App Intents me
         source_files,
         before_each = "--source-files",
     )
-    if metadata_file_list:
-        args.add("--static-metadata-file-list", metadata_file_list.path)
     transitive_inputs = [depset(source_files)]
-    if static_metadata_files:
-        transitive_inputs.append(depset(static_metadata_files))
+    if dependency_metadata_bundles:
+        transitive_inputs.append(depset(dependency_metadata_bundles))
+    if static_metadata_file_list:
+        args.add("--static-metadata-file-list", static_metadata_file_list.path)
+        transitive_inputs.append(depset([static_metadata_file_list]))
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     args.add_all(target_triples, before_each = "--target-triple")
     if xcode_version_config.xcode_version() >= apple_common.dotted_version("15.0"):
@@ -142,8 +136,6 @@ an issue with the Apple BUILD rules with repro steps.
         arguments = [args],
         command = '''\
 set -euo pipefail
-
-{metadata_file_list_setup}
 
 # sorts JSON file keys for deterministic output
 sort_json_file() {{
@@ -187,13 +179,12 @@ elif [[ "$output" == *"skipping writing output"* ]]; then
   exit 1
 fi
 '''.format(
-            metadata_file_list_setup = metadata_file_list_setup,
             output_dir = output.path,
             json_tool_path = json_tool_path,
         ),
         inputs = depset([bundle_binary], transitive = transitive_inputs),
         tools = [json_tool],
-        outputs = [output] + ([metadata_file_list] if metadata_file_list else []),
+        outputs = [output],
         mnemonic = "AppIntentsMetadataProcessor",
         xcode_config = xcode_version_config,
     )

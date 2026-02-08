@@ -106,7 +106,7 @@ def _app_intents_metadata_bundle_partial_impl(
                 constvalues_files = dep[AppIntentsInfo].swiftconstvalues_files,
                 intents_module_names = dep[AppIntentsInfo].intent_module_names,
                 label = label.relative(dep[AppIntentsInfo].intent_module_names[0]),
-                static_metadata_files = [],
+                dependency_metadata_bundles = [],
                 source_files = dep[AppIntentsInfo].swift_source_files,
                 target_triples = [
                     cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
@@ -139,7 +139,7 @@ def _app_intents_metadata_bundle_partial_impl(
         constvalues_files = [dummy_constvalues_file],
         intents_module_names = ["{}AppIntents".format(label.name)],
         label = label,
-        static_metadata_files = per_dep_metadata_bundles,
+        dependency_metadata_bundles = per_dep_metadata_bundles,
         source_files = [dummy_source_file],
         target_triples = [
             cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
@@ -186,7 +186,6 @@ def app_intents_metadata_bundle_partial(
         features: List of features to be enabled for C++ link actions.
         label: Label of the target being built.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        static_metadata_files: List of AppIntents metadata files for dependency modules.
         json_tool: A `files_to_run` wrapping Python's `json.tool` module
             (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
             JSON handling.
