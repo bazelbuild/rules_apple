@@ -19,6 +19,7 @@ py_library(
 py_test(
     name = "versiontool_unittest",
     srcs = ["versiontool_unittest.py"],
+    strict_deps = False,
     deps = [
         ":versiontool_lib",
     ],

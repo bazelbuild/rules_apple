@@ -19,6 +19,7 @@ py_library(
 py_test(
     name = "bundletool_test",
     srcs = ["bundletool_test.py"],
+    strict_deps = False,
     deps = [
         ":bundletool_lib",
     ],

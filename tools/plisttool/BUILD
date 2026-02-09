@@ -10,6 +10,7 @@ py_library(
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
+    strict_deps = False,
     deps = [
         ":plisttool_lib",
     ],

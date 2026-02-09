@@ -31,6 +31,7 @@ py_test(
         "//test/starlark_tests/targets_under_test/ios:app",
         "//test/starlark_tests/targets_under_test/watchos:app_companion",
     ],
+    strict_deps = False,
     deps = [
         ":dossier_codesigning_reader_lib",
         "@absl_py//absl/testing:parameterized",
