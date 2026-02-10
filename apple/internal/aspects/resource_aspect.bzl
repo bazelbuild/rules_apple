@@ -184,8 +184,21 @@ def _apple_resource_aspect_impl(target, ctx):
         default_action = apple_resource_hint_action.resources
         module_names = [x.name for x in target[SwiftInfo].direct_modules if x.swift]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
-        collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
+
+        # TODO: older versions of rules_swift used to have mixed_language_library
+        # with `data` attr, this remains for backward compatibility, but should be removed
+        # when our min rules_swift becomes 3.5+.
+        collect_args["res_attrs"] = ["data"]
+
+        # The mixed_language_library macro passes data to its clang_target and
+        # swift_target sub-targets. Collect their resource providers so resources
+        # propagate even when the rule itself does not have a data attribute.
+        for attr in ("clang_target", "swift_target"):
+            if hasattr(ctx.rule.attr, attr):
+                dep = getattr(ctx.rule.attr, attr)
+                if AppleResourceInfo in dep:
+                    apple_resource_infos.append(dep[AppleResourceInfo])
 
     elif ctx.rule.kind in ["apple_static_framework_import", "apple_static_xcframework_import"]:
         default_action = apple_resource_hint_action.resources
@@ -429,7 +442,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "implementation_deps", "private_deps", "resources", "structured_resources"],
+    attr_aspects = ["clang_target", "data", "deps", "implementation_deps", "private_deps", "resources", "structured_resources", "swift_target"],
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support.platform_constraint_attrs(),
