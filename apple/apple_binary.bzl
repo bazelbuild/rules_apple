@@ -15,6 +15,20 @@
 """Starlark implementation of `apple_binary` to transition from native Bazel."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
+)
+load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -30,6 +44,10 @@ load(
 load(
     "//apple/internal:rule_factory.bzl",
     "rule_factory",
+)
+load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "//apple/internal:transition_support.bzl",
@@ -63,11 +81,12 @@ visionOS binaries require a visionOS SDK provided by Xcode 15.1 beta or later.
 Resolved Xcode is version {xcode_version}.
 """.format(xcode_version = str(xcode_version_config.xcode_version())))
 
+    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     binary_type = ctx.attr.binary_type
     bundle_loader = ctx.attr.bundle_loader
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
     extra_linkopts = []
+    extra_requested_features = []
 
     if binary_type == "dylib":
         extra_linkopts.append("-dynamiclib")
@@ -76,6 +95,24 @@ Resolved Xcode is version {xcode_version}.
             "-bundle",
             "-Wl,-rpath,@loader_path/Frameworks",
         ])
+        extra_requested_features.append("link_bundle")
+
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+        extra_requested_features = extra_requested_features,
+    )
+    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+
+    rule_label = ctx.label
+    secure_features = ctx.attr.secure_features
+
+    # Check that the requested secure features are supported and enabled for the toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain_forwarder = cc_toolchain_forwarder,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
 
     extra_linkopts.extend([
         _linker_flag_for_sdk_dylib(dylib)
@@ -93,7 +130,10 @@ Resolved Xcode is version {xcode_version}.
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
+        bundle_name = rule_label.name,
+        cc_configured_features = cc_configured_features,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = None,
@@ -101,6 +141,7 @@ Resolved Xcode is version {xcode_version}.
         stamp = ctx.attr.stamp,
     )
     binary_artifact = link_result.binary
+    linking_contexts = [output.linking_context for output in link_result.outputs]
 
     providers = [
         DefaultInfo(
@@ -116,7 +157,6 @@ Resolved Xcode is version {xcode_version}.
             ctx,
             dependency_attributes = ["bundle_loader", "deps"],
         ),
-        link_result.debug_outputs_provider,
     ]
 
     # If the binary was an executable, also propagate the appropriate provider
@@ -125,7 +165,9 @@ Resolved Xcode is version {xcode_version}.
         providers.append(
             new_appleexecutablebinaryinfo(
                 binary = binary_artifact,
-                cc_info = link_result.cc_info,
+                binary_linking_context = cc_common.merge_linking_contexts(
+                    linking_contexts = linking_contexts,
+                ),
             ),
         )
 
@@ -147,6 +189,8 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
 """,
     implementation = _apple_binary_impl,
     attrs = [
+        apple_support.platform_constraint_attrs(),
+        apple_toolchain_utils.shared_attrs(),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
@@ -180,6 +224,12 @@ linking as if it were one of the dynamic libraries the bundle was linked with.
                 providers = [AppleExecutableBinaryInfo],
             ),
             "data": attr.label_list(allow_files = True),
+            "secure_features": attr.string_list(
+                doc = """
+A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
+this target.
+""",
+            ),
             "sdk_dylibs": attr.string_list(
                 allow_empty = True,
                 doc = """

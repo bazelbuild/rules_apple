@@ -148,13 +148,13 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   fi
 
   if [[ -n "${BINARY_NOT_CONTAINS_ARCHITECTURES-}" ]]; then
-    IFS=' ' found_archs=($(lipo -archs "$path"))
+    arch_found=false
     for arch in "${BINARY_NOT_CONTAINS_ARCHITECTURES[@]}"
     do
+      something_tested=true
+      found_archs=( $(lipo -archs "$path") )
       for found_arch in "${found_archs[@]}"
       do
-        something_tested=true
-        arch_found=false
         if [[ "$arch" == "$found_arch" ]]; then
           arch_found=true
           break
@@ -171,6 +171,20 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
     arch=$(eval echo "$BINARY_TEST_ARCHITECTURE")
     if [[ ! -n $arch ]]; then
       fail "No architecture specified for binary file at \"$path\""
+    fi
+
+    arch_found=false
+    found_archs=( $(lipo -archs "$path") )
+    for found_arch in "${found_archs[@]}"
+    do
+      if [[ "$arch" == "$found_arch" ]]; then
+        arch_found=true
+        break
+      fi
+    done
+    if [[ "$arch_found" = false ]]; then
+      fail "Could not find architecture \"$arch\". The architectures in the " \
+        "binary were:$newline${found_archs[@]}"
     fi
 
     # Filter out undefined symbols from the objdump mach-o symbol output and

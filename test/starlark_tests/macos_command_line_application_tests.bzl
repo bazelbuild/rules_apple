@@ -16,14 +16,17 @@
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_dsym_test",
+    "analysis_runfiles_dsymutil_bundle_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -162,11 +165,27 @@ def macos_command_line_application_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "cmd_app_basic.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         expected_direct_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
         expected_transitive_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        expected_direct_dsyms = ["cmd_app_basic.dSYM"],
+        expected_transitive_dsyms = ["cmd_app_basic.dSYM"],
         tags = [name],
     )
 
@@ -203,6 +222,15 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
+    analysis_runfiles_dsymutil_bundle_test(
+        name = "{}_runfiles_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM",
+        ],
+        tags = [name],
+    )
+
     binary_contents_test(
         name = "{}_version_plist_test".format(name),
         build_type = "device",
@@ -227,13 +255,13 @@ def macos_command_line_application_test_suite(name):
     )
 
     binary_contents_test(
-        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_with_base_bundle_id_derived_bundle_id",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_with_capability_set_derived_bundle_id",
         binary_test_file = "$BINARY",
         compilation_mode = "opt",
         embedded_plist_test_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.cmd-app-with-base-bundle-id-derived-bundle-id",
+            "CFBundleIdentifier": "com.bazel.app.example.cmd-app-with-capability-set-derived-bundle-id",
         },
         tags = [name],
     )
@@ -263,6 +291,17 @@ def macos_command_line_application_test_suite(name):
             "CFBundleShortVersionString": "1.2",
             "CFBundleVersion": "1.2.3",
         },
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_is_building_apple_bundle_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_to_test_building_apple_bundle",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "x86_64",
+        binary_contains_symbols = ["_IsNotBuildingAppleBundle"],
+        binary_not_contains_symbols = ["_IsBuildingAppleBundle"],
         tags = [name],
     )
 

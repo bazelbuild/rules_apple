@@ -18,6 +18,7 @@
 # their actions executed) when running `bazel test` to do analysis testing.
 _fixture_tags = [
     "manual",
+    "nobuilder",
     "notap",
 ]
 
@@ -27,38 +28,38 @@ _skip_ci_tags = [
     "skipci",
 ]
 
-# The current baseline for iOS is version 12.0, based on when the arm64e architecture was
-# introduced.
+# The current baseline for iOS is version 15.0, based on Xcode 16.0 on Apple's Xcode Support page:
+# https://developer.apple.com/support/xcode/
 _min_os_ios = struct(
     app_intents_support = "16.0",
-    appclip_support = "14.0",
-    arm_sim_support = "14.0",
-    baseline = "12.0",
-    concurrency_support = "13.0",
+    app_intents_package_support = "17.0",
+    baseline = "15.0",
     icon_bundle_required = "26.0",
-    oldest_supported = "11.0",
-    nplus1 = "13.0",
-    stable_swift_abi = "12.2",
+    oldest_supported = "15.0",
+    nplus1 = "16.0",
+    span_in_os = "26.0",
+    test_mismatch_high_threshold = "17.0",
     widget_configuration_intents_support = "16.0",
 )
 
 _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
+    concurrency_sleep_support = "10.15",
     baseline = "10.13",
     icon_bundle_required = "26.0",
     requires_concurrency_stdlib = "10.14",
     arm64_support_plus1 = "12.0",
 )
 
-# The current baseline for tvOS is version 12.0, based on when the arm64e architecture was
-# introduced.
+# The current baseline for tvOS is version 13.0, based on Xcode 15.3's minimum version for XCTest.
 _min_os_tvos = struct(
     app_intents_support = "16.0",
+    app_intents_package_support = "17.0",
     arm_sim_support = "14.0",
-    baseline = "12.0",
-    nplus1 = "13.0",
-    oldest_supported = "11.0",
+    baseline = "13.0",
+    oldest_supported = "12.0",
+    nplus1 = "14.0",
     stable_swift_abi = "12.2",
 )
 
@@ -69,15 +70,12 @@ _min_os_visionos = struct(
 
 _min_os_watchos = struct(
     app_intents_support = "9.0",
+    app_intents_package_support = "10.0",
     arm64_support = "9.0",
-    arm_sim_support = "7.0",
-    baseline = "4.0",
+    baseline = "8.0",
     icon_bundle_required = "26.0",
     requires_single_target_app = "9.0",
-    single_target_app = "7.0",
     requires_single_target_app_nplus1 = "10.0",
-    stable_swift_abi = "6.0",
-    test_runner_support = "7.4",
 )
 
 common = struct(

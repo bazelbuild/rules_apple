@@ -20,10 +20,12 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -69,11 +71,28 @@ def tvos_unit_test_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM",
+            "unit_test.xctest.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
         expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
         expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/unit_test.xctest.dSYM"],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_apple_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test",
+        expected_direct_dsyms = ["unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["app.app.dSYM", "unit_test.xctest.dSYM"],
         tags = [name],
     )
 

@@ -77,7 +77,7 @@ Typical usage:
 ```starlark
 watchos_build_test(
     name = "my_build_test",
-    minimum_os_version = "6.0",
+    minimum_os_version = "8.0",
     targets = [
         "//some/package:my_library",
     ],
