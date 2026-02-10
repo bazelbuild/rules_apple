@@ -1415,6 +1415,13 @@ swift_library(
 )
 
 swift_library(
+    name = "extra_app_intent",
+    srcs = ["extra_app_intent.swift"],
+    linkopts = ["-Wl,-framework,AppIntents"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "swift_concurrency_main_lib",
     srcs = ["concurrency_main.swift"],
     tags = common.fixture_tags,
