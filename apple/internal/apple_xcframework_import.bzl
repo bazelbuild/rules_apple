@@ -562,7 +562,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -571,7 +571,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = xcframework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = xcframework_library.swift_module_interface,
             ),
         )
@@ -639,7 +639,7 @@ def _apple_static_xcframework_import_impl(ctx):
     if xcframework.files_by_category.swift_interface_imports or \
        xcframework.files_by_category.swift_module_imports or \
        has_swift:
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -647,11 +647,11 @@ def _apple_static_xcframework_import_impl(ctx):
         # rare case that a binary has a Swift framework import dependency but
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
-        additional_cc_infos.extend(swift_toolchain.implicit_deps_providers.cc_infos)
+        additional_cc_infos.extend(swift_toolchains.swift.implicit_deps_providers.cc_infos)
 
         # TODO: remove this once rules_swift 3+ is required
-        if hasattr(swift_toolchain.implicit_deps_providers, "objc_infos"):
-            additional_objc_providers.extend(swift_toolchain.implicit_deps_providers.objc_infos)
+        if hasattr(swift_toolchains.swift.implicit_deps_providers, "objc_infos"):
+            additional_objc_providers.extend(swift_toolchains.swift.implicit_deps_providers.objc_infos)
 
     # Create Objc provider
     additional_objc_providers.extend([
@@ -696,7 +696,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -705,7 +705,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = xcframework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = xcframework_library.swift_module_interface,
             ),
         )
@@ -797,7 +797,7 @@ Unnecssary and ignored, will be removed in the future.
         CcInfo,
         AppleDynamicFrameworkInfo,
     ],
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
 
 apple_static_xcframework_import = rule(
@@ -927,5 +927,5 @@ Unnecssary and ignored, will be removed in the future.
         },
     ),
     fragments = ["apple", "cpp", "objc"],
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
