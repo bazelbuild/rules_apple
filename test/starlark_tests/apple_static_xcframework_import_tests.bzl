@@ -37,7 +37,7 @@ def apple_static_xcframework_import_test_suite(name):
     # Verify the dependent app target successfully builds
     archive_contents_test(
         name = "{}_swift_multi_level_static_xcframework".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_multi_level_static_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_swift_multi_level_static_xcframework",
         contains = ["$ARCHIVE_ROOT/Payload"],
         build_type = "simulator",
         tags = [name],

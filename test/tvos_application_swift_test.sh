@@ -33,6 +33,7 @@ function tear_down() {
 # individual tests (so that they can exercise different dependency structures).
 function create_minimal_tvos_application() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application")
 load("@build_bazel_rules_swift//swift:swift.bzl",
@@ -45,6 +46,11 @@ tvos_application(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -81,7 +87,7 @@ swift_library(
 )
 EOF
 
-    do_build tvos //app:app --define=apple.package_swift_support=no \
+    do_build tvos //app:ipa_app --define=apple.package_swift_support=no \
       || fail "Should build"
     assert_zip_contains "test-bin/app/app.ipa" \
         "Payload/app.app/Frameworks/libswiftCore.dylib"

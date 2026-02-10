@@ -46,6 +46,7 @@ def _archive(
 
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
     if tree_artifact_enabled:
         if bundle_name != label_name:
@@ -126,6 +127,7 @@ def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor)
     """Returns True if this target exposes a different archive when embedded in another target."""
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
     if tree_artifact_enabled:
         return False
