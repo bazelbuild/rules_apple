@@ -1118,11 +1118,6 @@ class EntitlementsTask(PlistToolTask):
         #
         # Set up the subs using the info extracted from the provisioning
         # profile:
-        # - "PREFIX.*" -> "PREFIX.BUNDLE_ID"
-        bundle_id = self.options.get('bundle_id')
-        if bundle_id:
-          self._extra_raw_subs['%s.*' % team_prefix] = '%s.%s' % (
-              team_prefix, bundle_id)
         # - "$(AppIdentifierPrefix)" -> "PREFIX."
         self._extra_var_subs['AppIdentifierPrefix'] = '%s.' % team_prefix
 
