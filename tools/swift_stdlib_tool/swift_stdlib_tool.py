@@ -91,7 +91,8 @@ def _binary_requires_bundled_swift_runtime(binary):
     stdout = stdout[match.endpos:]
 
 
-def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
+def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path,
+                        requires_bundled_swift_runtime):
   """Copies the Swift stdlibs required by the binaries to the destination."""
   # Rely on the swift-stdlib-tool to determine the subset of Swift stdlibs that
   # these binaries require.
@@ -127,17 +128,28 @@ def _copy_swift_stdlibs(binaries_to_scan, sdk_platform, destination_path):
   # is old enough that it may run on OS versions that lack the Swift runtime,
   # so we detect this scenario and remove the Swift runtime from the output
   # path.
-  if not any(
-      _binary_requires_bundled_swift_runtime(binary)
-      for binary in binaries_to_scan):
-    libswiftcore_path = os.path.join(destination_path, "libswiftCore.dylib")
-    if os.path.exists(libswiftcore_path):
-      os.remove(libswiftcore_path)
+  if not requires_bundled_swift_runtime:
+    if not any(
+        _binary_requires_bundled_swift_runtime(binary)
+        for binary in binaries_to_scan):
+      libswiftcore_path = os.path.join(destination_path, "libswiftCore.dylib")
+      if os.path.exists(libswiftcore_path):
+        os.remove(libswiftcore_path)
 
 
 def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
-                     destination_path):
+                     destination_path, disable_binary_thinning):
   """Strips executable files if needed and copies them to the destination."""
+  if disable_binary_thinning:
+    for exec_file in exec_files:
+      exec_file_source_path = os.path.join(source_path, exec_file)
+      exec_file_destination_path = os.path.join(destination_path, exec_file)
+      shutil.copy(exec_file_source_path, exec_file_destination_path)
+      os.chmod(exec_file_destination_path, 0o755)
+      if strip_bitcode:
+        bitcode_strip.invoke(exec_file_destination_path, exec_file_destination_path)
+    return
+
   # Find all architectures from the set of files we might have to lipo.
   _, exec_archs = lipo.find_archs_for_binaries(
       [os.path.join(source_path, f) for f in exec_files]
@@ -181,6 +193,15 @@ def main():
       "bitcode from the Swift support libraries"
   )
   parser.add_argument(
+      "--disable_binary_thinning", action="store_true", default=False,
+      help="disable thinning Swift support libraries with lipo"
+  )
+  parser.add_argument(
+      "--requires_bundled_swift_runtime", action="store_true", default=False,
+      help="force bundling the Swift runtime even if deployment target"
+      " suggests it's not needed"
+  )
+  parser.add_argument(
       "--output_path", type=str, required=True, help="path to save the Swift "
       "support libraries to"
   )
@@ -190,7 +211,8 @@ def main():
   temp_path = tempfile.mkdtemp(prefix="swift_stdlib_tool.XXXXXX")
 
   # Use the binaries to copy only the Swift stdlibs we need for this app.
-  _copy_swift_stdlibs(args.binary, args.platform, temp_path)
+  _copy_swift_stdlibs(args.binary, args.platform, temp_path,
+                      args.requires_bundled_swift_runtime)
 
   # Determine the binary slices we need to strip with lipo.
   target_archs, _ = lipo.find_archs_for_binaries(args.binary)
@@ -208,7 +230,7 @@ def main():
 
   # Copy or use lipo to strip the executable Swift stdlibs to their destination.
   _lipo_exec_files(stdlib_files, target_archs, args.strip_bitcode, temp_path,
-                   destination_path)
+                   destination_path, args.disable_binary_thinning)
 
   shutil.rmtree(temp_path)
 
