@@ -606,6 +606,16 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_ios_xcframework_bundling_static_fmwks"],
 )
 
+# Framework-style static xcframework with includes attribute for testing include path resolution.
+# Unlike library-style xcframeworks where the binary is directly in the platform dir,
+# framework-style xcframeworks have the binary inside a .framework bundle.
+apple_static_xcframework_import(
+    name = "ios_imported_xcframework_bundling_static_fmwks_with_includes",
+    includes = ["Headers"],
+    tags = ["manual"],
+    xcframework_imports = [":generated_ios_xcframework_bundling_static_fmwks"],
+)
+
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework_with_module_map",
     tags = ["manual"],
