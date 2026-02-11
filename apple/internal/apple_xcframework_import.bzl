@@ -601,6 +601,7 @@ def _generate_empty_dylib(
         actions,
         apple_fragment,
         apple_mac_toolchain_info,
+        bundle_name,
         framework_info_plist,
         label,
         mac_exec_group,
@@ -612,6 +613,7 @@ def _generate_empty_dylib(
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        bundle_name: The name of the framework bundle.
         framework_info_plist: The Info.plist file to base the generated framework binary path on and
             to use for the empty dylib.
         label: Label of the target being built.
@@ -644,6 +646,7 @@ such as a static framework or a framework with mergeable libraries.
         ),
     )
 
+    args.add("--framework-bundle-name", bundle_name)
     args.add("--platform", target_triplet.os)
     args.add("--architecture", target_triplet.architecture)
     args.add("--environment", target_triplet.environment)
@@ -888,6 +891,7 @@ def _apple_static_xcframework_import_impl(ctx):
             actions = actions,
             apple_fragment = apple_fragment,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_name = xcframework.bundle_name,
             framework_info_plist = xcframework_library.framework_info_plist,
             label = label,
             mac_exec_group = mac_exec_group,
