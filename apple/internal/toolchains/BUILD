@@ -53,6 +53,7 @@ apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
+    bundletool_swift = "//tools:prebuilt_bundletool_swift",
     plisttool = "//tools:prebuilt_plisttool",
     versiontool = "//tools/versiontool",
 )
