@@ -101,6 +101,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":intermediates",
         ":providers",
         "@build_bazel_apple_support//lib:apple_support",
     ],

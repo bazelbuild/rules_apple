@@ -111,8 +111,8 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:bundling_support",
         "//apple/internal:codesigning_support",
-        "//apple/internal:intermediates",
         "//apple/internal:outputs",
         "//apple/internal:processor",
         "//apple/internal:providers",

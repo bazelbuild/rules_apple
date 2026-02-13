@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
@@ -302,6 +306,104 @@ def _ensure_single_xcassets_type(
         message = message,
     )
 
+def _generate_bundle_archive_action(
+        *,
+        actions,
+        apple_xplat_toolchain_info,
+        bundletool_inputs,
+        control_file_name,
+        control_merge_files = [],
+        control_merge_zips = [],
+        max_cumulative_uncompressed_size = None,
+        mnemonic,
+        output_archive,
+        output_discriminator,
+        progress_message,
+        label_name,
+        test_output_zip_crc32 = True,
+        xplat_exec_group):
+    """Generates an action that creates a archive for a bundle rule output.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+      bundletool_inputs: A depset of files to pass to the bundletool.
+      control_file_name: The name of the control file to generate.
+      control_merge_files: A list of structs representing files that should be merged into the
+          bundle. Each struct contains two fields: "src", the path of the file that should be merged
+          into the bundle; and "dest", the path inside the bundle where the file should be placed.
+          The destination path is relative to the bundle root.
+      control_merge_zips: A list of structs representing ZIP archives whose contents should be
+          merged into the bundle. Each struct contains two fields: "src", the path of the archive
+          whose contents should be merged into the bundle; and "dest", the path inside the bundle
+          where the ZIPs contents should be placed. The destination path is relative to the bundle
+          root.
+      label_name: Name of the target being built.
+      max_cumulative_uncompressed_size: The maximum cumulative uncompressed size of the bundle in
+          bytes. If "None", no limit will be enforced.
+      mnemonic: A String. The mnemonic to use for the action.
+      output_archive: A File referencing the output archive.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+      progress_message: A String. The progress message to use for the action.
+      test_output_zip_crc32: A boolean. Whether to perform an extra validation pass on the output
+          archive to ensure that all uncompressed files within in match the CRC32 checksums in the
+          archive file (PKZIP validation).
+      xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
+    """
+    force_python_bundletool = False
+    if apple_xplat_toolchain_info.build_settings.force_python_bundletool:
+        force_python_bundletool = True
+
+    args = actions.args()
+    if not force_python_bundletool:
+        args.add("archive")
+
+    control_file = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = control_file_name,
+    )
+    args.add(control_file.path)
+
+    additional_control_options = {}
+    if force_python_bundletool:
+        executable = apple_xplat_toolchain_info.bundletool
+        if max_cumulative_uncompressed_size and max_cumulative_uncompressed_size > 0:
+            additional_control_options["enable_zip64_support"] = False
+        else:
+            additional_control_options["enable_zip64_support"] = True
+    else:
+        executable = apple_xplat_toolchain_info.bundletool_swift
+        if max_cumulative_uncompressed_size:
+            additional_control_options["max_cumulative_uncompressed_size"] = (
+                max_cumulative_uncompressed_size
+            )
+        additional_control_options["test_output_zip_crc32"] = test_output_zip_crc32
+
+    control = struct(
+        bundle_merge_files = control_merge_files,
+        bundle_merge_zips = control_merge_zips,
+        output = output_archive.path,
+        **additional_control_options
+    )
+    actions.write(
+        output = control_file,
+        content = json.encode(control),
+    )
+
+    bundletool_final_inputs = depset([control_file], transitive = [bundletool_inputs])
+    actions.run(
+        arguments = [args],
+        executable = executable.files_to_run,
+        exec_group = xplat_exec_group,
+        inputs = bundletool_final_inputs,
+        mnemonic = mnemonic,
+        outputs = [output_archive],
+        progress_message = progress_message,
+    )
+
 def _generate_tree_artifact_bundle_action(
         *,
         actions,
@@ -461,6 +563,7 @@ bundling_support = struct(
     bundle_full_id = _bundle_full_id,
     ensure_asset_catalog_files_not_in_xcassets = _ensure_asset_catalog_files_not_in_xcassets,
     ensure_single_xcassets_type = _ensure_single_xcassets_type,
+    generate_bundle_archive_action = _generate_bundle_archive_action,
     generate_tree_artifact_bundle_action = _generate_tree_artifact_bundle_action,
     validate_bundle_id = _validate_bundle_id,
 )

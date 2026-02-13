@@ -23,12 +23,12 @@ load(
     "paths",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
-    "codesigning_support",
+    "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
+    "bundling_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
@@ -147,7 +147,7 @@ def _embedded_codesign_dossiers_from_dossier_infos(
 def _create_combined_zip_artifact(
         *,
         actions,
-        bundletool,
+        apple_xplat_toolchain_info,
         dossier_merge_zip,
         input_archive,
         output_combined_zip,
@@ -158,7 +158,7 @@ def _create_combined_zip_artifact(
 
      Args:
       actions: The actions provider from `ctx.actions`.
-      bundletool: A bundle tool from xplat toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       dossier_merge_zip: A File referencing the generated code sign dossier zip.
       input_archive: A File referencing the rule's output archive (IPA or zipped app).
       output_combined_zip: A File referencing where the combined dossier zip should be written to.
@@ -167,47 +167,26 @@ def _create_combined_zip_artifact(
       rule_label: Name of the target being built.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
-    bundletool_control_file = intermediates.file(
-        actions = actions,
-        target_name = rule_label.name,
-        output_discriminator = output_discriminator,
-        file_name = "combined_zip_bundletool_control.json",
-    )
-
     combined_zip_archive_zips = [
         struct(src = input_archive.path, dest = "bundle"),
         struct(src = dossier_merge_zip.path, dest = "dossier"),
     ]
-    enable_zip64_support = False
+    label_name = rule_label.name
 
-    bundletool_control = struct(
-        bundle_merge_zips = combined_zip_archive_zips,
-        enable_zip64_support = enable_zip64_support,
-        output = output_combined_zip.path,
-    )
-
-    actions.write(
-        output = bundletool_control_file,
-        content = json.encode(bundletool_control),
-    )
-
-    common_combined_dossier_zip_args = {
-        "mnemonic": "CreateCombinedDossierZip",
-        "outputs": [output_combined_zip],
-        "progress_message": "Creating combined dossier zip for %s" % rule_label.name,
-    }
-
-    actions.run(
-        arguments = [bundletool_control_file.path],
-        executable = bundletool.files_to_run,
-        inputs = depset(
-            direct = [bundletool_control_file],
-            transitive = [
-                depset([input_archive, dossier_merge_zip]),
-            ],
-        ),
-        exec_group = xplat_exec_group,
-        **common_combined_dossier_zip_args
+    max_cumulative_uncompressed_size = None
+    bundling_support.generate_bundle_archive_action(
+        actions = actions,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        bundletool_inputs = depset([input_archive, dossier_merge_zip]),
+        control_file_name = "combined_zip_bundletool_control.json",
+        control_merge_zips = combined_zip_archive_zips,
+        label_name = label_name,
+        max_cumulative_uncompressed_size = max_cumulative_uncompressed_size,
+        mnemonic = "CreateCombinedDossierZip",
+        output_archive = output_combined_zip,
+        output_discriminator = output_discriminator,
+        progress_message = "Creating combined dossier zip for %s" % label_name,
+        xplat_exec_group = xplat_exec_group,
     )
 
 def _codesigning_dossier_partial_impl(
@@ -324,7 +303,7 @@ def _codesigning_dossier_partial_impl(
 
         _create_combined_zip_artifact(
             actions = actions,
-            bundletool = apple_xplat_toolchain_info.bundletool,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             dossier_merge_zip = dossier_file,
             input_archive = output_archive,
             output_combined_zip = output_combined_zip,

@@ -356,16 +356,16 @@ Please file a bug against the Apple BUILD rules with repro steps.
     else:
         control_file_name = "bundletool_control.json"
 
-    control_file = intermediates.file(
-        actions = actions,
-        target_name = label_name,
-        output_discriminator = output_discriminator,
-        file_name = control_file_name,
-    )
-
-    bundletool_inputs = input_files + [control_file] + extra_input_files
+    bundletool_inputs = input_files + extra_input_files
 
     if tree_artifact_is_enabled:
+        control_file = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = output_discriminator,
+            file_name = control_file_name,
+        )
+        bundletool_inputs.append(control_file)
         control = struct(
             bundle_merge_files = control_files,
             bundle_merge_zips = control_zips,
@@ -400,25 +400,21 @@ Please file a bug against the Apple BUILD rules with repro steps.
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
-        control = struct(
-            bundle_merge_files = control_files,
-            bundle_merge_zips = control_zips,
-            enable_zip64_support = False,
-            output = output_file.path,
-        )
-        actions.write(
-            output = control_file,
-            content = json.encode(control),
-        )
-        bundletool = apple_xplat_toolchain_info.bundletool
-        actions.run(
-            arguments = [control_file.path],
-            executable = bundletool.files_to_run,
-            exec_group = xplat_exec_group,
-            inputs = depset(bundletool_inputs),
+        max_cumulative_uncompressed_size = None
+        bundling_support.generate_bundle_archive_action(
+            actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundletool_inputs = depset(bundletool_inputs),
+            control_file_name = control_file_name,
+            control_merge_files = control_files,
+            control_merge_zips = control_zips,
+            label_name = label_name,
+            max_cumulative_uncompressed_size = max_cumulative_uncompressed_size,
             mnemonic = "BundleApp",
-            outputs = [output_file],
+            output_archive = output_file,
+            output_discriminator = output_discriminator,
             progress_message = "Bundling %s" % label_name,
+            xplat_exec_group = xplat_exec_group,
         )
 
 def _bundle_post_process_and_sign(

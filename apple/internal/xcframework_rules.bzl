@@ -1144,15 +1144,16 @@ def _create_xcframework_bundle(
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
         xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
-    bundletool_control_file = intermediates.file(
-        actions = actions,
-        target_name = label_name,
-        output_discriminator = None,
-        file_name = "xcframework_bundletool_control.json",
-    )
+    control_file_name = "xcframework_bundletool_control.json"
     root_info_plist_merge_file = struct(src = root_info_plist.path, dest = "Info.plist")
 
     if tree_artifact_is_enabled:
+        bundletool_control_file = intermediates.file(
+            actions = actions,
+            target_name = label_name,
+            output_discriminator = None,
+            file_name = control_file_name,
+        )
         final_bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files
         bundletool_control = struct(
             bundle_merge_files = final_bundle_merge_files,
@@ -1195,28 +1196,23 @@ def _create_xcframework_bundle(
             )
             for z in framework_archive_merge_zips
         ]
-        bundletool_control = struct(
-            bundle_merge_files = final_bundle_merge_files,
-            bundle_merge_zips = final_bundle_merge_zips,
-            enable_zip64_support = True,
-            output = output_archive.path,
-        )
-        actions.write(
-            output = bundletool_control_file,
-            content = json.encode(bundletool_control),
-        )
-        bundletool = apple_xplat_toolchain_info.bundletool
-        actions.run(
-            arguments = [bundletool_control_file.path],
-            executable = bundletool.files_to_run,
-            exec_group = xplat_exec_group,
-            inputs = depset(
-                direct = [bundletool_control_file, root_info_plist],
+        bundling_support.generate_bundle_archive_action(
+            actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundletool_inputs = depset(
+                direct = [root_info_plist],
                 transitive = framework_archive_files,
             ),
+            control_file_name = control_file_name,
+            control_merge_files = final_bundle_merge_files,
+            control_merge_zips = final_bundle_merge_zips,
+            label_name = label_name,
+            max_cumulative_uncompressed_size = None,
             mnemonic = "CreateXCFrameworkBundle",
-            outputs = [output_archive],
+            output_archive = output_archive,
+            output_discriminator = None,
             progress_message = "Bundling %s" % label_name,
+            xplat_exec_group = xplat_exec_group,
         )
 
 def _create_xcframework_codesigning_dossier(

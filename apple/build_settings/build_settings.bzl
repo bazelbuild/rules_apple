@@ -33,6 +33,12 @@ Apple BUILD rule maintainers.
 """,
         default = False,
     ),
+    "force_python_bundletool": struct(
+        doc = """
+Use the Python version of `bundletool`, rather than the Swift version.
+""",
+        default = True,
+    ),
     "signing_certificate_name": struct(
         doc = """
 Declare a code signing identity, to be used in all code signing flows related to the rules.
