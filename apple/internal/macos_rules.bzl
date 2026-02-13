@@ -1658,6 +1658,12 @@ def _macos_dylib_impl(ctx):
             progress_message = "Copying dylib",
         )
 
+    runfiles = [output_file]
+    if clang_rt_dylibs.should_package_clang_runtime(
+        cc_configured_features = cc_configured_features,
+    ):
+        runfiles.extend(clang_rt_dylibs.get_from_toolchain(ctx))
+
     return [
         new_applebinaryinfo(
             archs = sorted([
@@ -1670,10 +1676,13 @@ def _macos_dylib_impl(ctx):
             product_type = rule_descriptor.product_type,
             target_environment = platform_prerequisites.target_environment,
         ),
-        DefaultInfo(files = depset(transitive = [
-            depset([output_file]),
-            processor_result.output_files,
-        ])),
+        DefaultInfo(
+            files = depset(transitive = [
+                depset([output_file]),
+                processor_result.output_files,
+            ]),
+            runfiles = ctx.runfiles(files = runfiles),
+        ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
