@@ -55,6 +55,7 @@ apple_xplat_tools_toolchain(
     bundletool = "//tools/bundletool",
     bundletool_swift = "//tools:prebuilt_bundletool_swift",
     plisttool = "//tools:prebuilt_plisttool",
+    verifystringstool = "//tools:prebuilt_verifystringstool_swift",
     versiontool = "//tools/versiontool",
 )
 

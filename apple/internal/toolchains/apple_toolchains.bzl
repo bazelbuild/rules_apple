@@ -128,6 +128,9 @@ from requesting or disabling features.
 The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
+        "verifystringstool": """\
+The files_to_run for a tool to verify that all strings files have the same top-level keys.
+""",
         "versiontool": """\
 A tool that acts as a wrapper for xcrun actions.
 """,
@@ -282,6 +285,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         bundletool_swift = ctx.attr.bundletool_swift,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
+        verifystringstool = ctx.attr.verifystringstool.files_to_run,
         versiontool = ctx.attr.versiontool,
     )
 
@@ -328,6 +332,13 @@ requesting or disabling features.
             doc = """
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
 conversion of plist files to binary format.
+""",
+        ),
+        "verifystringstool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool for verifying that all strings files have the same top-level keys.
 """,
         ),
         "versiontool": attr.label(
