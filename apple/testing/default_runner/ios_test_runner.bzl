@@ -56,7 +56,7 @@ def _ios_test_runner_impl(ctx):
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
-    runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+    runfiles = ctx.attr.simulator_creator[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"

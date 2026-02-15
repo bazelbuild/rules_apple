@@ -93,7 +93,7 @@ def _ios_xctestrun_runner_impl(ctx):
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable._simulator_creator.short_path,
+            simulator_creator = ctx.executable.simulator_creator.short_path,
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
