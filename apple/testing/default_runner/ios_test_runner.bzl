@@ -80,7 +80,7 @@ def _ios_test_runner_impl(ctx):
         substitutions = _get_template_substitutions(
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable._simulator_creator.short_path,
+            simulator_creator = ctx.executable.simulator_creator.short_path,
             testrunner = ctx.executable._testrunner.short_path,
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
@@ -136,6 +136,19 @@ Optional dictionary with the environment variables that are to be propagated
 into the XCTest invocation.
 """,
         ),
+        "simulator_creator": attr.label(
+            default = Label("//apple/testing/default_runner:simulator_creator"),
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary that produces a UDID for a simulator that matches the given device type and OS version. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout. This is only invoked when the `$REUSE_GLOBAL_SIMULATOR` environment variable is set.
+
+When executed, the binary will have the following environment variables available to it:
+
+- `SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.
+- `SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.
+""",
+        ),
         "pre_action": attr.label(
             executable = True,
             cfg = "exec",
@@ -172,13 +185,6 @@ When true, the exit code of the test run will be set to the exit code of the pos
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.
 """,
-        ),
-        "_simulator_creator": attr.label(
-            default = Label(
-                "//apple/testing/default_runner:simulator_creator",
-            ),
-            executable = True,
-            cfg = "exec",
         ),
         "_xcode_config": attr.label(
             default = configuration_field(

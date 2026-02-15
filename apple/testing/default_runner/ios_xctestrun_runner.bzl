@@ -32,7 +32,7 @@ def _get_template_substitutions(
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
-        "simulator_creator.py": simulator_creator,
+        "simulator_creator": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
@@ -69,7 +69,7 @@ def _ios_xctestrun_runner_impl(ctx):
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,
         ctx.file._xctrunner_entitlements_template,
-    ]).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles)
+    ]).merge(ctx.attr.simulator_creator[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -184,6 +184,21 @@ or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult out
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
 """,
         ),
+        "simulator_creator": attr.label(
+            default = Label("//apple/testing/default_runner:simulator_creator"),
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary that produces a UDID for a simulator that matches the given device type and OS version. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
+
+When executed, the binary will have the following environment variables available to it:
+
+- `SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.
+- `SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.
+- `SIMULATOR_NAME`: The name of the simulator to create. Useful for debugging and reuse scenarios, but otherwise an implementation detail of the simulator creator tool and not a requirement.
+- `SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.
+""",
+        ),
         "pre_action": attr.label(
             executable = True,
             cfg = "exec",
@@ -203,13 +218,6 @@ A binary to run following test execution. Runs after testing but before test res
             doc = """
 When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
 """,
-        ),
-        "_simulator_creator": attr.label(
-            default = Label(
-                "//apple/testing/default_runner:simulator_creator",
-            ),
-            executable = True,
-            cfg = "exec",
         ),
         "_test_template": attr.label(
             default = Label(

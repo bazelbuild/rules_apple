@@ -395,24 +395,15 @@ fi
 
 readonly profraw="$test_tmp_dir/coverage.profraw"
 
-simulator_creator_args=(
-  "%(os_version)s" \
-  "%(device_type)s" \
-  --name "$simulator_name"
-)
-
-reuse_simulator=%(reuse_simulator)s
-if [[ "$reuse_simulator" == true ]]; then
-  simulator_creator_args+=(--reuse-simulator)
+if [[ "%(reuse_simulator)s" == true ]]; then
+  reuse_simulator=1
 else
-  simulator_creator_args+=(--no-reuse-simulator)
+  reuse_simulator=
 fi
 
 simulator_id="unused"
 if [[ "$build_for_device" == false ]]; then
-  simulator_id="$("./%(simulator_creator.py)s" \
-    "${simulator_creator_args[@]}"
-  )"
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_NAME="${simulator_name:-}" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(simulator_creator)s")"
 fi
 
 test_exit_code=0

@@ -15,6 +15,7 @@
 
 import argparse
 import json
+import os
 import random
 import string
 import subprocess
@@ -52,7 +53,7 @@ def _boot_simulator(simulator_id: str) -> None:
                     for blob in devices_for_os
                     if blob["udid"] == simulator_id
                 ),
-                None
+                None,
             )
             if device and device["state"].lower() == "booted":
                 print(
@@ -85,13 +86,77 @@ def _device_name(device_type: str, os_version: str) -> str:
     return f"BAZEL_TEST_{device_type}_{os_version}"
 
 
+def _create_and_boot_simulator(
+    os_version: str,
+    device_type: str,
+    name: Optional[str],
+    reuse_simulator: bool,
+) -> str:
+    devices = json.loads(_simctl(["list", "devices", "-j"]))["devices"]
+    device_name = name or _device_name(device_type, os_version)
+    runtime_identifier = "com.apple.CoreSimulator.SimRuntime.iOS-{}".format(
+        os_version.replace(".", "-")
+    )
+
+    existing_device = None
+
+    if reuse_simulator:
+        devices_for_os = devices.get(runtime_identifier) or []
+        existing_device = next(
+            (blob for blob in devices_for_os if blob["name"] == device_name), None
+        )
+
+    if existing_device:
+        simulator_id = existing_device["udid"]
+        name = existing_device["name"]
+        # If the device is already booted assume that it was created with this
+        # script and bootstatus has already waited for it to be in a good state
+        # once
+        state = existing_device["state"].lower()
+        print(
+            f"Existing simulator '{name}' ({simulator_id}) state is: {state}",
+            file=sys.stderr,
+        )
+        if state != "booted":
+            _boot_simulator(simulator_id)
+    else:
+        if not reuse_simulator:
+            # Simulator reuse is based on device name, therefore we must generate a unique name to
+            # prevent unintended reuse.
+            device_name_suffix = "".join(
+                random.choices(string.ascii_letters + string.digits, k=8)
+            )
+            device_name += f"_{device_name_suffix}"
+
+        simulator_id = _simctl(
+            ["create", device_name, device_type, runtime_identifier]
+        ).strip()
+        print(
+            f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr
+        )
+        _boot_simulator(simulator_id)
+
+    return simulator_id.strip()
+
+
+class Namespace(argparse.Namespace):
+    os_version: Optional[str]
+    device_type: Optional[str]
+    simulator_name: Optional[str]
+    reuse_simulator: bool
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "os_version", help="The iOS version to run the tests on, ex: 12.1"
+        "os_version",
+        required=False,
+        help="The iOS version to run the tests on, ex: 12.1",
     )
     parser.add_argument(
-        "device_type", help="The iOS device to run the tests on, ex: iPhone X"
+        "device_type",
+        required=False,
+        help="The iOS device to run the tests on, ex: iPhone X",
     )
     parser.add_argument(
         "--name",
@@ -108,47 +173,33 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(os_version: str, device_type: str, name: Optional[str], reuse_simulator: bool) -> None:
-    devices = json.loads(_simctl(["list", "devices", "-j"]))["devices"]
-    device_name = name or _device_name(device_type, os_version)
-    runtime_identifier = "com.apple.CoreSimulator.SimRuntime.iOS-{}".format(
-        os_version.replace(".", "-")
+def _main() -> None:
+    parser = _build_parser()
+
+    args = parser.parse_args(namespace=Namespace)
+
+    os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
+    device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
+    simulator_name = args.simulator_name or os.getenv("SIMULATOR_NAME")
+    reuse_simulator: bool = args.reuse_simulator or (
+        os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
-    existing_device=None
-
-    if reuse_simulator:
-        devices_for_os = devices.get(runtime_identifier) or []
-        existing_device = next(
-            (blob for blob in devices_for_os if blob["name"] == device_name), None
+    if not os_version:
+        parser.error(
+            "OS version must be provided either as an argument or through the SIMULATOR_OS_VERSION environment variable"
+        )
+    if not device_type:
+        parser.error(
+            "Device type must be provided either as an argument or through the SIMULATOR_DEVICE_TYPE environment variable"
         )
 
-    if existing_device:
-        simulator_id = existing_device["udid"]
-        name = existing_device["name"]
-        # If the device is already booted assume that it was created with this
-        # script and bootstatus has already waited for it to be in a good state
-        # once
-        state = existing_device["state"].lower()
-        print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
-        if state != "booted":
-            _boot_simulator(simulator_id)
-    else:
-        if not reuse_simulator:
-            # Simulator reuse is based on device name, therefore we must generate a unique name to
-            # prevent unintended reuse.
-            device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-            device_name += f"_{device_name_suffix}"
-
-        simulator_id = _simctl(
-            ["create", device_name, device_type, runtime_identifier]
-        ).strip()
-        print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
-        _boot_simulator(simulator_id)
+    simulator_id = _create_and_boot_simulator(
+        os_version, device_type, simulator_name, reuse_simulator
+    )
 
     print(simulator_id.strip())
 
 
 if __name__ == "__main__":
-    args = _build_parser().parse_args()
-    _main(args.os_version, args.device_type, args.name, args.reuse_simulator)
+    _main()
