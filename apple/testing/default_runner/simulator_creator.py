@@ -176,7 +176,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def _main() -> None:
     parser = _build_parser()
 
-    args = parser.parse_args(namespace=Namespace)
+    args = parser.parse_args(namespace=Namespace())
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
