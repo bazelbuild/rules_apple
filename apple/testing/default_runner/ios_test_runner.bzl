@@ -145,8 +145,10 @@ A binary that produces a UDID for a simulator that matches the given device type
 
 When executed, the binary will have the following environment variables available to it:
 
-- `SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.
-- `SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.
+<ul>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.</li>
+</ul>
 """,
         ),
         "pre_action": attr.label(

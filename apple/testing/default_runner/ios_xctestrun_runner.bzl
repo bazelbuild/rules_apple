@@ -193,10 +193,12 @@ A binary that produces a UDID for a simulator that matches the given device type
 
 When executed, the binary will have the following environment variables available to it:
 
-- `SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.
-- `SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.
-- `SIMULATOR_NAME`: The name of the simulator to create. Useful for debugging and reuse scenarios, but otherwise an implementation detail of the simulator creator tool and not a requirement.
-- `SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.
+<ul>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
+<li>`SIMULATOR_NAME`: The name of the simulator to create. Useful for debugging and reuse scenarios, but otherwise an implementation detail of the simulator creator tool and not a requirement.</li>
+<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
+</ul>
 """,
         ),
         "pre_action": attr.label(
