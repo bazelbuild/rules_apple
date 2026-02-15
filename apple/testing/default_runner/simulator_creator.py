@@ -149,13 +149,15 @@ class Namespace(argparse.Namespace):
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "os_version",
+        "--os_version",
         required=False,
+        default=None,
         help="The iOS version to run the tests on, ex: 12.1",
     )
     parser.add_argument(
-        "device_type",
+        "--device_type",
         required=False,
+        default=None,
         help="The iOS device to run the tests on, ex: iPhone X",
     )
     parser.add_argument(
@@ -180,7 +182,7 @@ def _main() -> None:
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
-    simulator_name = args.simulator_name or os.getenv("SIMULATOR_NAME")
+    simulator_name = args.name or os.getenv("SIMULATOR_NAME")
     reuse_simulator: bool = args.reuse_simulator or (
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
