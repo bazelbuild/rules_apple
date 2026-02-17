@@ -437,7 +437,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
@@ -512,19 +511,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = debug_dependencies,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -609,7 +601,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     )
 
     dsyms = outputs.dsyms(
-        platform_prerequisites = platform_prerequisites,
         processor_result = processor_result,
     )
 

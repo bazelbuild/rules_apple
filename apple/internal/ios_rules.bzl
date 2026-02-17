@@ -247,7 +247,6 @@ def _ios_application_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -358,19 +357,12 @@ def _ios_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets + resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -519,7 +511,6 @@ def _ios_application_impl(ctx):
     )
 
     dsyms = outputs.dsyms(
-        platform_prerequisites = platform_prerequisites,
         processor_result = processor_result,
     )
 
@@ -632,7 +623,6 @@ def _ios_app_clip_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -722,19 +712,12 @@ def _ios_app_clip_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets + resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             app_clips = [archive_for_embedding],
@@ -930,7 +913,6 @@ def _ios_framework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1001,19 +983,12 @@ def _ios_framework_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             frameworks = [archive_for_embedding],
@@ -1202,7 +1177,6 @@ def _ios_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1309,19 +1283,12 @@ def _ios_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
@@ -1658,7 +1625,6 @@ def _ios_imessage_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         avoid_deps = ctx.attr.frameworks,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1742,19 +1708,12 @@ def _ios_imessage_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,

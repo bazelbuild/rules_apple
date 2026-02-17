@@ -24,7 +24,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -330,18 +329,6 @@ def apple_xcframework_test_suite(name):
     #         public provider interface.
     #
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
-            "ios_dynamic_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_device_arm64",
-            "ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
-            "ios_dynamic_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_xcframework_ios_simulator_x86_64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         output_group_name = "dsyms",
@@ -352,20 +339,6 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
     analysis_output_group_info_files_test(
-        name = "{}_universal_frameworks_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Info.plist",
-            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_device_arm64",
-            "ios_dynamic_lipoed_xcframework_ios_device.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_device_arm64e",
-            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Info.plist",
-            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator_arm64",
-            "ios_dynamic_lipoed_xcframework_ios_simulator.framework.dSYM/Contents/Resources/DWARF/ios_dynamic_lipoed_xcframework_ios_simulator_x86_64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_universal_frameworks_dsyms_output_group_dsymutil_bundle_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework",
         output_group_name = "dsyms",

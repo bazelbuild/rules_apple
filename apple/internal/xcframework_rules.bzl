@@ -894,8 +894,6 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             processor_partials.extend([
                 partials.debug_symbols_partial(
                     actions = actions,
-                    apple_mac_toolchain_info = apple_mac_toolchain_info,
-                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                     bundle_extension = nested_bundle_extension,
                     bundle_name = bundle_name,
                     debug_discriminator = _framework_key(
@@ -903,14 +901,9 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                         environment = link_output.environment,
                     ),
                     dsym_outputs = link_output.dsym_outputs,
-                    dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
                     linkmaps = link_output.linkmaps,
-                    mac_exec_group = mac_exec_group,
                     output_discriminator = library_identifier,
                     platform_prerequisites = platform_prerequisites,
-                    rule_label = rule_label,
-                    version = version,
-                    xplat_exec_group = xplat_exec_group,
                 ),
                 partials.framework_provider_partial(
                     actions = actions,
@@ -993,7 +986,6 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         if library_type == _LIBRARY_TYPE.dynamic:
             # Save the dSYMs.
             dsyms = outputs.dsyms(
-                platform_prerequisites = platform_prerequisites,
                 processor_result = processor_result,
             )
             if dsyms:
@@ -1364,7 +1356,6 @@ def _apple_xcframework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,

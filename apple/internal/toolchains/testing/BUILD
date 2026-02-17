@@ -36,7 +36,6 @@ apple_mac_tools_toolchain(
     clangrttool = "//tools/clangrttool:clangrttool_osx",
     codesigningtool = "//tools/codesigningtool:codesigntool_osx",
     dossier_codesigningtool = "//tools/dossier_codesigning_reader:dossier_code_sign_tool_swift_osx",
-    dsym_info_plist_template = "//apple/internal/templates:dsym_info_plist_template",
     environment_plist_tool = "//tools/environment_plist",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_osx",
     plisttool = "//tools/plisttool:plisttool.par",

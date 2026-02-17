@@ -32,12 +32,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleVersionInfo",
     "AppleDsymBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
@@ -46,10 +41,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
-    "resource_actions",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
@@ -115,66 +106,13 @@ def _collect_linkmaps(
 
     return outputs
 
-def _copy_dsyms_into_declared_bundle(
-        *,
-        actions,
-        debug_output_filename,
-        dsym_bundle_name,
-        found_binaries_by_arch):
-    """Declares the dSYM binary file and copies it into the preferred .dSYM bundle location.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        debug_output_filename: The base file name to use for this debug output, which will be
-            followed by the architecture with an underscore to make the dSYM binary file name or
-            with the bundle extension following it for the dSYM bundle file name.
-        dsym_bundle_name: The full name of the dSYM bundle, including its extension.
-        found_binaries_by_arch: A mapping of architectures to Files representing dsym binary outputs
-            for each architecture.
-
-    Returns:
-        A list of Files representing the copied dSYM binaries located in the preferred .dSYM bundle
-        locations.
-    """
-    output_binaries = []
-
-    for arch, dsym_binary in found_binaries_by_arch.items():
-        output_relpath = "Contents/Resources/DWARF/%s_%s" % (
-            debug_output_filename,
-            arch,
-        )
-
-        output_binary = actions.declare_file(
-            "%s/%s" % (
-                dsym_bundle_name,
-                output_relpath,
-            ),
-        )
-
-        # cp instead of symlink here because a dSYM with a symlink to the DWARF data will not be
-        # recognized by spotlight which is key for lldb on mac to find a dSYM for a binary.
-        # https://lldb.llvm.org/use/symbols.html
-        actions.run_shell(
-            inputs = [dsym_binary],
-            outputs = [output_binary],
-            progress_message = "Copy DWARF into dSYM `%s`" % dsym_binary.short_path,
-            mnemonic = "CopyDWARFIntoDSYM",
-            command = "cp -p '%s' '%s'" % (dsym_binary.path, output_binary.path),
-        )
-
-        output_binaries.append(output_binary)
-
-    return output_binaries
-
 def _lipo_command_for_dsyms(
         *,
-        bundle_inputs,
         found_dsyms_by_arch,
         main_binary_basename):
     """Returns a shell command to invoke lipo against all provided dSYMs for a given bundle.
 
     Args:
-        bundle_inputs: Wheither the found binaries are actually dSYM bundles.
         found_dsyms_by_arch: A mapping of architectures to Files representing dsym outputs for each
             architecture.
         main_binary_basename: The basename of the main unstripped binary that was linked to generate
@@ -185,17 +123,12 @@ def _lipo_command_for_dsyms(
         variable that is expected to represent the dSYM bundle root.
     """
     found_binary_paths = []
-
-    if bundle_inputs:
-        for dsym_bundle in found_dsyms_by_arch.values():
-            found_binary = dsym_bundle.path + paths.join(
-                "/Contents/Resources/DWARF",
-                main_binary_basename,
-            )
-            found_binary_paths.append(found_binary)
-    else:
-        for dsym_binary in found_dsyms_by_arch.values():
-            found_binary_paths.append(dsym_binary.path)
+    for dsym_bundle in found_dsyms_by_arch.values():
+        found_binary = dsym_bundle.path + paths.join(
+            "/Contents/Resources/DWARF",
+            main_binary_basename,
+        )
+        found_binary_paths.append(found_binary)
 
     lipo_command = (
         'mkdir -p "${{OUTPUT_DIR}}/Contents/Resources/DWARF" && ' +
@@ -221,7 +154,6 @@ def _ditto_command_for_dsyms(*, found_binaries_by_arch):
         variable that is expected to represent the dSYM bundle root.
     """
     found_binary_paths = []
-
     for dsym_binary in found_binaries_by_arch.values():
         found_binary_paths.append(dsym_binary.path + "/Contents/Resources/Relocations")
 
@@ -236,106 +168,16 @@ def _ditto_command_for_dsyms(*, found_binaries_by_arch):
 
     return ditto_command
 
-def _generate_dsym_info_plist(
-        actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
-        dsym_bundle_name,
-        dsym_info_plist_template,
-        mac_exec_group,
-        output_discriminator,
-        platform_prerequisites,
-        rule_label,
-        version,
-        xplat_exec_group):
-    """Generates an XML Info.plist appropriate for a dSYM bundle.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-        dsym_bundle_name: The full name of the dSYM bundle, including its extension.
-        dsym_info_plist_template: File referencing a plist template for dSYM bundles.
-        mac_exec_group: The exec_group associated with apple_mac_toolchain.
-        output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        rule_label: The label of the target being analyzed.
-        version: A label referencing AppleBundleVersionInfo, if provided by the rule.
-        xplat_exec_group: The exec_group associated with plisttool.
-
-    Returns:
-        A File representing the generated Info.plist for the dSYM bundle.
-    """
-    plisttool_input_files = [dsym_info_plist_template]
-
-    info_plist_options = struct()
-    if version != None and AppleBundleVersionInfo in version:
-        version_info = version[AppleBundleVersionInfo]
-        info_plist_options = struct(
-            version_keys_required = True,
-            version_file = version_info.version_file.path,
-        )
-        plisttool_input_files.append(version_info.version_file)
-
-    dsym_bundle_id = "com.apple.xcode.dsym." + dsym_bundle_name
-
-    dsym_plist = actions.declare_file(
-        "%s/Contents/Info.plist" % dsym_bundle_name,
-    )
-
-    control = struct(
-        binary = False,
-        info_plist_options = info_plist_options,
-        output = dsym_plist.path,
-        plists = [dsym_info_plist_template.path],
-        target = str(rule_label),
-        variable_substitutions = struct(
-            CFBundleIdentifier = dsym_bundle_id,
-        ),
-    )
-    control_file = intermediates.file(
-        actions = actions,
-        target_name = rule_label.name,
-        output_discriminator = output_discriminator,
-        file_name = "%s-dsym-control" % dsym_plist.basename,
-    )
-    actions.write(
-        output = control_file,
-        content = json.encode(control),
-    )
-
-    resource_actions.plisttool_action(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        control_file = control_file,
-        inputs = plisttool_input_files,
-        mac_exec_group = mac_exec_group,
-        mnemonic = "CompileDSYMInfoPlist",
-        outputs = [dsym_plist],
-        platform_prerequisites = platform_prerequisites,
-        xplat_exec_group = xplat_exec_group,
-    )
-    return dsym_plist
-
-def _bundle_dsym_files(
+def _generate_merged_dsym_bundle(
         *,
         actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_extension = "",
         bundle_name,
         debug_output_filename,
         dsym_inputs = {},
-        dsym_info_plist_template,
-        mac_exec_group,
         output_discriminator,
-        platform_prerequisites,
-        rule_label,
-        version,
-        xplat_exec_group):
-    """Recreates the .dSYM bundle from the AppleDebugOutputs provider and dSYM binaries.
+        platform_prerequisites):
+    """Returns a merged .dSYM bundle assembled from the provided dSYMs, if any.
 
     The generated bundle will have the same name as the bundle being built (including its
     extension), but with the ".dSYM" extension appended to it.
@@ -346,8 +188,6 @@ def _bundle_dsym_files(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         debug_output_filename: The base file name to use for this debug output, which will be
@@ -355,35 +195,20 @@ def _bundle_dsym_files(
             with the bundle extension following it for the dSYM bundle file name.
         dsym_inputs: A mapping of architectures to Files representing dSYM outputs for each
             architecture.
-        dsym_info_plist_template: File referencing a plist template for dSYM bundles.
-        mac_exec_group: The exec_group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        rule_label: The label of the target being analyzed.
-        version: A label referencing AppleBundleVersionInfo, if provided by the rule.
-        xplat_exec_group: The exec_group associated with plisttool.
 
     Returns:
-        A two parameter tuple of the following form:
-
-        1.  If `dsym_variant_flag` is "flat", a List of Files that comprise the .dSYM bundle,
-            which should be returned as additional outputs from the target. If `dsym_variant_flag`
-            is "bundle" this will be an empty List.
-        2.  A File representing the tree artifact representation of the .dSYM bundle with the
-            dSYM binaries lipoed together as one binary, if any dsym_inputs were provided. If
-            `dsym_variant_flag` is "bundle" and only one dSYM bundle in the dictionary of
-            dsym_inputs was provided, the tree artifact returned will be an unmodified reference to
-            that dSYM bundle.
+        A File representing the tree artifact representation of the .dSYM bundle with the dSYM
+        binaries lipoed together as one binary, if any dsym_inputs were provided. If only one dSYM
+        bundle in the dictionary of dsym_inputs was provided, the tree artifact returned will be an
+        unmodified reference to that dSYM bundle. If no dsym_inputs were provided, `None` is
+        returned.
     """
 
-    dsym_bundle_name = debug_output_filename + bundle_extension + ".dSYM"
-
-    output_files = []
-    dsym_bundle_dir = None
-
     if not dsym_inputs:
-        return [], None
+        return None
 
     # The name of the main binary is currently contingent on the Objective-C fragment's
     # `builtin_objc_strip_action` attribute, which determines *how* the unstripped binary is
@@ -398,83 +223,41 @@ def _bundle_dsym_files(
 
     command_inputs = dsym_inputs.values()
 
-    dsym_variants = platform_prerequisites.build_settings.dsym_variant_flag
+    if len(dsym_inputs) == 1 and not output_discriminator:
+        # If we only have one dSYM bundle and we don't need to rename the dSYM bundle, we can
+        # just use it as-is, no need to merge + lipo its contents.
+        return dsym_inputs.values()[0]
 
-    if dsym_variants == "bundle":
-        if len(dsym_inputs) == 1 and not output_discriminator:
-            # If we only have one dSYM bundle and we don't need to rename the dSYM bundle, we can
-            # just use it as-is, no need to merge + lipo its contents.
-            return [], dsym_inputs.values()[0]
+    # 1. Lipo the binaries (Resources/DWARF/{main_binary_basename}).
+    lipo_command = _lipo_command_for_dsyms(
+        found_dsyms_by_arch = dsym_inputs,
+        main_binary_basename = main_binary_basename,
+    )
 
-        # 1. Lipo the binaries (Resources/DWARF/{main_binary_basename}).
-        lipo_command = _lipo_command_for_dsyms(
-            bundle_inputs = True,
-            found_dsyms_by_arch = dsym_inputs,
-            main_binary_basename = main_binary_basename,
-        )
+    # 2. Merge the files within (Resources/Relocations, Info.plist).
+    ditto_command = _ditto_command_for_dsyms(found_binaries_by_arch = dsym_inputs)
 
-        # 2. Merge the files within (Resources/Relocations, Info.plist).
-        ditto_command = _ditto_command_for_dsyms(found_binaries_by_arch = dsym_inputs)
+    # We expect any given Info.plist from the splits to be as good as any, no need to merge
+    # them, but we can do that with plisttool if and when it's needed.
+    plist_command = (
+        'cp {dsym_plist_path} "${{OUTPUT_DIR}}/Contents/Info.plist"'
+    ).format(
+        dsym_plist_path = shell.quote(dsym_inputs.values()[0].path + "/Contents/Info.plist"),
+    )
 
-        # We expect any given Info.plist from the splits to be as good as any, no need to merge
-        # them, but we can do that with plisttool if and when it's needed.
-        plist_command = (
-            'cp {dsym_plist_path} "${{OUTPUT_DIR}}/Contents/Info.plist"'
-        ).format(
-            dsym_plist_path = shell.quote(dsym_inputs.values()[0].path + "/Contents/Info.plist"),
-        )
+    command = (
+        'rm -rf "${OUTPUT_DIR}" && ' +
+        lipo_command + " && " +
+        ditto_command + " && " +
+        plist_command
+    )
 
-        command = (
-            'rm -rf "${OUTPUT_DIR}" && ' +
-            lipo_command + " && " +
-            ditto_command + " && " +
-            plist_command
-        )
-
-        dsym_bundle_dir = actions.declare_directory(dsym_bundle_name)
-
-    elif dsym_variants == "flat":
-        output_files = _copy_dsyms_into_declared_bundle(
-            actions = actions,
+    dsym_bundle_dir = actions.declare_directory(
+        "{debug_output_filename}{bundle_extension}.dSYM".format(
             debug_output_filename = debug_output_filename,
-            dsym_bundle_name = dsym_bundle_name,
-            found_binaries_by_arch = dsym_inputs,
-        )
-        lipo_command = _lipo_command_for_dsyms(
-            bundle_inputs = False,
-            found_dsyms_by_arch = dsym_inputs,
-            main_binary_basename = main_binary_basename,
-        )
-
-        # If we found any binaries, create the Info.plist for the bundle as well.
-        dsym_plist = _generate_dsym_info_plist(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            dsym_bundle_name = dsym_bundle_name,
-            dsym_info_plist_template = dsym_info_plist_template,
-            mac_exec_group = mac_exec_group,
-            output_discriminator = output_discriminator,
-            platform_prerequisites = platform_prerequisites,
-            rule_label = rule_label,
-            version = version,
-            xplat_exec_group = xplat_exec_group,
-        )
-        command_inputs.append(dsym_plist)
-        output_files.append(dsym_plist)
-        plist_command = ('cp {dsym_plist_path} "${{OUTPUT_DIR}}/Contents/Info.plist"').format(
-            dsym_plist_path = shell.quote(dsym_plist.path),
-        )
-
-        command = 'rm -rf "${OUTPUT_DIR}" && ' + lipo_command + " && " + plist_command
-
-        # Put the tree artifact dSYMs in a subdirectory to avoid conflicts with any legacy dSYMs
-        # provided through existing APIs such as --output_groups=+dsyms; note that legacy "flat
-        # file" dSYMs won't be present if the dsym_variants are set to "bundle" and the bundles will
-        # be sent through the output group instead, so the workaround is not needed in that case.
-        dsym_bundle_dir = actions.declare_directory("dSYMs/" + dsym_bundle_name)
-    else:
-        fail("Internal Error: Unsupported dsym_variant_flag: {}".format(dsym_variants))
+            bundle_extension = bundle_extension,
+        ),
+    )
 
     apple_support.run_shell(
         actions = actions,
@@ -489,26 +272,19 @@ def _bundle_dsym_files(
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
-    return output_files, dsym_bundle_dir
+    return dsym_bundle_dir
 
 def _debug_symbols_partial_impl(
         *,
         actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         debug_dependencies = [],
         debug_discriminator = None,
         dsym_outputs = {},
-        dsym_info_plist_template,
         linkmaps = {},
-        mac_exec_group,
         output_discriminator = None,
-        platform_prerequisites,
-        rule_label,
-        version,
-        xplat_exec_group):
+        platform_prerequisites):
     """Implementation for the debug symbols processing partial."""
     deps_dsym_bundle_providers = [
         x[AppleDsymBundleInfo]
@@ -528,9 +304,6 @@ def _debug_symbols_partial_impl(
     direct_dsym_bundles = []
     transitive_dsym_bundles = [x.transitive_dsyms for x in deps_dsym_bundle_providers]
 
-    direct_dsyms = []
-    transitive_dsyms = [x.dsyms for x in deps_debug_info_providers]
-
     direct_linkmaps = []
     transitive_linkmaps = [x.linkmaps for x in deps_debug_info_providers]
 
@@ -538,24 +311,15 @@ def _debug_symbols_partial_impl(
 
     if platform_prerequisites.cpp_fragment:
         if platform_prerequisites.cpp_fragment.apple_generate_dsym:
-            dsym_files, dsym_bundle_dir = _bundle_dsym_files(
+            dsym_bundle_dir = _generate_merged_dsym_bundle(
                 actions = actions,
-                apple_mac_toolchain_info = apple_mac_toolchain_info,
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 debug_output_filename = debug_output_filename,
                 dsym_inputs = dsym_outputs,
-                dsym_info_plist_template = dsym_info_plist_template,
-                mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
-                rule_label = rule_label,
-                version = version,
-                xplat_exec_group = xplat_exec_group,
             )
-            if dsym_files:
-                direct_dsyms.extend(dsym_files)
             if dsym_bundle_dir:
                 direct_dsym_bundles.append(dsym_bundle_dir)
 
@@ -574,15 +338,10 @@ def _debug_symbols_partial_impl(
         default = False,
     )
 
-    dsyms_group = depset(direct_dsyms, transitive = transitive_dsyms)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
 
-    if platform_prerequisites.build_settings.dsym_variant_flag == "bundle":
-        all_output_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
-        direct_output_dsyms = direct_dsym_bundles
-    else:
-        all_output_dsyms = dsyms_group
-        direct_output_dsyms = direct_dsyms
+    all_output_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
+    direct_output_dsyms = direct_dsym_bundles
 
     if propagate_embedded_extra_outputs:
         output_files = depset(transitive = [all_output_dsyms, linkmaps_group])
@@ -595,7 +354,6 @@ def _debug_symbols_partial_impl(
             transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),
         AppleDebugInfo(
-            dsyms = dsyms_group,
             linkmaps = linkmaps_group,
         ),
     ])
@@ -612,21 +370,14 @@ def _debug_symbols_partial_impl(
 def debug_symbols_partial(
         *,
         actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         debug_dependencies = [],
         debug_discriminator = None,
         dsym_outputs = {},
-        dsym_info_plist_template,
         linkmaps = {},
-        mac_exec_group,
         output_discriminator = None,
-        platform_prerequisites,
-        rule_label,
-        version,
-        xplat_exec_group):
+        platform_prerequisites):
     """Constructor for the debug symbols processing partial.
 
     This partial collects all of the transitive debug files information. The output of this partial
@@ -639,8 +390,6 @@ def debug_symbols_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
         debug_dependencies: List of targets from which to collect the transitive dependency debug
@@ -649,15 +398,10 @@ def debug_symbols_partial(
             `None`.
         dsym_outputs: A mapping of architectures to Files representing dsym outputs for each
             architecture.
-        dsym_info_plist_template: File referencing a plist template for dSYM bundles.
         linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
-        mac_exec_group: The exec_group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
-        rule_label: The label of the target being analyzed.
-        version: A label referencing AppleBundleVersionInfo, if provided by the rule.
-        xplat_exec_group: The exec_group associated with plisttool.
 
     Returns:
         A partial that returns the debug output files, if any were requested.
@@ -665,19 +409,12 @@ def debug_symbols_partial(
     return partial.make(
         _debug_symbols_partial_impl,
         actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         debug_dependencies = debug_dependencies,
         debug_discriminator = debug_discriminator,
         dsym_outputs = dsym_outputs,
-        dsym_info_plist_template = dsym_info_plist_template,
         linkmaps = linkmaps,
-        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        rule_label = rule_label,
-        version = version,
-        xplat_exec_group = xplat_exec_group,
     )

@@ -194,7 +194,6 @@ def _visionos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -259,19 +258,12 @@ def _visionos_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = resource_deps,
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.resources_partial(
             actions = actions,
@@ -357,7 +349,6 @@ def _visionos_application_impl(ctx):
     )
 
     dsyms = outputs.dsyms(
-        platform_prerequisites = platform_prerequisites,
         processor_result = processor_result,
     )
 

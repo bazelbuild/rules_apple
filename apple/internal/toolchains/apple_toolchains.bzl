@@ -36,9 +36,6 @@ files used as script templates for the purposes of executing Apple actions. Defi
 This toolchain is for the tools (and support files) for actions that *must* run on a Mac.
 """,
     fields = {
-        "dsym_info_plist_template": """\
-A `File` referencing a plist template for dSYM bundles.
-""",
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
 """,
@@ -143,7 +140,6 @@ def _apple_mac_tools_toolchain_impl(ctx):
         clangrttool = ctx.attr.clangrttool.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
         dossier_codesigningtool = ctx.attr.dossier_codesigningtool.files_to_run,
-        dsym_info_plist_template = ctx.file.dsym_info_plist_template,
         environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
@@ -183,11 +179,6 @@ A `File` referencing a tool to create an Apple bundle that is expected to always
             cfg = "exec",
             executable = True,
             doc = "A `File` referencing a tool to assist in generating signing dossiers.",
-        ),
-        "dsym_info_plist_template": attr.label(
-            cfg = "target",
-            allow_single_file = True,
-            doc = "A `File` referencing a plist template for dSYM bundles.",
         ),
         "environment_plist_tool": attr.label(
             cfg = "target",

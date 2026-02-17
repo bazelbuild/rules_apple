@@ -227,7 +227,6 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -301,19 +300,12 @@ def _macos_application_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
@@ -419,7 +411,6 @@ def _macos_application_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
     dsyms = outputs.dsyms(
-        platform_prerequisites = platform_prerequisites,
         processor_result = processor_result,
     )
 
@@ -536,7 +527,6 @@ def _macos_bundle_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = ctx.attr.bundle_loader,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
@@ -606,19 +596,12 @@ def _macos_bundle_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -790,7 +773,6 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -882,19 +864,12 @@ def _macos_extension_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1056,7 +1031,6 @@ def _macos_xpc_service_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1125,19 +1099,12 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.debug_symbols_partial(
             actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.additional_contents.keys(),
             dsym_outputs = debug_outputs.dsym_outputs,
-            dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             linkmaps = debug_outputs.linkmaps,
-            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            rule_label = label,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
@@ -1372,7 +1339,6 @@ def _macos_command_line_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1390,18 +1356,11 @@ def _macos_command_line_application_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         dsym_outputs = debug_outputs.dsym_outputs,
-        dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         linkmaps = debug_outputs.linkmaps,
-        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        version = ctx.attr.version,
-        xplat_exec_group = xplat_exec_group,
     )
     codesigning_dossier_partial = partials.codesigning_dossier_partial(
         actions = actions,
@@ -1467,7 +1426,6 @@ def _macos_command_line_application_impl(ctx):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
 
     dsyms = outputs.dsyms(
-        platform_prerequisites = platform_prerequisites,
         processor_result = processor_result,
     )
 
@@ -1560,7 +1518,6 @@ def _macos_dylib_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1579,18 +1536,11 @@ def _macos_dylib_impl(ctx):
 
     debug_outputs_partial = partials.debug_symbols_partial(
         actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         dsym_outputs = debug_outputs.dsym_outputs,
-        dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
         linkmaps = debug_outputs.linkmaps,
-        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        version = None,
-        xplat_exec_group = xplat_exec_group,
     )
     codesigning_dossier_partial = partials.codesigning_dossier_partial(
         actions = actions,

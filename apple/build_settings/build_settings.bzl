@@ -97,13 +97,10 @@ dropped by top level Apple BUILD rules if the "pointer_authentication" is not re
 
 _local_build_settings_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build_settings.keys()}
 _local_build_flags_packages_by_name = {k: _BUILD_SETTINGS_PACKAGE for k in build_flags.keys()}
-_extra_build_config_packages_by_name = {
-}
 
 _all_starlark_build_config_packages_by_name = (
     _local_build_settings_packages_by_name |
-    _local_build_flags_packages_by_name |
-    _extra_build_config_packages_by_name
+    _local_build_flags_packages_by_name
 )
 
 build_settings_labels = struct(

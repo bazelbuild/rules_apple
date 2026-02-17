@@ -18,13 +18,10 @@ visibility("@build_bazel_rules_apple//apple/internal/...")
 
 AppleDebugInfo = provider(
     doc = """
-Private provider to propagate transitive dSYM and link maps information used by the debug symbols
-partial and the resource aspect.
+Private provider to propagate transitive link maps information used by the debug symbols partial and
+the resource aspect.
 """,
     fields = {
-        "dsyms": """
-Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
-""",
         "linkmaps": """
 Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
 """,

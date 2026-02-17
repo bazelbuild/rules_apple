@@ -437,7 +437,6 @@ App Intents are not supported within frameworks that aren't directly loaded by a
     if apple_debug_infos:
         providers.append(
             AppleDebugInfo(
-                dsyms = depset(transitive = [x.dsyms for x in apple_debug_infos]),
                 linkmaps = depset(transitive = [x.linkmaps for x in apple_debug_infos]),
             ),
         )

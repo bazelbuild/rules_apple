@@ -16,17 +16,14 @@
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_dsym_test",
-    "analysis_runfiles_dsymutil_bundle_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -165,17 +162,6 @@ def macos_command_line_application_test_suite(name):
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "cmd_app_basic.dSYM/Contents/Info.plist",
-            "cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_x86_64",
-            "cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_arm64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         output_group_name = "dsyms",
@@ -185,13 +171,6 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
     apple_dsym_bundle_info_test(
-        name = "{}_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_direct_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/cmd_app_basic.dSYM"],
-        tags = [name],
-    )
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         expected_direct_dsyms = ["cmd_app_basic.dSYM"],
@@ -200,16 +179,6 @@ def macos_command_line_application_test_suite(name):
     )
 
     analysis_runfiles_dsym_test(
-        name = "{}_runfiles_dsym_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
-        expected_runfiles = [
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Resources/DWARF/cmd_app_basic_arm64",
-            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/cmd_app_basic.dSYM/Contents/Info.plist",
-        ],
-        tags = [name],
-    )
-
-    analysis_runfiles_dsymutil_bundle_test(
         name = "{}_runfiles_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         expected_runfiles = [

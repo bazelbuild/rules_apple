@@ -1,14 +1,6 @@
 licenses(["notice"])
 
 filegroup(
-    name = "dsym_info_plist_template",
-    srcs = ["dSYM-Info.plist.template"],
-    visibility = [
-        "//apple/internal/toolchains:__subpackages__",
-    ],
-)
-
-filegroup(
     name = "apple_simulator_template",
     srcs = ["apple_simulator.template.py"],
     visibility = ["//apple/internal:__pkg__"],

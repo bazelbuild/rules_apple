@@ -29,7 +29,6 @@ bzl_library(
         "//apple/internal:rule_factory",
         "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
-        "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
     ],

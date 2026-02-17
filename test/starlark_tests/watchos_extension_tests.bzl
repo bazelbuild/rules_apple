@@ -118,17 +118,15 @@ def watchos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext.appex.dSYM/Contents/Info.plist",
-            "ext.appex.dSYM/Contents/Resources/DWARF/ext_x86_64",
-            "ext.appex.dSYM/Contents/Resources/DWARF/ext_arm64",
+            "ext.appex.dSYM",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
-        expected_direct_dsyms = ["dSYMs/ext.appex.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/ext.appex.dSYM"],
+        expected_direct_dsyms = ["ext.appex.dSYM"],
+        expected_transitive_dsyms = ["ext.appex.dSYM"],
         tags = [name],
     )
 

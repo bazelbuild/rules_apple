@@ -16,12 +16,10 @@
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -158,17 +156,6 @@ def macos_bundle_test_suite(name):
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "bundle.bundle.dSYM/Contents/Info.plist",
-            "bundle.bundle.dSYM/Contents/Resources/DWARF/bundle_x86_64",
-            "bundle.bundle.dSYM/Contents/Resources/DWARF/bundle_arm64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         output_group_name = "dsyms",
@@ -178,13 +165,6 @@ def macos_bundle_test_suite(name):
         tags = [name],
     )
     apple_dsym_bundle_info_test(
-        name = "{}_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
-        expected_direct_dsyms = ["dSYMs/bundle.bundle.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/bundle.bundle.dSYM"],
-        tags = [name],
-    )
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         expected_direct_dsyms = ["bundle.bundle.dSYM"],

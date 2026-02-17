@@ -20,7 +20,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -29,7 +28,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -172,17 +170,6 @@ def tvos_application_test_suite(name):
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app.app.dSYM/Contents/Info.plist",
-            "app.app.dSYM/Contents/Resources/DWARF/app_x86_64",
-            "app.app.dSYM/Contents/Resources/DWARF/app_arm64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         output_group_name = "dsyms",
@@ -192,17 +179,6 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
     apple_dsym_bundle_info_test(
-        name = "{}_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
-        expected_direct_dsyms = [
-            "dSYMs/app.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/app.app.dSYM",
-        ],
-        tags = [name],
-    )
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app",
         expected_direct_dsyms = [
@@ -215,20 +191,6 @@ def tvos_application_test_suite(name):
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_transitive_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk_provisioned",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_fmwk_with_fmwk_provisioned.app.dSYM/Contents/Info.plist",
-            "app_with_fmwk_with_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_fmwk_with_fmwk_provisioned_arm64",
-            "app_with_fmwk_with_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_fmwk_with_fmwk_provisioned_x86_64",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning_arm64",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning_x86_64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_transitive_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk_provisioned",
         output_group_name = "dsyms",
@@ -239,18 +201,6 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
     apple_dsym_bundle_info_test(
-        name = "{}_transitive_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk_provisioned",
-        expected_direct_dsyms = [
-            "dSYMs/app_with_fmwk_with_fmwk_provisioned.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/fmwk_with_provisioning.framework.dSYM",
-            "dSYMs/app_with_fmwk_with_fmwk_provisioned.app.dSYM",
-        ],
-        tags = [name],
-    )
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_transitive_dsyms_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk_provisioned",
         expected_direct_dsyms = [
@@ -667,27 +617,6 @@ def tvos_application_test_suite(name):
     # at the top-level tvos_application rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.
     analysis_output_group_info_files_test(
-        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Info.plist",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_arm64",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_x86_64",
-            # Frameworks
-            "fmwk.framework.dSYM/Contents/Info.plist",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_arm64",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_x86_64",
-            "fmwk_with_resource_bundles.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles_arm64",
-            "fmwk_with_resource_bundles.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resource_bundles_x86_64",
-            "fmwk_with_structured_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources_arm64",
-            "fmwk_with_structured_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_structured_resources_x86_64",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
@@ -718,20 +647,6 @@ def tvos_application_test_suite(name):
 
     # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
     apple_dsym_bundle_info_test(
-        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        expected_direct_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-            "dSYMs/fmwk.framework.dSYM",
-            "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
-            "dSYMs/fmwk_with_structured_resources.framework.dSYM",
-        ],
-        tags = [name],
-    )
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_with_runtime_framework_dsym_bundle_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         expected_direct_dsyms = [

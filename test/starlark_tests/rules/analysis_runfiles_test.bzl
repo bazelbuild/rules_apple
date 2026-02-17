@@ -72,15 +72,6 @@ analysis_runfiles_test = make_analysis_runfiles_test_rule(config_settings = {
 
 # An analysis_runfiles_test that generates "flat file" dSYMs.
 analysis_runfiles_dsym_test = make_analysis_runfiles_test_rule(config_settings = {
-    build_settings_labels.dsym_variant_flag: "flat",
-    build_settings_labels.require_pointer_authentication_attribute: True,
-    "//command_line_option:apple_generate_dsym": "true",
-    "//command_line_option:macos_cpus": "arm64",
-})
-
-# An analysis_runfiles_test that generates dSYMs bundles using dsymutil.
-analysis_runfiles_dsymutil_bundle_test = make_analysis_runfiles_test_rule(config_settings = {
-    build_settings_labels.dsym_variant_flag: "bundle",
     build_settings_labels.require_pointer_authentication_attribute: True,
     "//command_line_option:apple_generate_dsym": "true",
     "//command_line_option:macos_cpus": "arm64",

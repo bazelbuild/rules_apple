@@ -47,10 +47,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
     "transition_support",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("public")
@@ -91,8 +87,6 @@ def _apple_binary_impl(ctx):
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
 
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-
     rule_label = ctx.label
     secure_features = ctx.attr.secure_features
 
@@ -119,7 +113,6 @@ def _apple_binary_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         bundle_name = rule_label.name,
         cc_configured_features = cc_configured_features,

@@ -56,17 +56,15 @@ def watchos_unit_test_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
         output_group_name = "dsyms",
         expected_outputs = [
-            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test_arm64",
-            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test_x86_64",
-            "unit_test.xctest.dSYM/Contents/Info.plist",
+            "unit_test.xctest.dSYM",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:unit_test",
-        expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
+        expected_direct_dsyms = ["unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["unit_test.xctest.dSYM"],
         tags = [name],
     )
 

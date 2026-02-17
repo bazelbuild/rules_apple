@@ -25,7 +25,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
-    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -43,7 +42,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -489,18 +487,6 @@ All requested architectures must be either device or simulator architectures."""
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app.app.dSYM/Contents/Info.plist",
-            "app.app.dSYM/Contents/Resources/DWARF/app_x86_64",
-            "app.app.dSYM/Contents/Resources/DWARF/app_arm64",
-        ],
-        tags = [name],
-    )
-
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         output_group_name = "dsyms",
@@ -511,18 +497,6 @@ All requested architectures must be either device or simulator architectures."""
     )
 
     apple_dsym_bundle_info_test(
-        name = "{}_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        expected_direct_dsyms = [
-            "dSYMs/app.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/app.app.dSYM",
-        ],
-        tags = [name],
-    )
-
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_dsym_bundle_info_dsymutil_bundle_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
         expected_direct_dsyms = [
@@ -535,24 +509,6 @@ All requested architectures must be either device or simulator architectures."""
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_transitive_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Info.plist",
-            "app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_ext_and_fmwk_provisioned_arm64",
-            "app_with_ext_and_fmwk_provisioned.app.dSYM/Contents/Resources/DWARF/app_with_ext_and_fmwk_provisioned_x86_64",
-            "ext_with_fmwk_provisioned.appex.dSYM/Contents/Info.plist",
-            "ext_with_fmwk_provisioned.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwk_provisioned_arm64",
-            "ext_with_fmwk_provisioned.appex.dSYM/Contents/Resources/DWARF/ext_with_fmwk_provisioned_x86_64",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning_arm64",
-            "fmwk_with_provisioning.framework.dSYM/Contents/Resources/DWARF/fmwk_with_provisioning_x86_64",
-        ],
-        tags = [name],
-    )
-
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_dsyms_output_group_dsymutil_bundle_transitive_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         output_group_name = "dsyms",
@@ -565,20 +521,6 @@ All requested architectures must be either device or simulator architectures."""
     )
 
     apple_dsym_bundle_info_test(
-        name = "{}_dsymutil_bundle_transitive_dsyms_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
-        expected_direct_dsyms = [
-            "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/fmwk_with_provisioning.framework.dSYM",
-            "dSYMs/ext_with_fmwk_provisioned.appex.dSYM",
-            "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
-        ],
-        tags = [name],
-    )
-
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_transitive_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         expected_direct_dsyms = [
@@ -999,35 +941,7 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [name],
     )
 
-    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
-    # at the top-level ios_application rule, and present through the 'dsysms' and 'linkmaps' output
-    # groups.
     analysis_output_group_info_files_test(
-        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Info.plist",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_arm64",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_x86_64",
-            # Frameworks
-            "fmwk.framework.dSYM/Contents/Info.plist",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_arm64",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_x86_64",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_arm64",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_x86_64",
-            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
-            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_arm64",
-            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_x86_64",
-            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_arm64",
-            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_x86_64",
-        ],
-        tags = [name],
-    )
-
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         output_group_name = "dsyms",
@@ -1061,24 +975,7 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [name],
     )
 
-    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
     apple_dsym_bundle_info_test(
-        name = "{}_with_runtime_framework_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        expected_direct_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-            "dSYMs/fmwk.framework.dSYM",
-            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
-            "dSYMs/fmwk_no_version.framework.dSYM",
-            "dSYMs/fmwk_with_resources.framework.dSYM",
-        ],
-        tags = [name],
-    )
-
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_with_runtime_framework_dsym_bundle_info_files_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
         expected_direct_dsyms = [
@@ -1098,31 +995,6 @@ App Intents bundles were defined by the following framework-referenced targets:
     # correctly at the top-level ios_application rule, and present through the 'dsysms' and
     # 'linkmaps' output groups.
     analysis_output_group_info_files_test(
-        name = "{}_with_runtime_framework_transitive_dsyms_in_resources_output_group_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_no_srcs_objc_libraries_using_resources",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_fmwks_from_no_srcs_objc_libraries_using_resources.app.dSYM/Contents/Info.plist",
-            "app_with_fmwks_from_no_srcs_objc_libraries_using_resources.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_no_srcs_objc_libraries_using_resources_arm64",
-            "app_with_fmwks_from_no_srcs_objc_libraries_using_resources.app.dSYM/Contents/Resources/DWARF/app_with_fmwks_from_no_srcs_objc_libraries_using_resources_x86_64",
-            # Frameworks
-            "fmwk.framework.dSYM/Contents/Info.plist",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_arm64",
-            "fmwk.framework.dSYM/Contents/Resources/DWARF/fmwk_x86_64",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Info.plist",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_arm64",
-            "fmwk_min_os_baseline_with_bundle.framework.dSYM/Contents/Resources/DWARF/fmwk_min_os_baseline_with_bundle_x86_64",
-            "fmwk_no_version.framework.dSYM/Contents/Info.plist",
-            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_arm64",
-            "fmwk_no_version.framework.dSYM/Contents/Resources/DWARF/fmwk_no_version_x86_64",
-            "fmwk_with_resources.framework.dSYM/Contents/Info.plist",
-            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_arm64",
-            "fmwk_with_resources.framework.dSYM/Contents/Resources/DWARF/fmwk_with_resources_x86_64",
-        ],
-        tags = [name],
-    )
-
-    analysis_output_group_info_dsymutil_bundle_files_test(
         name = "{}_with_runtime_framework_transitive_dsyms_in_resources_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_no_srcs_objc_libraries_using_resources",
         output_group_name = "dsyms",
@@ -1159,22 +1031,6 @@ App Intents bundles were defined by the following framework-referenced targets:
     # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider via
     # the 'resources' attribute.
     apple_dsym_bundle_info_test(
-        name = "{}_with_runtime_framework_in_resources_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_no_srcs_objc_libraries_using_resources",
-        expected_direct_dsyms = [
-            "dSYMs/app_with_fmwks_from_no_srcs_objc_libraries_using_resources.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "dSYMs/app_with_fmwks_from_no_srcs_objc_libraries_using_resources.app.dSYM",
-            "dSYMs/fmwk.framework.dSYM",
-            "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
-            "dSYMs/fmwk_no_version.framework.dSYM",
-            "dSYMs/fmwk_with_resources.framework.dSYM",
-        ],
-        tags = [name],
-    )
-
-    apple_dsym_bundle_info_dsymutil_bundle_test(
         name = "{}_with_runtime_framework_in_resources_dsym_bundle_info_files_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_no_srcs_objc_libraries_using_resources",
         expected_direct_dsyms = [
