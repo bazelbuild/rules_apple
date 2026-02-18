@@ -14,7 +14,6 @@ def _get_template_substitutions(
         create_xcresult_bundle,
         device_type,
         os_version,
-        simulator_creator,
         random,
         xcodebuild_args,
         command_line_args,
@@ -25,14 +24,15 @@ def _get_template_substitutions(
         xctrunner_entitlements_template,
         pre_action_binary,
         post_action_binary,
-        post_action_determines_exit_code):
+        post_action_determines_exit_code,
+        create_simulator_action_binary,
+        clean_up_simulator_action_binary):
     substitutions = {
         "device_type": device_type,
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
-        "simulator_creator": simulator_creator,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
@@ -43,6 +43,8 @@ def _get_template_substitutions(
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
+        "create_simulator_action_binary": create_simulator_action_binary,
+        "clean_up_simulator_action_binary": clean_up_simulator_action_binary,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -66,10 +68,9 @@ def _ios_xctestrun_runner_impl(ctx):
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
-    runfiles = ctx.runfiles(files = [
-        ctx.file._xctestrun_template,
-        ctx.file._xctrunner_entitlements_template,
-    ]).merge(ctx.attr.simulator_creator[DefaultInfo].default_runfiles)
+    runfiles = ctx.runfiles(files = [ctx.file._xctestrun_template, ctx.file._xctrunner_entitlements_template])
+    runfiles = runfiles.merge(ctx.attr.create_simulator_action[DefaultInfo].default_runfiles)
+    runfiles = runfiles.merge(ctx.attr.clean_up_simulator_action[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -93,7 +94,6 @@ def _ios_xctestrun_runner_impl(ctx):
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable.simulator_creator.short_path,
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
@@ -105,6 +105,8 @@ def _ios_xctestrun_runner_impl(ctx):
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
+            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
+            clean_up_simulator_action_binary = ctx.executable.clean_up_simulator_action.short_path,
         ),
     )
 
@@ -184,23 +186,6 @@ or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult out
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
 """,
         ),
-        "simulator_creator": attr.label(
-            default = Label("//apple/testing/default_runner:simulator_creator"),
-            executable = True,
-            cfg = "exec",
-            doc = """
-A binary that produces a UDID for a simulator that matches the given device type and OS version. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
-
-When executed, the binary will have the following environment variables available to it:
-
-<ul>
-<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
-<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
-<li>`SIMULATOR_NAME`: The name of the simulator to create. Useful for debugging and reuse scenarios, but otherwise an implementation detail of the simulator creator tool and not a requirement.</li>
-<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
-</ul>
-""",
-        ),
         "pre_action": attr.label(
             executable = True,
             cfg = "exec",
@@ -219,6 +204,37 @@ A binary to run following test execution. Runs after testing but before test res
             default = False,
             doc = """
 When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
+""",
+        ),
+        "create_simulator_action": attr.label(
+            default = Label("//apple/testing/default_runner:simulator_creator"),
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary that produces a UDID for a simulator that matches the given device type and OS version. Runs before the pre action. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
+
+When executed, the binary will have the following environment variables available to it:
+
+<ul>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
+<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
+</ul>
+""",
+        ),
+        "clean_up_simulator_action": attr.label(
+            default = Label("//apple/testing/default_runner:simulator_cleanup"),
+            executable = True,
+            cfg = "exec",
+            doc = """
+A binary that cleans up any simulators created by the `create_simulator_action`. Runs after the post action, regardless of test success or failure.
+
+When executed, the binary will have the following environment variables available to it:
+
+<ul>
+<li>`SIMULATOR_UDID`: The UDID of the simulator to clean up. This will be the same UDID produced by the `create_simulator_action` and used to run the tests.</li>
+<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to an existing simulator was reused or if a new one was created. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator cleanup tool.</li>
+</ul>
 """,
         ),
         "_test_template": attr.label(

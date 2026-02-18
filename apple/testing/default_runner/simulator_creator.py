@@ -182,7 +182,7 @@ def _main() -> None:
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
-    simulator_name = args.name or os.getenv("SIMULATOR_NAME")
+    simulator_name = args.name
     reuse_simulator: bool = args.reuse_simulator or (
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )

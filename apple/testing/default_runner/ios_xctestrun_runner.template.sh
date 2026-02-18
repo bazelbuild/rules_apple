@@ -18,7 +18,6 @@ if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
 fi
 
 custom_xcodebuild_args=(%(xcodebuild_args)s)
-simulator_name=""
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
@@ -26,9 +25,6 @@ destination_timeout="%(destination_timeout)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
   case $arg in
-    --simulator_name=*)
-      simulator_name="${arg##*=}"
-      ;;
     --xcodebuild_args=*)
       xcodebuild_arg="${arg#--xcodebuild_args=}" # Strip "--xcodebuild_args=" prefix
       custom_xcodebuild_args+=("$xcodebuild_arg")
@@ -403,7 +399,7 @@ fi
 
 simulator_id="unused"
 if [[ "$build_for_device" == false ]]; then
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_NAME="${simulator_name:-}" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(simulator_creator)s")"
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0
@@ -661,10 +657,7 @@ if [[
   rm -r "$result_bundle_path"
 fi
 
-if [[ "$reuse_simulator" == false ]]; then
-  # Delete will shutdown down the simulator if it's still currently running.
-  xcrun simctl delete "$simulator_id"
-fi
+SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(clean_up_simulator_action_binary)s"
 
 if [[ "$post_action_determines_exit_code" == true ]]; then
   if [[ "$post_action_exit_code" -ne 0 ]]; then
