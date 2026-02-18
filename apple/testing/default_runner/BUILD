@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(
     "//apple/testing/default_runner:ios_test_runner.bzl",
     "ios_test_runner",
@@ -98,6 +99,12 @@ py_binary(
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
     # not used by other things.
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "simulator_cleanup",
+    srcs = ["simulator_cleanup.sh"],
     visibility = ["//visibility:public"],
 )
 
