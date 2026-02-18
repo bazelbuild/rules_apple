@@ -39,7 +39,11 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
         # The value 2 declares that the entitlement "instructs the system to protect against
         # particular attacks that target the dynamic loader and Mach messaging." as of Xcode 26.0:
         # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.platform-restrictions
-        "com.apple.security.hardened-process.platform-restrictions": 2,
+        # This was replaced in Xcode 26.4 to allow for compatibility with Apple OSes prior to 26.0
+        # with a string-based value of "2":
+        # https://developer.apple.com/documentation/xcode-release-notes/xcode-26_4-release-notes#Signing-and-Capabilities
+        # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.platform-restrictions-string
+        "com.apple.security.hardened-process.platform-restrictions-string": "2",
     },
     "apple.read_only_platform_memory": {
         "com.apple.security.hardened-process.dyld-ro": True,
@@ -62,7 +66,13 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
     "warn_unsafe_buffer_usage": {},
     _REQUIRED_XCODE_26_OPT_IN: {
         "com.apple.security.hardened-process": True,
-        "com.apple.security.hardened-process.enhanced-security-version": 1,
+        # Initially this was the integer 1 in Xcode 26.0:
+        # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.enhanced-security-version
+        # This was revised in Xcode 26.4 to allow for compatibility with Apple OSes prior to 26.0
+        # with a string-based value of "1":
+        # https://developer.apple.com/documentation/xcode-release-notes/xcode-26_4-release-notes#Signing-and-Capabilities
+        # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.enhanced-security-version-string
+        "com.apple.security.hardened-process.enhanced-security-version-string": "1",
     },
 }
 
