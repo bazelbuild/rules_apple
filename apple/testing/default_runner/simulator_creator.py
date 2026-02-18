@@ -53,7 +53,7 @@ def _boot_simulator(simulator_id: str) -> None:
                     for blob in devices_for_os
                     if blob["udid"] == simulator_id
                 ),
-                None,
+                None
             )
             if device and device["state"].lower() == "booted":
                 print(
@@ -98,7 +98,7 @@ def _create_and_boot_simulator(
         os_version.replace(".", "-")
     )
 
-    existing_device = None
+    existing_device=None
 
     if reuse_simulator:
         devices_for_os = devices.get(runtime_identifier) or []
@@ -113,27 +113,20 @@ def _create_and_boot_simulator(
         # script and bootstatus has already waited for it to be in a good state
         # once
         state = existing_device["state"].lower()
-        print(
-            f"Existing simulator '{name}' ({simulator_id}) state is: {state}",
-            file=sys.stderr,
-        )
+        print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
         if state != "booted":
             _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:
             # Simulator reuse is based on device name, therefore we must generate a unique name to
             # prevent unintended reuse.
-            device_name_suffix = "".join(
-                random.choices(string.ascii_letters + string.digits, k=8)
-            )
+            device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
             device_name += f"_{device_name_suffix}"
 
         simulator_id = _simctl(
             ["create", device_name, device_type, runtime_identifier]
         ).strip()
-        print(
-            f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr
-        )
+        print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
         _boot_simulator(simulator_id)
 
     return simulator_id.strip()

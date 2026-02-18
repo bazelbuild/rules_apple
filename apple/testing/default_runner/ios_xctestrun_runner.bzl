@@ -11,40 +11,40 @@ load(
 
 def _get_template_substitutions(
         *,
+        attachment_lifetime,
+        clean_up_simulator_action_binary,
+        command_line_args,
+        create_simulator_action_binary,
         create_xcresult_bundle,
+        destination_timeout,
         device_type,
         os_version,
-        random,
-        xcodebuild_args,
-        command_line_args,
-        xctestrun_template,
-        attachment_lifetime,
-        destination_timeout,
-        reuse_simulator,
-        xctrunner_entitlements_template,
-        pre_action_binary,
         post_action_binary,
         post_action_determines_exit_code,
-        create_simulator_action_binary,
-        clean_up_simulator_action_binary):
+        pre_action_binary,
+        random,
+        reuse_simulator,
+        xcodebuild_args,
+        xctestrun_template,
+        xctrunner_entitlements_template):
     substitutions = {
+        "attachment_lifetime": attachment_lifetime,
+        "clean_up_simulator_action_binary": clean_up_simulator_action_binary,
+        "command_line_args": command_line_args,
+        "create_simulator_action_binary": create_simulator_action_binary,
+        "create_xcresult_bundle": create_xcresult_bundle,
+        "destination_timeout": destination_timeout,
         "device_type": device_type,
         "os_version": os_version,
-        "create_xcresult_bundle": create_xcresult_bundle,
-        "xcodebuild_args": xcodebuild_args,
-        "command_line_args": command_line_args,
-        # "ordered" isn't a special string, but anything besides "random" for this field runs in order
-        "test_order": "random" if random else "ordered",
-        "xctestrun_template": xctestrun_template,
-        "attachment_lifetime": attachment_lifetime,
-        "reuse_simulator": reuse_simulator,
-        "destination_timeout": destination_timeout,
-        "xctrunner_entitlements_template": xctrunner_entitlements_template,
-        "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
-        "create_simulator_action_binary": create_simulator_action_binary,
-        "clean_up_simulator_action_binary": clean_up_simulator_action_binary,
+        "pre_action_binary": pre_action_binary,
+        "reuse_simulator": reuse_simulator,
+        # "ordered" isn't a special string, but anything besides "random" for this field runs in order
+        "test_order": "random" if random else "ordered",
+        "xcodebuild_args": xcodebuild_args,
+        "xctestrun_template": xctestrun_template,
+        "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
 
     return {"%({})s".format(key): value for key, value in substitutions.items()}
@@ -68,7 +68,10 @@ def _ios_xctestrun_runner_impl(ctx):
     if not device_type:
         fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
 
-    runfiles = ctx.runfiles(files = [ctx.file._xctestrun_template, ctx.file._xctrunner_entitlements_template])
+    runfiles = ctx.runfiles(files = [
+        ctx.file._xctestrun_template,
+        ctx.file._xctrunner_entitlements_template,
+    ])
     runfiles = runfiles.merge(ctx.attr.create_simulator_action[DefaultInfo].default_runfiles)
     runfiles = runfiles.merge(ctx.attr.clean_up_simulator_action[DefaultInfo].default_runfiles)
 
@@ -91,22 +94,22 @@ def _ios_xctestrun_runner_impl(ctx):
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
+            attachment_lifetime = ctx.attr.attachment_lifetime,
+            clean_up_simulator_action_binary = ctx.executable.clean_up_simulator_action.short_path,
+            command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
+            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
+            destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             device_type = device_type,
             os_version = os_version,
-            random = ctx.attr.random,
-            xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
-            command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
-            xctestrun_template = ctx.file._xctestrun_template.short_path,
-            attachment_lifetime = ctx.attr.attachment_lifetime,
-            destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
-            reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
-            xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
-            pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
-            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
-            clean_up_simulator_action_binary = ctx.executable.clean_up_simulator_action.short_path,
+            pre_action_binary = pre_action_binary,
+            random = ctx.attr.random,
+            reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
+            xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
+            xctestrun_template = ctx.file._xctestrun_template.short_path,
+            xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
     )
 
@@ -126,19 +129,67 @@ def _ios_xctestrun_runner_impl(ctx):
 ios_xctestrun_runner = rule(
     _ios_xctestrun_runner_impl,
     attrs = {
+        "attachment_lifetime": attr.string(
+            default = "keepNever",
+            doc = """
+Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
+or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
+`xcodebuild` or an XCTestRun file but the value will be used in that case.
+""",
+        ),
+        "clean_up_simulator_action": attr.label(
+            cfg = "exec",
+            executable = True,
+            default = Label("//apple/testing/default_runner:simulator_cleanup"),
+            doc = """
+A binary that cleans up any simulators created by the `create_simulator_action`. Runs after the `post_action`, regardless of test success or failure.
+
+When executed, the binary will have the following environment variables available to it:
+
+<ul>
+<li>`SIMULATOR_UDID`: The UDID of the simulator to clean up. This will be the same UDID produced by the `create_simulator_action` and used to run the tests.</li>
+<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to an existing simulator was reused or if a new one was created. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator cleanup tool.</li>
+</ul>
+""",
+        ),
+        "command_line_args": attr.string_list(
+            doc = """
+CommandLineArguments to pass to xctestrun file when running the test bundle. This means it
+will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "create_simulator_action": attr.label(
+            cfg = "exec",
+            executable = True,
+            default = Label("//apple/testing/default_runner:simulator_creator"),
+            doc = """
+A binary that produces a UDID for a simulator that matches the given device type and OS version. Runs before the `pre_action`. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
+
+When executed, the binary will have the following environment variables available to it:
+
+<ul>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
+<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
+</ul>
+""",
+        ),
+        "create_xcresult_bundle": attr.bool(
+            default = False,
+            doc = """
+Force the test runner to always create an XCResult bundle. This means it will
+always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "destination_timeout": attr.int(
+            doc = "Use the specified timeout when searching for a destination device. The default is 30 seconds.",
+        ),
         "device_type": attr.string(
             default = "",
             doc = """
 The device type of the iOS simulator to run test. The supported types correspond
 to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
 By default, it reads from --ios_simulator_device or falls back to some device.
-""",
-        ),
-        "random": attr.bool(
-            default = False,
-            doc = """
-Whether to run the tests in random order to identify unintended state
-dependencies.
 """,
         ),
         "os_version": attr.string(
@@ -150,52 +201,9 @@ By default, it reads --ios_simulator_version and then falls back to the latest
 supported version.
 """,
         ),
-        "create_xcresult_bundle": attr.bool(
-            default = False,
-            doc = """
-Force the test runner to always create an XCResult bundle. This means it will
-always use `xcodebuild test-without-building` to run the test bundle.
-""",
-        ),
-        "xcodebuild_args": attr.string_list(
-            doc = """
-Arguments to pass to `xcodebuild` when running the test bundle. This means it
-will always use `xcodebuild test-without-building` to run the test bundle.
-""",
-        ),
-        "command_line_args": attr.string_list(
-            doc = """
-CommandLineArguments to pass to xctestrun file when running the test bundle. This means it
-will always use `xcodebuild test-without-building` to run the test bundle.
-""",
-        ),
-        "attachment_lifetime": attr.string(
-            default = "keepNever",
-            doc = """
-Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
-or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
-`xcodebuild` or an XCTestRun file but the value will be used in that case.
-""",
-        ),
-        "destination_timeout": attr.int(
-            doc = "Use the specified timeout when searching for a destination device. The default is 30 seconds.",
-        ),
-        "reuse_simulator": attr.bool(
-            default = True,
-            doc = """
-Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
-""",
-        ),
-        "pre_action": attr.label(
-            executable = True,
-            cfg = "exec",
-            doc = """
-A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
-""",
-        ),
         "post_action": attr.label(
-            executable = True,
             cfg = "exec",
+            executable = True,
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.
 """,
@@ -203,38 +211,33 @@ A binary to run following test execution. Runs after testing but before test res
         "post_action_determines_exit_code": attr.bool(
             default = False,
             doc = """
-When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
+When true, the exit code of the test run will be set to the exit code of the `post_action`. This is useful for tests that need to fail the test run based on their own criteria.
 """,
         ),
-        "create_simulator_action": attr.label(
-            default = Label("//apple/testing/default_runner:simulator_creator"),
-            executable = True,
+        "pre_action": attr.label(
             cfg = "exec",
+            executable = True,
             doc = """
-A binary that produces a UDID for a simulator that matches the given device type and OS version. Runs before the pre action. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
-
-When executed, the binary will have the following environment variables available to it:
-
-<ul>
-<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
-<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
-<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
-</ul>
+A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
 """,
         ),
-        "clean_up_simulator_action": attr.label(
-            default = Label("//apple/testing/default_runner:simulator_cleanup"),
-            executable = True,
-            cfg = "exec",
+        "random": attr.bool(
+            default = False,
             doc = """
-A binary that cleans up any simulators created by the `create_simulator_action`. Runs after the post action, regardless of test success or failure.
-
-When executed, the binary will have the following environment variables available to it:
-
-<ul>
-<li>`SIMULATOR_UDID`: The UDID of the simulator to clean up. This will be the same UDID produced by the `create_simulator_action` and used to run the tests.</li>
-<li>`SIMULATOR_REUSE_SIMULATOR`: Whether to an existing simulator was reused or if a new one was created. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator cleanup tool.</li>
-</ul>
+Whether to run the tests in random order to identify unintended state
+dependencies.
+""",
+        ),
+        "reuse_simulator": attr.bool(
+            default = True,
+            doc = """
+Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
+""",
+        ),
+        "xcodebuild_args": attr.string_list(
+            doc = """
+Arguments to pass to `xcodebuild` when running the test bundle. This means it
+will always use `xcodebuild test-without-building` to run the test bundle.
 """,
         ),
         "_test_template": attr.label(
