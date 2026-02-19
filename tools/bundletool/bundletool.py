@@ -254,7 +254,12 @@ def _main(control_path):
     # Log tools errors cleanly for build output.
     sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)
+  except zipfile.LargeZipFile as exception:
+  sys.stderr.write('''
+  ERROR: The bundle exceeds Python’s 2GiB limit for non-ZIP64 archives.
 
+  Original exception: {exception}\n'''.format(exception=exception))
+    sys.exit(1)
 
 if __name__ == '__main__':
   if len(sys.argv) < 2:
