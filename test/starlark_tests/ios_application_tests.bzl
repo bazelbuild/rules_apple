@@ -185,6 +185,8 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    # Verify that the SwiftCompatibilitySpan.dylib is packaged with the application to support older
+    # versions of iOS than 26, when Span features are used by the binary.
     archive_contents_test(
         name = "{}_device_swift_span_compatibility_dylib_present_on_older_os".format(name),
         build_type = "device",

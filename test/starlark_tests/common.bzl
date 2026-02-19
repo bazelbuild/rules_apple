@@ -24,7 +24,7 @@ _fixture_tags = [
     "notap",
 ]
 
-# The current baseline for iOS is version 15.0, based on Xcode 16.0 on Apple's Xcode Support page:
+# The current baseline for iOS is version 15.0, based on Xcode 26.0 on Apple's Xcode Support page:
 # https://developer.apple.com/support/xcode/
 _min_os_ios = struct(
     app_intents_support = "16.0",
@@ -38,6 +38,8 @@ _min_os_ios = struct(
     widget_configuration_intents_support = "16.0",
 )
 
+# The baseline for macOS is version 10.13, which is lower than the lowest version supported by
+# Xcode 26.0 (which is 11.0). This will likely get bumped as we get closer to Intel deprecation.
 _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
@@ -48,15 +50,15 @@ _min_os_macos = struct(
     arm64_support_plus1 = "12.0",
 )
 
-# The current baseline for tvOS is version 13.0, based on Xcode 15.3's minimum version for XCTest.
+# The current baseline for tvOS is version 15.0, based on Xcode 26.0 on Apple's Xcode Support page:
+# https://developer.apple.com/support/xcode/
 _min_os_tvos = struct(
     app_intents_support = "16.0",
     app_intents_package_support = "17.0",
     arm_sim_support = "14.0",
     baseline = "13.0",
-    oldest_supported = "12.0",
-    nplus1 = "14.0",
-    stable_swift_abi = "12.2",
+    nplus1 = "16.0",
+    oldest_supported = "15.0",
 )
 
 _min_os_visionos = struct(
@@ -64,6 +66,8 @@ _min_os_visionos = struct(
     oldest_supported = "1.0",
 )
 
+# The current baseline for watchOS is version 8.0, based on Xcode 26.0 on Apple's Xcode Support page:
+# https://developer.apple.com/support/xcode/
 _min_os_watchos = struct(
     app_intents_support = "9.0",
     app_intents_package_support = "10.0",

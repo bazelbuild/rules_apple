@@ -1235,25 +1235,6 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_swift_ext",
-    bundle_id = "com.google.example",
-    extensions = [":swift_ext"],
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
     name = "app_with_extensionkit_ext",
     bundle_id = "com.google.example",
     extensions = [":extensionkit_ext"],

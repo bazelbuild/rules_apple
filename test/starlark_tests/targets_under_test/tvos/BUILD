@@ -110,17 +110,6 @@ tvos_extension(
 )
 
 tvos_application(
-    name = "app_with_swift_ext",
-    bundle_id = "com.google.example",
-    extensions = [":swift_ext"],
-    infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = ["//test/starlark_tests/resources:objc_main_lib"],
-)
-
-tvos_application(
     name = "app_with_extensionkit_ext",
     bundle_id = "com.google.example",
     extensions = [":extensionkit_ext"],
@@ -1064,56 +1053,6 @@ tvos_unit_test(
     deps = [
         "//test/starlark_tests/resources:objc_swift_depending_test_lib",
     ],
-)
-
-# ---------------------------------------------------------------------------------------
-
-tvos_application(
-    name = "app_with_direct_swift_dep",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [":swift_lib"],
-)
-
-tvos_application(
-    name = "app_with_indirect_swift_dep",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [":objc_to_swift_lib"],
-)
-
-tvos_application(
-    name = "app_with_direct_swift_dep_stable_abi",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.stable_swift_abi,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [":swift_lib"],
-)
-
-swift_library(
-    name = "swift_lib",
-    srcs = ["//test/testdata/sources:main.swift"],
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "objc_to_swift_lib",
-    tags = common.fixture_tags,
-    deps = [":swift_lib"],
 )
 
 # ---------------------------------------------------------------------------------------

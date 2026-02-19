@@ -183,30 +183,6 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
-    # Verify that Swift dylibs are packaged with the application, not with the extension, when only
-    # an extension uses Swift. And to be safe, verify that they aren't packaged with the extension.
-    archive_contents_test(
-        name = "{}_device_swift_dylibs_present".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
-        not_contains = [
-            "$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",  # Wrong location.
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",  # Only for iOS earlier than 15.0.
-            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",  # Only for iOS earlier than 15.0.
-        ],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_simulator_swift_dylibs_present".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_ext",
-        not_contains = [
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",  # Wrong location
-            "$BUNDLE_ROOT/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",  # Only for iOS earlier than 15.0.
-        ],
-        tags = [name],
-    )
-
     archive_contents_test(
         name = "{}_with_imported_static_fmwk_contains_symbols_and_bundles_resources".format(name),
         build_type = "simulator",
