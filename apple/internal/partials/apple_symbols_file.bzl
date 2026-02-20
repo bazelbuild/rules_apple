@@ -18,130 +18,51 @@ load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
-load("@bazel_skylib//lib:shell.bzl", "shell")
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
-    "intermediates",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
-)
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-_AppleSymbolsFileInfo = provider(
-    doc = "Private provider to propagate the transitive .symbols `File`s.",
-    fields = {
-        "symbols_output_dirs": "Depset of `File`s containing directories of $UUID.symbols files for transitive dependencies.",
-    },
-)
-
 def _apple_symbols_file_partial_impl(
         *,
-        actions,
-        binary_artifact,
-        dependency_targets,
-        dsym_outputs,
-        label_name,
-        output_discriminator,
         include_symbols_in_bundle,
-        platform_prerequisites):
+        rule_label):
     """Implementation for the Apple .symbols file processing partial."""
-    outputs = []
-    if (platform_prerequisites.cpp_fragment.apple_generate_dsym and
-        binary_artifact and dsym_outputs):
-        inputs = [binary_artifact]
-
-        # The xcrun symbols tool can handle both dSYM bundles and "flat file" dSYM binaries as
-        # inputs; therefore, we handle them as inputs in the same way without "guessing" paths to
-        # the dSYM binaries in a dSYM bundle.
-        for dsym_output in dsym_outputs.values():
-            inputs.append(dsym_output)
-
-        output = intermediates.directory(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-            dir_name = "symbols_output",
-        )
-        outputs.append(output)
-        apple_support.run_shell(
-            actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            inputs = inputs,
-            outputs = [output],
-            command = (
-                "mkdir -p {output} && /usr/bin/xcrun symbols -noTextInSOD " +
-                "-noDaemon -arch all -symbolsPackageDir {output} {inputs} >/dev/null"
-            ).format(
-                output = shell.quote(output.path),
-                inputs = " ".join([shell.quote(i.path) for i in inputs]),
-            ),
-            mnemonic = "GenerateAppleSymbolsFile",
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
-
-    transitive_output_files = depset(
-        direct = outputs,
-        transitive = [
-            x[_AppleSymbolsFileInfo].symbols_output_dirs
-            for x in dependency_targets
-            if _AppleSymbolsFileInfo in x
-        ],
-    )
-
     if include_symbols_in_bundle:
-        bundle_files = [(processor.location.archive, "Symbols", transitive_output_files)]
-    else:
-        bundle_files = []
+        # print is the only way to emit a warning during rule processing.
+        # buildifier: disable=print
+        print(
+            """
+WARNING: Including symbols in the bundle is still enabled for the target {rule_label}, via the use \
+of "include_symbols_in_bundle = True".
 
-    return struct(
-        bundle_files = bundle_files,
-        providers = [_AppleSymbolsFileInfo(symbols_output_dirs = transitive_output_files)],
-    )
+This attribute is now a no-op.
+
+Per FB21934928, Apple has requested that symbols no longer be included in the bundle, as they are \
+only required for shipping bitcode, and bitcode is forbidden from shipping applications on all \
+Apple platforms since Xcode 14.
+
+Please remove the use of this attribute at your earliest convenience.""".format(
+                rule_label = str(rule_label),
+            ),
+        )
+    return struct()
 
 def apple_symbols_file_partial(
         *,
-        actions,
-        binary_artifact,
-        dependency_targets = [],
-        dsym_outputs,
-        label_name,
-        output_discriminator = None,
         include_symbols_in_bundle,
-        platform_prerequisites):
-    """Constructor for the Apple .symbols package processing partial.
+        rule_label):
+    """Retired constructor for the Apple .symbols package processing partial.
 
     Args:
-      actions: Actions defined for the current build context.
-      binary_artifact: The main binary artifact for this target.
-      dependency_targets: List of targets that should be checked for files that need to be
-        bundled.
-      dsym_outputs: A mapping of architectures to Files representing dsym outputs for each
-        architecture.
-      label_name: Name of the target being built.
-      output_discriminator: A string to differentiate between different target intermediate files
-          or `None`.
       include_symbols_in_bundle: Whether the partial should package in its bundle
-        the .symbols files for this binary plus all binaries in `dependency_targets`.
-      platform_prerequisites: Struct containing information on the platform being targeted.
+        the .symbols files for this binary plus all binaries in `dependency_targets`. Currently only
+        used to message that the feature is still enabled, and is not used to perform any actions.
+      rule_label: The label of the rule being processed, used for warning messages.
 
     Returns:
-      A partial that returns the .symbols files to propagate or bundle, if any were requested.
+      A partial that warns that the `include_symbols_in_bundle` attribute is a no-op, if it is used.
     """
     return partial.make(
         _apple_symbols_file_partial_impl,
-        actions = actions,
-        binary_artifact = binary_artifact,
-        dependency_targets = dependency_targets,
-        dsym_outputs = dsym_outputs,
         include_symbols_in_bundle = include_symbols_in_bundle,
-        label_name = label_name,
-        output_discriminator = output_discriminator,
-        platform_prerequisites = platform_prerequisites,
+        rule_label = rule_label,
     )

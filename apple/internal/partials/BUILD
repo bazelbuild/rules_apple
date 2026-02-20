@@ -54,11 +54,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:intermediates",
-        "//apple/internal:processor",
         "@bazel_skylib//lib:partial",
-        "@bazel_skylib//lib:shell",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

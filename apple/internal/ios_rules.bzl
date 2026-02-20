@@ -422,13 +422,8 @@ def _ios_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         partials.apple_symbols_file_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            dependency_targets = embeddable_targets,
-            dsym_outputs = debug_outputs.dsym_outputs,
-            label_name = label.name,
             include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
-            platform_prerequisites = platform_prerequisites,
+            rule_label = label,
         ),
     ]
 
@@ -1040,15 +1035,6 @@ def _ios_framework_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_symbols_file_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
-            dsym_outputs = debug_outputs.dsym_outputs,
-            label_name = label.name,
-            include_symbols_in_bundle = False,
-            platform_prerequisites = platform_prerequisites,
-        ),
     ]
 
     processor_result = processor.process(
@@ -1328,15 +1314,6 @@ def _ios_extension_impl(ctx):
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-        ),
-        partials.apple_symbols_file_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
-            dsym_outputs = debug_outputs.dsym_outputs,
-            label_name = label.name,
-            include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
         ),
     ]
@@ -1869,14 +1846,13 @@ A list of framework targets (see
 that this target depends on.
 """,
             ),
+            # TODO: b/477688967 - Remove this attribute once existing uses have been removed.
             "include_symbols_in_bundle": attr.bool(
                 default = False,
                 doc = """
-    If true and --output_groups=+dsyms is specified, generates `$UUID.symbols`
-    files from all `{binary: .dSYM, ...}` pairs for the application and its
-    dependencies, then packages them under the `Symbols/` directory in the
-    final application bundle.
-    """,
+TODO: b/477688967
+No-op. This attribute will be removed in a future version of the rules.
+""",
             ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard", ".xib"],
