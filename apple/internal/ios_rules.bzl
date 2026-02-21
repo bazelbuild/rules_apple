@@ -765,6 +765,15 @@ def _ios_app_clip_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
+        partials.apple_symbols_file_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            dependency_targets = embeddable_targets + ctx.attr.deps,
+            dsym_binaries = debug_outputs.dsym_binaries,
+            label_name = label.name,
+            include_symbols_in_bundle = False,
+            platform_prerequisites = platform_prerequisites,
+        ),
     ]
 
     if platform_prerequisites.platform.is_device:
