@@ -608,6 +608,19 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_and_symbols_in_bundle",
     )
 
+    # Tests that app clips also contribute .symbols package files when
+    # `include_symbols_in_bundle` is enabled on the embedding application.
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_with_app_clip_test".format(name),
+        binary_paths = [
+            "Payload/app_with_app_clip_and_symbols_in_bundle.app/app_with_app_clip_and_symbols_in_bundle",
+            "Payload/app_with_app_clip_and_symbols_in_bundle.app/AppClips/app_clip.app/app_clip",
+        ],
+        build_type = "simulator",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_clip_and_symbols_in_bundle",
+    )
+
     # Tests that the archive contains .symbols package files generated from
     # imported frameworks when `include_symbols_in_bundle` is enabled.
     apple_symbols_file_test(
