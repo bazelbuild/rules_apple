@@ -36,6 +36,7 @@ load("@build_bazel_rules_apple//apple:watchos.bzl",
      "watchos_application",
      "watchos_extension"
     )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",

@@ -30,6 +30,7 @@ function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application", "ios_unit_test", "ios_ui_test")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "app_lib",
