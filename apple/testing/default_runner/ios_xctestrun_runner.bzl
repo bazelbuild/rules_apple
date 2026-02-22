@@ -14,7 +14,7 @@ def _get_template_substitutions(
         create_xcresult_bundle,
         device_type,
         os_version,
-        simulator_creator,
+        simulator_manager_start,
         random,
         xcodebuild_args,
         command_line_args,
@@ -27,12 +27,12 @@ def _get_template_substitutions(
         post_action_binary,
         post_action_determines_exit_code):
     substitutions = {
-        "device_type": device_type,
+        "url_encoded_device_type": device_type.replace(" ", "%20"),
         "os_version": os_version,
         "create_xcresult_bundle": create_xcresult_bundle,
         "xcodebuild_args": xcodebuild_args,
         "command_line_args": command_line_args,
-        "simulator_creator.py": simulator_creator,
+        "simulator_manager_start": simulator_manager_start,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xctestrun_template": xctestrun_template,
@@ -69,7 +69,7 @@ def _ios_xctestrun_runner_impl(ctx):
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,
         ctx.file._xctrunner_entitlements_template,
-    ]).merge(ctx.attr._simulator_creator[DefaultInfo].default_runfiles)
+    ]).merge(ctx.attr._simulator_manager_start[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -93,7 +93,7 @@ def _ios_xctestrun_runner_impl(ctx):
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable._simulator_creator.short_path,
+            simulator_manager_start = ctx.executable._simulator_manager_start.short_path,
             random = ctx.attr.random,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
@@ -204,9 +204,9 @@ A binary to run following test execution. Runs after testing but before test res
 When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
 """,
         ),
-        "_simulator_creator": attr.label(
+        "_simulator_manager_start": attr.label(
             default = Label(
-                "//apple/testing/default_runner:simulator_creator",
+                "//apple/testing/simulator_manager:start",
             ),
             executable = True,
             cfg = "exec",
