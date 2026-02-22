@@ -57,10 +57,30 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
+simulator_pool_client_path="%(simulator_pool_client.py)s"
+simulator_pool_server_port="%(simulator_pool_server_port)s"
+simulator_pool_enabled=false
+if [[ -n "$simulator_pool_server_port" ]] && [[ -n "$device_id" ]] && [[ -n "$simulator_pool_client_path" ]]; then
+  simulator_pool_enabled=true
+fi
+simulator_id=""
+
+return_simulator_to_pool() {
+  if [[ "$simulator_pool_enabled" == true ]]; then
+    "$simulator_pool_client_path" return --udid="$simulator_id" --port "$simulator_pool_server_port"
+  fi
+}
+
+teardown() {
+    return_simulator_to_pool
+    rm -rf "${test_tmp_dir}"
+}
+
 test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
 if [[ -z "${NO_CLEAN:-}" ]]; then
-  trap 'rm -rf "${test_tmp_dir}"' EXIT
+  trap 'teardown' EXIT
 else
+  return_simulator_to_pool
   test_tmp_dir="${TMPDIR:-/tmp}/test_tmp_dir"
   rm -rf "$test_tmp_dir"
   mkdir -p "$test_tmp_dir"
@@ -408,8 +428,18 @@ else
   simulator_creator_args+=(--no-reuse-simulator)
 fi
 
-simulator_id="unused"
-if [[ "$build_for_device" == false ]]; then
+if [[ "$simulator_pool_enabled" == true ]]; then
+  request_simulator_args=(
+      --port "$simulator_pool_server_port" \
+      --test-target "$test_bundle_name"
+      --device-type "%(device_type)s"
+      --os-version "%(os_version)s"
+  )
+  if [[ -n "${test_host_path:-}" ]]; then
+      request_simulator_args+=(--test-host "$(basename_without_extension "$test_host_path")")
+  fi
+  simulator_id=$("$simulator_pool_client_path" request "${request_simulator_args[@]}")
+else
   simulator_id="$("./%(simulator_creator.py)s" \
     "${simulator_creator_args[@]}"
   )"
