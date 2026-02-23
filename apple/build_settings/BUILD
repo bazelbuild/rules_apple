@@ -49,6 +49,13 @@ licenses(["notice"])
     if type(build_flag_info.default) == "string"
 ]
 
+config_setting(
+    name = "generate_stubs_for_swift_support_inputs_enabled",
+    flag_values = {
+        ":generate_stubs_for_swift_support_inputs": "True",
+    },
+)
+
 bzl_library(
     name = "build_settings",
     srcs = ["build_settings.bzl"],
