@@ -16,10 +16,12 @@
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -284,6 +286,17 @@ def tvos_framework_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "fmwk_with_resource_bundles.framework.dSYM",
+            "fmwk_with_structured_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
     analysis_output_group_info_files_test(
         name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
@@ -310,6 +323,19 @@ def tvos_framework_test_suite(name):
             "dSYMs/fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
             "dSYMs/fmwk_with_resource_bundles.framework.dSYM",
             "dSYMs/fmwk_with_structured_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:fmwk_with_fmwks_from_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "fmwk_with_fmwks_from_objc_swift_libraries_using_data.framework.dSYM",
+            "fmwk_with_resource_bundles.framework.dSYM",
+            "fmwk_with_structured_resources.framework.dSYM",
         ],
         tags = [name],
     )

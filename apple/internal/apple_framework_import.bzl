@@ -15,10 +15,6 @@
 """Implementation of framework import rules."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
@@ -58,6 +54,10 @@ load(
     "is_experimental_tree_artifact_enabled",
 )
 load(
+    "//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "//apple/internal:framework_import_support.bzl",
     "framework_import_support",
 )
@@ -68,6 +68,10 @@ load(
 load(
     "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
+)
+load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
@@ -119,18 +123,6 @@ def _grouped_framework_files(framework_imports):
         ["framework"],
         attr = "framework_imports",
     )
-
-    # Only check for unique basenames of these keys, since it's possible to
-    # have targets that glob files from different locations but with the same
-    # `.framework` name, causing them to be merged into the same framework
-    # during bundling.
-    unique_frameworks = collections.uniq(
-        [paths.basename(path) for path in framework_groups.keys()],
-    )
-    if len(unique_frameworks) > 1:
-        fail("A framework import target may only include files for a " +
-             "single '.framework' bundle.", attr = "framework_imports")
-
     return framework_groups
 
 def _is_debugging(compilation_mode):
@@ -172,12 +164,20 @@ def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
     features = ctx.features
     framework_imports = ctx.files.framework_imports
     label = ctx.label
+
+    secure_features_support.validate_expected_secure_features(
+        cc_configured_features = cc_configured_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        rule_label = label,
+    )
 
     # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
     # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
@@ -225,11 +225,9 @@ def _apple_dynamic_framework_import_impl(ctx):
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
+        cc_configured_features = cc_configured_features,
         cc_toolchain = cc_toolchain,
-        ctx = ctx,
         deps = deps,
-        disabled_features = disabled_features,
-        features = features,
         framework_includes = _framework_search_paths(
             framework.header_imports +
             framework.swift_interface_imports +
@@ -245,12 +243,8 @@ def _apple_dynamic_framework_import_impl(ctx):
     providers.append(cc_info)
 
     # Create AppleDynamicFramework provider.
-    framework_groups = _grouped_framework_files(framework_imports)
-    framework_dirs_set = depset(framework_groups.keys())
     providers.append(new_appledynamicframeworkinfo(
-        cc_info = cc_info,
-        framework_dirs = framework_dirs_set,
-        framework_files = depset(framework_imports),
+        framework_linking_context = cc_info.linking_context,
     ))
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
@@ -265,8 +259,8 @@ def _apple_dynamic_framework_import_impl(ctx):
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = framework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = swiftinterface_files[0],
@@ -288,10 +282,12 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink or getattr(ctx.fragments.objc, "alwayslink_by_default", False)
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
+    )
     cc_toolchain = find_cpp_toolchain(ctx)
     compilation_mode = ctx.var["COMPILATION_MODE"]
     deps = ctx.attr.deps
-    disabled_features = ctx.disabled_features
     features = ctx.features
     framework_imports = ctx.files.framework_imports
     has_swift = ctx.attr.has_swift
@@ -299,6 +295,12 @@ def _apple_static_framework_import_impl(ctx):
     sdk_dylibs = ctx.attr.sdk_dylibs
     sdk_frameworks = ctx.attr.sdk_frameworks
     weak_sdk_frameworks = ctx.attr.weak_sdk_frameworks
+
+    secure_features_support.validate_expected_secure_features(
+        cc_configured_features = cc_configured_features,
+        expected_secure_features = ctx.attr.expected_secure_features,
+        rule_label = label,
+    )
 
     providers = [
         DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.data)),
@@ -371,11 +373,9 @@ def _apple_static_framework_import_impl(ctx):
             actions = actions,
             additional_cc_infos = additional_cc_infos,
             alwayslink = alwayslink,
+            cc_configured_features = cc_configured_features,
             cc_toolchain = cc_toolchain,
-            ctx = ctx,
             deps = deps,
-            disabled_features = disabled_features,
-            features = features,
             framework_includes = _framework_search_paths(
                 framework.header_imports +
                 framework.swift_interface_imports +
@@ -403,8 +403,8 @@ def _apple_static_framework_import_impl(ctx):
                 actions = actions,
                 ctx = ctx,
                 deps = deps,
-                disabled_features = disabled_features,
-                features = features,
+                disabled_features = cc_configured_features.unsupported_features,
+                features = cc_configured_features.requested_features,
                 module_name = framework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_file = swiftinterface_files[0],
@@ -433,6 +433,16 @@ apple_dynamic_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            "expected_secure_features": attr.string_list(
+                doc = """
+    A list of strings representing the secure features that are expected to be present in the
+    precompiled framework. This is used to validate that the framework was built with Enhanced Security
+    features matching those of its consumers on Apple platforms, through a "scout's honor" system.
+
+    This does not actually set the features on the precompiled artifacts, this merely acts as a
+    "checklist" for the consuming targets to verify what they are expecting to be present.
+    """,
+            ),
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,
@@ -502,6 +512,16 @@ apple_static_framework_import = rule(
     attrs = dicts.add(
         rule_attrs.common_tool_attrs(),
         {
+            "expected_secure_features": attr.string_list(
+                doc = """
+A list of strings representing the secure features that are expected to be present in the
+precompiled framework. This is used to validate that the framework was built with Enhanced Security
+features matching those of its consumers on Apple platforms, through a "scout's honor" system.
+
+This does not actually set the features on the precompiled artifacts, this merely acts as a
+"checklist" for the consuming targets to verify what they are expecting to be present.
+""",
+            ),
             "framework_imports": attr.label_list(
                 allow_empty = False,
                 allow_files = True,

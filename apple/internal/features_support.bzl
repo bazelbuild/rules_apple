@@ -14,25 +14,72 @@
 
 """Support macros to assist in detecting build features."""
 
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
-def _compute_enabled_features(*, requested_features, unsupported_features):
-    """Returns a list of features for the given build.
+def _cc_configured_features(
+        *,
+        ctx,
+        extra_requested_features = None,
+        extra_disabled_features = None):
+    """Captures the rule ctx for a deferred `cc_common.configure_features(...)` call.
 
     Args:
-      requested_features: A list of features requested. Typically from `ctx.features`.
-      unsupported_features: A list of features to ignore. Typically from `ctx.disabled_features`.
+      ctx: The rule context, expected to be captured directly in the rule context and NOT within a
+        partial or helper method.
+      extra_requested_features: An optional list of additional features requested.
+      extra_disabled_features: An optional list of additional features to disable.
 
     Returns:
-      A list containing the subset of features that should be used.
+      A struct with the following fields:
+
+        * configure_features: A lambda that has the captured instance of the rule context, which
+            will always set that rule context as the `ctx` argument of
+            `cc_common.configure_features(...)` and will forward any arguments additional it is
+            given to `cc_common.configure_features(...)`.
+        * enabled_features: The set of features that are enabled after taking into account the
+            requested and disabled features. This is not taking the cc_toolchain's supported
+            features into account; use `cc_common.is_enabled(...)` for that instead.
+        * requested_features: The value computed for `cc_common.configure_features(...)`'s
+            `requested_features` from args above.
+        * unsupported_features: The value computed for `cc_common.configure_features(...)`'s
+            `unsupported_features` from args above.
     """
-    enabled_features_set = sets.make(requested_features)
-    enabled_features_set = sets.difference(
-        enabled_features_set,
-        sets.make(unsupported_features),
+    features = ctx.features
+    if extra_requested_features:
+        features += extra_requested_features
+
+    disabled_features = ctx.disabled_features + [
+        # Disabled include scanning (b/321109350) to work around issues with GrepIncludes actions
+        # being routed to the wrong exec platform.
+        "cc_include_scanning",
+        # Disabled parse_headers (b/174937981) to avoid validating headers from top-level Apple
+        # rules (i.e. legacy uses of ios_framework). Those headers are expected to be as public API
+        # i.e. a "swiftinterface" equivalent for (Objective-)C(++) frameworks and are not expected
+        # to build in any given Bazel WORKSPACE.
+        #
+        # TODO: b/251214758 - Re-enable parse_headers once 3P framework users establish interfaces
+        # via a more stable means, as was done for generated interfaces in Swift.
+        "parse_headers",
+    ]
+    if extra_disabled_features:
+        disabled_features += extra_disabled_features
+
+    enabled_features_set = set(features)
+    enabled_features_set.difference_update(disabled_features)
+
+    return struct(
+        configure_features = lambda *args, **kwargs: cc_common.configure_features(
+            ctx = ctx,
+            requested_features = features,
+            unsupported_features = disabled_features,
+            *args,
+            **kwargs
+        ),
+        enabled_features = enabled_features_set,
+        requested_features = features,
+        unsupported_features = disabled_features,
     )
-    return sets.to_list(enabled_features_set)
 
 features_support = struct(
-    compute_enabled_features = _compute_enabled_features,
+    cc_configured_features = _cc_configured_features,
 )

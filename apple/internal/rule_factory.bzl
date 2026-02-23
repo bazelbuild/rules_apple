@@ -76,10 +76,6 @@ AppleTestRunnerInfo provider.
         aspects = [coverage_files_aspect],
         providers = [AppleBundleInfo],
     ),
-    "_apple_coverage_support": attr.label(
-        cfg = config.exec(exec_group = "test"),
-        default = Label("@build_bazel_apple_support//tools:coverage_support"),
-    ),
     "_lcov_merger": attr.label(
         default = configuration_field(
             fragment = "coverage",

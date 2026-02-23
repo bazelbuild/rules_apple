@@ -35,11 +35,9 @@ def _cc_info_with_dependencies(
         actions,
         additional_cc_infos = [],
         alwayslink = False,
+        cc_configured_features,
         cc_toolchain,
-        ctx,
         deps,
-        disabled_features,
-        features,
         framework_includes = [],
         header_imports,
         kind,
@@ -56,11 +54,10 @@ def _cc_info_with_dependencies(
         actions: The actions provider from `ctx.actions`.
         additional_cc_infos: List of additinal CcInfo providers to use for a merged compilation contexts.
         alwayslink: Boolean to indicate if force_load_library should be set for static frameworks.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         cc_toolchain: CcToolchainInfo provider for current target.
-        ctx: The Starlark context for a rule target being built.
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
-        disabled_features: List of features to be disabled for cc_common.compile
-        features: List of features to be enabled for cc_common.compile.
         framework_includes: List of Apple framework search paths (defaults to: []).
         header_imports: List of imported header files.
         includes: List of included headers search paths (defaults to: []).
@@ -79,12 +76,9 @@ def _cc_info_with_dependencies(
     all_cc_infos = [dep[CcInfo] for dep in deps] + additional_cc_infos
     dep_compilation_contexts = [cc_info.compilation_context for cc_info in all_cc_infos]
 
-    feature_configuration = cc_common.configure_features(
-        ctx = ctx,
+    feature_configuration = cc_configured_features.configure_features(
         cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = features,
-        unsupported_features = disabled_features,
     )
 
     public_hdrs = []
@@ -252,7 +246,22 @@ def _classify_framework_imports(config_vars, framework_imports):
         parent_dir_name = paths.basename(file.dirname)
         is_bundle_root_file = parent_dir_name.endswith(".framework")
         if is_bundle_root_file:
-            bundle_name, _ = paths.split_extension(parent_dir_name)
+            found_bundle_name, _ = paths.split_extension(parent_dir_name)
+            if bundle_name and bundle_name != found_bundle_name:
+                # Only check for unique basenames of these keys, since it's possible to have targets
+                # that glob files from different locations but with the same `.framework` name,
+                # causing them to be merged into the same framework during bundling.
+                #
+                # TODO(b/228459477): Make the check stricter to forbid multiple similarly-named
+                # framework bundles from different workspace paths once users stop relying on this
+                # behavior.
+                fail(
+                    """
+A framework import target may only include files for a single '.framework' bundle.
+""",
+                    attr = "framework_imports",
+                )
+            bundle_name = found_bundle_name
             if file.basename == bundle_name:
                 binary_imports.append(file)
                 continue

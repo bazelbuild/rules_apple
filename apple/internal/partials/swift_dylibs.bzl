@@ -57,22 +57,41 @@ File object that represents a directory containing the Swift dylibs to package f
     },
 )
 
-# Minimum OS versions for which we no longer need to potentially bundle any
-# Swift dylibs with the application. The first cutoff point was when the
-# platforms bundled the standard libraries, the second was when they started
-# bundling the Concurrency library. There may be future libraries that require
-# us to continue bumping these values. The tool is smart enough only to bundle
-# those libraries required by the minimum OS version of the scanned binaries.
+# For each platform, the minimum OS version at which we no longer need to bundle
+# any Swift dylibs with the application -- either the pre-ABI-stable runtime or
+# back-deployed runtimes (e.g., Concurrency and Span). We do not need to
+# consider each of these cases individually; `swift-stdlib-tool` will only
+# bundle the libraries required based on the minimum OS version of the scanned
+# binaries.
 #
-# Values are the first version where bundling is no longer required and should
-# correspond with the Swift compilers values for these which is the source of
-# truth https://github.com/apple/swift/blob/998d3518938bd7229e7c5e7b66088d0501c02051/lib/Basic/Platform.cpp#L82-L105
+# These values should be kept in sync with the values in
+# `swift::tripleRequiresRPathForSwiftLibrariesInOS` defined in:
+# https://github.com/apple/swift/blob/main/lib/Basic/Platform.cpp.
 _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
-    "ios": apple_common.dotted_version("15.0"),
-    "macos": apple_common.dotted_version("12.0"),
-    "tvos": apple_common.dotted_version("15.0"),
+    "ios": apple_common.dotted_version("26.0"),
+    "macos": apple_common.dotted_version("26.0"),
+    "tvos": apple_common.dotted_version("26.0"),
+    "visionos": apple_common.dotted_version("26.0"),
+    "watchos": apple_common.dotted_version("26.0"),
+}
+
+# swift-stdlib-tool currently bundles an unnecessary copy of the Swift runtime
+# whenever it bundles the back-deploy version of the Swift concurrency
+# runtime. This is because the back-deploy version of the Swift concurrency
+# runtime contains an `@rpath`-relative reference to the Swift runtime due to
+# being built with a deployment target that predates the Swift runtime being
+# shipped with operating system.
+#
+# The Swift runtime only needs to be bundled if the binary's deployment target
+# is old enough that it may run on OS versions that lack the Swift runtime,
+# so we detect this scenario and remove the Swift runtime from the output
+# path.
+_MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING = {
+    "ios": apple_common.dotted_version("12.2"),
+    "macos": apple_common.dotted_version("10.14.4"),
+    "tvos": apple_common.dotted_version("12.2"),
     "visionos": apple_common.dotted_version("1.0"),
-    "watchos": apple_common.dotted_version("8.0"),
+    "watchos": apple_common.dotted_version("5.2"),
 }
 
 def _swift_dylib_action(
@@ -99,6 +118,10 @@ def _swift_dylib_action(
 
     if platform_prerequisites.build_settings.disable_swift_stdlib_binary_thinning:
         swift_stdlib_tool_args.add("--disable_binary_thinning")
+
+    minimum_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
+    if minimum_os < _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING[platform_prerequisites.platform_type]:
+        swift_stdlib_tool_args.append("--requires_bundled_swift_runtime")
 
     apple_support.run(
         actions = actions,

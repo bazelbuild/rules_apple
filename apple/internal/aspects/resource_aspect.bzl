@@ -80,11 +80,11 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
     apple_xplat_toolchain_info = aspect_ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
-    uses_swift = swift_support.uses_swift(deps_and_target)
-    features = features_support.compute_enabled_features(
-        requested_features = aspect_ctx.features,
-        unsupported_features = aspect_ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = aspect_ctx,
     )
+    features = cc_configured_features.enabled_features
+    uses_swift = swift_support.uses_swift(deps_and_target)
 
     # TODO(b/176548199): Support device_families when rule_descriptor can be accessed from an
     # aspect, or the list of allowed device families can be determined independently of the
@@ -125,9 +125,18 @@ def _apple_resource_aspect_impl(target, ctx):
         "product_type": None,
         "rule_label": ctx.label,
     }
-    collect_infoplists_args = {}
-    collect_args = {}
-    collect_structured_args = {}
+
+    skip_library_validation = False
+
+    common_collect_args = {
+        "rule_label": ctx.label,
+    }
+    collect_infoplists_args = dict(common_collect_args)
+    collect_args = common_collect_args | {
+        "skip_library_validation": skip_library_validation,
+    }
+    collect_structured_args = dict(common_collect_args)
+
     collect_framework_import_bundle_files = None
 
     hint_action = None

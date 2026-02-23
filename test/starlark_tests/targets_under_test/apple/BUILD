@@ -726,6 +726,45 @@ apple_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_lipoed_xcframework_with_disabled_features",
+    bundle_id = "com.google.example",
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
@@ -1028,6 +1067,11 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib_with_resources"],
 )
@@ -1079,6 +1123,47 @@ apple_static_xcframework_import(
 )
 
 apple_static_xcframework(
+    name = "multiplatform_static_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.baseline,
+        "ios": common.min_os_ios.baseline,
+        "visionos": common.min_os_visionos.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
     name = "ios_xcframework_bundling_static_fmwks_with_avoid_deps",
     avoid_deps = [":fmwk_lib_with_resources"],
     ios = {
@@ -1113,6 +1198,11 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
     ],
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
 )
@@ -1239,6 +1329,61 @@ apple_static_xcframework(
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_pointer_authentication",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "secure_features_ios_static_xcframework_with_rule_level_disabled_features",
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],

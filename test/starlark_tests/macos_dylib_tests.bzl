@@ -15,11 +15,21 @@
 """macos_dylib Starlark tests."""
 
 load(
+    "//test/starlark_tests:common.bzl",
+    "common",
+)
+load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -97,11 +107,27 @@ def macos_dylib_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "dylib.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
         expected_direct_dsyms = ["dSYMs/dylib.dSYM"],
         expected_transitive_dsyms = ["dSYMs/dylib.dSYM"],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        expected_direct_dsyms = ["dylib.dSYM"],
+        expected_transitive_dsyms = ["dylib.dSYM"],
         tags = [name],
     )
 
@@ -135,14 +161,57 @@ def macos_dylib_test_suite(name):
     )
 
     binary_contents_test(
-        name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
+        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_with_base_bundle_id_derived_bundle_id",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_with_capability_set_derived_bundle_id",
         binary_test_file = "$BINARY",
         compilation_mode = "opt",
         embedded_plist_test_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.dylib-with-base-bundle-id-derived-bundle-id",
+            "CFBundleIdentifier": "com.bazel.app.example.dylib-with-capability-set-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    # Tests secure features support for pointer authentication retains both the arm64 and arm64e
+    # slices.
+    binary_contents_test(
+        name = "{}_pointer_authentication_arm64_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:pointer_authentication_dylib",
+        cpus = {
+            "macos_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    binary_contents_test(
+        name = "{}_pointer_authentication_arm64e_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:pointer_authentication_dylib",
+        cpus = {
+            "macos_cpus": ["arm64", "arm64e"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    # Tests secure features support for validating features at the rule level.
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_dylib_with_rule_level_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `{target}`".format(
+            target = Label("//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_dylib_with_rule_level_disabled_features"),
+        ),
         tags = [name],
     )
 

@@ -24,6 +24,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -41,6 +42,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -51,6 +53,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "apple_symbols_file_test",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
     "//test/starlark_tests/rules:entitlements_contents_test.bzl",
@@ -184,6 +190,80 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
+    )
+
+    # Verify that Swift concurrency dylibs are packaged with the application, while the runtime is
+    # not when the application is built for a target that supports the stable Swift ABI but lacks
+    # OS support for the concurrency dylibs.
+    archive_contents_test(
+        name = "{}_device_swift_concurrency_dylibs_present".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswift_Concurrency.dylib",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_concurrency_dylibs_present".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_requiring_concurrency_libs",
+        contains = ["$BUNDLE_ROOT/Frameworks/libswift_Concurrency.dylib"],
+        not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
     )
 
     apple_verification_test(
@@ -475,6 +555,17 @@ def ios_application_test_suite(name):
         ],
         tags = [name],
     )
+
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM",
+        ],
+        tags = [name],
+    )
+
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
@@ -483,6 +574,18 @@ def ios_application_test_suite(name):
         ],
         expected_transitive_dsyms = [
             "dSYMs/app.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_dsym_bundle_info_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_direct_dsyms = [
+            "app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app.app.dSYM",
         ],
         tags = [name],
     )
@@ -501,8 +604,21 @@ def ios_application_test_suite(name):
         ],
         tags = [name],
     )
+
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_dsymutil_bundle_transitive_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_ext_and_fmwk_provisioned.app.dSYM",
+            "ext_with_fmwk_provisioned.appex.dSYM",
+            "fmwk_with_provisioning.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     apple_dsym_bundle_info_test(
-        name = "{}_transitive_dsyms_test".format(name),
+        name = "{}_dsymutil_bundle_transitive_dsyms_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         expected_direct_dsyms = [
             "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
@@ -511,6 +627,20 @@ def ios_application_test_suite(name):
             "dSYMs/fmwk_with_provisioning.framework.dSYM",
             "dSYMs/ext_with_fmwk_provisioned.appex.dSYM",
             "dSYMs/app_with_ext_and_fmwk_provisioned.app.dSYM",
+        ],
+        tags = [name],
+    )
+
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_transitive_dsyms_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
+        expected_direct_dsyms = [
+            "app_with_ext_and_fmwk_provisioned.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "fmwk_with_provisioning.framework.dSYM",
+            "ext_with_fmwk_provisioned.appex.dSYM",
+            "app_with_ext_and_fmwk_provisioned.app.dSYM",
         ],
         tags = [name],
     )
@@ -766,6 +896,21 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    directory_test(
+        name = "{}_dsym_directory_test".format(name),
+        apple_generate_dsym = True,
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_directories = {
+            "app.app.dSYM": [
+                "Contents/Resources/DWARF/app_bin",
+                "Contents/Info.plist",
+            ],
+        },
+        tags = [name],
+    )
+
     output_group_zip_contents_test(
         name = "{}_has_combined_zip_output_group".format(name),
         build_type = "device",
@@ -909,6 +1054,22 @@ def ios_application_test_suite(name):
         ],
         tags = [name],
     )
+
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+            # Frameworks
+            "fmwk.framework.dSYM",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "fmwk_no_version.framework.dSYM",
+            "fmwk_with_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     analysis_output_group_info_files_test(
         name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
@@ -941,6 +1102,22 @@ def ios_application_test_suite(name):
             "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
             "dSYMs/fmwk_no_version.framework.dSYM",
             "dSYMs/fmwk_with_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_files_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
+            "fmwk.framework.dSYM",
+            "fmwk_min_os_baseline_with_bundle.framework.dSYM",
+            "fmwk_no_version.framework.dSYM",
+            "fmwk_with_resources.framework.dSYM",
         ],
         tags = [name],
     )
@@ -1114,6 +1291,525 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
             "$BUNDLE_ROOT/app minimal bundle name has several spaces",
         ],
         tags = [name],
+    )
+
+    # Tests that get-task-allow is not added to the entitlements if no provisioning profile is
+    # assigned.
+    apple_verification_test(
+        name = "{}_no_get_task_allow_entitlements_by_default_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_provisioning_profile",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that get-task-allow is added to the entitlements if a provisioning profile is assigned
+    # that declares get-task-allow.
+    apple_verification_test(
+        name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Test that an app with a compiled binary resource coming from a resource attribute will fail to
+    # build and present a user-actionable error message.
+    analysis_failure_message_test(
+        name = "{}_with_binary_resources_in_transitive_deps_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_binary_resources_in_transitive_deps",
+        expected_error = (
+            "Error: {parent_target} has a static or dynamic library coming from a target referenced from the resource-only attribute `data`:\n\n{bad_target}"
+        ).format(
+            parent_target = Label("//test/starlark_tests/targets_under_test/ios:objc_lib_with_binary_resources"),
+            bad_target = Label("//test/starlark_tests/resources:objc_common_lib"),
+        ),
+        tags = [name],
+    )
+
+    # Tests that the required Xcode 26 entitlements are added when enhanced security features are
+    # assigned to a target.
+    apple_verification_test(
+        name = "{}_enhanced_security_features_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    # Tests that the rules report a user-actionable error when enhanced security features are
+    # requested without the required Xcode 26 opt-in feature assigned to a target.
+    analysis_failure_message_test(
+        name = "{}_enhanced_security_features_missing_xcode_26_opt_in_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_without_required_opt_in",
+        expected_error = """
+Apple enhanced security features were requested, but the build is missing the required feature \
+"apple.enable_enhanced_security" that is needed to enable required entitlements in Xcode 26.0 or later.
+""",
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/simple_pointer_authentication_extension",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/simple_pointer_authentication_extension",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_framework_in_app_and_extension_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_framework_in_app_and_extension_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/fmwk_min_os_baseline",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/AppClips/app_clip.app/app_clip",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/app_clip_with_pointer_authentication",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_no_pointer_authentication_arm64_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["device_arm64", "device_arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/single_target_app.app/single_target_app",
+        binary_test_architecture = "arm64",
+        binary_not_contains_architectures = ["arm64e"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_no_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app.app/"],
+            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["device_arm64", "device_arm64e"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/simple_pointer_authentication_app",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
+    )
+    apple_verification_test(
+        name = "{}_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        env = {
+            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+        },
+        tags = [
+            name,
+            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
+        ] + common.skip_ci_tags,
     )
 
     native.test_suite(

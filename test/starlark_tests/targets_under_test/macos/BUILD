@@ -2255,6 +2255,11 @@ macos_application(
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.baseline,
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":dynamic_versioned_xcframework_depending_lib",
@@ -2272,6 +2277,10 @@ objc_library(
 
 apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
+    expected_secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
@@ -2526,6 +2535,10 @@ macos_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources/kext_resources:kext_lib",
@@ -2543,6 +2556,10 @@ macos_kernel_extension(
     ],
     linkopts = ["-dead_strip"],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -2839,13 +2856,15 @@ macos_bundle(
 )
 
 macos_command_line_application(
-    name = "cmd_app_with_base_bundle_id_derived_bundle_id",
-    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
-    bundle_id_suffix = "cmd-app-with-base-bundle-id-derived-bundle-id",
+    name = "cmd_app_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "cmd-app-with-capability-set-derived-bundle-id",
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
@@ -2853,13 +2872,15 @@ macos_command_line_application(
 )
 
 macos_dylib(
-    name = "dylib_with_base_bundle_id_derived_bundle_id",
-    base_bundle_id = "//test/starlark_tests/targets_under_test/apple/capabilities:base_bundle_id",
-    bundle_id_suffix = "dylib-with-base-bundle-id-derived-bundle-id",
+    name = "dylib_with_capability_set_derived_bundle_id",
+    bundle_id_suffix = "dylib-with-capability-set-derived-bundle-id",
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    shared_capabilities = [
+        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -2889,6 +2910,10 @@ macos_kernel_extension(
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
     minimum_os_version = common.min_os_macos.baseline,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -3038,4 +3063,93 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+macos_dylib(
+    name = "simple_enhanced_security_dylib_with_rule_level_disabled_features",
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_dylib(
+    name = "pointer_authentication_dylib",
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Tests for the `building_apple_bundle` build setting.
+
+config_setting(
+    name = "is_building_apple_bundle",
+    flag_values = {
+        "//apple/build_settings:building_apple_bundle": "True",
+    },
+)
+
+genrule(
+    name = "is_building_apple_bundle_src",
+    outs = ["IsBuildingAppleBundle.m"],
+    cmd = """
+cat > $@ <<'EOF'
+__attribute__((used)) void IS_BUILDING_APPLE_BUNDLE_SYMBOL() {}
+int main() { return 0; }
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "is_building_apple_bundle_lib",
+    srcs = ["IsBuildingAppleBundle.m"],
+    copts = select({
+        ":is_building_apple_bundle": ["-DIS_BUILDING_APPLE_BUNDLE_SYMBOL=IsBuildingAppleBundle"],
+        "//conditions:default": ["-DIS_BUILDING_APPLE_BUNDLE_SYMBOL=IsNotBuildingAppleBundle"],
+    }),
+    tags = common.fixture_tags,
+)
+
+macos_command_line_application(
+    name = "cmd_app_to_test_building_apple_bundle",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":is_building_apple_bundle_lib",
+    ],
+)
+
+macos_application(
+    name = "bundled_app_to_test_building_apple_bundle",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":is_building_apple_bundle_lib",
+    ],
 )

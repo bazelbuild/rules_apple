@@ -92,19 +92,60 @@ class PlistToolMainTest(unittest.TestCase):
       outfile = tempfile.NamedTemporaryFile(delete=False)
       self.addCleanup(lambda: os.unlink(outfile.name))
       outfile.close()
+      control = {
+          'plists': [plist_fp.name],
+          'target': '//test:target',
+          'output': outfile.name,
+      }
+      json.dump(control, json_fp)
+
+    # A None/zero return code means success.
+    self.assertFalse(
+        plisttool._main(json_fp.name), 'plisttool did not successfully run'
+    )
+
+    with open(outfile.name, 'rb') as fp:
+      self.assertIn(
+          member=(
+              b'<?xml version="1.0" encoding="UTF-8"?>\n'
+              b'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+              b'"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+              b'<plist version="1.0">\n'
+              b'<dict>\n'
+              b'\t<key>Foo</key>\n'
+              b'\t<string>abc</string>\n'
+              b'</dict>\n'
+              b'</plist>\n'
+          ),
+          container=fp.read(),
+      )
+
+  def test_main_binary_invocation(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(plist_fp.name))
+    with plist_fp:
+      plist = _xml_plist('<key>Foo</key><string>abc</string>')
+      plist_fp.write(plist.getvalue())
+
+    json_fp = tempfile.NamedTemporaryFile(mode='wt', delete=False)
+    self.addCleanup(lambda: os.unlink(json_fp.name))
+    with json_fp:
+      outfile = tempfile.NamedTemporaryFile(delete=False)
+      self.addCleanup(lambda: os.unlink(outfile.name))
+      outfile.close()
       control = {'plists': [plist_fp.name],
                  'target': '//test:target',
-                 'output': outfile.name}
+                 'output': outfile.name,
+                 'binary': True}
       json.dump(control, json_fp)
 
     # A None/zero return code means success.
     self.assertFalse(plisttool._main(json_fp.name),
                      'plisttool did not successfully run')
 
-    # TODO(b/111687215): Test that the written output is correct.
     with open(outfile.name, 'rb') as fp:
-      self.assertIn(b'<?xml', fp.read())
-
+      # Check that the output is a binary plist based on the header.
+      self.assertIn(b'bplist', fp.read())
 
 class PlistToolVariableReferenceTest(unittest.TestCase):
 
@@ -418,6 +459,19 @@ class PlistToolTest(unittest.TestCase):
     self._assert_plisttool_result({'plists': [plist1]}, {'Foo': 'abc'})
 
   def test_merge_of_one_empty_file(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(path=plist_fp.name))
+    self._assert_plisttool_result({'plists': [plist_fp.name]}, {})
+
+  def test_merge_of_one_empty_file_with_binary_output(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(path=plist_fp.name))
+    self._assert_plisttool_result({
+        'binary': True,
+        'plists': [plist_fp.name],
+    }, {})
+
+  def test_merge_of_one_empty_xml_file(self):
     plist1 = _xml_plist('')
     self._assert_plisttool_result({'plists': [plist1]}, {})
 
@@ -1160,6 +1214,22 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_unexpected_app_extension_attributes(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.EXTENSIONKIT_KEY_MSG % (
+            _testing_target, 'EXAppExtensionAttributes'))):
+      plist = {
+          'NSExtension': {},
+          'EXAppExtensionAttributes': {
+              'EXExtensionPointIdentifier': 'com.apple.generic-extension',
+          },
+      }
+      _plisttool_result({
+          'plists': [plist],
+          'info_plist_options': {},
+      })
+
   def test_missing_short_version(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
@@ -1679,6 +1749,9 @@ class PlistToolTest(unittest.TestCase):
                 },
                 'Version': 1,
             },
+            'extra_keys_to_match_profile': [
+                'com.apple.security.application-groups',
+            ],
         },
     }, plist1)
 
@@ -1700,6 +1773,9 @@ class PlistToolTest(unittest.TestCase):
                   },
                   'Version': 1,
               },
+              'extra_keys_to_match_profile': [
+                  'com.apple.security.application-groups',
+              ],
           },
       })
 
@@ -1723,7 +1799,7 @@ class PlistToolTest(unittest.TestCase):
   def test_entitlements_app_groups_not_allowed(self):
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
-        re.escape(plisttool.ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT % (
+        re.escape(plisttool.ENTITLEMENTS_MISSING % (
             _testing_target, 'com.apple.security.application-groups'))):
       _plisttool_result({
           'plists': [{
@@ -1738,6 +1814,9 @@ class PlistToolTest(unittest.TestCase):
                   },
                   'Version': 1,
               },
+              'extra_keys_to_match_profile': [
+                  'com.apple.security.application-groups',
+              ],
           },
       })
 
@@ -1762,6 +1841,9 @@ class PlistToolTest(unittest.TestCase):
                   },
                   'Version': 1,
               },
+              'extra_keys_to_match_profile': [
+                  'com.apple.security.application-groups',
+              ],
           },
       })
 
@@ -1816,6 +1898,9 @@ class PlistToolTest(unittest.TestCase):
                   },
                   'Version': 1,
               },
+              'extra_keys_to_match_profile': [
+                  'aps-environment',
+              ],
           },
       }, plist)
 
@@ -1828,6 +1913,9 @@ class PlistToolTest(unittest.TestCase):
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'aps-environment',
+              ],
               'profile_metadata_file': {
                   'Entitlements': {
                       'aps-environment': 'development',
@@ -1839,18 +1927,23 @@ class PlistToolTest(unittest.TestCase):
 
   def test_attest_valid(self):
     plist = {
-      'com.apple.developer.devicecheck.appattest-environment': 'development'}
-    self._assert_plisttool_result({
-        'plists': [plist],
-        'entitlements_options': {
-            'profile_metadata_file': {
-                'Entitlements': {
-                    'com.apple.developer.devicecheck.appattest-environment': ['development', 'production'],
+        'com.apple.developer.devicecheck.appattest-environment': 'development'}
+    self._assert_plisttool_result(
+        {
+            'plists': [plist],
+            'entitlements_options': {
+                'extra_keys_to_match_profile': [
+                    'com.apple.developer.devicecheck.appattest-environment',
+                ],
+                'profile_metadata_file': {
+                    'Entitlements': {
+                        'com.apple.developer.devicecheck.appattest-environment':
+                            ['development', 'production'],
+                    },
+                    'Version': 1,
                 },
-                'Version': 1,
             },
-        },
-    }, plist)
+        }, plist)
 
   def test_attest_mismatch(self):
     with self.assertRaisesRegex(
@@ -1864,6 +1957,9 @@ class PlistToolTest(unittest.TestCase):
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                   'com.apple.developer.devicecheck.appattest-environment',
+              ],
               'profile_metadata_file': {
                   'Entitlements': {
                       'com.apple.developer.devicecheck.appattest-environment': ['development'],
@@ -1926,6 +2022,9 @@ class PlistToolTest(unittest.TestCase):
     self._assert_plisttool_result({
         'plists': [plist],
         'entitlements_options': {
+            'extra_keys_to_match_profile': [
+                'com.apple.developer.networking.wifi-info',
+            ],
             'profile_metadata_file': {
                 'Entitlements': {
                     'com.apple.developer.networking.wifi-info': True,
@@ -1945,6 +2044,9 @@ class PlistToolTest(unittest.TestCase):
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'com.apple.developer.networking.wifi-info',
+              ],
               'profile_metadata_file': {
                   'Entitlements': {
                       'com.apple.developer.networking.wifi-info': True,
@@ -1953,6 +2055,22 @@ class PlistToolTest(unittest.TestCase):
               },
           },
       }, plist)
+
+  def test_entitlements_wifi_info_active_mismatch_with_no_extra_keys_to_match(self):
+    # This is really looking for the lack of an error being raised.
+    plist = {'com.apple.developer.networking.wifi-info': False}
+    self._assert_plisttool_result({
+        'plists': [plist],
+        'entitlements_options': {
+            'extra_keys_to_match_profile': [],
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.developer.networking.wifi-info': True,
+                },
+                'Version': 1,
+            },
+        },
+    }, plist)
 
   def test_entitlements_profile_missing_wifi_info_active(self):
     with self.assertRaisesRegex(
@@ -1964,6 +2082,9 @@ class PlistToolTest(unittest.TestCase):
       self._assert_plisttool_result({
           'plists': [plist],
           'entitlements_options': {
+              'extra_keys_to_match_profile': [
+                  'com.apple.developer.networking.wifi-info',
+              ],
               'profile_metadata_file': {
                   'Entitlements': {
                       'application-identifier': 'QWERTY.*',

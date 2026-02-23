@@ -15,6 +15,10 @@
 """Implementation for apple universal binary rules."""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -66,8 +70,10 @@ def _apple_universal_binary_impl(ctx):
 
     return [
         new_applebinaryinfo(
+            archs = sorted(ctx.attr.forced_cpus),
             binary = fat_binary,
-            infoplist = None,
+            platform_type = apple_support.target_os_from_rule_ctx(ctx),
+            target_environment = apple_support.target_environment_from_rule_ctx(ctx),
         ),
         DefaultInfo(
             executable = fat_binary,
@@ -84,6 +90,7 @@ The `lipo` tool is used to combine built binaries of multiple architectures.
 """,
     implementation = _apple_universal_binary_impl,
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_attrs(),
         rule_attrs.platform_attrs(),
         {
@@ -105,6 +112,13 @@ binary will be built for all of the specified architectures instead.
 This is primarily useful to force macOS tools to be built as universal binaries using
 `forced_cpus = ["x86_64", "arm64"]`, without requiring the user to pass additional flags when
 invoking Bazel.
+""",
+            ),
+            "_building_apple_bundle": attr.bool(
+                default = False,
+                doc = """
+Internal attribute read by Apple rule transitions to set the
+`building_apple_bundle` build setting.
 """,
             ),
         },

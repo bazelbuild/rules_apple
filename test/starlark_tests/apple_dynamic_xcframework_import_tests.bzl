@@ -351,15 +351,6 @@ def apple_dynamic_xcframework_import_test_suite(name):
         cpus = {"watchos_cpus": ["device_arm64"]},
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
     )
-    archive_contents_test(
-        name = "{}_links_watchos_device_arm64e_macho_load_cmd_for_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_xcframework",
-        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
-        binary_test_architecture = "arm64e",
-        cpus = {"watchos_cpus": ["device_arm64e"]},
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
-    )
 
     # Verify tvos_application bundles XCFramework library for device and simulator architectures.
     archive_contents_test(
@@ -491,6 +482,26 @@ def apple_dynamic_xcframework_import_test_suite(name):
             "The apple_dynamic_xcframework_import rule does not yet support versioned " +
             "frameworks with the experimental tree artifact feature/build setting."
         ),
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_secure_features_app_fails_importing_xcframework_with_no_expected_secure_features_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:secure_features_app_with_imported_dynamic_xcframework_and_no_expected_secure_features",
+        expected_error = """The precompiled artifact at `//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features` was expected to be compatible with the following secure features requested from the build, but they were not indicated as supported by the target's `expected_secure_features` attribute:
+- apple.enable_enhanced_security
+
+Please contact the owner of this target to supply a precompiled artifact (likely a framework or XCFramework) that is built with the required Enhanced Security features enabled, and update the "expected_secure_features" attribute to match.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_secure_features_app_fails_importing_xcframework_with_mismatched_secure_features_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:secure_features_app_with_imported_dynamic_xcframework_and_mismatched_secure_features",
+        expected_error = """The precompiled artifact at `//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework` was expected to be compatible with the following secure features requested from the build, but they were not indicated as supported by the target's `expected_secure_features` attribute:
+- trivial_auto_var_init
+
+Please contact the owner of this target to supply a precompiled artifact (likely a framework or XCFramework) that is built with the required Enhanced Security features enabled, and update the "expected_secure_features" attribute to match.""",
         tags = [name],
     )
 

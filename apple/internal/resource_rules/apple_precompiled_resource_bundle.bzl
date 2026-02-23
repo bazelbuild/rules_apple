@@ -82,10 +82,10 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
 
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
@@ -122,11 +122,13 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["infoplists"],
+            rule_label = ctx.label,
         )
     else:
         infoplists = resources.collect(
             attr = ctx.attr,
             res_attrs = ["_fallback_infoplist"],
+            rule_label = ctx.label,
         )
 
     bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
@@ -151,6 +153,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     resource_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["resources"],
+        rule_label = ctx.label,
     )
     if resource_files:
         bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
@@ -186,6 +189,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
     structured_files = resources.collect(
         attr = ctx.attr,
         res_attrs = ["structured_resources"],
+        rule_label = ctx.label,
     )
     if structured_files:
         structured_parent_dir_param = partial.make(

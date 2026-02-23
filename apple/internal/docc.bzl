@@ -67,10 +67,10 @@ def _docc_archive_impl(ctx):
     fallback_bundle_identifier = ctx.attr.fallback_bundle_identifier
     fallback_bundle_version = ctx.attr.fallback_bundle_version
     fallback_display_name = ctx.attr.fallback_display_name
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
     hosting_base_path = ctx.attr.hosting_base_path
     kinds = ctx.attr.kinds
     transform_for_static_hosting = ctx.attr.transform_for_static_hosting
