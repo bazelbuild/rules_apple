@@ -421,10 +421,6 @@ def _ios_application_impl(ctx):
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_symbols_file_partial(
-            include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
-            rule_label = label,
-        ),
     ]
 
     if ctx.attr.watch_application:
@@ -1844,14 +1840,6 @@ A list of iOS application extensions to include in the final application bundle.
 A list of framework targets (see
 [`ios_framework`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-ios.md#ios_framework))
 that this target depends on.
-""",
-            ),
-            # TODO: b/477688967 - Remove this attribute once existing uses have been removed.
-            "include_symbols_in_bundle": attr.bool(
-                default = False,
-                doc = """
-TODO: b/477688967
-No-op. This attribute will be removed in a future version of the rules.
 """,
             ),
             "launch_storyboard": attr.label(

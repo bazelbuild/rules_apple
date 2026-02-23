@@ -356,10 +356,6 @@ def _macos_application_impl(ctx):
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_symbols_file_partial(
-            include_symbols_in_bundle = ctx.attr.include_symbols_in_bundle,
-            rule_label = label,
-        ),
     ]
 
     if provisioning_profile:
@@ -1679,13 +1675,6 @@ desired Contents subdirectory.
                 cfg = "exec",
                 allow_single_file = True,
                 default = Label("@build_bazel_rules_apple//apple/internal/templates:macos_template"),
-            ),
-            # TODO: b/477688967 - Remove this attribute once existing uses have been removed.
-            "include_symbols_in_bundle": attr.bool(
-                default = False,
-                doc = """
-No-op. This attribute will be removed in a future version of the rules.
-""",
             ),
         },
     ],

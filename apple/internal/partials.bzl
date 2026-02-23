@@ -27,10 +27,6 @@ load(
     _apple_bundle_info_partial = "apple_bundle_info_partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials:apple_symbols_file.bzl",
-    _apple_symbols_file_partial = "apple_symbols_file_partial",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/partials:binary.bzl",
     _binary_partial = "binary_partial",
 )
@@ -134,6 +130,5 @@ partials = struct(
     settings_bundle_partial = _settings_bundle_partial,
     swift_dylibs_partial = _swift_dylibs_partial,
     swift_framework_partial = _swift_framework_partial,
-    apple_symbols_file_partial = _apple_symbols_file_partial,
     watchos_stub_partial = _watchos_stub_partial,
 )

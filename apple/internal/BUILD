@@ -400,7 +400,6 @@ bzl_library(
         "//apple/internal/partials:app_assets_validation",
         "//apple/internal/partials:app_intents_metadata_bundle",
         "//apple/internal/partials:apple_bundle_info",
-        "//apple/internal/partials:apple_symbols_file",
         "//apple/internal/partials:binary",
         "//apple/internal/partials:child_bundle_info_validation",
         "//apple/internal/partials:clang_rt_dylibs",

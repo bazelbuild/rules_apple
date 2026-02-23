@@ -48,17 +48,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_symbols_file",
-    srcs = ["apple_symbols_file.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "@bazel_skylib//lib:partial",
-    ],
-)
-
-bzl_library(
     name = "binary",
     srcs = ["binary.bzl"],
     visibility = [
