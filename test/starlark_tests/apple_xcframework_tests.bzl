@@ -642,6 +642,30 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    directory_test(
+        name = "{}_ios_dynamic_xcframework_custom_bundle_name_tree_artifact_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_custom_bundle_name",
+        expected_directories = {
+            "CustomBundleName.xcframework": [
+                "Info.plist",
+                "ios-arm64/CustomBundleName.framework/CustomBundleName",
+                "ios-arm64/CustomBundleName.framework/Info.plist",
+                "ios-arm64/CustomBundleName.framework/Headers/CustomBundleName.h",
+                "ios-arm64/CustomBundleName.framework/Headers/shared.h",
+                "ios-arm64/CustomBundleName.framework/Modules/module.modulemap",
+                "ios-x86_64-simulator/CustomBundleName.framework/CustomBundleName",
+                "ios-x86_64-simulator/CustomBundleName.framework/Info.plist",
+                "ios-x86_64-simulator/CustomBundleName.framework/Headers/CustomBundleName.h",
+                "ios-x86_64-simulator/CustomBundleName.framework/Headers/shared.h",
+                "ios-x86_64-simulator/CustomBundleName.framework/Modules/module.modulemap",
+            ],
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
