@@ -559,11 +559,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 

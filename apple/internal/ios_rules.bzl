@@ -413,6 +413,7 @@ def _ios_application_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
@@ -420,6 +421,7 @@ def _ios_application_impl(ctx):
             mac_exec_group = mac_exec_group,
             package_swift_support_if_needed = True,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -752,12 +754,14 @@ def _ios_app_clip_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -1025,11 +1029,13 @@ def _ios_framework_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -1306,11 +1312,13 @@ def _ios_extension_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -1721,11 +1729,13 @@ def _ios_imessage_extension_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 

@@ -35,9 +35,18 @@ Apple BUILD rule maintainers.
     ),
     "force_python_bundletool": struct(
         doc = """
-Use the Python version of `bundletool`, rather than the Swift version.
+Use the Python version of `bundletool`, rather than the Swift version, where possible. The Swift
+version of `bundletool` that is used for generating archives is a work in progress that should not
+be used for production, and the flag should only be used for testing the Swift version at this time.
 """,
         default = True,
+    ),
+    "generate_stubs_for_swift_support_inputs": struct(
+        doc = """
+Generate stub binaries for Apple's swift-stdlib-tool from the binary files that contain Swift,
+leaving the downstream SwiftStdlibCopy action with a smaller set of binary inputs to consume.
+""",
+        default = False,
     ),
     "signing_certificate_name": struct(
         doc = """
@@ -58,12 +67,12 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 build_settings = {
     "building_apple_bundle": struct(
         doc = """
-This is set to True if the target configuration is building a bundled Apple
-binary. For example, an `ios_application`, `watchos_extension`, or
-`macos_unit_test`, but *not* a `macos_command_line_application`.
+This is set to True if the target configuration is building a bundled Apple binary. For example,
+an `ios_application`, `watchos_extension`, or `macos_unit_test`, but *not* a
+`macos_command_line_application`.
 
-This can be tested by clients to provide conditional behavior depending on
-whether or not a library is being built as a dependency of a bundled executable.
+This can be tested by clients to provide conditional behavior depending on whether or not a
+library is being built as a dependency of a bundled executable.
 """,
         default = False,
     ),

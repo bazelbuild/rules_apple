@@ -20,6 +20,7 @@ apple_xplat_tools_toolchain(
     bundletool = "//tools/bundletool",
     bundletool_swift = "//tools/bundletool",
     plisttool = "//tools/plisttool:plisttool.par",
+    swiftstdlibstubtool = "//tools/swiftstdlibstubtool",
     verifystringstool = "//tools/verifystringstool",
     versiontool = "//tools/versiontool",
 )

@@ -39,13 +39,11 @@ visibility("@build_bazel_rules_apple//apple/...")
 
 _AppleSwiftDylibsInfo = provider(
     doc = """
-Private provider to propagate the transitive binary `File`s that depend on
-Swift.
+Private provider to propagate the transitive binary `File`s that depend on Swift.
 """,
     fields = {
-        "binary": """
-Depset of binary `File`s containing the transitive dependency binaries that use
-Swift.
+        "binary_files": """
+Depset of binary `File`s containing the transitive dependency binaries to verify for Swift support.
 """,
         "swift_support_files": """
 List of 2-element tuples that represent which files should be bundled as part of the SwiftSupport
@@ -55,12 +53,11 @@ File object that represents a directory containing the Swift dylibs to package f
     },
 )
 
-# For each platform, the minimum OS version at which we no longer need to bundle
-# any Swift dylibs with the application -- either the pre-ABI-stable runtime or
-# back-deployed runtimes (e.g., Concurrency and Span). We do not need to
-# consider each of these cases individually; `swift-stdlib-tool` will only
-# bundle the libraries required based on the minimum OS version of the scanned
-# binaries.
+# For each platform, the minimum OS version at which we no longer need to bundle any Swift dylibs
+# with the application -- either the pre-ABI-stable runtime or back-deployed runtimes (e.g.,
+# Concurrency and Span). We do not need to consider each of these cases individually;
+# `swift-stdlib-tool` will only bundle the libraries required based on the minimum OS version of
+# the scanned binaries.
 #
 # These values should be kept in sync with the values in
 # `swift::tripleRequiresRPathForSwiftLibrariesInOS` defined in:
@@ -73,17 +70,15 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "watchos": apple_common.dotted_version("26.0"),
 }
 
-# swift-stdlib-tool currently bundles an unnecessary copy of the Swift runtime
-# whenever it bundles the back-deploy version of the Swift concurrency
-# runtime. This is because the back-deploy version of the Swift concurrency
-# runtime contains an `@rpath`-relative reference to the Swift runtime due to
-# being built with a deployment target that predates the Swift runtime being
-# shipped with operating system.
+# swift-stdlib-tool bundles an unnecessary copy of the Swift runtime whenever it bundles the
+# back-deploy version of the Swift concurrency runtime. This is because the back-deploy version
+# of the Swift concurrency runtime contains an `@rpath`-relative reference to the Swift runtime due
+# to being built with a deployment target that predates the Swift runtime being shipped with the
+# operating system.
 #
-# The Swift runtime only needs to be bundled if the binary's deployment target
-# is old enough that it may run on OS versions that lack the Swift runtime,
-# so we detect this scenario and remove the Swift runtime from the output
-# path.
+# The Swift runtime only needs to be bundled if the binary's deployment target is old enough that
+# it may run on OS versions that lack the Swift runtime, so we detect this scenario and remove the
+# Swift runtime from the output path.
 _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING = {
     "ios": apple_common.dotted_version("12.2"),
     "macos": apple_common.dotted_version("10.14.4"),
@@ -92,22 +87,60 @@ _MIN_OS_PLATFORM_SWIFT_RUNTIME_EMBEDDING = {
     "watchos": apple_common.dotted_version("5.2"),
 }
 
-def _swift_dylib_action(
+def _generate_macho_header_stub(
         *,
         actions,
-        binary_files,
+        apple_xplat_toolchain_info,
+        binary_file,
+        label_name,
+        output_discriminator,
+        xplat_exec_group):
+    """Generates a stub for the given binary file."""
+    swift_stdlib_stub_tool_args = actions.args()
+    swift_stdlib_stub_tool_args.add(binary_file)
+
+    output_stub = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = "{}.stub".format(binary_file.basename),
+    )
+    swift_stdlib_stub_tool_args.add("--output", output_stub)
+
+    actions.run(
+        arguments = [swift_stdlib_stub_tool_args],
+        exec_group = xplat_exec_group,
+        executable = apple_xplat_toolchain_info.swiftstdlibstubtool.files_to_run,
+        inputs = [binary_file],
+        mnemonic = "SwiftStdlibGenerateStub",
+        outputs = [output_stub],
+    )
+    return output_stub
+
+def _generate_swift_support_dylibs(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        binary_inputs,
+        label_name,
         mac_exec_group,
-        output_dir,
+        output_discriminator,
         platform_name,
-        platform_prerequisites,
-        swift_stdlib_tool):
-    """Registers a swift-stlib-tool action to gather Swift dylibs to bundle."""
+        platform_prerequisites):
+    """Registers all necessary actions to gather Swift dylibs to bundle."""
+
+    output_dir = intermediates.directory(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        dir_name = "swiftlibs",
+    )
 
     swift_stdlib_tool_args = actions.args()
     swift_stdlib_tool_args.add("--platform", platform_name)
     swift_stdlib_tool_args.add("--output_path", output_dir.path)
     swift_stdlib_tool_args.add_all(
-        binary_files,
+        binary_inputs,
         before_each = "--binary",
     )
 
@@ -120,29 +153,37 @@ def _swift_dylib_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [swift_stdlib_tool_args],
         exec_group = mac_exec_group,
-        executable = swift_stdlib_tool,
-        inputs = binary_files,
+        executable = apple_mac_toolchain_info.swift_stdlib_tool,
+        inputs = binary_inputs,
         mnemonic = "SwiftStdlibCopy",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
+    return output_dir
+
 def _swift_dylibs_partial_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         binary_artifact,
         bundle_dylibs,
         dependency_targets,
-        mac_exec_group,
         label_name,
+        mac_exec_group,
         output_discriminator,
         package_swift_support_if_needed,
-        platform_prerequisites):
+        platform_prerequisites,
+        xplat_exec_group):
     """Implementation for the Swift dylibs processing partial."""
 
+    generate_stubs_for_swift_support_inputs = (
+        apple_xplat_toolchain_info.build_settings.generate_stubs_for_swift_support_inputs
+    )
+
     # Collect transitive data.
-    transitive_binary_sets = []
+    transitive_binary_files = []
     transitive_swift_support_files = []
     for dependency in dependency_targets:
         if _AppleSwiftDylibsInfo not in dependency:
@@ -150,7 +191,7 @@ def _swift_dylibs_partial_impl(
             # (i.e. sticker extensions that have stubs).
             continue
         provider = dependency[_AppleSwiftDylibsInfo]
-        transitive_binary_sets.append(provider.binary)
+        transitive_binary_files.append(provider.binary_files)
         transitive_swift_support_files.extend(provider.swift_support_files)
 
     direct_binaries = []
@@ -161,11 +202,26 @@ def _swift_dylibs_partial_impl(
         # Only check this binary for Swift dylibs if the minimum OS version is lower than the
         # minimum OS version under which Swift dylibs are already packaged with the OS.
         if target_min_os < swift_min_os:
-            direct_binaries.append(binary_artifact)
+            if generate_stubs_for_swift_support_inputs:
+                # Generate a "macho header stub" version of the binary as a smaller artifact for
+                # swift-stdlib-tool to process when determining which SwiftSupport dylibs to copy.
+                # This is largely done to address build performance in distributed environments,
+                # where the cost of transferring a potentially large binary target as an input to
+                # the action before bundling takes place is a critical path concern.
+                direct_binaries.append(_generate_macho_header_stub(
+                    actions = actions,
+                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                    binary_file = binary_artifact,
+                    label_name = label_name,
+                    output_discriminator = output_discriminator,
+                    xplat_exec_group = xplat_exec_group,
+                ))
+            else:
+                direct_binaries.append(binary_artifact)
 
     transitive_binaries = depset(
         direct = direct_binaries,
-        transitive = transitive_binary_sets,
+        transitive = transitive_binary_files,
     )
 
     bundle_files = []
@@ -174,24 +230,17 @@ def _swift_dylibs_partial_impl(
         binaries_to_check = transitive_binaries.to_list()
         if binaries_to_check:
             platform_name = platform_prerequisites.platform.name_in_plist.lower()
-            output_dir = intermediates.directory(
+            output_dir = _generate_swift_support_dylibs(
                 actions = actions,
-                target_name = label_name,
-                output_discriminator = output_discriminator,
-                dir_name = "swiftlibs",
-            )
-            _swift_dylib_action(
-                actions = actions,
-                binary_files = binaries_to_check,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                binary_inputs = binaries_to_check,
+                label_name = label_name,
                 mac_exec_group = mac_exec_group,
-                output_dir = output_dir,
+                output_discriminator = output_discriminator,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
-                swift_stdlib_tool = apple_mac_toolchain_info.swift_stdlib_tool,
             )
-
             bundle_files.append((processor.location.framework, None, depset([output_dir])))
-
             swift_support_file = (platform_name, output_dir)
             transitive_swift_support_files.append(swift_support_file)
 
@@ -216,7 +265,7 @@ def _swift_dylibs_partial_impl(
     return struct(
         bundle_files = bundle_files,
         providers = [_AppleSwiftDylibsInfo(
-            binary = propagated_binaries,
+            binary_files = propagated_binaries,
             swift_support_files = transitive_swift_support_files,
         )],
     )
@@ -225,6 +274,7 @@ def swift_dylibs_partial(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         binary_artifact,
         bundle_dylibs = False,
         dependency_targets = [],
@@ -232,7 +282,8 @@ def swift_dylibs_partial(
         mac_exec_group,
         output_discriminator = None,
         package_swift_support_if_needed = False,
-        platform_prerequisites):
+        platform_prerequisites,
+        xplat_exec_group):
     """Constructor for the Swift dylibs processing partial.
 
     This partial handles the Swift dylibs that may need to be packaged or propagated.
@@ -240,6 +291,7 @@ def swift_dylibs_partial(
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: `struct` of tools from the Apple cross-platform toolchain.
       binary_artifact: The main binary artifact for this target.
       bundle_dylibs: Whether the partial should return the Swift files to be bundled inside the
         target's bundle.
@@ -253,6 +305,7 @@ def swift_dylibs_partial(
         each dependency platform into the SwiftSupport directory at the root of the archive. It
         might still not be included depending on what it is being built for.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
       A partial that returns the bundle location of the Swift dylibs and propagates dylib
@@ -262,6 +315,7 @@ def swift_dylibs_partial(
         _swift_dylibs_partial_impl,
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         binary_artifact = binary_artifact,
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,
@@ -270,4 +324,5 @@ def swift_dylibs_partial(
         output_discriminator = output_discriminator,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
+        xplat_exec_group = xplat_exec_group,
     )

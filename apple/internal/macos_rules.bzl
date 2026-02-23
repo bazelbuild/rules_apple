@@ -349,12 +349,14 @@ def _macos_application_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embedded_targets,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -623,10 +625,12 @@ def _macos_bundle_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -892,10 +896,12 @@ def _macos_extension_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
@@ -1116,10 +1122,12 @@ def _macos_xpc_service_impl(ctx):
         partials.swift_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
     ]
 
