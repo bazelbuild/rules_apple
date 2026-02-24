@@ -335,6 +335,10 @@ def _command_line_options(
         settings = settings,
     )
 
+    ios_multi_cpus = cpu[4:] if platform_type == "ios" else (
+        settings["//command_line_option:ios_multi_cpus"] if "//command_line_option:ios_multi_cpus" in settings else []
+    )
+
     default_platforms = [settings[_CPU_TO_DEFAULT_PLATFORM_FLAG[cpu]]] if _is_bazel_7 else []
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
@@ -354,6 +358,7 @@ def _command_line_options(
             platform = "ios",
             platform_type = platform_type,
         ),
+        "//command_line_option:ios_multi_cpus": ios_multi_cpus,
         "//command_line_option:macos_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "macos",
@@ -498,6 +503,7 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:fission",
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
+    "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_minimum_os",
     "//command_line_option:minimum_os_version",
     "//command_line_option:platforms",
@@ -505,7 +511,6 @@ _apple_rule_base_transition_outputs = [
     "//command_line_option:watchos_minimum_os",
 ]
 _apple_universal_binary_rule_transition_outputs = _apple_rule_base_transition_outputs + [
-    "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
