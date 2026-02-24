@@ -255,7 +255,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -268,7 +268,7 @@ def _apple_dynamic_framework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = framework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
             ),
         )
@@ -321,7 +321,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx)
+        toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -329,11 +329,11 @@ def _apple_static_framework_import_impl(ctx):
         # rare case that a binary has a Swift framework import dependency but
         # no other Swift dependencies, make sure we pick those up so that it
         # links to the standard libraries correctly.
-        additional_cc_infos.extend(toolchain.implicit_deps_providers.cc_infos)
+        additional_cc_infos.extend(toolchains.swift.implicit_deps_providers.cc_infos)
 
         # TODO: remove this once rules_swift 3+ is required
-        if hasattr(toolchain.implicit_deps_providers, "objc_infos"):
-            additional_objc_providers.extend(toolchain.implicit_deps_providers.objc_infos)
+        if hasattr(toolchains.swift.implicit_deps_providers, "objc_infos"):
+            additional_objc_providers.extend(toolchains.swift.implicit_deps_providers.objc_infos)
 
         if _is_debugging(compilation_mode):
             swiftmodule = _swiftmodule_for_cpu(
@@ -393,7 +393,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -406,7 +406,7 @@ def _apple_static_framework_import_impl(ctx):
                 disabled_features = disabled_features,
                 features = features,
                 module_name = framework.bundle_name,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
             ),
         )
@@ -493,7 +493,7 @@ objc_library(
 )
 ```
 """,
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = use_cpp_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -577,7 +577,7 @@ not include Swift interface or Swift module files.
             ),
         },
     ),
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_static_framework_import` targets
