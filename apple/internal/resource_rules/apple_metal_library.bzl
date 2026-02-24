@@ -24,7 +24,6 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -70,7 +69,7 @@ def _apple_metal_library_impl(ctx):
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo].build_settings,
+        build_settings = apple_toolchain_utils.get_xplat_toolchain(ctx).build_settings,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_deployment_os = None,
@@ -111,6 +110,7 @@ def _apple_metal_library_impl(ctx):
     ]
 
 apple_metal_library = rule(
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         apple_support.action_required_attrs(),
