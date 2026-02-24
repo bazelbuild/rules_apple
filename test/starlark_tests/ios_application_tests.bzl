@@ -31,6 +31,10 @@ load(
     "analysis_target_actions_tree_artifacts_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:output_group_test.bzl",
+    "output_group_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
     "analysis_target_tree_artifacts_outputs_test",
@@ -924,6 +928,21 @@ def ios_application_test_suite(name):
             "fmwk_no_version_x86_64.linkmap",
             "fmwk_with_resources_arm64.linkmap",
             "fmwk_with_resources_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test that output groups from dependencies are propagated through ios_application.
+    # This test verifies that the output group collection mechanism works correctly.
+    # Swift-specific output groups like swift_diagnostics, swift_index_store, etc. are
+    # available when building with appropriate features enabled.
+    output_group_test(
+        name = "{}_transitive_output_groups_propagated_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
+        expected_output_groups = [
+            "dsyms",
+            "linkmaps",
+            # Additional output groups from Swift/Objc deps are also propagated
         ],
         tags = [name],
     )

@@ -122,12 +122,18 @@ def _archive_multi_arch_static_library(
         outputs.append(struct(**output))
 
     header_tokens = []
+    all_deps = []
     for _, deps in split_deps.items():
         for dep in deps:
             if CcInfo in dep:
                 header_tokens.append(dep[CcInfo].compilation_context.validation_artifacts)
+            all_deps.append(dep)
 
     output_groups = {"_validation": depset(transitive = header_tokens)}
+
+    # Collect output groups from all dependencies (e.g., Swift diagnostics, indexstore, etc.)
+    transitive_output_groups = _collect_transitive_output_groups(all_deps)
+    output_groups.update(transitive_output_groups)
 
     return struct(
         outputs = outputs,
@@ -327,12 +333,18 @@ def _link_multi_arch_binary(
         outputs.append(struct(**output))
 
     header_tokens = []
+    all_deps = []
     for _, deps in split_deps.items():
         for dep in deps:
             if CcInfo in dep:
                 header_tokens.append(dep[CcInfo].compilation_context.validation_artifacts)
+            all_deps.append(dep)
 
     output_groups = {"_validation": depset(transitive = header_tokens)}
+
+    # Collect output groups from all dependencies (e.g., Swift diagnostics, indexstore, etc.)
+    transitive_output_groups = _collect_transitive_output_groups(all_deps)
+    output_groups.update(transitive_output_groups)
 
     return struct(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
@@ -340,6 +352,41 @@ def _link_multi_arch_binary(
         outputs = outputs,
         debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
+
+def _collect_transitive_output_groups(deps):
+    """Collects output groups from dependencies.
+
+    Args:
+        deps: A list of dependency targets to collect output groups from.
+
+    Returns:
+        A dictionary of output group names to depsets of Files, suitable for merging
+        into an OutputGroupInfo provider.
+    """
+    transitive_output_groups = {}
+
+    for dep in deps:
+        if OutputGroupInfo in dep:
+            output_group_info = dep[OutputGroupInfo]
+            # OutputGroupInfo stores output groups as attributes, not as a dict
+            # We need to use dir() to get the attribute names
+            for name in dir(output_group_info):
+                # Skip private/internal attributes
+                if name.startswith("_"):
+                    continue
+                files = getattr(output_group_info, name)
+                if not files:
+                    continue
+                if name not in transitive_output_groups:
+                    transitive_output_groups[name] = []
+                transitive_output_groups[name].append(files)
+
+    # Merge all depsets for each output group name
+    merged = {}
+    for name, depset_list in transitive_output_groups.items():
+        merged[name] = depset(transitive = depset_list)
+
+    return merged
 
 def _debug_outputs_by_architecture(link_outputs):
     """Returns debug outputs indexed by architecture from `register_binary_linking_action` output.
