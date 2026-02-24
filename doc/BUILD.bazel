@@ -9,6 +9,7 @@ _PLAIN_DOC_SRCS = [
 
 _RULES_DOC_SRCS = [
     "apple",
+    "apple_archive",
     "docc",
     "dtrace",
     "header_map",

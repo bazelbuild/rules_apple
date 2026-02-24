@@ -15,6 +15,10 @@
 """Temporary file to centralize configuration of the experimental bundling logic."""
 
 load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -23,13 +27,15 @@ load(
 def is_experimental_tree_artifact_enabled(
         *,
         config_vars = None,
-        platform_prerequisites = None):
+        platform_prerequisites = None,
+        rule_descriptor = None):
     """Returns whether tree artifact outputs experiment is enabled.
 
     Args:
         config_vars: A reference to configuration variables, typically from `ctx.var`.
         platform_prerequisites: Struct containing information on the platform being targeted, if one
             exists for the rule.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
     Returns:
         True if tree artifact outputs are enabled (via --define or build setting), False otherwise.
     """
@@ -38,6 +44,17 @@ def is_experimental_tree_artifact_enabled(
 
     if platform_prerequisites and platform_prerequisites.build_settings.use_tree_artifacts_outputs:
         return True
+
+    # Enable tree artifacts by default for iOS/tvOS/visionOS applications
+    # These will produce .app bundles that can be wrapped into .ipa files
+    if rule_descriptor and platform_prerequisites:
+        if (platform_prerequisites.platform.platform_type, rule_descriptor.product_type) in [
+            (apple_common.platform_type.ios, apple_product_type.application),
+            (apple_common.platform_type.ios, apple_product_type.messages_application),
+            (apple_common.platform_type.tvos, apple_product_type.application),
+            (apple_common.platform_type.visionos, apple_product_type.application),
+        ]:
+            return True
 
     return defines.bool_value(
         config_vars = platform_prerequisites.config_vars if platform_prerequisites else config_vars,

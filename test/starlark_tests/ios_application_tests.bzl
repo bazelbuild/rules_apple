@@ -81,7 +81,7 @@ def ios_application_test_suite(name):
     """
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
         expected_outputs = ["app.ipa"],
         tags = [name],
     )
@@ -148,7 +148,7 @@ def ios_application_test_suite(name):
     # Tests that an app with a mixed target framework compiles
     analysis_target_outputs_test(
         name = "{}_mixed_target_framework_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
         expected_outputs = ["app_with_fmwk_with_multiple_objc_library_and_swift_library_deps.ipa"],
         tags = [name],
     )
@@ -348,7 +348,7 @@ def ios_application_test_suite(name):
     archive_contents_test(
         name = "{}_swift_support_codesign_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_swift_dep",
         binary_test_file = "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
         codesign_info_contains = [
             "Identifier=com.apple.dt.runtime.swiftCore",
@@ -591,7 +591,7 @@ def ios_application_test_suite(name):
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_ios_watchos_with_watchos_extension_and_symbols",
     )
 
     # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
@@ -605,7 +605,7 @@ def ios_application_test_suite(name):
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_ext_and_fmwk_and_symbols_in_bundle",
     )
 
     # Tests that app clips also contribute .symbols package files when
@@ -632,7 +632,7 @@ def ios_application_test_suite(name):
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_dsym",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_dynamic_fmwk_with_dsym",
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
@@ -769,7 +769,7 @@ def ios_application_test_suite(name):
     output_group_zip_contents_test(
         name = "{}_has_combined_zip_output_group".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
         output_group_name = "combined_dossier_zip",
         output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/app_dossier_with_bundle.zip",
         contains = [

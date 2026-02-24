@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source and targets for apple_metal_library in an iOS app.
 function create_common_files() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_metal_library")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
@@ -55,6 +56,11 @@ ios_application(
     deps = [":objc_lib"],
 )
 
+apple_archive(
+    name = "ipa_app_objc",
+    bundle = ":app_objc",
+)
+
 swift_library(
     name = "swift_lib",
     srcs = ["swift_lib.swift"],
@@ -68,6 +74,11 @@ ios_application(
     infoplists = ["Info.plist"],
     minimum_os_version = "${MIN_OS_IOS}",
     deps = [":swift_lib"],
+)
+
+apple_archive(
+    name = "ipa_app_swift",
+    bundle = ":app_swift",
 )
 EOF
 
@@ -114,10 +125,10 @@ function test_intentdefinition_builds() {
   create_common_files
   pwd
 
-  do_build ios //app:app_objc || fail "Should build"
+  do_build ios //app:ipa_app_objc || fail "Should build"
   assert_zip_contains "test-bin/app/app_objc.ipa" "Payload/app_objc.app/default.metallib"
 
-  do_build ios //app:app_swift || fail "Should build"
+  do_build ios //app:ipa_app_swift || fail "Should build"
   assert_zip_contains "test-bin/app/app_swift.ipa" "Payload/app_swift.app/default.metallib"
 }
 

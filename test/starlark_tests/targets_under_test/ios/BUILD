@@ -12,6 +12,10 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_archive.bzl",
+    "apple_archive",
+)
+load(
     "//apple:docc.bzl",
     "docc_archive",
 )
@@ -903,7 +907,6 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -915,6 +918,13 @@ ios_application(
         ":iOSImportedDynamicFrameworkWithDsym",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_dynamic_fmwk_with_dsym",
+    bundle = ":app_with_imported_dynamic_fmwk_with_dsym",
+    include_symbols = True,
+    tags = common.fixture_tags,
 )
 
 ios_application(
@@ -1615,6 +1625,12 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_app_with_swift_ext",
+    bundle = ":app_with_swift_ext",
+    tags = common.fixture_tags,
+)
+
 ios_application(
     name = "app_with_extensionkit_ext",
     bundle_id = "com.google.example",
@@ -1667,7 +1683,6 @@ ios_application(
     frameworks = [
         ":fmwk_with_provisioning",
     ],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2022,6 +2037,12 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
+    bundle = ":app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
+    tags = common.fixture_tags,
 )
 
 ios_application(
@@ -3405,6 +3426,12 @@ ios_imessage_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_imessage_app",
+    bundle = ":imessage_app",
     tags = common.fixture_tags,
 )
 
@@ -5643,4 +5670,137 @@ ios_extension(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+# IPA targets for testing the new ipa rule with tree artifact outputs.
+
+apple_archive(
+    name = "ipa_with_app_minimal",
+    bundle = ":app_minimal",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app",
+    bundle = ":app",
+    tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
+)
+
+apple_archive(
+    name = "ipa_with_app_with_swift_dep",
+    bundle = ":app_with_swift_dep",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_ext_and_fmwk_and_symbols",
+    bundle = ":app_with_ext_and_fmwk_and_symbols_in_bundle",
+    include_symbols = True,
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_ext_and_fmwk_provisioned",
+    bundle = ":app_with_ext_and_fmwk_provisioned",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_fmwk",
+    bundle = ":app_with_fmwk",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_imported_fmwk",
+    bundle = ":app_with_imported_fmwk",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_imessage_app",
+    bundle = ":imessage_app",
+    tags = common.fixture_tags,
+)
+
+ios_imessage_application(
+    name = "imessage_app_with_sticker_pack",
+    bundle_id = "com.google.example",
+    extension = ":sticker_ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_sticker_pack_app",
+    bundle = ":imessage_app_with_sticker_pack",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_dynamic_xcfmwk",
+    bundle = ":app_with_imported_dynamic_xcfmwk",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_dynamic_xcfmwk_with_lib_ids",
+    bundle = ":app_with_imported_dynamic_xcfmwk_with_lib_ids",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_static_xcfmwk",
+    bundle = ":app_with_imported_static_xcfmwk",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_static_xcfmwk_with_lib_ids",
+    bundle = ":app_with_imported_static_xcfmwk_with_lib_ids",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_xcfmwk_bundling_static_fmwks",
+    bundle = ":app_with_imported_xcfmwk_bundling_static_fmwks",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_imported_static_xcfmwk_with_module_map",
+    bundle = ":app_with_imported_static_xcfmwk_with_module_map",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_swift_multi_level_static_xcframework",
+    bundle = ":app_with_swift_multi_level_static_xcframework",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_app_clip_with_swift_support",
+    bundle = ":app_with_app_clip_with_swift_support",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_app_with_ext_and_fmwk_and_symbols_in_bundle",
+    bundle = ":app_with_ext_and_fmwk_and_symbols_in_bundle",
+    include_symbols = True,
+    tags = common.fixture_tags,
 )

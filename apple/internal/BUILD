@@ -77,6 +77,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_archive",
+    srcs = ["apple_archive.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_toolchains",
+        ":providers",
+        "//apple:providers",
+        "//apple/internal/providers:apple_messages_stub_info",
+        "//apple/internal/providers:apple_swift_dylibs_info",
+        "//apple/internal/providers:apple_symbols_file_info",
+        "//apple/internal/providers:apple_watchos_stub_info",
+        "//apple/internal/utils:defines",
+    ],
+)
+
+bzl_library(
     name = "apple_universal_binary",
     srcs = ["apple_universal_binary.bzl"],
     visibility = [

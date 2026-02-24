@@ -52,7 +52,7 @@ def tvos_application_swift_test_suite(name):
             "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_direct_swift_dep",
         tags = [name],
     )
 
@@ -78,7 +78,7 @@ def tvos_application_swift_test_suite(name):
             "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_indirect_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_indirect_swift_dep",
         tags = [name],
     )
 
