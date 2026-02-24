@@ -254,10 +254,7 @@ def _macos_application_impl(ctx):
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
             cc_toolchains = cc_toolchain_forwarder,
-            ctx = ctx,
             deps = ctx.split_attr.app_intents,
-            disabled_features = ctx.disabled_features,
-            features = features,
             label = label,
             platform_prerequisites = platform_prerequisites,
             json_tool = apple_xplat_toolchain_info.json_tool,

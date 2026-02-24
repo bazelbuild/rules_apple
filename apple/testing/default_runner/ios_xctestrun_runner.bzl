@@ -4,6 +4,11 @@ simulators. This rule currently doesn't support UI tests or running on device.
 """
 
 load(
+    "@build_bazel_apple_support//xcode:providers.bzl",
+    "XcodeVersionInfo",
+    "XcodeVersionPropertiesInfo",
+)
+load(
     "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
@@ -50,15 +55,17 @@ def _get_template_substitutions(
     return {"%({})s".format(key): value for key, value in substitutions.items()}
 
 def _get_execution_environment(ctx):
-    xcode_version = str(ctx.attr._xcode_config[apple_common.XcodeVersionConfig].xcode_version())
+    xcode_version = str(ctx.attr._xcode_config[XcodeVersionInfo].xcode_version())
     if not xcode_version:
         fail("error: No xcode_version in _xcode_config")
 
     return {"XCODE_VERSION_OVERRIDE": xcode_version}
 
 def _ios_xctestrun_runner_impl(ctx):
+    # TODO: Remove this getattr when we drop Bazel 8
+    xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or
-                     ctx.attr._xcode_config[apple_common.XcodeProperties].default_ios_sdk_version)
+                     ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version)
 
     # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"

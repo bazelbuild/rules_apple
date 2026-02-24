@@ -32,6 +32,7 @@ function create_common_files() {
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_metal_library")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 apple_metal_library(
     name = "SampleMetal",

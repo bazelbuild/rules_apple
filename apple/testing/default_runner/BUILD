@@ -43,6 +43,7 @@ bzl_library(
     visibility = ["//apple:__pkg__"],
     deps = [
         "//apple:providers",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
