@@ -21,6 +21,7 @@ load(
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
@@ -40,8 +41,6 @@ load(
     "ApplePlatformInfo",
     "new_appledebugoutputsinfo",
 )
-
-ObjcInfo = apple_common.Objc
 
 def _archive_multi_arch_static_library(
         *,
@@ -434,7 +433,7 @@ def _register_binary_linking_action(
             This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
-            path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
+            path will be added to linkopts via `-bundle_loader`, and the `ObjcInfo`
             provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
             will be passed as an additional `avoid_dep` to ensure that those dependencies are
             subtracted when linking the bundle's binary.
@@ -473,7 +472,7 @@ def _register_binary_linking_action(
             is a new universal (fat) binary obtained by invoking `lipo`.
         *   `cc_info`: The CcInfo provider containing information about the targets that were
             linked.
-        *   `objc`: The `apple_common.Objc` provider containing information about the targets
+        *   `objc`: The `ObjcInfo` provider containing information about the targets
             that were linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
