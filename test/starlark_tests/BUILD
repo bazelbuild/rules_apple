@@ -18,6 +18,7 @@ load(":generate_import_framework_tests.bzl", "generate_import_framework_test_sui
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
+load(":ios_dylib_tests.bzl", "ios_dylib_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
@@ -103,6 +104,8 @@ ios_app_clip_test_suite(name = "ios_app_clip")
 ios_extension_test_suite(name = "ios_extension")
 
 ios_framework_test_suite(name = "ios_framework")
+
+ios_dylib_test_suite(name = "ios_dylib")
 
 ios_dynamic_framework_test_suite(name = "ios_dynamic_framework")
 

@@ -157,6 +157,43 @@ ios_build_test(
 | <a id="ios_build_test-targets"></a>targets |  The targets to check for successful build.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 
 
+<a id="ios_dylib"></a>
+
+## ios_dylib
+
+<pre>
+ios_dylib(<a href="#ios_dylib-name">name</a>, <a href="#ios_dylib-deps">deps</a>, <a href="#ios_dylib-additional_linker_inputs">additional_linker_inputs</a>, <a href="#ios_dylib-base_bundle_id">base_bundle_id</a>, <a href="#ios_dylib-bundle_id">bundle_id</a>, <a href="#ios_dylib-bundle_id_suffix">bundle_id_suffix</a>,
+          <a href="#ios_dylib-codesign_inputs">codesign_inputs</a>, <a href="#ios_dylib-codesignopts">codesignopts</a>, <a href="#ios_dylib-exported_symbols_lists">exported_symbols_lists</a>, <a href="#ios_dylib-families">families</a>, <a href="#ios_dylib-linkopts">linkopts</a>,
+          <a href="#ios_dylib-minimum_deployment_os_version">minimum_deployment_os_version</a>, <a href="#ios_dylib-minimum_os_version">minimum_os_version</a>, <a href="#ios_dylib-platform_type">platform_type</a>, <a href="#ios_dylib-provisioning_profile">provisioning_profile</a>,
+          <a href="#ios_dylib-stamp">stamp</a>, <a href="#ios_dylib-version">version</a>)
+</pre>
+
+Builds a iOS Dylib binary.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="ios_dylib-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="ios_dylib-deps"></a>deps |  A list of dependent targets that will be linked into this target's binary(s). Any resources, such as asset catalogs, that are referenced by those targets will also be transitively included in the final bundle(s).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_dylib-additional_linker_inputs"></a>additional_linker_inputs |  A list of input files to be passed to the linker.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_dylib-base_bundle_id"></a>base_bundle_id |  The base bundle ID rule to dictate the form that a given bundle rule's bundle ID prefix should take.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_dylib-bundle_id"></a>bundle_id |  The bundle ID (reverse-DNS path followed by app name) for this target. Only use this attribute if the bundle ID is not intended to be composed through an assigned base bundle ID referenced by `base_bundle_id`.   | String | optional |  `""`  |
+| <a id="ios_dylib-bundle_id_suffix"></a>bundle_id_suffix |  A string to act as the suffix of the composed bundle ID. If this target's bundle ID is composed from the base bundle ID rule referenced by `base_bundle_id`, then this string will be appended to the end of the bundle ID following a "." separator.   | String | optional |  `"_"`  |
+| <a id="ios_dylib-codesign_inputs"></a>codesign_inputs |  A list of dependencies targets that provide inputs that will be used by `codesign` (referenced with `codesignopts`).   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_dylib-codesignopts"></a>codesignopts |  A list of strings representing extra flags that should be passed to `codesign`.   | List of strings | optional |  `[]`  |
+| <a id="ios_dylib-exported_symbols_lists"></a>exported_symbols_lists |  A list of targets containing exported symbols lists files for the linker to control symbol resolution.<br><br>Each file is expected to have a list of global symbol names that will remain as global symbols in the compiled binary owned by this framework. All other global symbols will be treated as if they were marked as `__private_extern__` (aka `visibility=hidden`) and will not be global in the output file.<br><br>See the man page documentation for `ld(1)` on macOS for more details.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="ios_dylib-families"></a>families |  A list of device families supported by this rule. At least one must be specified.   | List of strings | optional |  `["iphone", "ipad"]`  |
+| <a id="ios_dylib-linkopts"></a>linkopts |  A list of strings representing extra flags that should be passed to the linker.   | List of strings | optional |  `[]`  |
+| <a id="ios_dylib-minimum_deployment_os_version"></a>minimum_deployment_os_version |  A required string indicating the minimum deployment OS version supported by the target, represented as a dotted version number (for example, "9.0"). This is different from `minimum_os_version`, which is effective at compile time. Ensure version specific APIs are guarded with `available` clauses.   | String | optional |  `""`  |
+| <a id="ios_dylib-minimum_os_version"></a>minimum_os_version |  A required string indicating the minimum OS version supported by the target, represented as a dotted version number (for example, "9.0").   | String | required |  |
+| <a id="ios_dylib-platform_type"></a>platform_type |  -   | String | optional |  `"ios"`  |
+| <a id="ios_dylib-provisioning_profile"></a>provisioning_profile |  The provisioning profile (`.provisionprofile` file) to use when creating the bundle. This value is optional for simulator builds as the simulator doesn't fully enforce entitlements, but is required for device builds.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="ios_dylib-stamp"></a>stamp |  Enable link stamping. Whether to encode build information into the binary. Possible values:<br><br>*   `stamp = 1`: Stamp the build information into the binary. Stamped binaries are only rebuilt     when their dependencies change. Use this if there are tests that depend on the build     information. *   `stamp = 0`: Always replace build information by constant values. This gives good build     result caching. *   `stamp = -1`: Embedding of build information is controlled by the `--[no]stamp` flag.   | Integer | optional |  `-1`  |
+| <a id="ios_dylib-version"></a>version |  An `apple_bundle_version` target that represents the version for this target. See [`apple_bundle_version`](https://github.com/bazelbuild/rules_apple/blob/master/doc/rules-general.md?cl=head#apple_bundle_version).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+
+
 <a id="ios_dynamic_framework"></a>
 
 ## ios_dynamic_framework
