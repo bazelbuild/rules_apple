@@ -299,7 +299,7 @@ Contains the executable binary output that was built using
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleExecutableBinaryInfo-objc"></a>objc |  apple_common.Objc provider used for legacy linking behavior.    |
+| <a id="AppleExecutableBinaryInfo-objc"></a>objc |  ObjcInfo provider used for legacy linking behavior.    |
 | <a id="AppleExecutableBinaryInfo-binary"></a>binary |  The executable binary artifact output by `link_multi_arch_binary`.    |
 | <a id="AppleExecutableBinaryInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
 

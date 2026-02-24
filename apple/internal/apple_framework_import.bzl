@@ -37,6 +37,7 @@ load(
     "swift_common",
 )
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_cc//cc/common:objc_info.bzl", "ObjcInfo")
 load(
     "//apple:providers.bzl",
     "AppleFrameworkImportInfo",
@@ -343,11 +344,11 @@ def _apple_static_framework_import_impl(ctx):
             if swiftmodule:
                 additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
 
-    # Create apple_common.Objc provider
+    # Create ObjcInfo provider
     additional_objc_providers.extend([
-        dep[apple_common.Objc]
+        dep[ObjcInfo]
         for dep in deps
-        if apple_common.Objc in dep
+        if ObjcInfo in dep
     ])
 
     linkopts = []
