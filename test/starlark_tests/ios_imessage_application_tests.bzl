@@ -15,6 +15,10 @@
 """ios_imessage_application Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:apple_bundle_archive_support_info_device_test.bzl",
+    "apple_bundle_archive_support_info_device_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -85,6 +89,13 @@ def ios_imessage_application_test_suite(name):
         contains = [
             "$ARCHIVE_ROOT/MessagesApplicationSupport/MessagesApplicationSupportStub",
         ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
+        tags = [name],
+    )
+
+    apple_bundle_archive_support_info_device_test(
+        name = "{}_bundle_archive_support_contains_stub_executable_device_test".format(name),
+        expected_archive_bundle_files = ["MessagesApplicationSupport/MessagesApplicationSupportStub"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:imessage_app",
         tags = [name],
     )

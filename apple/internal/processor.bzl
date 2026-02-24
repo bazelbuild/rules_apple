@@ -92,6 +92,10 @@ load(
     "outputs",
 )
 load(
+    "//apple/internal:providers.bzl",
+    "new_applebundlearchivesupportinfo",
+)
+load(
     "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -316,7 +320,7 @@ def _bundle_partial_outputs_files(
     for partial_output in partial_outputs:
         for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
             if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
-                # Skip bundling archive related files, as we're only building the bundle directory.
+                # These files get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
 
             if trim_locales:
@@ -353,7 +357,7 @@ def _bundle_partial_outputs_files(
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
             if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
-                # Skip bundling archive related files, as we're only building the bundle directory.
+                # These zips get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
 
             parent_dir_is_valid = _is_parent_dir_valid(
@@ -505,6 +509,9 @@ def _bundle_post_process_and_sign(
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+
+    Returns:
+        A List of providers if any were created during bundling. Can be an empty List.
     """
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
@@ -515,6 +522,7 @@ def _bundle_post_process_and_sign(
         rule_descriptor = rule_descriptor,
         tree_artifact_is_enabled = tree_artifact_is_enabled,
     )
+    bundling_providers = []
     signed_frameworks_depsets = []
     for partial_output in partial_outputs:
         if hasattr(partial_output, "signed_frameworks"):
@@ -522,6 +530,25 @@ def _bundle_post_process_and_sign(
     transitive_signed_frameworks = depset(transitive = signed_frameworks_depsets)
 
     if tree_artifact_is_enabled:
+        bundle_files_for_xcarchive = []
+        bundle_zips_for_xcarchive = []
+
+        for partial_output in partial_outputs:
+            for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
+                if location == _LOCATION_ENUM.archive:
+                    bundle_files_for_xcarchive.append((parent_dir, files))
+
+            for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
+                if location == _LOCATION_ENUM.archive:
+                    bundle_zips_for_xcarchive.append((parent_dir, zip_files))
+
+        bundling_providers.append(
+            new_applebundlearchivesupportinfo(
+                bundle_files = bundle_files_for_xcarchive,
+                bundle_zips = bundle_zips_for_xcarchive,
+            ),
+        )
+
         extra_input_files = []
 
         if entitlements:
@@ -690,6 +717,8 @@ def _bundle_post_process_and_sign(
                 signed_frameworks = transitive_signed_frameworks,
             )
 
+    return bundling_providers
+
 def _process(
         *,
         actions,
@@ -746,6 +775,7 @@ def _process(
     """
 
     partial_outputs = [partial.call(p) for p in partials]
+    providers = []
 
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(
@@ -758,7 +788,7 @@ def _process(
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
         )
-        _bundle_post_process_and_sign(
+        bundling_providers = _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -780,11 +810,11 @@ def _process(
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
         )
+        providers.extend(bundling_providers)
         transitive_output_files = [depset([output_archive])]
     else:
         transitive_output_files = []
 
-    providers = []
     output_group_dicts = []
     for partial_output in partial_outputs:
         if hasattr(partial_output, "providers"):
