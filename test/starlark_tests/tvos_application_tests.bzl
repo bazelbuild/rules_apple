@@ -611,6 +611,30 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents from multiple modules includes both intents.
+    archive_contents_test(
+        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_app_intent_and_extra_app_intent",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*ExtraIntent.*",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_app_intent_and_extra_app_intent",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*ExtraIntent.*",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_app_intents_metadata_json_keys_sorted_test".format(name),
         build_type = "simulator",
