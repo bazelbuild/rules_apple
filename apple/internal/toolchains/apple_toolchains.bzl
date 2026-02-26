@@ -279,7 +279,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         bundletool_swift = ctx.attr.bundletool_swift,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
-        swiftstdlibstubtool = ctx.attr.swiftstdlibstubtool,
+        swiftstdlibstubtool = ctx.attr.swiftstdlibstubtool.files_to_run,
         verifystringstool = ctx.attr.verifystringstool.files_to_run,
         versiontool = ctx.attr.versiontool,
     )

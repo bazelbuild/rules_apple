@@ -110,7 +110,7 @@ def _generate_macho_header_stub(
     actions.run(
         arguments = [swift_stdlib_stub_tool_args],
         exec_group = xplat_exec_group,
-        executable = apple_xplat_toolchain_info.swiftstdlibstubtool.files_to_run,
+        executable = apple_xplat_toolchain_info.swiftstdlibstubtool,
         inputs = [binary_file],
         mnemonic = "SwiftStdlibGenerateStub",
         outputs = [output_stub],

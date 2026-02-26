@@ -54,10 +54,7 @@ apple_xplat_tools_toolchain(
     bundletool = "//tools/bundletool",
     bundletool_swift = "//tools:prebuilt_bundletool_swift",
     plisttool = "//tools:prebuilt_plisttool",
-    swiftstdlibstubtool = select({
-        "//apple/build_settings:generate_stubs_for_swift_support_inputs_enabled": "//tools/swiftstdlibstubtool",
-        "//conditions:default": None,
-    }),
+    swiftstdlibstubtool = "//tools:prebuilt_swiftstdlibstubtool",
     verifystringstool = "//tools:prebuilt_verifystringstool_swift",
     versiontool = "//tools/versiontool",
 )
