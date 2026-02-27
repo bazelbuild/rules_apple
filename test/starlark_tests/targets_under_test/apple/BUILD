@@ -253,8 +253,6 @@ swift_library(
         "DummyFmwk.swift",
     ],
     hdrs = ["DummyFmwk.h"],
-    # Disabling module interface verification to allow this to build standalone for testing.
-    copts = ["-no-verify-emitted-module-interface"],
     generates_header = True,
     library_evolution = True,
     module_name = "ios_static_xcfmwk_with_swift_generated_header_and_custom_headers",
@@ -270,8 +268,6 @@ swift_library(
         "DummyFmwk.swift",
     ],
     hdrs = ["DummyFmwk.h"],
-    # Disabling module interface verification to allow this to build standalone for testing.
-    copts = ["-no-verify-emitted-module-interface"],
     generates_header = True,
     library_evolution = True,
     module_name = "ios_static_xcfmwk_framework_with_swift_generated_header_and_custom_headers",
