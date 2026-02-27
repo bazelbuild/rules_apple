@@ -173,13 +173,15 @@ There should only be one valid framework binary, given a name that matches its f
         bundling_imports = framework.bundling_imports,
     ))
 
+    framework_includes = _framework_search_paths(framework.header_imports)
+
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         cc_configured_features = cc_configured_features,
         cc_toolchain = cc_toolchain,
         deps = deps,
-        framework_includes = _framework_search_paths(framework.header_imports),
+        framework_includes = framework_includes,
         header_imports = framework.header_imports,
         kind = "dynamic",
         label = label,
@@ -206,6 +208,9 @@ There should only be one valid framework binary, given a name that matches its f
                 deps = deps,
                 disabled_features = cc_configured_features.unsupported_features,
                 features = cc_configured_features.requested_features,
+                framework_includes = framework_includes,
+                hdrs = framework.header_imports,
+                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
                 module_name = framework.bundle_name,
                 swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],
@@ -309,6 +314,8 @@ There should only be one valid framework binary, given a name that matches its f
             linkopts.append("-weak_framework")
             linkopts.append(sdk_framework)
 
+    framework_includes = _framework_search_paths(framework.header_imports)
+
     providers.append(
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
@@ -317,9 +324,7 @@ There should only be one valid framework binary, given a name that matches its f
             cc_configured_features = cc_configured_features,
             cc_toolchain = cc_toolchain,
             deps = deps,
-            framework_includes = _framework_search_paths(
-                framework.header_imports,
-            ),
+            framework_includes = framework_includes,
             header_imports = framework.header_imports,
             kind = "static",
             label = label,
@@ -342,6 +347,9 @@ There should only be one valid framework binary, given a name that matches its f
                 deps = deps,
                 disabled_features = cc_configured_features.unsupported_features,
                 features = cc_configured_features.requested_features,
+                framework_includes = framework_includes,
+                hdrs = framework.header_imports,
+                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
                 module_name = framework.bundle_name,
                 swift_toolchains = swift_toolchains,
                 swiftinterface_file = swiftinterface_files[0],

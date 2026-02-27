@@ -449,11 +449,14 @@ def _swift_info_from_module_interface(
         deps,
         disabled_features,
         features,
+        framework_includes = [],
+        hdrs = [],
+        includes = [],
+        module_map = None,
         module_name,
         swift_toolchains,
         swiftinterface_file):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
-
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -461,26 +464,56 @@ def _swift_info_from_module_interface(
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
+        framework_includes: List of framework search paths to be used during compilation. Defaults to [].
+        hdrs: List of header files for the underlying C module, if it has one.
+        includes: List of header search paths to be used during compilation. Defaults to [].
+        module_map: Module map file for the underlying C module, if it has one.
         module_name: Swift module name.
         swift_toolchains: A struct containing the SwiftToolchainInfo and CcToolchainInfo provider for current target.
         swiftinterface_file: `.swiftinterface` File to compile.
     Returns:
         A SwiftInfo provider.
     """
-    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
-    compile_result = swift_common.compile_module_interface(
-        actions = actions,
+    feature_configuration = swift_common.configure_features(
+        ctx = ctx,
+        toolchains = swift_toolchains,
+        requested_features = features,
+        unsupported_features = disabled_features,
+    )
+    direct_compilation_context = cc_common.create_compilation_context(
+        headers = depset(hdrs),
+        framework_includes = depset(framework_includes),
+        includes = depset(includes),
+    )
+    merged_compilation_context = cc_common.merge_compilation_contexts(
         compilation_contexts = [
             dep[CcInfo].compilation_context
             for dep in deps
             if CcInfo in dep
-        ],
-        feature_configuration = swift_common.configure_features(
-            ctx = ctx,
+        ] + [direct_compilation_context],
+    )
+    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
+
+    if hdrs and module_map:
+        clang_result = swift_common.precompile_clang_module(
+            actions = actions,
+            cc_compilation_context = merged_compilation_context,
+            feature_configuration = feature_configuration,
+            module_map_file = module_map,
+            module_name = module_name,
+            swift_infos = swift_infos,
+            target_name = ctx.label.name,
             toolchains = swift_toolchains,
-            requested_features = features,
-            unsupported_features = disabled_features,
-        ),
+        )
+        clang_module = clang_result.clang_module
+    else:
+        clang_module = None
+
+    compile_result = swift_common.compile_module_interface(
+        actions = actions,
+        clang_module = clang_module,
+        compilation_contexts = [merged_compilation_context],
+        feature_configuration = feature_configuration,
         module_name = module_name,
         swiftinterface_file = swiftinterface_file,
         swift_infos = swift_infos,

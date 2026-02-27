@@ -2653,6 +2653,9 @@ import generated_swift_static_xcframework
 func static_swift_xcframework_depending_swift_lib_function() {
   let sc = generated_swift_static_xcframework.SharedClass()
   sc.doSomethingShared()
+
+  let soc = generated_swift_static_xcframework.SharedObjCClass()
+  soc.doSomethingShared()
 }
 """],
     tags = common.fixture_tags,
@@ -2690,7 +2693,9 @@ genrule(
     outs = [
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/Info.plist",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.a",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/SharedObjCClass.h",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework.h",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework-Swift.h",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/module.modulemap",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftdoc",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",

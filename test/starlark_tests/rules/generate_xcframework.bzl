@@ -21,6 +21,7 @@ load(
     "generation_support",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("//test/starlark_tests/...")
 
@@ -299,7 +300,17 @@ Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously
                     if interface_file.extension.startswith("swift")
                 ]
 
-            # Copy swiftc generated headers to intermediate directory
+            # Copy the headers (in the case of a mixed-language Swift library)
+            # and the generated header.
+            headers.extend([
+                generation_support.copy_file(
+                    actions = actions,
+                    base_path = headers_path,
+                    file = header,
+                    label = label,
+                )
+                for header in hdrs
+            ])
             headers.append(
                 generation_support.copy_file(
                     actions = actions,
@@ -517,7 +528,10 @@ def _generate_static_xcframework_impl(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     srcs = ctx.files.srcs
-    hdrs = ctx.files.hdrs
+    hdrs = list(ctx.files.hdrs)
+    if ctx.attr.swift_library:
+        hdrs.extend(ctx.attr.swift_library[CcInfo].compilation_context.direct_headers)
+
     swift_library = ctx.files.swift_library
     include_framework_root_infoplists = ctx.attr.include_framework_root_infoplists
     include_module_interface_files = ctx.attr.include_module_interface_files
