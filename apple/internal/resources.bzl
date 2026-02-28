@@ -259,6 +259,8 @@ def _bucketize_data(
                     # in the shipping framework bundle itself.
                     continue
                 bucket_name = "framework"
+            elif (resource_short_path.endswith(".mergeable.strings")):
+                bucket_name = "mergeable_strings"
             elif (resource_short_path.endswith(".strings") or
                   resource_short_path.endswith(".stringsdict")):
                 bucket_name = "strings"

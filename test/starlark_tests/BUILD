@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_capability_tests.bzl", "apple_capability_test_suite")
 load(":apple_dynamic_xcframework_import_tests.bzl", "apple_dynamic_xcframework_import_test_suite")
+load(":apple_mergeable_strings_tests.bzl", "apple_mergeable_strings_test_suite")
 load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
 load(":apple_static_xcframework_import_tests.bzl", "apple_static_xcframework_import_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
@@ -47,6 +48,8 @@ load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 licenses(["notice"])
 
 apple_bundle_version_test_suite(name = "apple_bundle_version")
+
+apple_mergeable_strings_test_suite(name = "apple_mergeable_strings")
 
 apple_capability_test_suite(name = "apple_capability")
 

@@ -46,6 +46,16 @@ exports_files(
     ],
 )
 
+filegroup(
+    name = "mergeable_strings_resources",
+    srcs = glob(["mergeable_strings/**/*.mergeable.strings"]),
+)
+
+filegroup(
+    name = "mergeable_strings_failure_resources",
+    srcs = glob(["mergeable_strings_failure/**/*.mergeable.strings"]),
+)
+
 # --------------------------------------------------------------------------------
 # Objective-C common.h libraries
 

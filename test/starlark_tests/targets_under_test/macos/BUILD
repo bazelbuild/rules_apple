@@ -132,6 +132,22 @@ macos_application(
 )
 
 macos_application(
+    name = "app_with_mergeable_strings",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    resources = [
+        "//test/starlark_tests/resources:mergeable_strings_resources",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     infoplists = [

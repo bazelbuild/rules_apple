@@ -139,6 +139,9 @@ def _deduplicate(
         avoid_owners,
         avoid_provider,
         field,
+        locales_dropped,
+        locales_included,
+        locales_requested,
         owners,
         processed_origins,
         processed_deduplication_map,
@@ -158,6 +161,9 @@ def _deduplicate(
       avoid_owners: The owners map for avoid_provider computed by _expand_owners.
       avoid_provider: The provider with the resources to avoid bundling.
       field: The field to deduplicate resources on.
+      locales_dropped: The locales dropped from the bundle.
+      locales_included: The locales included in the bundle.
+      locales_requested: The locales to include in the bundle.
       resources_provider: The provider with the resources to be bundled.
       owners: The owners map for resources_provider computed by _expand_owners.
       processed_origins: The processed resources map for resources_provider computed by
@@ -201,6 +207,13 @@ def _deduplicate(
             short_path = to_bundle_file.short_path
             if short_path in multi_architecture_deduplication_set:
                 continue
+            if locales_requested:
+                locale = bundle_paths.locale_for_path(short_path)
+                if locale in locales_requested:
+                    locales_included.add(locale)
+                elif locale != None:
+                    locales_dropped.add(locale)
+                    continue
             multi_architecture_deduplication_set[short_path] = None
             if key in avoid_dict and short_path in avoid_dict[key]:
                 # If the resource file is present in the provider of resources to avoid, we compare
@@ -280,6 +293,128 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
             print("Warning: " + str(label) + " did not have resources that matched " +
                   str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include or your bundle's resource_locales is defined properly.")
+
+def _merge_mergeable_strings(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        default_lproj,
+        rule_label,
+        mac_exec_group,
+        output_discriminator,
+        platform_prerequisites,
+        unmerged,
+        xplat_exec_group):
+    """Merges mergeable strings into a single file.
+
+    Args:
+        actions: The actions object for the rule.
+        apple_mac_toolchain_info: Info about the Apple Mac toolchain.
+        apple_xplat_toolchain_info: Info about the Apple cross-platform toolchain.
+        default_lproj: The default locale for the mergeable strings.
+        rule_label: The label of the rule being processed.
+        mac_exec_group: The exec group for mac binaries.
+        output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+        platform_prerequisites: The platform prerequisites for the rule.
+        unmerged: A list of tuples with the resources to be merged.
+        xplat_exec_group: The exec group for cross-platform binaries.
+
+    Returns:
+        A tuple of (merged, validation_outputs), where merged is a list of tuples with the
+        resources to be merged, and validation_outputs is a list of files containing the outputs of
+        the validation steps.
+        """
+    merged = []
+    mergeable_strings = {}
+
+    # Top level directory for storing all merged strings files.
+    root_merged_strings_dir = rule_label.name + "_merged_strings"
+
+    # Create a map of owning directory to lproj directory to files.
+    # i.e. "foo/bar.bundle" -> "en.lproj" -> ["baz.strings", "qux.strings"]
+    BUG_URL = "https://github.com/bazelbuild/rules_apple/issues/new"
+    for parent_dir, _, files in unmerged:
+        if not files:
+            fail("No files found for parent_dir: %s. This is a tooling error, please report a bug %s" % (parent_dir, BUG_URL))
+        if not parent_dir:
+            fail("No parent_dir found for files: %s. This is a tooling error, please report a bug %s" % (files, BUG_URL))
+
+        components = parent_dir.split("/")
+        lproj_dir = components[-1]
+        if not lproj_dir.endswith(".lproj"):
+            fail("No locale found for files in `%s`. All strings files should be in a directory named after the locale (eg. en.lproj)." % parent_dir)
+
+        owning_dir = "/".join(components[:-1])
+
+        owning_dir_to_files = mergeable_strings.setdefault(owning_dir, {})
+        localized_files = owning_dir_to_files.setdefault(lproj_dir, [])
+        localized_files.extend(files.to_list())
+
+    # Iterate through the grouped mergeable strings and merge them.
+    # Also declare the validation outputs for each group.
+    validation_outputs = []
+    for owning_dir, lproj_dirs in mergeable_strings.items():
+        # Every bundle should have a default locale. This will almost always be "en.lproj"
+        if not default_lproj in lproj_dirs:
+            fail("No default locale '%s' found in: '%s'. Please define a strings file for '%s' in '%s'" % (default_lproj, owning_dir, default_lproj, owning_dir))
+        merged_strings_file_name = lproj_dirs[default_lproj][0].basename.removesuffix(".mergeable.strings") + ".strings"
+        merged_strings_dir = root_merged_strings_dir + "/" + owning_dir
+        merged_strings_files = []
+        for lproj_dir_name, mergeable_files in lproj_dirs.items():
+            merged_lproj_dir = merged_strings_dir + "/" + lproj_dir_name
+            merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + merged_strings_file_name)
+            merged_strings_files.append(merged_strings_file)
+            plisttool_control = struct(
+                binary = True,
+                output = merged_strings_file.path,
+                plists = [f.path for f in mergeable_files],
+                target = str(rule_label),
+            )
+            plisttool_control_file = intermediates.file(
+                actions = actions,
+                target_name = rule_label.name,
+                output_discriminator = output_discriminator,
+                file_name = merged_lproj_dir + "/" + "mergeable_strings_control.json",
+            )
+            actions.write(
+                output = plisttool_control_file,
+                content = json.encode(plisttool_control),
+            )
+            resource_actions.plisttool_action(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                control_file = plisttool_control_file,
+                inputs = mergeable_files,
+                mac_exec_group = mac_exec_group,
+                mnemonic = "MergeStrings",
+                outputs = [merged_strings_file],
+                platform_prerequisites = platform_prerequisites,
+                xplat_exec_group = xplat_exec_group,
+            )
+            if owning_dir:
+                parent_dir = owning_dir + "/" + lproj_dir_name
+            else:
+                parent_dir = lproj_dir_name
+
+            merged.append((processor.location.resource, parent_dir, depset([merged_strings_file])))
+
+        # This verifies that all of the merged string files have the same top-level keys per locale.
+        if len(merged_strings_files) > 1:
+            validation_output = actions.declare_file(merged_strings_dir + ".validation")
+            validation_outputs.append(validation_output)
+            actions.run(
+                arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
+                exec_group = xplat_exec_group,
+                executable = apple_xplat_toolchain_info.verifystringstool,
+                inputs = merged_strings_files,
+                mnemonic = "VerifyMergeStrings",
+                outputs = [validation_output],
+            )
+
+    return (merged, validation_outputs)
 
 def _resources_partial_impl(
         *,
@@ -423,26 +558,47 @@ def _resources_partial_impl(
     # for the purposes of deduplicating top level resources and multiple library scoped resources.
     processed_deduplication_map = {}
 
+    if resource_locales:
+        default_lproj = resource_locales[AppleResourceLocalesInfo].default_locale + ".lproj"
+    else:
+        default_lproj = "en.lproj"
+
+    all_validation_outputs = []
     for field in fields:
         deduplicated = _deduplicate(
             avoid_owners = avoid_owners,
             avoid_provider = avoid_provider,
             field = field,
+            locales_dropped = locales_dropped,
+            locales_included = locales_included,
+            locales_requested = locales_requested,
             owners = owners,
             processed_origins = processed_origins,
             processed_deduplication_map = processed_deduplication_map,
             resources_provider = final_provider,
         )
+
+        if field == "mergeable_strings":
+            files, validation_outputs = _merge_mergeable_strings(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                default_lproj = default_lproj,
+                rule_label = rule_label,
+                mac_exec_group = mac_exec_group,
+                output_discriminator = output_discriminator,
+                platform_prerequisites = platform_prerequisites,
+                unmerged = deduplicated,
+                xplat_exec_group = xplat_exec_group,
+            )
+            if validation_outputs:
+                all_validation_outputs.extend(validation_outputs)
+            if files:
+                bundle_files.extend(files)
+            continue
+
         processing_func, requires_swift_module = provider_field_to_action[field]
         for parent_dir, swift_module, files in deduplicated:
-            if locales_requested:
-                locale = bundle_paths.locale_for_path(parent_dir)
-                if locale in locales_requested:
-                    locales_included.add(locale)
-                elif locale != None:
-                    locales_dropped.add(locale)
-                    continue
-
             processing_args = {
                 "actions": actions,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
@@ -541,6 +697,7 @@ with dependencies where applicable. Please add a bundle ID to your target defini
         bundle_files = bundle_files,
         bundle_zips = bundle_zips,
         providers = [final_provider],
+        output_groups = {"_validation": depset(all_validation_outputs)},
     )
 
 def resources_partial(
