@@ -308,9 +308,10 @@ def _bundle_partial_outputs_files(
                     if target_path in processed_file_target_paths:
                         fail(
                             ("Multiple files would be placed at \"%s\" in the bundle, which " +
-                             "is not allowed. check input file:\n%s") % (target_path, source.path),
+                             "is not allowed. check input files:\n%s\nand\n%s") %
+                            (target_path, source.path, processed_file_target_paths[target_path]),
                         )
-                    processed_file_target_paths[target_path] = None
+                    processed_file_target_paths[target_path] = source.path
                 control_files.append(struct(src = source.path, dest = target_path))
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
