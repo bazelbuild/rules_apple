@@ -28,7 +28,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "AppleExecutableBinaryInfo",
     "new_appleexecutablebinaryinfo",
 )
 load(
@@ -70,16 +69,12 @@ def _linker_flag_for_sdk_dylib(dylib):
 
 def _apple_binary_impl(ctx):
     binary_type = ctx.attr.binary_type
-    bundle_loader = ctx.attr.bundle_loader
 
     extra_linkopts = []
     extra_requested_features = []
 
     if binary_type == "dylib":
         extra_requested_features.append("link_dylib")
-    elif binary_type == "loadable_bundle":
-        extra_linkopts.append("-Wl,-rpath,@loader_path/Frameworks")
-        extra_requested_features.append("link_bundle")
 
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
@@ -113,7 +108,6 @@ def _apple_binary_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
-        bundle_loader = bundle_loader,
         bundle_name = rule_label.name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -138,7 +132,7 @@ def _apple_binary_impl(ctx):
         OutputGroupInfo(**link_result.output_groups),
         coverage_common.instrumented_files_info(
             ctx,
-            dependency_attributes = ["bundle_loader", "deps"],
+            dependency_attributes = ["deps"],
         ),
     ]
 
@@ -194,20 +188,8 @@ The type of binary that this target should build. Option are:
     be unloaded.
 *   `executable` (default): The output binary is an executable and must
     implement the `main` function.
-*   `loadable_bundle`: The output binary is a loadable bundle that may be
-    loaded at runtime. When building a bundle, you may also pass a
-    `bundle_loader` binary that is an executable that contains symbols
-    referenced by but not implemented in the loadable bundle.
 """,
-                values = ["dylib", "executable", "loadable_bundle"],
-            ),
-            "bundle_loader": attr.label(
-                doc = """
-The target representing the executable that will be loading this bundle.
-Undefined symbols from the bundle are checked against this execuable during
-linking as if it were one of the dynamic libraries the bundle was linked with.
-""",
-                providers = [AppleExecutableBinaryInfo],
+                values = ["dylib", "executable"],
             ),
             "data": attr.label_list(allow_files = True),
             "secure_features": attr.string_list(
