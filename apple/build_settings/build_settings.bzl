@@ -46,7 +46,7 @@ be used for production, and the flag should only be used for testing the Swift v
 Generate stub binaries for Apple's swift-stdlib-tool from the binary files that contain Swift,
 leaving the downstream SwiftStdlibCopy action with a smaller set of binary inputs to consume.
 """,
-        default = False,
+        default = True,
     ),
     "signing_certificate_name": struct(
         doc = """
