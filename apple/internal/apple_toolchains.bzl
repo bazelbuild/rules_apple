@@ -107,11 +107,11 @@ target name and values are retrieved from the BuildSettingInfo provider for each
 e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 """,
         "bundletool": """\
-A files_to_run for a tool to create an Apple bundle by taking a list of
+A tool to create an Apple bundle by taking a list of
 files/ZIPs and destinations paths to build the directory structure for those files.
 """,
         "versiontool": """\
-A files_to_run for a tool that acts as a wrapper for xcrun actions.
+A tool that acts as a wrapper for xcrun actions.
 """,
         "json_tool": """\
 A `files_to_run` wrapping Python's `json.tool` module (https://docs.python.org/3.5/library/json.html#module-json.tool)
@@ -126,11 +126,6 @@ def _shared_attrs():
         "_mac_toolchain": attr.label(
             default = Label("//apple/internal:mac_tools_toolchain"),
             providers = [[AppleMacToolsToolchainInfo]],
-            cfg = "exec",
-        ),
-        "_xplat_toolchain": attr.label(
-            default = Label("//apple/internal:xplat_tools_toolchain"),
-            providers = [[AppleXPlatToolsToolchainInfo]],
             cfg = "exec",
         ),
     }
@@ -261,19 +256,24 @@ triplet.
     implementation = _apple_mac_tools_toolchain_impl,
 )
 
+APPLE_XPLAT_TOOLCHAIN_TYPE = "//apple/internal:apple_xplat_toolchain_type"
+APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
+
 def _apple_xplat_tools_toolchain_impl(ctx):
-    return [
-        AppleXPlatToolsToolchainInfo(
-            build_settings = struct(
-                **{
-                    build_setting.label.name: build_setting[BuildSettingInfo].value
-                    for build_setting in ctx.attr.build_settings
-                }
-            ),
-            bundletool = ctx.attr.bundletool.files_to_run,
-            versiontool = ctx.attr.versiontool.files_to_run,
-            json_tool = ctx.attr.json_tool.files_to_run,
+    xplat_info = AppleXPlatToolsToolchainInfo(
+        build_settings = struct(
+            **{
+                build_setting.label.name: build_setting[BuildSettingInfo].value
+                for build_setting in ctx.attr.build_settings
+            }
         ),
+        bundletool = ctx.attr.bundletool,
+        versiontool = ctx.attr.versiontool,
+        json_tool = ctx.attr.json_tool.files_to_run,
+    )
+
+    return [
+        platform_common.ToolchainInfo(xplat_tools_info = xplat_info),
         DefaultInfo(),
     ]
 
@@ -287,7 +287,7 @@ List of `Label`s referencing custom build settings for all Apple rules.
 """,
         ),
         "bundletool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
@@ -295,14 +295,14 @@ paths to build the directory structure for those files.
 """,
         ),
         "versiontool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `File` referencing a tool for extracting version info from builds.
 """,
         ),
         "json_tool": attr.label(
-            cfg = "target",
+            cfg = "exec",
             executable = True,
             doc = """
 A `files_to_run` wrapping Python's `json.tool` module (https://docs.python.org/3.5/library/json.html#module-json.tool)
@@ -314,7 +314,42 @@ for deterministic JSON handling.
     implementation = _apple_xplat_tools_toolchain_impl,
 )
 
+def _get_mac_toolchain(ctx):
+    return ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
+
+def _get_xplat_toolchain(ctx):
+    return ctx.exec_groups[APPLE_XPLAT_EXEC_GROUP].toolchains[APPLE_XPLAT_TOOLCHAIN_TYPE].xplat_tools_info
+
+def _get_xplat_exec_group(_ctx):
+    return APPLE_XPLAT_EXEC_GROUP
+
+def _use_apple_exec_group_toolchain():
+    """
+    Helper to depend on the All Apple toolchains through exec_groups.
+
+    Usage:
+    ```
+    my_rule = rule(
+        exec_groups = dicts.add(
+          {other exec_groups},
+          apple_toolchain_utils.use_apple_exec_group_toolchain(),
+        ),
+    )
+    ```
+    Returns:
+      A dict that can be used as the value for `rule.exec_groups`.
+    """
+    groups = {}
+    groups[APPLE_XPLAT_EXEC_GROUP] = exec_group(
+        toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
+    )
+    return groups
+
 # Define the loadable module that lists the exported symbols in this file.
 apple_toolchain_utils = struct(
     shared_attrs = _shared_attrs,
+    get_mac_toolchain = _get_mac_toolchain,
+    get_xplat_toolchain = _get_xplat_toolchain,
+    get_xplat_exec_group = _get_xplat_exec_group,
+    use_apple_exec_group_toolchain = _use_apple_exec_group_toolchain,
 )
