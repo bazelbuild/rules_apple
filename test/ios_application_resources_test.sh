@@ -31,6 +31,7 @@ function create_common_files() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -220,6 +221,7 @@ function test_texture_atlas_bundled_with_app() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -259,6 +261,7 @@ function test_actool_hides_warning_about_76x76_icons() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -294,6 +297,7 @@ function test_actool_errors_with_unassigned_children_in_asset() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -325,6 +329,7 @@ function test_actool_errors_with_invalid_json_in_asset() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -355,6 +360,7 @@ function test_actool_errors_with_missing_children_in_asset() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -386,6 +392,7 @@ function test_actool_errors_with_badly_sized_children_in_icon() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -418,6 +425,7 @@ function test_localization_excludes() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -453,6 +461,7 @@ function test_localization_excludes_includes_conflict() {
 
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "lib",
@@ -488,6 +497,7 @@ function test_nested_private_andimplementation_deps_bundled_with_app() {
   cat > app/BUILD <<EOF
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 objc_library(
     name = "res1",
