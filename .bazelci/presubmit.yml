@@ -50,7 +50,7 @@ tasks:
 
   doc_tests:
     name: "Doc tests"
-    bazel: 9.x # TODO: use last_green when we fix issues
+    bazel: last_green
     platform: ubuntu2004
     test_targets:
     - "doc/..."

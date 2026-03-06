@@ -21,13 +21,13 @@ load(
     "dicts",
 )
 load(
-    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
-    "find_cpp_toolchain",
-    "use_cpp_toolchain",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
+)
+load(
+    "@rules_cc//cc:find_cc_toolchain.bzl",
+    "find_cc_toolchain",
+    "use_cc_toolchain",
 )
 load(
     "//apple/internal:platform_support.bzl",
@@ -38,7 +38,7 @@ visibility("public")
 
 def _cc_toolchain_forwarder_impl(ctx):
     return [
-        find_cpp_toolchain(ctx),
+        find_cc_toolchain(ctx),
         platform_support.apple_platform_info_from_rule_ctx(ctx),
     ]
 
@@ -49,7 +49,7 @@ cc_toolchain_forwarder = rule(
         {
             # Legacy style toolchain assignment.
             "_cc_toolchain": attr.label(
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+                default = Label("@rules_cc//cc:current_cc_toolchain"),
             ),
         },
     ),
@@ -60,5 +60,5 @@ for the purposes of understanding what constraints the results of each Apple spl
 resolve to from the perspective of any bundling and binary rules that generate "fat" Apple binaries.
 """,
     # Anticipated "new" toolchain assignment.
-    toolchains = use_cpp_toolchain(),
+    toolchains = use_cc_toolchain(),
 )
