@@ -135,7 +135,7 @@ class ClangRuntimeTool(object):
     if "DEVELOPER_DIR" in os.environ:
       clang_lib_path = normalize_clang_lip_path(clang_lib_path, os.environ["DEVELOPER_DIR"])
 
-    with zipfile.ZipFile(out_path, "w") as out_zip:
+    with zipfile.ZipFile(out_path, "w", strict_timestamps=False) as out_zip:
       for lib in clang_libraries:
         full_path = os.path.join(clang_lib_path, lib)
         if os.path.exists(full_path):
