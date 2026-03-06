@@ -50,13 +50,13 @@ public struct CollectSignaturesOptions: ParsableArguments {
 
   @Option(
     help: "Path to a code signed file or bundle that will be an input for the SignatureTool.",
-    transform: URL.init(fileURLWithPath:)
+    transform: { URL(filePath: $0)}
   )
   public private(set) var signaturesInputPath: URL
 
   @Option(
     help: "Path to which the signatures XML plist should be written to.",
-    transform: URL.init(fileURLWithPath:)
+    transform: { URL(filePath: $0)}
   )
   public private(set) var signaturesOutputPath: URL
 
