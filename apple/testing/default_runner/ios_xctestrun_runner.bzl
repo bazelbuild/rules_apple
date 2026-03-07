@@ -3,11 +3,7 @@ An iOS test runner rule that uses xctestrun files to run unit test bundles on
 simulators. This rule currently doesn't support UI tests or running on device.
 """
 
-load(
-    "@build_bazel_apple_support//xcode:providers.bzl",
-    "XcodeVersionInfo",
-    "XcodeVersionPropertiesInfo",
-)
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
@@ -185,7 +181,7 @@ always use `xcodebuild test-without-building` to run the test bundle.
             default = "",
             doc = """
 The device type of the iOS simulator to run test. The supported types correspond
-to the output of `xcrun simctl list devicetypes`. E.g., iPhone 15, iPad Air.
+to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
 By default, it reads from --ios_simulator_device or falls back to some device.
 """,
         ),

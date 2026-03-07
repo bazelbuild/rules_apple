@@ -94,7 +94,7 @@ def _selected_simulator_runtime(version: Optional[str]) -> _Runtime:
     runtimes = json.loads(_simctl(["list", "runtimes", "-j"]))["runtimes"]
     available_runtimes = [runtime for runtime in runtimes if runtime["isAvailable"]]
     if not available_runtimes:
-        raise
+        raise RuntimeError("no available runtimes found")
     if version:
         selected = next(
             (
@@ -104,10 +104,11 @@ def _selected_simulator_runtime(version: Optional[str]) -> _Runtime:
             ),
             None,
         )
+        if not selected:
+            msg = f"no runtimes found matching version {version}"
+            raise RuntimeError(msg)
     else:
         selected = sorted(available_runtimes, key=lambda r: r["version"], reverse=True)[0]
-    if not selected:
-        raise
     return _Runtime(
         identifier=selected["identifier"],
         platform=selected["platform"],
@@ -170,13 +171,13 @@ class Namespace(argparse.Namespace):
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--os_version",
+        "--os-version",
         required=False,
         default=None,
         help="The iOS version to run the tests on, ex: 12.1",
     )
     parser.add_argument(
-        "--device_type",
+        "--device-type",
         required=False,
         default=None,
         help="The iOS device to run the tests on, ex: iPhone 15",
