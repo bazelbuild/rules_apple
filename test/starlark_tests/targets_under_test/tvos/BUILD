@@ -1503,6 +1503,24 @@ tvos_application(
     ],
 )
 
+tvos_application(
+    name = "app_with_app_intent_and_extra_app_intent",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:extra_app_intent",
+    ],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 

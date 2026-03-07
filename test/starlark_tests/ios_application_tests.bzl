@@ -806,18 +806,28 @@ def ios_application_test_suite(name):
         ],
     )
 
-    # Test app that has two Intents defined as top level modules generates an error message.
-    analysis_failure_message_test(
-        name = "{}_with_two_app_intents_and_two_modules_fails".format(name),
+    # Test app with App Intents from multiple modules includes both intents.
+    archive_contents_test(
+        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_simulator_test".format(name),
+        build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
-        expected_error = (
-            "App Intents must have only one module name for metadata generation to work correctly."
-        ).format(
-            package = "//test/starlark_tests/targets_under_test/ios",
-        ),
-        tags = [
-            name,
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*FavoriteSoup.*",
         ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
+        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+        text_test_values = [
+            ".*HelloWorldIntent.*",
+            ".*FavoriteSoup.*",
+        ],
+        tags = [name],
     )
 
     # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
