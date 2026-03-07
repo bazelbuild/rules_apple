@@ -20,13 +20,13 @@ bzl_library(
 bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
-    deps = ["@bazel_tools//tools/cpp:toolchain_utils.bzl"],
+    deps = ["@rules_cc//cc:find_cc_toolchain_bzl"],
 )
 
 bzl_library(
     name = "main_thread_checker_dylibs",
     srcs = ["main_thread_checker_dylibs.bzl"],
-    deps = ["@bazel_tools//tools/cpp:toolchain_utils.bzl"],
+    deps = ["@rules_cc//cc:find_cc_toolchain_bzl"],
 )
 
 bzl_library(

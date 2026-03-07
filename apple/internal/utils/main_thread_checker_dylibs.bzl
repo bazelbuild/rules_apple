@@ -14,7 +14,7 @@
 
 """Support functions related to getting main thread checker libraries."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 
 def _should_package_main_thread_checker_dylib(*, features):
     """Returns whether the libMainThreadChecker.dylib should be bundled."""
@@ -23,7 +23,7 @@ def _should_package_main_thread_checker_dylib(*, features):
 
 def _get_from_toolchain(ctx):
     if hasattr(ctx.attr, "_cc_toolchain"):
-        cc_toolchain = find_cpp_toolchain(ctx)
+        cc_toolchain = find_cc_toolchain(ctx)
         dylibs = [
             x
             for x in cc_toolchain.all_files.to_list()

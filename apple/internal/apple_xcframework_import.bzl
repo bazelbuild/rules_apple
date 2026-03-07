@@ -16,13 +16,13 @@
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_clang_module_aspect",
     "swift_common",
 )
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//apple:providers.bzl", "AppleFrameworkImportInfo")
 load(
@@ -482,7 +482,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -594,7 +594,7 @@ def _apple_static_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -795,7 +795,7 @@ Unnecssary and ignored, will be removed in the future.
 """,
             ),
             "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                default = "@rules_cc//cc:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
         },
@@ -806,7 +806,7 @@ Unnecssary and ignored, will be removed in the future.
         CcInfo,
         AppleDynamicFrameworkInfo,
     ],
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
 
 apple_static_xcframework_import = rule(
@@ -930,11 +930,11 @@ Unnecssary and ignored, will be removed in the future.
 """,
             ),
             "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                default = "@rules_cc//cc:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
         },
     ),
     fragments = ["apple", "cpp", "objc"],
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
