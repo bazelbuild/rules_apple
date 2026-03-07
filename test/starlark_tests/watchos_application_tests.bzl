@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
@@ -38,6 +39,30 @@ load(
 load(
     ":common.bzl",
     "common",
+)
+
+_analysis_watchos_strip_enabled_opt_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:watchos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": True,
+    },
+)
+
+_analysis_watchos_strip_disabled_opt_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:watchos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": False,
+    },
+)
+
+_analysis_watchos_strip_disabled_dbg_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "dbg",
+        "//command_line_option:watchos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": True,
+    },
 )
 
 def watchos_application_test_suite(name):
@@ -84,6 +109,32 @@ def watchos_application_test_suite(name):
             "UIDeviceFamily:0": "4",
             "WKWatchKitApp": "true",
         },
+        tags = [name],
+    )
+
+    # Tests that strip action is registered when building in opt mode with binary stripping enabled.
+    _analysis_watchos_strip_enabled_opt_test(
+        name = "{}_binary_strip_action_enabled_in_opt_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        target_mnemonic = "ObjcBinarySymbolStrip",
+        tags = [name],
+    )
+
+    # Tests that strip action is not registered when in opt mode but stripping is disabled.
+    _analysis_watchos_strip_disabled_opt_test(
+        name = "{}_binary_strip_action_disabled_without_flag_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["ObjcBinarySymbolStrip"],
+        tags = [name],
+    )
+
+    # Tests that strip action is not registered in dbg mode even if stripping is enabled.
+    _analysis_watchos_strip_disabled_dbg_test(
+        name = "{}_binary_strip_action_disabled_in_dbg_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["ObjcBinarySymbolStrip"],
         tags = [name],
     )
 

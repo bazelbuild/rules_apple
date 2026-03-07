@@ -23,6 +23,10 @@ load(
     "analysis_runfiles_dsym_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "make_analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -41,6 +45,30 @@ load(
 load(
     ":common.bzl",
     "common",
+)
+
+_analysis_macos_strip_enabled_opt_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": True,
+    },
+)
+
+_analysis_macos_strip_disabled_opt_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": False,
+    },
+)
+
+_analysis_macos_strip_disabled_dbg_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:compilation_mode": "dbg",
+        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:objc_enable_binary_stripping": True,
+    },
 )
 
 def macos_command_line_application_test_suite(name):
@@ -62,6 +90,32 @@ def macos_command_line_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic_swift",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Tests that strip action is registered when building in opt mode with binary stripping enabled.
+    _analysis_macos_strip_enabled_opt_test(
+        name = "{}_binary_strip_action_enabled_in_opt_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "ObjcBinarySymbolStrip",
+        tags = [name],
+    )
+
+    # Tests that strip action is not registered when in opt mode but stripping is disabled.
+    _analysis_macos_strip_disabled_opt_test(
+        name = "{}_binary_strip_action_disabled_without_flag_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["ObjcBinarySymbolStrip"],
+        tags = [name],
+    )
+
+    # Tests that strip action is not registered in dbg mode even if stripping is enabled.
+    _analysis_macos_strip_disabled_dbg_test(
+        name = "{}_binary_strip_action_disabled_in_dbg_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["ObjcBinarySymbolStrip"],
         tags = [name],
     )
 
