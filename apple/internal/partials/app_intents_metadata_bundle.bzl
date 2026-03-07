@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("//apple/internal:intermediates.bzl", "intermediates")
 load("//apple/internal:processor.bzl", "processor")
 load(
     "//apple/internal/providers:app_intents_info.bzl",
@@ -53,7 +54,6 @@ def _app_intents_metadata_bundle_partial_impl(
                 generate_app_intents_metadata_bundle(
                     actions = actions,
                     apple_fragment = platform_prerequisites.apple_fragment,
-                    bundle_binary = fat_stub_binary,
                     constvalues_files = dep[AppIntentsInfo].swiftconstvalues_files,
                     intents_module_names = dep[AppIntentsInfo].intent_module_names,
                     label = label.relative(label.name + dep[AppIntentsInfo].intent_module_names[0]),
@@ -87,7 +87,6 @@ def _app_intents_metadata_bundle_partial_impl(
         metadata_bundle = generate_app_intents_metadata_bundle(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            bundle_binary = fat_stub_binary,
             constvalues_files = [dummy_constvalues_file],
             intents_module_names = ["{}AppIntents".format(label.name)],
             label = label,
@@ -105,7 +104,6 @@ def _app_intents_metadata_bundle_partial_impl(
         metadata_bundle = generate_app_intents_metadata_bundle(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
-            bundle_binary = fat_stub_binary,
             constvalues_files = [
                 swiftconstvalues_file
                 for dep in deps[first_cc_toolchain_key]
