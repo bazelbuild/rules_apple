@@ -41,6 +41,12 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
+    "tree_artifact_dsym_files": struct(
+        doc = """
+Enables tree artifact dSYM bundles to be emitted in output groups instead of flat dSYM file lists.
+""",
+        default = False,
+    ),
     # TODO(b/266604130): Migrate users from tree artifacts outputs define flag to build setting.
     "use_tree_artifacts_outputs": struct(
         doc = """
