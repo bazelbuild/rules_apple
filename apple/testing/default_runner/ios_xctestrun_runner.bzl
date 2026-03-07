@@ -3,11 +3,7 @@ An iOS test runner rule that uses xctestrun files to run unit test bundles on
 simulators. This rule currently doesn't support UI tests or running on device.
 """
 
-load(
-    "@build_bazel_apple_support//xcode:providers.bzl",
-    "XcodeVersionInfo",
-    "XcodeVersionPropertiesInfo",
-)
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
@@ -62,18 +58,8 @@ def _get_execution_environment(ctx):
     return {"XCODE_VERSION_OVERRIDE": xcode_version}
 
 def _ios_xctestrun_runner_impl(ctx):
-    # TODO: Remove this getattr when we drop Bazel 8
-    xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
-    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or
-                     ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version)
-
-    # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
-    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or "iPhone 15"
-
-    if not os_version:
-        fail("error: os_version must be set on ios_xctestrun_runner, or passed with --ios_simulator_version")
-    if not device_type:
-        fail("error: device_type must be set on ios_xctestrun_runner, or passed with --ios_simulator_device")
+    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
+    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,

@@ -21,11 +21,12 @@ import string
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from typing import List, Optional
 
 
 def _simctl(extra_args: List[str]) -> str:
-    return subprocess.check_output(["xcrun", "simctl"] + extra_args).decode()
+    return subprocess.check_output(["xcrun", "simctl", *extra_args], text=True)
 
 
 def _boot_simulator(simulator_id: str) -> None:
@@ -82,23 +83,51 @@ def _boot_simulator(simulator_id: str) -> None:
     time.sleep(3)
 
 
-def _device_name(device_type: str, os_version: str) -> str:
+@dataclass
+class _Runtime:
+    identifier: str
+    platform: str
+    version: str
+
+
+def _selected_simulator_runtime(version: Optional[str]) -> _Runtime:
+    runtimes = json.loads(_simctl(["list", "runtimes", "-j"]))["runtimes"]
+    available_runtimes = [runtime for runtime in runtimes if runtime["isAvailable"]]
+    if not available_runtimes:
+        raise RuntimeError("no available runtimes found")
+    if version:
+        selected = next(
+            (
+                runtime
+                for runtime in available_runtimes
+                if runtime["version"] == version
+            ),
+            None,
+        )
+    else:
+        # Take the latest available runtime
+        selected = max(available_runtimes, key=lambda rt: rt["version"])
+    if not selected:
+        raise RuntimeError("no matching runtimes found")
+    return _Runtime(
+        identifier=selected["identifier"],
+        platform=selected["platform"],
+        version=selected["version"],
+    )
+
+
+def _default_device_name(device_type: str, os_version: str) -> str:
     return f"BAZEL_TEST_{device_type}_{os_version}"
 
 
 def _create_and_boot_simulator(
-    os_version: str,
+    device_name: str,
     device_type: str,
-    name: Optional[str],
+    runtime_identifier: str,
     reuse_simulator: bool,
 ) -> str:
     devices = json.loads(_simctl(["list", "devices", "-j"]))["devices"]
-    device_name = name or _device_name(device_type, os_version)
-    runtime_identifier = "com.apple.CoreSimulator.SimRuntime.iOS-{}".format(
-        os_version.replace(".", "-")
-    )
-
-    existing_device=None
+    existing_device = None
 
     if reuse_simulator:
         devices_for_os = devices.get(runtime_identifier) or []
@@ -142,16 +171,16 @@ class Namespace(argparse.Namespace):
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--os_version",
+        "--os-version",
         required=False,
         default=None,
         help="The iOS version to run the tests on, ex: 12.1",
     )
     parser.add_argument(
-        "--device_type",
+        "--device-type",
         required=False,
         default=None,
-        help="The iOS device to run the tests on, ex: iPhone X",
+        help="The iOS device to run the tests on, ex: iPhone 15",
     )
     parser.add_argument(
         "--name",
@@ -173,24 +202,24 @@ def _main() -> None:
 
     args = parser.parse_args(namespace=Namespace())
 
-    os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
-    simulator_name = args.name
-    reuse_simulator: bool = args.reuse_simulator or (
-        os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
-    )
-
-    if not os_version:
-        parser.error(
-            "OS version must be provided either as an argument or through the SIMULATOR_OS_VERSION environment variable"
-        )
     if not device_type:
         parser.error(
             "Device type must be provided either as an argument or through the SIMULATOR_DEVICE_TYPE environment variable"
         )
 
+    os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
+    reuse_simulator: bool = args.reuse_simulator or (
+        os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
+    )
+
+    selected_runtime = _selected_simulator_runtime(os_version)
+    device_name = args.name or _default_device_name(device_type, selected_runtime.version)
+
+    print("Selected simulator runtime", selected_runtime.identifier, file=sys.stderr)
+
     simulator_id = _create_and_boot_simulator(
-        os_version, device_type, simulator_name, reuse_simulator
+        device_name, device_type, selected_runtime.identifier, reuse_simulator
     )
 
     print(simulator_id.strip())

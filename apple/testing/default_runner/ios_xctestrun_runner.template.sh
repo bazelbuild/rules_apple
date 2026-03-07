@@ -399,6 +399,11 @@ fi
 
 simulator_id="unused"
 if [[ "$build_for_device" == false ]]; then
+  if [[ -z "%(device_type)s" ]]; then
+    echo "error: to create a simulator; the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
+    exit 1
+  fi
+
   simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(create_simulator_action_binary)s")"
 fi
 
