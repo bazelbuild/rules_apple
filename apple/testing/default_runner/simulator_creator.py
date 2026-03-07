@@ -104,11 +104,11 @@ def _selected_simulator_runtime(version: Optional[str]) -> _Runtime:
             ),
             None,
         )
-        if not selected:
-            msg = f"no runtimes found matching version {version}"
-            raise RuntimeError(msg)
     else:
-        selected = sorted(available_runtimes, key=lambda r: r["version"], reverse=True)[0]
+        # Take the latest available runtime
+        selected = max(available_runtimes, key=lambda rt: rt["version"])
+    if not selected:
+        raise RuntimeError("no matching runtimes found")
     return _Runtime(
         identifier=selected["identifier"],
         platform=selected["platform"],
