@@ -14,20 +14,24 @@
 
 """Support for linking related actions."""
 
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
-    "//apple/internal:cc_toolchain_info_support.bzl",
-    "cc_toolchain_info_support",
+    "@rules_cc//cc/private/rules_impl:objc_compilation_support.bzl",
+    objc_compilation_support = "compilation_support",
+)  # buildifier: disable=bzl-visibility
+load(
+    "//apple/internal:compilation_support.bzl",
+    "compilation_support",
 )
 load(
     "//apple/internal:entitlements_support.bzl",
     "entitlements_support",
+)
+load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
 )
 load(
     "//apple/internal:multi_arch_binary_support.bzl",
@@ -40,8 +44,6 @@ load(
     "ApplePlatformInfo",
     "new_appledebugoutputsinfo",
 )
-
-ObjcInfo = apple_common.Objc
 
 def _archive_multi_arch_static_library(
         *,
@@ -78,12 +80,23 @@ def _archive_multi_arch_static_library(
 
     for split_transition_key, child_toolchain in cc_toolchains.items():
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
-        common_variables = apple_common.compilation_support.build_common_variables(
-            ctx = ctx,
-            toolchain = cc_toolchain,
-            use_pch = True,
-            deps = split_deps[split_transition_key],
-        )
+
+        # TODO: Remove when we drop Bazel 8
+        legacy_objc_compilation_support = getattr(apple_common, "compilation_support", None)
+        if legacy_objc_compilation_support:
+            common_variables = legacy_objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                use_pch = True,
+                deps = split_deps[split_transition_key],
+            )
+        else:
+            common_variables = objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                use_pch = True,
+                deps = split_deps[split_transition_key],
+            )
 
         avoid_objc_providers = []
         avoid_cc_providers = []
@@ -91,8 +104,8 @@ def _archive_multi_arch_static_library(
 
         if len(split_avoid_deps.keys()):
             for dep in split_avoid_deps[split_transition_key]:
-                if ObjcInfo in dep:
-                    avoid_objc_providers.append(dep[ObjcInfo])
+                if apple_common.Objc in dep:
+                    avoid_objc_providers.append(dep[apple_common.Objc])
                 if CcInfo in dep:
                     avoid_cc_providers.append(dep[CcInfo])
                     avoid_cc_linking_contexts.append(dep[CcInfo].linking_context)
@@ -104,7 +117,7 @@ def _archive_multi_arch_static_library(
             linking_contexts = common_variables.objc_linking_context.cc_linking_contexts,
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
-        linking_outputs = apple_common.compilation_support.register_fully_link_action(
+        linking_outputs = compilation_support.register_fully_link_action(
             name = name,
             common_variables = common_variables,
             cc_linking_context = cc_linking_context,
@@ -245,14 +258,26 @@ def _link_multi_arch_binary(
         deps = split_deps.get(split_transition_key, [])
         platform_info = child_toolchain[ApplePlatformInfo]
 
-        common_variables = apple_common.compilation_support.build_common_variables(
-            ctx = ctx,
-            toolchain = cc_toolchain,
-            deps = deps,
-            extra_disabled_features = extra_disabled_features,
-            extra_enabled_features = extra_requested_features,
-            attr_linkopts = attr_linkopts,
-        )
+        # TODO: remove when we drop Bazel 8
+        legacy_objc_compilation_support = getattr(apple_common, "compilation_support", None)
+        if legacy_objc_compilation_support:
+            common_variables = legacy_objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                deps = deps,
+                extra_disabled_features = extra_disabled_features,
+                extra_enabled_features = extra_requested_features,
+                attr_linkopts = attr_linkopts,
+            )
+        else:
+            common_variables = objc_compilation_support.build_common_variables(
+                ctx = ctx,
+                toolchain = cc_toolchain,
+                deps = deps,
+                extra_disabled_features = extra_disabled_features,
+                extra_enabled_features = extra_requested_features,
+                attr_linkopts = attr_linkopts,
+            )
 
         cc_infos.append(CcInfo(
             compilation_context = cc_common.merge_compilation_contexts(
@@ -282,9 +307,11 @@ def _link_multi_arch_binary(
                 suffix = "_bin_unstripped.dwarf"
             else:
                 suffix = "_bin.dwarf"
-            dsym_binary = ctx.actions.declare_shareable_artifact(
-                paths.join(ctx.label.package, ctx.label.name + suffix),
-                child_config.bin_dir,
+            dsym_binary = intermediates.file(
+                actions = ctx.actions,
+                target_name = ctx.label.name,
+                output_discriminator = split_transition_key,
+                file_name = ctx.label.name + suffix,
             )
             extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
             additional_outputs.append(dsym_binary)
@@ -292,16 +319,18 @@ def _link_multi_arch_binary(
 
         linkmap = None
         if ctx.fragments.cpp.objc_generate_linkmap:
-            linkmap = ctx.actions.declare_shareable_artifact(
-                paths.join(ctx.label.package, ctx.label.name + ".linkmap"),
-                child_config.bin_dir,
+            linkmap = intermediates.file(
+                actions = ctx.actions,
+                target_name = ctx.label.name,
+                output_discriminator = split_transition_key,
+                file_name = ctx.label.name + ".linkmap",
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
             additional_outputs.append(linkmap)
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
         name = ctx.label.name + "_bin"
-        executable = apple_common.compilation_support.register_configuration_specific_link_actions(
+        executable = compilation_support.register_configuration_specific_link_actions(
             name = name,
             common_variables = common_variables,
             cc_linking_context = cc_linking_context,
@@ -310,9 +339,10 @@ def _link_multi_arch_binary(
             stamp = stamp,
             user_variable_extensions = variables_extension | extensions,
             additional_outputs = additional_outputs,
-            deps = deps,
             extra_link_inputs = extra_link_inputs,
             attr_linkopts = attr_linkopts,
+            # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
+            split_transition_key = split_transition_key,
         )
 
         output = {
@@ -647,139 +677,8 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
         # Symlink if there was only a single architecture created; it's faster.
         actions.symlink(target_file = inputs[0], output = output)
 
-# TODO: Delete when we take https://github.com/bazelbuild/rules_apple/commit/29eb94cbc9b1a898582e1e238cc2551ddbeaa58b
-def _legacy_link_multi_arch_binary(
-        *,
-        actions,
-        additional_inputs = [],
-        cc_toolchains,
-        ctx,
-        deps,
-        disabled_features,
-        features,
-        label,
-        stamp = -1,
-        user_link_flags = []):
-    """Experimental Starlark version of multiple architecture binary linking action.
-
-    This Stalark version is an experimental re-write of the apple_common.link_multi_arch_binary API
-    with minimal support for linking multiple architecture binaries from split dependencies.
-
-    Specifically, this lacks support for:
-        - Generating Apple dSYM binaries.
-        - Generating Objective-C linkmaps.
-        - Avoid linking symbols from Objective-C(++) dependencies (i.e. avoid_deps).
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        additional_inputs: List of additional `File`s required for the C++ linking action (e.g.
-            linking scripts).
-        cc_toolchains: Dictionary of targets (`ctx.split_attr`) containing CcToolchainInfo
-            providers to use for C++ actions.
-        ctx: The Starlark context for a rule target being built.
-        deps: Dictionary of targets (`ctx.split_attr`) referencing dependencies for a given target
-            to retrieve transitive CcInfo providers for C++ linking action.
-        disabled_features: List of features to be disabled for C++ actions.
-        features: List of features to be enabled for C++ actions.
-        label: Label for the current target (`ctx.label`).
-        stamp: Boolean to indicate whether to include build information in the linked binary.
-            If 1, build information is always included.
-            If 0, the default build information is always excluded.
-            If -1, uses the default behavior, which may be overridden by the --[no]stamp flag.
-            This should be set to 0 when generating the executable output for test rules.
-        user_link_flags: List of `str` user link flags to add to the C++ linking action.
-    Returns:
-        A struct containing the following information:
-            - cc_info: Merged CcInfo providers from each linked binary CcInfo provider.
-            - output_groups: OutputGroupInfo provider with CcInfo validation artifacts.
-            - outputs: List of `struct`s containing the linking output information below.
-                - architecture: The target Apple architecture.
-                - binary: `File` referencing the linked binary.
-                - environment: The target Apple environment.
-                - platform: The target Apple platform/os.
-    """
-    if type(deps) != "dict" or type(cc_toolchains) != "dict":
-        fail(
-            "Expected deps and cc_toolchains to be split attributes (dictionaries).\n",
-            "deps: %s\n" % deps,
-            "cc_toolchains: %s" % cc_toolchains,
-        )
-
-    if deps.keys() != cc_toolchains.keys():
-        fail(
-            "Expected deps and cc_toolchains split attribute keys to match",
-            "deps: %s\n" % deps.keys(),
-            "cc_toolchains: %s\n" % cc_toolchains.keys(),
-        )
-
-    all_cc_infos = []
-    linking_outputs = []
-    validation_artifacts = []
-    for split_attr_key, cc_toolchain_target in cc_toolchains.items():
-        cc_toolchain = cc_toolchain_target[cc_common.CcToolchainInfo]
-        target_triple = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
-
-        feature_configuration = cc_common.configure_features(
-            cc_toolchain = cc_toolchain,
-            ctx = ctx,
-            language = "objc",
-            requested_features = features,
-            unsupported_features = disabled_features,
-        )
-
-        cc_infos = [
-            dep[CcInfo]
-            for dep in deps[split_attr_key]
-            if CcInfo in dep
-        ]
-        all_cc_infos.extend(cc_infos)
-
-        cc_linking_contexts = [cc_info.linking_context for cc_info in cc_infos]
-        output_name = "{label}_{os}_{architecture}_bin".format(
-            architecture = target_triple.architecture,
-            label = label.name,
-            os = target_triple.os,
-        )
-        linking_output = cc_common.link(
-            actions = actions,
-            additional_inputs = additional_inputs,
-            cc_toolchain = cc_toolchain,
-            feature_configuration = feature_configuration,
-            linking_contexts = cc_linking_contexts,
-            name = output_name,
-            stamp = stamp,
-            user_link_flags = user_link_flags,
-        )
-
-        validation_artifacts.extend([
-            cc_info.compilation_context.validation_artifacts
-            for cc_info in cc_infos
-        ])
-
-        linking_outputs.append(
-            struct(
-                architecture = target_triple.architecture,
-                binary = linking_output.executable,
-                environment = target_triple.environment,
-                platform = target_triple.os,
-            ),
-        )
-
-    return struct(
-        cc_info = cc_common.merge_cc_infos(
-            cc_infos = all_cc_infos,
-        ),
-        output_groups = {
-            "_validation": depset(
-                transitive = validation_artifacts,
-            ),
-        },
-        outputs = linking_outputs,
-    )
-
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
-    legacy_link_multi_arch_binary = _legacy_link_multi_arch_binary,
     link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,

@@ -18,7 +18,7 @@ load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
@@ -115,7 +115,7 @@ def _create_apple_rule(
         implementation,
         is_executable = False,
         predeclared_outputs = {},
-        toolchains = use_cpp_toolchain(),
+        toolchains = use_cc_toolchain(),
         attrs):
     """Creates an Apple bundling rule with additional control of the set of rule attributes.
 

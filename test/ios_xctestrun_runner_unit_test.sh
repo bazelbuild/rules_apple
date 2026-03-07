@@ -38,6 +38,7 @@ load(
     "@build_bazel_rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
     "ios_xctestrun_runner"
 )
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 ios_xctestrun_runner(
