@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source, targets, and basic plist for tvOS applications.
 function create_minimal_tvos_application_with_extension() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
@@ -58,6 +59,11 @@ tvos_extension(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -124,7 +130,7 @@ function test_missing_version_fails() {
 }
 EOF
 
-  ! do_build tvos //app:app \
+  ! do_build tvos //app:ipa_app \
     || fail "Should fail build"
 
   expect_log 'Target "@@\?//app:ext" is missing CFBundleVersion.'
@@ -147,7 +153,7 @@ function test_missing_short_version_fails() {
 }
 EOF
 
-  ! do_build tvos //app:app \
+  ! do_build tvos //app:ipa_app \
     || fail "Should fail build"
 
   expect_log 'Target "@@\?//app:ext" is missing CFBundleShortVersionString.'
@@ -157,6 +163,7 @@ EOF
 # not the app's ID followed by at least another component, the build fails.
 function test_extension_with_mismatched_bundle_id_fails_to_build() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
@@ -185,6 +192,11 @@ tvos_extension(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -226,7 +238,7 @@ EOF
 }
 EOF
 
-  ! do_build tvos //app:app || fail "Should not build"
+  ! do_build tvos //app:ipa_app || fail "Should not build"
   expect_log 'While processing target "@@\?//app:app"; the CFBundleIdentifier of the child target "@@\?//app:ext" should have "my.bundle.id." as its prefix, but found "my.extension.id".'
 }
 
@@ -234,6 +246,7 @@ EOF
 # CFBundleShortVersionString the build fails.
 function test_extension_with_mismatched_short_version_fails_to_build() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
@@ -262,6 +275,11 @@ tvos_extension(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -303,7 +321,7 @@ EOF
 }
 EOF
 
-  ! do_build tvos //app:app || fail "Should not build"
+  ! do_build tvos //app:ipa_app || fail "Should not build"
   expect_log "While processing target \"@@\?//app:app\"; the CFBundleShortVersionString of the child target \"@@\?//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
@@ -311,6 +329,7 @@ EOF
 # CFBundleVersion the build fails.
 function test_extension_with_mismatched_version_fails_to_build() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
@@ -339,6 +358,11 @@ tvos_extension(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -380,13 +404,14 @@ EOF
 }
 EOF
 
-  ! do_build tvos //app:app || fail "Should not build"
+  ! do_build tvos //app:ipa_app || fail "Should not build"
   expect_log "While processing target \"@@\?//app:app\"; the CFBundleVersion of the child target \"@@\?//app:ext\" should be the same as its parent's version string \"1.0\", but found \"1.1\"."
 }
 
 # Tests that an extension with legacy_entry_point=True builds successfully.
 function test_legacy_entry_point_extension_builds() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:tvos.bzl",
      "tvos_application",
      "tvos_extension",
@@ -416,6 +441,11 @@ tvos_extension(
     minimum_os_version = "${MIN_OS_TVOS}",
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
 )
 EOF
 
@@ -457,7 +487,7 @@ EOF
 }
 EOF
 
-  do_build tvos //app:app || fail "Should build"
+  do_build tvos //app:ipa_app || fail "Should build"
 }
 
 run_suite "tvos_extension bundling tests"

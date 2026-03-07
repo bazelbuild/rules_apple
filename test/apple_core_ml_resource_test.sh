@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load(
     "@build_bazel_rules_apple//apple:resources.bzl",
@@ -58,6 +59,11 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS}",
     deps = [":app_lib"],
 )
+
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
 EOF
 
   cat > app/AppDelegate.swift <<EOF
@@ -84,7 +90,7 @@ EOF
 function test_mlmodel_resource_bundle_builds() {
   create_common_files
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" "Payload/app.app/App_Resources.bundle/sample.mlmodelc/"
 }

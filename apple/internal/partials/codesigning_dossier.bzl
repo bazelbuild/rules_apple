@@ -161,7 +161,8 @@ def _create_combined_zip_artifact(
         label_name,
         output_combined_zip,
         output_discriminator,
-        platform_prerequisites):
+        platform_prerequisites,
+        rule_descriptor):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
 
      Args:
@@ -205,6 +206,7 @@ def _create_combined_zip_artifact(
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
 
     if tree_artifact_is_enabled:
@@ -332,6 +334,7 @@ def _codesigning_dossier_partial_impl(
         output_combined_zip = output_combined_zip,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
 
     return struct(

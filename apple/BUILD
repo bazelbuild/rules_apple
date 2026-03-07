@@ -73,6 +73,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_archive",
+    srcs = ["apple_archive.bzl"],
+    deps = [
+        "//apple/internal:apple_archive",
+    ],
+)
+
+bzl_library(
     name = "aspects",
     srcs = ["aspects.bzl"],
     deps = [

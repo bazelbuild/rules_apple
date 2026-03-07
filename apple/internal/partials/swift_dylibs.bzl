@@ -35,26 +35,12 @@ load(
     "processor",
 )
 load(
+    "//apple/internal/providers:apple_swift_dylibs_info.bzl",
+    "AppleSwiftDylibsInfo",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
-)
-
-_AppleSwiftDylibsInfo = provider(
-    doc = """
-Private provider to propagate the transitive binary `File`s that depend on
-Swift.
-""",
-    fields = {
-        "binary": """
-Depset of binary `File`s containing the transitive dependency binaries that use
-Swift.
-""",
-        "swift_support_files": """
-List of 2-element tuples that represent which files should be bundled as part of the SwiftSupport
-archive directory. The first element of the tuple is the platform name, and the second element is a
-File object that represents a directory containing the Swift dylibs to package for that platform.
-""",
-    },
 )
 
 # Minimum OS versions for which we no longer need to potentially bundle any
@@ -128,11 +114,11 @@ def _swift_dylibs_partial_impl(
     transitive_binary_sets = []
     transitive_swift_support_files = []
     for dependency in dependency_targets:
-        if _AppleSwiftDylibsInfo not in dependency:
-            # Skip targets without the _AppleSwiftDylibsInfo provider, as they don't use Swift
+        if AppleSwiftDylibsInfo not in dependency:
+            # Skip targets without the AppleSwiftDylibsInfo provider, as they don't use Swift
             # (i.e. sticker extensions that have stubs).
             continue
-        provider = dependency[_AppleSwiftDylibsInfo]
+        provider = dependency[AppleSwiftDylibsInfo]
         transitive_binary_sets.append(provider.binary)
         transitive_swift_support_files.extend(provider.swift_support_files)
 
@@ -225,7 +211,7 @@ def _swift_dylibs_partial_impl(
 
     return struct(
         bundle_files = bundle_files,
-        providers = [_AppleSwiftDylibsInfo(
+        providers = [AppleSwiftDylibsInfo(
             binary = propagated_binaries,
             swift_support_files = transitive_swift_support_files,
         )],
