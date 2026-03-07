@@ -243,13 +243,8 @@ if [[ -n "${REUSE_GLOBAL_SIMULATOR:-}" ]]; then
     exit 1
   fi
 
-  if [[ -z "%(os_version)s" ]]; then
-    echo "error: to create a re-useable simulator the OS version must always be set on the test runner or with '--ios_simulator_version'" >&2
-    exit 1
-  fi
-
   if [[ -z "%(device_type)s" ]]; then
-    echo "error: to create a re-useable simulator the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
+    echo "error: to create a re-useable simulator; the device type must always be set on the test runner or with '--ios_simulator_device'" >&2
     exit 1
   fi
 

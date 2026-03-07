@@ -157,7 +157,7 @@ Provider that device-based runner targets must propagate.
     fields = {
         "device_type": """
 The device type of the iOS simulator to run test. The supported types correspond
-to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
+to the output of `xcrun simctl list devicetypes`. E.g., iPhone 15, iPad Air.
 """,
         "os_version": """
 The os version of the iOS simulator to run test. The supported os versions
