@@ -240,12 +240,7 @@ def _classify_libraries(libraries_to_link):
     return always_link_libraries.keys(), as_needed_libraries.keys()
 
 def _emit_builtin_objc_strip_action(ctx):
-    return (
-        getattr(ctx.fragments.objc, "builtin_objc_strip_action", False) and
-        ctx.fragments.objc.builtin_objc_strip_action and
-        ctx.fragments.cpp.objc_enable_binary_stripping() and
-        ctx.fragments.cpp.compilation_mode() == "opt"
-    )
+    return ctx.fragments.cpp.objc_should_strip_binary
 
 def _register_configuration_specific_link_actions(
         name,
