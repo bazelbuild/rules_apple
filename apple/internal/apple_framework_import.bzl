@@ -30,12 +30,12 @@ load(
     "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_clang_module_aspect",
     "swift_common",
 )
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
@@ -172,7 +172,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -288,7 +288,7 @@ def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink or getattr(ctx.fragments.objc, "alwayslink_by_default", False)
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     compilation_mode = ctx.var["COMPILATION_MODE"]
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -467,7 +467,7 @@ to manually dlopen the framework at runtime.
 """,
             ),
             "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                default = "@rules_cc//cc:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
         },
@@ -493,7 +493,7 @@ objc_library(
 )
 ```
 """,
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -572,12 +572,12 @@ not include Swift interface or Swift module files.
                 default = False,
             ),
             "_cc_toolchain": attr.label(
-                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                default = "@rules_cc//cc:current_cc_toolchain",
                 doc = "The C++ toolchain to use.",
             ),
         },
     ),
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_static_framework_import` targets

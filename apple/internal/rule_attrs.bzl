@@ -179,7 +179,7 @@ def _binary_linking_attrs(
         # See utils/clang_rt_dylibs.bzl and partials/clang_rt_dylibs.bzl
         extra_attrs = dicts.add(extra_attrs, {
             "_cc_toolchain": attr.label(
-                default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+                default = Label("@rules_cc//cc:current_cc_toolchain"),
             ),
         })
 

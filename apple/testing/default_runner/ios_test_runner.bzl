@@ -22,22 +22,22 @@ load(
 
 def _get_template_substitutions(
         *,
+        create_simulator_action_binary,
         device_type,
         os_version,
-        simulator_creator,
-        testrunner,
-        pre_action_binary,
         post_action_binary,
-        post_action_determines_exit_code):
+        post_action_determines_exit_code,
+        pre_action_binary,
+        testrunner):
     """Returns the template substitutions for this runner."""
     subs = {
+        "create_simulator_action_binary": create_simulator_action_binary,
         "device_type": device_type,
         "os_version": os_version,
-        "simulator_creator": simulator_creator,
-        "testrunner_binary": testrunner,
-        "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
+        "pre_action_binary": pre_action_binary,
+        "testrunner_binary": testrunner,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
 
@@ -56,7 +56,7 @@ def _ios_test_runner_impl(ctx):
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
-    runfiles = ctx.attr._simulator_creator[DefaultInfo].default_runfiles
+    runfiles = ctx.attr.create_simulator_action[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
@@ -78,13 +78,13 @@ def _ios_test_runner_impl(ctx):
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
+            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
             device_type = device_type,
             os_version = os_version,
-            simulator_creator = ctx.executable._simulator_creator.short_path,
-            testrunner = ctx.executable._testrunner.short_path,
-            pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
+            pre_action_binary = pre_action_binary,
+            testrunner = ctx.executable._testrunner.short_path,
         ),
     )
     return [
@@ -106,6 +106,21 @@ def _ios_test_runner_impl(ctx):
 ios_test_runner = rule(
     _ios_test_runner_impl,
     attrs = {
+        "create_simulator_action": attr.label(
+            cfg = "exec",
+            executable = True,
+            default = Label("//apple/testing/default_runner:simulator_creator"),
+            doc = """
+A binary that produces a UDID for a simulator that matches the given device type and OS version. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout. This is only invoked when the `$REUSE_GLOBAL_SIMULATOR` environment variable is set.
+
+When executed, the binary will have the following environment variables available to it:
+
+<ul>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.</li>
+</ul>
+""",
+        ),
         "device_type": attr.string(
             default = "",
             doc = """
@@ -130,22 +145,9 @@ correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3.
 By default, it is the latest supported version of the device type.'
 """,
         ),
-        "test_environment": attr.string_dict(
-            doc = """
-Optional dictionary with the environment variables that are to be propagated
-into the XCTest invocation.
-""",
-        ),
-        "pre_action": attr.label(
-            executable = True,
-            cfg = "exec",
-            doc = """
-A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.
-""",
-        ),
         "post_action": attr.label(
-            executable = True,
             cfg = "exec",
+            executable = True,
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
 """,
@@ -153,32 +155,34 @@ A binary to run following test execution. Runs after testing but before test res
         "post_action_determines_exit_code": attr.bool(
             default = False,
             doc = """
-When true, the exit code of the test run will be set to the exit code of the post action. This is useful for tests that need to fail the test run based on their own criteria.
+When true, the exit code of the test run will be set to the exit code of the `post_action`. This is useful for tests that need to fail the test run based on their own criteria.
+""",
+        ),
+        "pre_action": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.
+""",
+        ),
+        "test_environment": attr.string_dict(
+            doc = """
+Optional dictionary with the environment variables that are to be propagated
+into the XCTest invocation.
 """,
         ),
         "_test_template": attr.label(
-            default = Label(
-                "//apple/testing/default_runner:ios_test_runner.template.sh",
-            ),
+            default = Label("//apple/testing/default_runner:ios_test_runner.template.sh"),
             allow_single_file = True,
         ),
         "_testrunner": attr.label(
-            default = Label(
-                "@xctestrunner//:ios_test_runner",
-            ),
-            executable = True,
             cfg = "exec",
+            executable = True,
+            default = Label("@xctestrunner//:ios_test_runner"),
             doc = """
 It is the rule that needs to provide the AppleTestRunnerInfo provider. This
 dependency is the test runner binary.
 """,
-        ),
-        "_simulator_creator": attr.label(
-            default = Label(
-                "//apple/testing/default_runner:simulator_creator",
-            ),
-            executable = True,
-            cfg = "exec",
         ),
         "_xcode_config": attr.label(
             default = configuration_field(
