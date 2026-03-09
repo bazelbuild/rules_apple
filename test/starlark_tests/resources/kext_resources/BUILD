@@ -2,9 +2,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 licenses(["notice"])
 
-package(
-    default_visibility = ["//test/starlark_tests:__subpackages__"],
-)
+package()
 
 # Exports all files in this package as targets to make it easier to depend on them.
 # Because these are for Starlark tests, we can scope the visibility to just this
