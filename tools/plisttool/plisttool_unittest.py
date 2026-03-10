@@ -450,6 +450,43 @@ class PlistToolTest(unittest.TestCase):
     tool.run()
     self.assertEqual(expected, pkginfo.getvalue())
 
+  def test_individual_plist_as_dictionary(self):
+    plist1 = {'Foo': 'abc'}
+    self._assert_plisttool_result({'individual_plist': plist1}, plist1)
+
+  def test_individual_plist_as_array(self):
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+           '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+           '<plist version="1.0">\n'
+           '<array>\n'
+           '<string>abc</string>\n'
+           '</array>\n'
+           '</plist>\n')
+    xml_bytes = xml.encode('utf8')
+    plist1 = io.BytesIO(xml_bytes)
+    output = io.BytesIO()
+    control = {
+        'individual_plist': plist1,
+        'output': output,
+        'target': _testing_target,
+    }
+    tool = plisttool.PlistTool(control)
+    tool.run()
+    self.assertEqual(plisttool.plist_from_bytes(output.getvalue()), [
+        'abc',
+    ])
+
+  def test_invalid_use_of_individual_plist_with_additional_keys(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNKNOWN_CONTROL_KEYS_MSG % (
+            _testing_target, 'plists'))):
+      _plisttool_result({
+          'plists': [{}],
+          'individual_plist': {'Foo': 'abc'},
+      })
+
   def test_merge_of_one_file(self):
     plist1 = _xml_plist('<key>Foo</key><string>abc</string>')
     self._assert_plisttool_result({'plists': [plist1]}, {'Foo': 'abc'})

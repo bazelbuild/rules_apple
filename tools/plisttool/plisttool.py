@@ -23,6 +23,10 @@ representation of a "control" structure (similar to the PlMerge tool, which
 takes a binary protocol buffer). This control structure is a dictionary with
 the following keys:
 
+  individual_plist: A plist that will not be merged with any other plists. This
+      requires that no other options be set other than `output`, `binary` and
+      `target`. Useful for simply converting from one plist format to another,
+      allowing for simple validations along the way.
   plists: A list of plists that will be merged. The items in this list may be
       strings (which are interpreted as paths), readable file-like objects
       containing XML-formatted plist data (for testing), or dictionaries that
@@ -354,6 +358,7 @@ _CONTROL_KEYS = frozenset([
     'binary',
     'forced_plists',
     'entitlements_options',
+    'individual_plist',
     'info_plist_options',
     'overridable_forced_plists',
     'output',
@@ -362,6 +367,13 @@ _CONTROL_KEYS = frozenset([
     'target',
     'unresolved_variable_substitutions',
     'variable_substitutions',
+])
+
+_INDIVIDUAL_PLIST_SUPPORTED_KEYS = frozenset([
+    'binary',
+    'individual_plist',
+    'output',
+    'target',
 ])
 
 # All valid keys in the info_plist_options control structure.
@@ -788,8 +800,8 @@ class PlistIO(object):
   """
 
   @classmethod
-  def get_dict(cls, p, target):
-    """Returns a plist dictionary based on the given object.
+  def get_object(cls, p, target):
+    """Returns a plist object based on the given object.
 
     This function handles the various input formats for plists in the control
     struct that are supported by this tool. Dictionary objects are returned
@@ -801,7 +813,7 @@ class PlistIO(object):
       target: The name of the target for which the plist is being built.
 
     Returns:
-      A dictionary containing the values from the plist.
+      An object containing the values from the plist.
     """
     if isinstance(p, dict):
       return p
@@ -1060,7 +1072,7 @@ class InfoPlistTask(PlistToolTask):
     short_version = plist.get('CFBundleShortVersionString')
 
     for label, p in child_plists.items():
-      child_plist = PlistIO.get_dict(p, target)
+      child_plist = PlistIO.get_object(p, target)
 
       child_id = child_plist['CFBundleIdentifier']
       if not child_id.startswith(prefix):
@@ -1189,7 +1201,7 @@ class EntitlementsTask(PlistToolTask):
     # validations.
     profile_metadata_file = self.options.get('profile_metadata_file')
     if profile_metadata_file:
-      self._profile_metadata = PlistIO.get_dict(profile_metadata_file, target)
+      self._profile_metadata = PlistIO.get_object(profile_metadata_file, target)
       ver = self._profile_metadata.get('Version')
       if ver != 1:
         # Just log the message incase something else goes wrong.
@@ -1690,7 +1702,16 @@ class PlistTool(object):
           )
 
     # Check for unknown keys in the control structure.
-    validate_keys(list(self._control.keys()), _CONTROL_KEYS)
+    control_keys = list(self._control.keys())
+    validate_keys(control_keys, _CONTROL_KEYS)
+
+    # If an individual plist is specified, process and return early.
+    individual_plist = self._control.get('individual_plist')
+    if individual_plist:
+      validate_keys(control_keys, _INDIVIDUAL_PLIST_SUPPORTED_KEYS)
+      xml_plist = PlistIO.get_object(individual_plist, target)
+      PlistIO.write(xml_plist, output, binary=self._control.get('binary'))
+      return
 
     tasks = []
     var_subs = self._control.get('variable_substitutions', {})
@@ -1721,14 +1742,14 @@ class PlistTool(object):
     subs_engine = SubstitutionEngine(target, var_subs, raw_subs)
     out_plist = {}
     for p in self._control.get('plists', []):
-      plist = PlistIO.get_dict(p, target)
+      plist = PlistIO.get_object(p, target)
       self._merge_dictionaries(plist, out_plist, target, subs_engine)
 
     overridable_forced_plists = self._control.get(
         'overridable_forced_plists', []
     )
     for p in overridable_forced_plists:
-      plist = PlistIO.get_dict(p, target)
+      plist = PlistIO.get_object(p, target)
       # The order is flipped between incoming/outgoing info plist so that the
       # merged plist above has priority, unlike normal `forced_plists` below.
       self._merge_dictionaries(
@@ -1738,7 +1759,7 @@ class PlistTool(object):
 
     forced_plists = self._control.get('forced_plists', [])
     for p in forced_plists:
-      plist = PlistIO.get_dict(p, target)
+      plist = PlistIO.get_object(p, target)
       self._merge_dictionaries(
           plist, out_plist, target, subs_engine, override_collisions=True
       )
