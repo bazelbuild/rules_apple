@@ -55,10 +55,15 @@ the following keys:
       Unlike variable_substitutions, there is now "wrapper" added to the keys
       so this can match any *raw* substring in any value in the plist. This
       should be used with extreme care.
+  target: The target name, used for warning/error messages.
+  unresolved_variable_substitutions: A list of strings that should be treated as
+      unresolved variables during variable substitution. This is useful for
+      plists such as strings files for App Intents and Shortcuts, where the
+      values such as "${applicationName}" and "${queryString}" are resolved by a
+      different process at app execution time.
   variable_substitutions: A dictionary of string pairs to use for ${VAR}/$(VAR)
       substitutions when processing the plists. All keys/values will get
       support for the rfc1034identifier qualifier.
-  target: The target name, used for warning/error messages.
 
 The info_plist_options dictionary can contain the following keys:
 
@@ -355,6 +360,7 @@ _CONTROL_KEYS = frozenset([
     'plists',
     'raw_substitutions',
     'target',
+    'unresolved_variable_substitutions',
     'variable_substitutions',
 ])
 
@@ -698,7 +704,12 @@ class SubstitutionEngine(object):
 
   @classmethod
   def validate_no_variable_references(
-      cls, target, key_name, value, msg_additions=None
+      cls,
+      target,
+      key_name,
+      value,
+      allowed_unresolved_substitutions,
+      msg_additions=None,
   ):
     """Ensures there are no variable references left in value (recursively).
 
@@ -706,6 +717,8 @@ class SubstitutionEngine(object):
       target: The name of the target for which the plist is being built.
       key_name: The name of the key this value is part of.
       value: The value to check.
+      allowed_unresolved_substitutions: A list of variable substitutions that
+        are allowed to remain not resolved.
       msg_additions: Dictionary of variable names to custom strings to add to
         the error messages.
 
@@ -729,6 +742,10 @@ class SubstitutionEngine(object):
                 INVALID_SUBSTITUTATION_REFERENCE_MSG
                 % (target, m.group(0), key_name, value)
             )
+          if variable_name in allowed_unresolved_substitutions:
+            # If this substitution is deliberately allowed to be unresolved,
+            # then continue without raising an error.
+            return
           err_msg = UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
               target,
               m.group(0),
@@ -1730,7 +1747,13 @@ class PlistTool(object):
       t.update_plist(out_plist, subs_engine)
 
     SubstitutionEngine.validate_no_variable_references(
-        target, '', out_plist, msg_additions=unknown_var_msg_additions
+        target,
+        '',
+        out_plist,
+        allowed_unresolved_substitutions=self._control.get(
+            'unresolved_variable_substitutions', []
+        ),
+        msg_additions=unknown_var_msg_additions,
     )
 
     if tasks:

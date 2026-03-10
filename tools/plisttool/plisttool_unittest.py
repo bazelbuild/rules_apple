@@ -781,6 +781,25 @@ class PlistToolTest(unittest.TestCase):
             'Key[1]', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
       _plisttool_result({'plists': [plist3]})
 
+  def test_allowed_nonexistant_variable_substitution(self):
+    unresolved_variable_substitutions = ['applicationName', 'queryString']
+
+    plist1 = {
+        'FooBraces': 'A-${queryString}-B'
+    }
+    self._assert_plisttool_result({
+        'plists': [plist1],
+        'unresolved_variable_substitutions': unresolved_variable_substitutions,
+    }, plist1)
+
+    plist2 = {
+        'FooParens': '$(applicationName)'
+    }
+    self._assert_plisttool_result({
+        'plists': [plist2],
+        'unresolved_variable_substitutions': unresolved_variable_substitutions,
+    }, plist2)
+
   def test_variable_substitution_in_key(self):
     plist1 = {
         'Foo${Braces}': 'Bar'
