@@ -2195,6 +2195,81 @@ class PlistToolTest(unittest.TestCase):
           },
       })
 
+  def test_entitlements_secure_features_key_before_26_4_specified_by_user(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_SECURE_FEATURES_KEY_ALTERED % (
+            _testing_target, 'com.apple.security.hardened-process.enhanced-security-version'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.security.hardened-process.enhanced-security-version': 1,
+          }],
+          'entitlements_options': {
+              'all_secure_features_keys': [
+                  'com.apple.security.hardened-process.enhanced-security-version',
+                  'com.apple.security.hardened-process.enhanced-security-version-string',
+              ],
+              'allowed_secure_features_keys': [],
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.security.hardened-process.enhanced-security-version': '*',
+                      'com.apple.security.hardened-process.enhanced-security-version-string': '*',
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_secure_features_key_specified_by_user(self):
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.ENTITLEMENTS_SECURE_FEATURES_KEY_ALTERED % (
+            _testing_target, 'com.apple.security.hardened-process.enhanced-security-version-string'))):
+      _plisttool_result({
+          'plists': [{
+              'com.apple.security.hardened-process.enhanced-security-version-string': '1',
+          }],
+          'entitlements_options': {
+              'all_secure_features_keys': [
+                  'com.apple.security.hardened-process.enhanced-security-version',
+                  'com.apple.security.hardened-process.enhanced-security-version-string',
+              ],
+              'allowed_secure_features_keys': [],
+              'profile_metadata_file': {
+                  'Entitlements': {
+                      'com.apple.security.hardened-process.enhanced-security-version': '*',
+                      'com.apple.security.hardened-process.enhanced-security-version-string': '*',
+                  },
+                  'Version': 1,
+              },
+          },
+      })
+
+  def test_entitlements_secure_features_key_does_not_raise_if_allowed(self):
+    plist1 = {
+        'com.apple.security.hardened-process.enhanced-security-version-string': '1',
+    }
+    self._assert_plisttool_result({
+        'forced_plists': [plist1],
+        'entitlements_options': {
+            'all_secure_features_keys': [
+                'com.apple.security.hardened-process.enhanced-security-version',
+                'com.apple.security.hardened-process.enhanced-security-version-string',
+            ],
+            'allowed_secure_features_keys': [
+                'com.apple.security.hardened-process.enhanced-security-version',
+                'com.apple.security.hardened-process.enhanced-security-version-string',
+            ],
+            'profile_metadata_file': {
+                'Entitlements': {
+                    'com.apple.security.hardened-process.enhanced-security-version': '*',
+                    'com.apple.security.hardened-process.enhanced-security-version-string': '*',
+                },
+                'Version': 1,
+            },
+        },
+    }, plist1)
+
 
 class PlistEntitlementsMerge(PlistToolTest):
 

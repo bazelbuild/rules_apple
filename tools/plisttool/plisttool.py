@@ -96,7 +96,15 @@ satisfied, an error will be raised:
 
 The entitlements_options dictionary can contain the following keys:
 
+  all_secure_features_keys: A list of strings representing keys that should
+      always be defined by secure_features.
+  allowed_secure_features_keys: A list of strings representing keys that are
+      allowed to be defined by the entitlements file, with the expectation that
+      these were explicitly defined by the secure_features mechanism.
   bundle_id: String with the bundle id for the app the entitlements are for.
+  extra_keys_to_match_profile: A list of additional keys to check in the
+      entitlements file that should match the values of the same keys in the
+      provisioning profile.
   profile_metadata_file: A string that denotes the path to a provisioning
       profiles metadata plist. This is the the subset of data as created by
       provisioning_profile_tool.
@@ -288,6 +296,12 @@ ENTITLEMENTS_HAS_GROUP_PROFILE_DOES_NOT = (
     ' entitlements file or update the profile to support it.'
 )
 
+ENTITLEMENTS_SECURE_FEATURES_KEY_ALTERED = (
+    'Target "%s" uses entitlements with a "%s" key, but this key should instead'
+    ' be defined by secure_features. Please remove it from the entitlements'
+    ' file and rely on the secure_features mechanism instead.'
+)
+
 ENTITLEMENTS_MISSING = (
     'Target "%s" uses entitlements with the "%s" key, but the profile does not'
     ' have this key. Either remove the use from the entitlements file or update'
@@ -356,6 +370,8 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
 
 # All valid keys in the entitlements_options control structure.
 _ENTITLEMENTS_OPTIONS_KEYS = frozenset([
+    'all_secure_features_keys',
+    'allowed_secure_features_keys',
     'bundle_id',
     'extra_keys_to_match_profile',
     'profile_metadata_file',
@@ -1251,8 +1267,6 @@ class EntitlementsTask(PlistToolTask):
       self._sanity_check_profile()
 
       if self._validation_mode != 'skip':
-        # TODO: b/474331541 - Remove the fallback once its values are always set
-        # at analysis time in entitlements_support.bzl.
         extra_keys_to_match = self.options.get(
             'extra_keys_to_match_profile',
             [],
@@ -1261,6 +1275,14 @@ class EntitlementsTask(PlistToolTask):
             plist,
             extra_keys_to_match,
         )
+
+    all_secure_features_keys = self.options.get(
+        'all_secure_features_keys')
+    if all_secure_features_keys:
+      allowed_secure_features_keys = self.options.get(
+          'allowed_secure_features_keys', [])
+      self._validate_secure_features_keys(
+          plist, all_secure_features_keys, allowed_secure_features_keys)
 
   def _validate_bundle_id_covered(self, bundle_id, entitlements):
     """Checks that the bundle id is covered by the entitlements.
@@ -1403,6 +1425,32 @@ class EntitlementsTask(PlistToolTask):
         supports_wildcards=True,
         allow_wildcards_in_entitlements=True,
     )
+
+  def _validate_secure_features_keys(
+      self,
+      entitlements,
+      all_secure_features_keys,
+      allowed_secure_features_keys):
+    """Checks that the incoming entitlements do not alter secure features.
+
+    Args:
+      entitlements: The entitlements.
+      all_secure_features_keys: The list of all secure features keys that could
+        be present in the entitlements.
+      allowed_secure_features_keys: The list of secure features keys that are
+        allowed to be present in the entitlements.
+
+    Raises:
+      PlistToolError: For any issues found.
+    """
+    denied_secure_features_keys = (
+        set(all_secure_features_keys) - set(allowed_secure_features_keys))
+    for key in denied_secure_features_keys:
+      if key in entitlements:
+        raise PlistToolError(
+            ENTITLEMENTS_SECURE_FEATURES_KEY_ALTERED
+            % (self.target, key)
+        )
 
   def _check_entitlement_matches_profile_value(
       self, entitlement, entitlements, profile_entitlements
