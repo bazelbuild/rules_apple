@@ -29,7 +29,7 @@ def _get_template_substitutions(
         post_action_binary,
         post_action_determines_exit_code,
         pre_action_binary,
-        sdk_build,
+        sdk_version,
         testrunner):
     """Returns the template substitutions for this runner."""
     subs = {
@@ -39,7 +39,7 @@ def _get_template_substitutions(
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
         "pre_action_binary": pre_action_binary,
-        "sdk_build": sdk_build,
+        "sdk_version": sdk_version,
         "testrunner_binary": testrunner,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -57,7 +57,7 @@ def _ios_test_runner_impl(ctx):
     """Implementation for the ios_test_runner rule."""
 
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
-    sdk_build = "iphoneos{}".format(ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version)
+    sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
@@ -89,7 +89,7 @@ def _ios_test_runner_impl(ctx):
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
             pre_action_binary = pre_action_binary,
-            sdk_build = sdk_build,
+            sdk_version = sdk_version,
             testrunner = ctx.executable._testrunner.short_path,
         ),
     )
@@ -124,6 +124,7 @@ When executed, the binary will have the following environment variables availabl
 <ul>
 <li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.</li>
 <li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.</li>
+<li>`SIMULATOR_SDK_VERSION`: The SDK version of the simulator to create. The supported SDK builds correspond to the output of `xcrun simctl runtime match list`. E.g., 11.2, 9.3. The value will be derived from the `default_ios_sdk_version` for the current Xcode version.</li>
 </ul>
 """,
         ),

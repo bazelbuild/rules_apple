@@ -404,7 +404,7 @@ if [[ "$build_for_device" == false ]]; then
     exit 1
   fi
 
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_BUILD="%(sdk_build)s" "%(create_simulator_action_binary)s")"
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0

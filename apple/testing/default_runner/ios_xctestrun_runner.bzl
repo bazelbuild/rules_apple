@@ -29,7 +29,7 @@ def _get_template_substitutions(
         pre_action_binary,
         random,
         reuse_simulator,
-        sdk_build,
+        sdk_version,
         xcodebuild_args,
         xctestrun_template,
         xctrunner_entitlements_template):
@@ -46,7 +46,7 @@ def _get_template_substitutions(
         "post_action_determines_exit_code": post_action_determines_exit_code,
         "pre_action_binary": pre_action_binary,
         "reuse_simulator": reuse_simulator,
-        "sdk_build": sdk_build,
+        "sdk_version": sdk_version,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xcodebuild_args": xcodebuild_args,
@@ -66,7 +66,7 @@ def _get_execution_environment(ctx):
 def _ios_xctestrun_runner_impl(ctx):
     # TODO: Remove this getattr when we drop Bazel 8
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
-    sdk_build = "iphoneos{}".format(ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version)
+    sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
@@ -109,7 +109,7 @@ def _ios_xctestrun_runner_impl(ctx):
             pre_action_binary = pre_action_binary,
             random = ctx.attr.random,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
-            sdk_build = sdk_build,
+            sdk_version = sdk_version,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
@@ -174,7 +174,7 @@ When executed, the binary will have the following environment variables availabl
 <li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `--ios_simulator_device` command-line flag.</li>
 <li>`SIMULATOR_OS_VERSION`: The OS version of the simulator to create. The supported OS versions correspond to the output of `xcrun simctl list runtimes`. E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `--ios_simulator_version` command-line flag.</li>
 <li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li>
-<li>`SIMULATOR_SDK_BUILD`: The SDK build of the simulator to create. The supported SDK builds correspond to the output of `xcrun simctl runtime match list`. E.g., iphoneos11.2. The value will be derived from the `default_ios_sdk_version` for the current Xcode version.</li>
+<li>`SIMULATOR_SDK_VERSION`: The SDK version of the simulator to create. The supported SDK builds correspond to the output of `xcrun simctl runtime match list`. E.g., 11.2, 9.3. The value will be derived from the `default_ios_sdk_version` for the current Xcode version.</li>
 </ul>
 """,
         ),
