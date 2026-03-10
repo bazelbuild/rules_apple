@@ -466,9 +466,6 @@ function do_action() {
       "--announce_rc"
       "--symlink_prefix=test-"
       "--verbose_failures"
-      # See the comment in rules_swift/tools/worker/BUILD for why this
-      # workaround is necessary.
-      "--define=RULES_SWIFT_BUILD_DUMMY_WORKER=1"
       # Used so that if there's a single configuration transition, its output
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
