@@ -248,7 +248,7 @@ if [[ -n "${REUSE_GLOBAL_SIMULATOR:-}" ]]; then
     exit 1
   fi
 
-  id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" "%(create_simulator_action_binary)s")"
+  id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_SDK_BUILD="%(sdk_build)s" "%(create_simulator_action_binary)s")"
   target_flags=(
     "test"
     "--platform=ios_simulator"

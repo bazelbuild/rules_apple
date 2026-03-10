@@ -14,6 +14,7 @@
 
 """iOS test runner rule."""
 
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionPropertiesInfo")
 load(
     "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",
@@ -28,6 +29,7 @@ def _get_template_substitutions(
         post_action_binary,
         post_action_determines_exit_code,
         pre_action_binary,
+        sdk_build,
         testrunner):
     """Returns the template substitutions for this runner."""
     subs = {
@@ -37,6 +39,7 @@ def _get_template_substitutions(
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
         "pre_action_binary": pre_action_binary,
+        "sdk_build": sdk_build,
         "testrunner_binary": testrunner,
     }
     return {"%(" + k + ")s": subs[k] for k in subs}
@@ -53,6 +56,8 @@ def _get_execution_environment(*, xcode_config):
 def _ios_test_runner_impl(ctx):
     """Implementation for the ios_test_runner rule."""
 
+    xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
+    sdk_build = "iphoneos{}".format(ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version)
     os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
     device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
 
@@ -84,6 +89,7 @@ def _ios_test_runner_impl(ctx):
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
             pre_action_binary = pre_action_binary,
+            sdk_build = sdk_build,
             testrunner = ctx.executable._testrunner.short_path,
         ),
     )

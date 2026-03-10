@@ -90,30 +90,31 @@ class _Runtime:
     version: str
 
 
-def _selected_simulator_runtime(version: Optional[str]) -> _Runtime:
+def _selected_simulator_runtime(os_version: Optional[str], sdk_build: Optional[str]) -> _Runtime:
     runtimes = json.loads(_simctl(["list", "runtimes", "-j"]))["runtimes"]
     available_runtimes = [runtime for runtime in runtimes if runtime["isAvailable"]]
     if not available_runtimes:
         raise RuntimeError("no available runtimes found")
-    if version:
-        selected = next(
-            (
-                runtime
-                for runtime in available_runtimes
-                if runtime["version"] == version
-            ),
-            None,
-        )
-    else:
-        # Take the latest available runtime
-        selected = max(available_runtimes, key=lambda rt: rt["version"])
-    if not selected:
-        raise RuntimeError("no matching runtimes found")
-    return _Runtime(
-        identifier=selected["identifier"],
-        platform=selected["platform"],
-        version=selected["version"],
-    )
+    sdk_runtime_match = None
+    if sdk_build:
+        sdk_runtime_matches = json.loads(_simctl(["runtime", "match", "list", "-j"]))
+        if sdk_build not in sdk_runtime_matches:
+            raise RuntimeError(f"no sdk build to runtime mapping found matching {sdk_build}")
+        sdk_runtime_match = sdk_runtime_matches[sdk_build]
+    for runtime in available_runtimes:
+        if os_version and runtime["version"] == os_version:
+            return _Runtime(
+                identifier=runtime["identifier"],
+                platform=runtime["platform"],
+                version=runtime["version"],
+            )
+        elif sdk_runtime_match and runtime["buildversion"] == sdk_runtime_match["chosenRuntimeBuild"]:
+            return _Runtime(
+                identifier=runtime["identifier"],
+                platform=runtime["platform"],
+                version=runtime["version"],
+            )
+    raise RuntimeError("no matching runtimes found")
 
 
 def _default_device_name(device_type: str, os_version: str) -> str:
@@ -163,6 +164,7 @@ def _create_and_boot_simulator(
 
 class Namespace(argparse.Namespace):
     os_version: Optional[str]
+    sdk_build: Optional[str]
     device_type: Optional[str]
     simulator_name: Optional[str]
     reuse_simulator: bool
@@ -174,7 +176,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "--os-version",
         required=False,
         default=None,
-        help="The iOS version to run the tests on, ex: 12.1",
+        help="The OS version to run the tests on, ex: 12.1",
+    )
+    parser.add_argument(
+        "--sdk-build",
+        required=False,
+        default=None,
+        help="The SDK build the tests were built for, ex: iphoneos12.1",
     )
     parser.add_argument(
         "--device-type",
@@ -209,11 +217,12 @@ def _main() -> None:
         )
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
+    sdk_build = args.sdk_build or os.getenv("SIMULATOR_SDK_BUILD")
     reuse_simulator: bool = args.reuse_simulator or (
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
-    selected_runtime = _selected_simulator_runtime(os_version)
+    selected_runtime = _selected_simulator_runtime(os_version, sdk_build)
     device_name = args.name or _default_device_name(device_type, selected_runtime.version)
 
     print("Selected simulator runtime", selected_runtime.identifier, file=sys.stderr)
