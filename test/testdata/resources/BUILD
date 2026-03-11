@@ -42,7 +42,6 @@ filegroup(
         ":imageset_missing_child",
         ":imageset_with_invalid_json",
         ":imageset_with_unassigned_child",
-        ":launch_images_ios",
         ":localized_storyboards_ios",
         ":localized_xibs_ios",
         ":message_ext_app_icon_ios",
@@ -211,11 +210,6 @@ apple_resource_bundle(
         ":generate_structured_strings",
         ":structured",
     ],
-)
-
-filegroup(
-    name = "launch_images_ios",
-    srcs = glob(["launch_images_ios.xcassets/**"]),
 )
 
 filegroup(

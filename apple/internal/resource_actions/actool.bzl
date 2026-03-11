@@ -345,24 +345,6 @@ Found the following icon names from those provided: {unique_icon_names}.
 
     return args
 
-def _args_for_launch_images(*, launch_image_files):
-    """Returns arguments for launch images."""
-    launch_image_dirs = group_files_by_directory(
-        launch_image_files,
-        ["launchimage"],
-        attr = "launchimage",
-    ).keys()
-    if len(launch_image_dirs) != 1:
-        formatted_dirs = "[\n  %s\n]" % ",\n  ".join(launch_image_dirs)
-        fail("The asset catalogs should contain exactly one directory named " +
-             "*.launchimage among its asset catalogs, but found the " +
-             "following: " + formatted_dirs, "launch_images")
-
-    launch_image_name = paths.split_extension(
-        paths.basename(launch_image_dirs[0]),
-    )[0]
-    return ["--launch-image", launch_image_name]
-
 def _validate_asset_files_and_generate_args(
         *,
         asset_files,
@@ -412,15 +394,7 @@ def _validate_asset_files_and_generate_args(
     ))
 
     launch_image_files = [f for f in asset_files if ".launchimage/" in f.path]
-    if launch_image_files and platform_type == "tvos":
-        # Launch images are deprecated on iOS and tvOS, but tvOS apps are still allowed to ship with
-        # them. iOS apps will simply fail to show any launch images, at least as of iOS 26.
-        bundling_support.ensure_single_xcassets_type(
-            extension = "launchimage",
-            files = launch_image_files,
-        )
-        args.extend(_args_for_launch_images(launch_image_files = launch_image_files))
-    elif launch_image_files:
+    if launch_image_files:
         # There is no other way to issue a warning, so print is the only way to message.
         # buildifier: disable=print
         print("""

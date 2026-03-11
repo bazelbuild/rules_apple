@@ -47,15 +47,13 @@ _VALID_ICON_EXTENSIONS_FOR_PLATFORM = {
 def _app_assets_validation_partial_impl(
         *,
         app_icons,
-        launch_images,
         platform_prerequisites,
         product_type):
     """Implementation for the app assets processing partial."""
 
     # actool.bzl has the most comprehensive validations since it evaluates the final set of files
     # before they are sent to actool. We only check here that the user is sending files that look
-    # like they could be app icons via an attribute named `app_icons`, and likewise for launch
-    # images.
+    # like they could be app icons via an attribute named `app_icons`.
 
     if app_icons:
         valid_icon_extensions = (
@@ -81,36 +79,19 @@ Valid icon bundles for this target have the following extensions: {valid_icon_ex
                     valid_icon_extensions = valid_icon_extensions,
                 ))
 
-    if launch_images:
-        for resource in launch_images:
-            resource_short_path = resource.short_path
-            if (not ".launchimage/" in resource_short_path and
-                not resource_short_path.endswith(".xcassets/Contents.json")):
-                fail("""
-Found in launch_images a file that cannot be used as a launch image:
-{resource_short_path}
-
-All launch images must be in a directory named '*.launchimage' within an '*.xcassets' directory.
-""".format(
-                    resource_short_path = resource_short_path,
-                ))
-
     return struct()
 
 def app_assets_validation_partial(
         *,
         app_icons = [],
-        launch_images = [],
         platform_prerequisites,
         product_type):
     """Constructor for the app assets validation partial.
 
-    This partial validates the given app_icons and launch_images are correct for the current
-    product type.
+    This partial validates the given app_icons are correct for the current product type.
 
     Args:
         app_icons: List of files that represents the App icons.
-        launch_images: List of files that represent the launch images.
         platform_prerequisites: Struct containing information on the platform being targeted.
         product_type: Product type identifier used to describe the current bundle type.
 
@@ -120,7 +101,6 @@ def app_assets_validation_partial(
     return partial.make(
         _app_assets_validation_partial_impl,
         app_icons = app_icons,
-        launch_images = launch_images,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
     )

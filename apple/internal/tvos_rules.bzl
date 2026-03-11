@@ -210,7 +210,6 @@ def _tvos_application_impl(ctx):
         attr = ctx.attr,
         res_attrs = [
             "app_icons",
-            "launch_images",
             "launch_storyboard",
             "resources",
             "strings",
@@ -261,7 +260,6 @@ def _tvos_application_impl(ctx):
     processor_partials = [
         partials.app_assets_validation_partial(
             app_icons = ctx.files.app_icons,
-            launch_images = ctx.files.launch_images,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),
@@ -1185,17 +1183,6 @@ that this target depends on.
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, TvosExtensionBundleInfo]],
                 doc = "A list of tvOS extensions to include in the final application bundle.",
-            ),
-            "launch_images": attr.label_list(
-                allow_files = True,
-                doc = """
-Files that comprise the launch images for the application. Each file must have a containing
-directory named `*.xcassets/*.launchimage` and there may be only one such `.launchimage` directory
-in the list.
-
-NOTE: Launch images have been _deprecated_ since tvOS 13.1. Users are strongly encouraged to use a
-launch storyboard instead.
-""",
             ),
             "launch_storyboard": attr.label(
                 allow_single_file = [".storyboard"],
