@@ -454,6 +454,7 @@ def _swift_info_from_module_interface(
         includes = [],
         module_map = None,
         module_name,
+        rule_label,
         swift_toolchains,
         swiftinterface_file):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
@@ -469,6 +470,7 @@ def _swift_info_from_module_interface(
         includes: List of header search paths to be used during compilation. Defaults to [].
         module_map: Module map file for the underlying C module, if it has one.
         module_name: Swift module name.
+        rule_label: The label of the rule being built.
         swift_toolchains: A struct containing the SwiftToolchainInfo and CcToolchainInfo provider for current target.
         swiftinterface_file: `.swiftinterface` File to compile.
     Returns:
@@ -494,6 +496,7 @@ def _swift_info_from_module_interface(
     )
     swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
 
+    clang_module = None
     if hdrs and module_map:
         clang_result = swift_common.precompile_clang_module(
             actions = actions,
@@ -505,9 +508,16 @@ def _swift_info_from_module_interface(
             target_name = ctx.label.name,
             toolchains = swift_toolchains,
         )
-        clang_module = clang_result.clang_module
-    else:
-        clang_module = None
+        if clang_result:
+            clang_module = clang_result.clang_module
+        else:
+            fail("""
+ERROR: precompiled modules are not supported for the current configuration, but they are required \
+to generate a Clang module for the imported framework {rule_label}.
+
+Normally this means that precompiled modules haven't been generated for the version of Xcode used \
+by this build.
+""".format(rule_label = rule_label))
 
     compile_result = swift_common.compile_module_interface(
         actions = actions,
