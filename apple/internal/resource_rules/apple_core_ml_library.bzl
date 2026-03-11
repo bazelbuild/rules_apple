@@ -99,6 +99,7 @@ def _apple_core_ml_library_impl(ctx):
         objc_fragment = None,
         uses_swift = uses_swift,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        environment = getattr(ctx.fragments.apple.single_arch_platform, "get_target_environment", None),
     )
 
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
