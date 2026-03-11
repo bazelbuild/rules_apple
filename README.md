@@ -21,8 +21,7 @@ repository.
 
 ## Quick setup
 
-Copy the latest `MODULE.bazel` or `WORKSPACE` snippet from [the releases
-page](https://github.com/bazelbuild/rules_apple/releases).
+Copy the latest `MODULE.bazel` snippet from [the releases page](https://github.com/bazelbuild/rules_apple/releases).
 
 ## Examples
 
