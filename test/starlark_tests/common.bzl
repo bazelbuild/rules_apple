@@ -25,7 +25,8 @@ _fixture_tags = [
 ]
 
 # The current baseline for iOS is version 15.0, based on Xcode 26.0 on Apple's Xcode Support page:
-# https://developer.apple.com/support/xcode/
+# https://developer.apple.com/support/xcode/, and it is what Apple builds backport compatibility
+# libraries with. Anything earlier than 15.0 is likely not going to work with the current toolchain.
 _min_os_ios = struct(
     app_intents_support = "16.0",
     app_intents_package_support = "17.0",
@@ -33,6 +34,7 @@ _min_os_ios = struct(
     icon_bundle_required = "26.0",
     oldest_supported = "15.0",
     nplus1 = "16.0",
+    secure_features_support = "26.0",
     span_in_os = "26.0",
     test_mismatch_high_threshold = "17.0",
     ui_image_variable_value_support = "16.0",
@@ -40,7 +42,8 @@ _min_os_ios = struct(
 )
 
 # The baseline for macOS is version 10.13, which is lower than the lowest version supported by
-# Xcode 26.0 (which is 11.0). This will likely get bumped as we get closer to Intel deprecation.
+# Xcode 26.0 (which is 11.0). This will likely get bumped as we get closer to Intel deprecation,
+# especially as Apple builds backport compatibility libraries with a minimum OS version of 11.0.
 _min_os_macos = struct(
     app_intents_support = "13.0",
     arm64_support = "11.0",
