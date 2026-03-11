@@ -620,7 +620,18 @@ def extracted_app(
       )
       with zipfile.ZipFile(application_output_path) as ipa_zipfile:
         ipa_zipfile.extractall(temp_dir)
-        yield os.path.join(temp_dir, "Payload", app_name + ".app")
+        # iOS/tvOS apps use Payload/ directory structure, while watchOS apps
+        # have the .app bundle at the root of the archive.
+        payload_path = os.path.join(temp_dir, "Payload", app_name + ".app")
+        root_path = os.path.join(temp_dir, app_name + ".app")
+        if os.path.isdir(payload_path):
+          yield payload_path
+        elif os.path.isdir(root_path):
+          yield root_path
+        else:
+          raise FileNotFoundError(
+              f"Couldn't find {app_name}.app in the archive."
+          )
 
 
 def bundle_id(bundle_path: str) -> str:
@@ -862,7 +873,7 @@ def main(
       simctl_path=simctl_path,
       minimum_os=minimum_os,
       sim_device=sim_device,
-      sim_identifier=sim_identifier,
+      sim_identifier=os.environ.get("BAZEL_APPLE_DEVICE_UDID", sim_identifier),
       sim_os_version=sim_os_version,
   ) as simulator_udid:
     run_app_in_simulator(
