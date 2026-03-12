@@ -35,6 +35,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:output_group_test.bzl",
+    "output_group_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -677,6 +681,23 @@ def ios_framework_test_suite(name):
             "dSYMs/fmwk_min_os_baseline_with_bundle.framework.dSYM",
             "dSYMs/fmwk_no_version.framework.dSYM",
             "dSYMs/fmwk_with_resources.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
+    # Test that Swift-related output groups from swift_library deps are propagated
+    # through ios_framework. This test verifies that output groups like compilation_outputs
+    # are properly collected from Swift dependencies. Swift-specific output groups like
+    # swift_index_store, swift_diagnostics, etc. are available when building with appropriate
+    # features enabled (e.g., --features=swift.index_while_building, swift.emit_diagnostics)
+    output_group_test(
+        name = "{}_swift_output_groups_propagated_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_multiple_objc_library_and_swift_library_deps",
+        expected_output_groups = [
+            "compilation_outputs",
+            # Note: Swift-specific output groups like swift_diagnostics, swift_index_store,
+            # swift_ast_file, const_values, and macro_expansions only appear when their
+            # corresponding features are enabled in the build
         ],
         tags = [name],
     )
