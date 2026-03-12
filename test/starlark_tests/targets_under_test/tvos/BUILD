@@ -12,6 +12,10 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_archive.bzl",
+    "apple_archive",
+)
+load(
     "//apple:tvos.bzl",
     "tvos_application",
     "tvos_dynamic_framework",
@@ -119,6 +123,12 @@ tvos_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+apple_archive(
+    name = "ipa_app_with_swift_ext",
+    bundle = ":app_with_swift_ext",
+    tags = common.fixture_tags,
 )
 
 tvos_application(
@@ -1082,6 +1092,12 @@ tvos_application(
     deps = [":swift_lib"],
 )
 
+apple_archive(
+    name = "ipa_app_with_direct_swift_dep",
+    bundle = ":app_with_direct_swift_dep",
+    tags = common.fixture_tags,
+)
+
 tvos_application(
     name = "app_with_indirect_swift_dep",
     bundle_id = "com.google.example",
@@ -1092,6 +1108,12 @@ tvos_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [":objc_to_swift_lib"],
+)
+
+apple_archive(
+    name = "ipa_app_with_indirect_swift_dep",
+    bundle = ":app_with_indirect_swift_dep",
+    tags = common.fixture_tags,
 )
 
 tvos_application(

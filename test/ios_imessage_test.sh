@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load(
     "@build_bazel_rules_apple//apple:ios.bzl",
     "ios_application",
@@ -103,6 +104,11 @@ ios_application(
     deps = [":lib"],
 )
 
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
+
 ios_sticker_pack_extension(
     name = "stickerpack",
     bundle_id = "my.bundle.id.extension",
@@ -135,6 +141,11 @@ ios_imessage_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
 )
 
+apple_archive(
+    name = "ipa_app",
+    bundle = ":app",
+)
+
 ios_sticker_pack_extension(
     name = "stickerpack",
     bundle_id = "my.bundle.id.extension",
@@ -154,7 +165,7 @@ function test_sticker_pack_extension() {
   create_common_files
   create_minimal_ios_application_with_stickerpack
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # Ignore the check for simulator builds.
   is_device_build ios || return 0
@@ -170,7 +181,7 @@ function test_sticker_pack_builds_with_stickersiconset() {
 
   create_minimal_ios_application_with_stickerpack
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:ipa_app || fail "Should build"
 
   # TODO(b/120618397): Reenable these assertions.
   # assert_zip_contains "test-bin/app/app.ipa" \

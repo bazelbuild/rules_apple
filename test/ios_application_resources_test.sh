@@ -29,6 +29,7 @@ function tear_down() {
 # Creates common source, targets, and basic plist for iOS applications.
 function create_common_files() {
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_apple//apple:resources.bzl", "apple_resource_group")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
@@ -76,6 +77,11 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib", ":resources"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
 }
@@ -87,7 +93,7 @@ function test_localized_unprocessed_resources() {
   create_with_localized_unprocessed_resources
 
   # Basic build, no filter
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app_ipa || fail "Should build"
   expect_not_log "Please verify apple.locales_to_include is defined properly"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.txt"
@@ -98,7 +104,7 @@ function test_localized_unprocessed_resources() {
 function test_localized_unprocessed_resources_filter_all() {
   create_with_localized_unprocessed_resources
 
-  do_build ios //app:app --define "apple.locales_to_include=sw" || \
+  do_build ios //app:app_ipa --define "apple.locales_to_include=sw" || \
       fail "Should build"
   expect_log_once "Please verify apple.locales_to_include is defined properly"
   expect_log_once "\[\"sw\"\]"
@@ -111,7 +117,7 @@ function test_localized_unprocessed_resources_filter_all() {
 function test_localized_unprocessed_resources_filter_mixed() {
   create_with_localized_unprocessed_resources
 
-  do_build ios //app:app --define "apple.locales_to_include=fr,it" \
+  do_build ios //app:app_ipa --define "apple.locales_to_include=fr,it" \
       || fail "Should build"
   expect_not_log "Please verify apple.locales_to_include is defined properly"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -138,9 +144,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib", ":resources"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app \
+  do_build ios //app:app_ipa \
       || fail "Should build"
   expect_not_log "Please verify apple.locales_to_include is defined properly"
   assert_zip_contains "test-bin/app/app.ipa" \
@@ -165,9 +176,14 @@ ios_application(
     settings_bundle = "@build_bazel_rules_apple//test/testdata/resources:settings_bundle_ios",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app --define "apple.trim_lproj_locales=1" \
+  do_build ios //app:app_ipa --define "apple.trim_lproj_locales=1" \
       || fail "Should build"
   assert_zip_not_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Settings.bundle/it.lproj/Root.strings"
@@ -202,6 +218,11 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
   mkdir -p app/app_res
@@ -209,7 +230,7 @@ EOF
   echo app_res > app/app_res/foo.txt
   echo shared_res > app/shared_res/foo.txt
 
-  do_build ios //app:app && fail "Should fail"
+  do_build ios //app:app_ipa && fail "Should fail"
 
   expect_log "Multiple files would be placed at \".*foo.txt\" in the bundle, which is not allowed"
 
@@ -220,6 +241,7 @@ function test_texture_atlas_bundled_with_app() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -240,9 +262,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app_ipa || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/star.atlasc/star.1.png"
@@ -260,6 +287,7 @@ function test_actool_hides_warning_about_76x76_icons() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -280,9 +308,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app_ipa || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/Assets.car"
@@ -296,6 +329,7 @@ function test_actool_errors_with_unassigned_children_in_asset() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -316,9 +350,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app && fail "Should fail"
+  do_build ios //app:app_ipa && fail "Should fail"
 
   expect_log "The image set \"star_universal\" has an unassigned child"
 }
@@ -328,6 +367,7 @@ function test_actool_errors_with_invalid_json_in_asset() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -348,9 +388,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app && fail "Should fail"
+  do_build ios //app:app_ipa && fail "Should fail"
 
   expect_log "The Contents.json describing the \"star_universal.imageset\" is not valid JSON."
 }
@@ -359,6 +404,7 @@ function test_actool_errors_with_missing_children_in_asset() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -379,9 +425,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app && fail "Should fail"
+  do_build ios //app:app_ipa && fail "Should fail"
 
   expect_log "error: The file \"star.png\" for the image set \"star_universal\" does not exist."
 }
@@ -391,6 +442,7 @@ function test_actool_errors_with_badly_sized_children_in_icon() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -411,9 +463,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app && fail "Should fail"
+  do_build ios //app:app_ipa && fail "Should fail"
 
   expect_log "error: app_icon.appiconset/app_icon_40pt_3x.png is 120x121 but should be 120x120."
 }
@@ -424,6 +481,7 @@ function test_localization_excludes() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -444,9 +502,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app --define "apple.locales_to_exclude=fr" \
+  do_build ios //app:app_ipa --define "apple.locales_to_exclude=fr" \
       || fail "Should build"
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/it.lproj/localized.strings"
@@ -460,6 +523,7 @@ function test_localization_excludes_includes_conflict() {
   create_common_files
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
@@ -480,11 +544,16 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  ! do_build ios //app:app --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
+  ! do_build ios //app:app_ipa --define "apple.locales_to_exclude=fr" --define "apple.locales_to_include=fr,it" \
       || fail "Should fail build"
-  error_message="@\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
+  error_message="@@\/\/app:app dropping \[\"fr\"\] as they are explicitly excluded but also explicitly included. \
 Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly."
   expect_log "$error_message"
 }
@@ -495,6 +564,7 @@ function test_nested_private_andimplementation_deps_bundled_with_app() {
   touch "app/dummy.swift"
 
   cat > app/BUILD <<EOF
+load("@build_bazel_rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
 load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
@@ -535,9 +605,14 @@ ios_application(
     provisioning_profile = "@build_bazel_rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":lib"],
 )
+
+apple_archive(
+    name = "app_ipa",
+    bundle = ":app",
+)
 EOF
 
-  do_build ios //app:app || fail "Should build"
+  do_build ios //app:app_ipa || fail "Should build"
 
   assert_zip_contains "test-bin/app/app.ipa" \
       "Payload/app.app/sample.png"
