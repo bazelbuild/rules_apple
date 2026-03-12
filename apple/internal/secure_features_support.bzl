@@ -79,6 +79,18 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
 # All of the possible values for `--features` reserved for Apple Enhanced Security.
 _SUPPORTED_SECURE_FEATURES = set(list(_ENTITLEMENTS_FROM_SECURE_FEATURES.keys()))
 
+# Features that don't require compile time or link time support, and therefore do not require a
+# framework or SDK to be precompiled with those features enabled. That said, the vendor of the
+# framework should still test their artifacts with these features enabled, and might need to make
+# changes to support them, i.e. for apple.read_only_platform_memory and ARM MTE-adjacent features.
+_SECURE_FEATURES_WITHOUT_CLANG_REQUIREMENTS = set([
+    "apple.additional_runtime_platform_restrictions",
+    "apple.read_only_platform_memory",
+    "security_compiler_warnings",
+    "warn_unsafe_buffer_usage",
+    _REQUIRED_XCODE_26_OPT_IN,
+])
+
 # User-disabled versions of the above.
 _POSSIBLE_DISABLED_SECURE_FEATURES = set([
     "-{}".format(x)
@@ -237,7 +249,12 @@ def _validate_expected_secure_features(
     if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
         fail("secure_features are still a work in progress and not yet supported in the rules.")
 
-    missing_expected_secure_features = requested_secure_features - set(expected_secure_features)
+    # Check for any requesteed secure features that require precompiled artifacts to be provided by
+    # the vendor of the framework or SDK, and fail if they've not been called out by the
+    # `expected_secure_features` list.
+    missing_expected_secure_features = (
+        requested_secure_features - set(expected_secure_features)
+    ) - _SECURE_FEATURES_WITHOUT_CLANG_REQUIREMENTS
 
     if missing_expected_secure_features:
         fail(

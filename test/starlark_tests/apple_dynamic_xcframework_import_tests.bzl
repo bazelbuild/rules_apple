@@ -17,6 +17,7 @@
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_arm64e_target_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
@@ -387,11 +388,11 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    analysis_failure_message_test(
+    analysis_failure_message_with_arm64e_target_test(
         name = "{}_secure_features_app_fails_importing_xcframework_with_no_expected_secure_features_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:secure_features_app_with_imported_dynamic_xcframework_and_no_expected_secure_features",
         expected_error = """The precompiled artifact at `//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features` was expected to be compatible with the following secure features requested from the build, but they were not indicated as supported by the target's `expected_secure_features` attribute:
-- apple.enable_enhanced_security
+- pointer_authentication
 
 Please contact the owner of this target to supply a precompiled artifact (likely a framework or XCFramework) that is built with the required Enhanced Security features enabled, and update the "expected_secure_features" attribute to match.""",
         tags = [name],

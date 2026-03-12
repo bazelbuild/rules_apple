@@ -2222,7 +2222,6 @@ apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     codesigned_xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
     expected_secure_features = [
-        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     features = ["-swift.layering_check_for_c_deps"],
@@ -2629,7 +2628,6 @@ apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     codesigned_xcframework_imports = [":generated_static_xcframework_with_headers"],
     expected_secure_features = [
-        "apple.enable_enhanced_security",
         "pointer_authentication",
     ],
     features = ["-swift.layering_check_for_c_deps"],
