@@ -267,10 +267,16 @@ Provides information for an Apple dSYM bundle.
 <pre>
 load("@rules_apple//apple:providers.bzl", "AppleDynamicFrameworkInfo")
 
-AppleDynamicFrameworkInfo(<a href="#AppleDynamicFrameworkInfo-framework_dirs">framework_dirs</a>, <a href="#AppleDynamicFrameworkInfo-framework_files">framework_files</a>, <a href="#AppleDynamicFrameworkInfo-binary">binary</a>, <a href="#AppleDynamicFrameworkInfo-cc_info">cc_info</a>)
+AppleDynamicFrameworkInfo(<a href="#AppleDynamicFrameworkInfo-_init-kwargs">*kwargs</a>)
 </pre>
 
 Contains information about an Apple dynamic framework.
+
+**CONSTRUCTOR PARAMETERS**
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="AppleDynamicFrameworkInfo-_init-kwargs"></a>kwargs | <p align="center">-</p> | none |
 
 **FIELDS**
 
@@ -289,17 +295,22 @@ Contains information about an Apple dynamic framework.
 <pre>
 load("@rules_apple//apple:providers.bzl", "AppleExecutableBinaryInfo")
 
-AppleExecutableBinaryInfo(<a href="#AppleExecutableBinaryInfo-objc">objc</a>, <a href="#AppleExecutableBinaryInfo-binary">binary</a>, <a href="#AppleExecutableBinaryInfo-cc_info">cc_info</a>)
+AppleExecutableBinaryInfo(<a href="#AppleExecutableBinaryInfo-_init-kwargs">*kwargs</a>)
 </pre>
 
 Contains the executable binary output that was built using
 `link_multi_arch_binary` with the `executable` binary type.
 
+**CONSTRUCTOR PARAMETERS**
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="AppleExecutableBinaryInfo-_init-kwargs"></a>kwargs | <p align="center">-</p> | none |
+
 **FIELDS**
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleExecutableBinaryInfo-objc"></a>objc |  apple_common.Objc provider used for legacy linking behavior.    |
 | <a id="AppleExecutableBinaryInfo-binary"></a>binary |  The executable binary artifact output by `link_multi_arch_binary`.    |
 | <a id="AppleExecutableBinaryInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
 
