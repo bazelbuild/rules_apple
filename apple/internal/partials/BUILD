@@ -222,19 +222,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "messages_stub",
-    srcs = ["messages_stub.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "//apple/internal:intermediates",
-        "//apple/internal:processor",
-        "@bazel_skylib//lib:partial",
-    ],
-)
-
-bzl_library(
     name = "provisioning_profile",
     srcs = ["provisioning_profile.bzl"],
     visibility = [

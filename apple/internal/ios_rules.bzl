@@ -437,17 +437,6 @@ def _ios_application_impl(ctx):
                 ),
             )
 
-    processor_partials.append(
-        # We need to add this partial everytime in case any of the extensions uses a stub binary and
-        # the stub needs to be packaged in the support directories.
-        partials.messages_stub_partial(
-            actions = actions,
-            extensions = ctx.attr.extensions,
-            label_name = label.name,
-            package_messages_support = True,
-        ),
-    )
-
     if platform_prerequisites.platform.is_device:
         processor_partials.append(
             partials.provisioning_profile_partial(

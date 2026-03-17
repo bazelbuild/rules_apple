@@ -412,7 +412,6 @@ bzl_library(
         "//apple/internal/partials:framework_import",
         "//apple/internal/partials:framework_provider",
         "//apple/internal/partials:macos_additional_contents",
-        "//apple/internal/partials:messages_stub",
         "//apple/internal/partials:provisioning_profile",
         "//apple/internal/partials:resources",
         "//apple/internal/partials:settings_bundle",
