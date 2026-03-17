@@ -75,11 +75,6 @@ Available actions are
 Defines an aspect hint that generates an appropriate AppleResourceHintInfo based on the
 runfiles for this target.
 
-> [!NOTE]
-> Bazel 6 users must set the `--experimental_enable_aspect_hints` flag to utilize
-> this rule. In addition, downstream consumers of rules that utilize this rule
-> must also set the flag. The flag is enabled by default in Bazel 7.
-
 Some rules like `cc_library` may have data associated with them in the data attribute
 that is needed at runtime. If the library was linked in a `cc_binary` then those data
 files would be made available to the application as `runfiles`. To control this

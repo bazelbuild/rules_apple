@@ -125,12 +125,6 @@ def _common_linking_api_attrs(*, deps_cfg):
             providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
             default = "//apple:default_cc_toolchain_forwarder",
         ),
-        # TODO: Remove this when we drop bazel 7.x
-        "_child_configuration_dummy": attr.label(
-            cfg = deps_cfg,
-            providers = [cc_common.CcToolchainInfo, ApplePlatformInfo],
-            default = "//apple:default_cc_toolchain_forwarder",
-        ),
     })
 
 def _static_library_archive_attrs(*, deps_cfg):

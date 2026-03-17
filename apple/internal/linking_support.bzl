@@ -68,11 +68,6 @@ def _archive_multi_arch_static_library(
                 - environment: Static library archive environment (e.g. 'device', 'simulator').
     """
 
-    # TODO: Delete when we drop bazel 7.x
-    legacy_linking_function = getattr(apple_common, "link_multi_arch_static_library", None)
-    if legacy_linking_function:
-        return legacy_linking_function(ctx = ctx)
-
     split_deps = ctx.split_attr.deps
     split_avoid_deps = ctx.split_attr.avoid_deps
 
@@ -202,20 +197,6 @@ def _link_multi_arch_binary(
             providers of the targets that were linked.
         *   `debug_outputs_provider`: An AppleDebugOutputs provider
     """
-
-    # TODO: Delete when we drop bazel 7.x
-    legacy_linking_function = getattr(apple_common, "link_multi_arch_binary", None)
-    if legacy_linking_function:
-        return legacy_linking_function(
-            ctx = ctx,
-            avoid_deps = avoid_deps,
-            extra_linkopts = extra_linkopts,
-            extra_link_inputs = extra_link_inputs,
-            extra_requested_features = extra_requested_features,
-            extra_disabled_features = extra_disabled_features,
-            variables_extension = variables_extension,
-            stamp = stamp,
-        )
 
     split_deps = ctx.split_attr.deps
 

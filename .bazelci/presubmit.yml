@@ -32,6 +32,11 @@ x_defaults:
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
+  macos_8.0.0:
+    name: "8.0.0"
+    bazel: 8.0.0
+    <<: *common
+
   macos_8.x:
     name: "8.x"
     bazel: 8.x

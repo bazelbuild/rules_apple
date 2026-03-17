@@ -34,16 +34,11 @@ part on the language used for XCFramework library identifiers:
 
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
-    "@build_bazel_apple_support//configs:platforms.bzl",
-    "CPU_TO_DEFAULT_PLATFORM_NAME",
-)
-load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
 
 _supports_visionos = hasattr(apple_common.platform_type, "visionos")
-_is_bazel_7 = not hasattr(apple_common, "apple_crosstool_transition")
 
 _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "ios": "//command_line_option:ios_multi_cpus",
@@ -51,13 +46,6 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "tvos": "//command_line_option:tvos_cpus",
     "visionos": "//command_line_option:visionos_cpus",
     "watchos": "//command_line_option:watchos_cpus",
-}
-
-_CPU_TO_DEFAULT_PLATFORM_FLAG = {
-    cpu: "@build_bazel_apple_support//platforms:{}_platform".format(
-        platform_name,
-    )
-    for cpu, platform_name in CPU_TO_DEFAULT_PLATFORM_NAME.items()
 }
 
 _IOS_ARCH_TO_EARLIEST_WATCHOS = {
@@ -335,7 +323,7 @@ def _command_line_options(
         settings = settings,
     )
 
-    default_platforms = [settings[_CPU_TO_DEFAULT_PLATFORM_FLAG[cpu]]] if _is_bazel_7 else []
+    default_platforms = []
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple_platform_type": platform_type,
@@ -473,7 +461,7 @@ def _apple_rule_base_transition_impl(settings, attr):
 # - https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/rules/cpp/CppOptions.java
 _apple_rule_common_transition_inputs = [
     build_settings_labels.use_tree_artifacts_outputs,
-] + _CPU_TO_DEFAULT_PLATFORM_FLAG.values()
+]
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
     "//command_line_option:ios_multi_cpus",
