@@ -6,6 +6,27 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+exports_files(
+    [
+        "apple.bzl",
+        "docc.bzl",
+        "dtrace.bzl",
+        "header_map.bzl",
+        "ios.doc.bzl",
+        "linker.bzl",
+        "macos.doc.bzl",
+        "providers.bzl",
+        "resources.bzl",
+        "tvos.doc.bzl",
+        "versioning.bzl",
+        "visionos.doc.bzl",
+        "watchos.doc.bzl",
+        "xcarchive.bzl",
+        "xctrunner.bzl",
+    ],
+    visibility = ["//doc:__pkg__"],
+)
+
 # Create a set of public config_settings that can be used in select()s.
 [
     alias(
