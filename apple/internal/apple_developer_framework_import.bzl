@@ -207,6 +207,7 @@ _apple_developer_framework_import = rule(
 def apple_developer_framework_import(
         name,
         framework_name,
+        linker_imports = [],
         preserve_signature = True,
         bundle = True,
         **kwargs):
@@ -215,10 +216,10 @@ def apple_developer_framework_import(
     _apple_developer_framework_import(
         name = name,
         framework_name = framework_name,
+        linker_imports = linker_imports,
         preserve_signature = preserve_signature,
         bundle = bundle,
         build_imports = [repository + framework_name + "_build_files"],
-        linker_imports = [repository + framework_name + "_linker_inputs"],
         runtime_imports = [repository + framework_name + "_runtime_files"],
         **kwargs
     )

@@ -623,6 +623,7 @@ apple_dynamic_framework_import(
 apple_developer_framework_import(
     name = "xcodekit_import",
     framework_name = "XcodeKit",
+    linker_imports = ["@local_developer_frameworks//:usr/lib/libXcodeExtension.a"],
     tags = common.fixture_tags,
 )
 
