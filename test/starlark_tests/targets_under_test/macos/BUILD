@@ -2696,6 +2696,20 @@ macos_ui_test(
     ],
 )
 
+macos_ui_test(
+    name = "ui_test_with_xcodekit_import",
+    frameworks = [":xcodekit_import"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 macos_unit_test(
@@ -2783,6 +2797,20 @@ macos_unit_test(
     data = [":runfiles1"],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
+)
+
+macos_unit_test(
+    name = "unit_test_with_xcodekit_import",
+    frameworks = [":xcodekit_import"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
 filegroup(

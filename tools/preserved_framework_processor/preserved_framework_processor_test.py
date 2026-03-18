@@ -70,7 +70,7 @@ class PreservedFrameworkProcessorTest(unittest.TestCase):
       with open(top_level_resources_file, "w", encoding="utf-8") as file:
         file.write("plist")
 
-      os.symlink("A", os.path.join(framework_dir, "Versions", "Current"))
+      os.symlink(version_dir, os.path.join(framework_dir, "Versions", "Current"))
       # Source symlinks may be materialized as absolute targets in a Bazel
       # action's execroot, and top-level directories such as Resources may be
       # materialized instead of preserved as symlinks. The preserved bundle

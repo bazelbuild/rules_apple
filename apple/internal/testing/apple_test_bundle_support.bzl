@@ -75,6 +75,7 @@ load(
 )
 load(
     "//apple/internal:providers.bzl",
+    "AppleDeveloperFrameworkImportInfo",
     "AppleExecutableBinaryInfo",
     "new_appleextraoutputsinfo",
     "new_appletestinfo",
@@ -103,6 +104,27 @@ load(
 # Default test bundle ID for tests that don't have a test host or were not given
 # a bundle ID.
 _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
+
+def _developer_framework_linking(frameworks):
+    link_inputs = []
+    linkopts = []
+
+    for framework in frameworks:
+        if AppleDeveloperFrameworkImportInfo not in framework:
+            continue
+
+        framework_info = framework[AppleDeveloperFrameworkImportInfo]
+        if not hasattr(framework_info, "static_linking_files"):
+            continue
+
+        for static_linking_file in framework_info.static_linking_files.to_list():
+            link_inputs.append(static_linking_file)
+            linkopts.append("-Wl,-force_load,{}".format(static_linking_file.path))
+
+    return struct(
+        link_inputs = link_inputs,
+        linkopts = linkopts,
+    )
 
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
@@ -387,6 +409,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
                 )
             extra_link_inputs.extend(linker_input.additional_inputs)
             extra_linkopts.extend(linker_input.user_link_flags)
+
+    developer_framework_linking = _developer_framework_linking(
+        getattr(ctx.attr, "frameworks", []),
+    )
+    extra_link_inputs.extend(developer_framework_linking.link_inputs)
+    extra_linkopts.extend(developer_framework_linking.linkopts)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,

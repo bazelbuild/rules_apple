@@ -27,6 +27,10 @@ load(
     "analysis_runfiles_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -137,6 +141,16 @@ def macos_unit_test_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 11.0", "platform MACOS"],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_xcodekit_force_load_linker_inputs_test".format(name),
+        expected_argv = [
+            "-Wl,-force_load,external/+developer_frameworks_repository_extension+local_developer_frameworks/usr/lib/libXcodeExtension.a",
+        ],
+        target_mnemonic = "ObjcLink",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_with_xcodekit_import.__internal__.__test_bundle",
         tags = [name],
     )
 

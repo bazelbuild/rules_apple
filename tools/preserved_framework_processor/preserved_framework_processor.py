@@ -159,12 +159,6 @@ def _copy_versioned_framework(args, framework_directory, framework_name):
   if version is None:
     version = _get_framework_version_from_install_path(args.framework_binary)
 
-  current_version_link = os.path.join(framework_directory, "Versions", "Current")
-  if os.path.islink(current_version_link):
-    current_link_target = os.readlink(current_version_link)
-  else:
-    current_link_target = version
-
   version_relative_dir = os.path.join("Versions", version)
   _copy_framework_file(
       args.framework_binary,
@@ -179,7 +173,7 @@ def _copy_versioned_framework(args, framework_directory, framework_name):
 
   os.makedirs(os.path.join(args.temp_path, "Versions"), exist_ok=True)
   os.symlink(
-      current_link_target,
+      version,
       os.path.join(args.temp_path, "Versions", "Current"),
   )
 

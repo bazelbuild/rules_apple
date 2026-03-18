@@ -23,6 +23,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -120,6 +124,16 @@ def macos_ui_test_test_suite(name):
         name = "{}_test_bundle_id_same_as_test_host_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test_invalid_bundle_id",
         expected_error = "The test bundle's identifier of 'com.google.example' can't be the same as the test host's bundle identifier. Please change one of them.",
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_xcodekit_force_load_linker_inputs_test".format(name),
+        expected_argv = [
+            "-Wl,-force_load,external/+developer_frameworks_repository_extension+local_developer_frameworks/usr/lib/libXcodeExtension.a",
+        ],
+        target_mnemonic = "ObjcLink",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test_with_xcodekit_import.__internal__.__test_bundle",
         tags = [name],
     )
 
