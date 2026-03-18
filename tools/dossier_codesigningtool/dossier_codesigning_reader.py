@@ -275,12 +275,9 @@ MANIFEST_FILENAME = 'manifest.json'
 # All ipa subdirectories allowed by Apple; 'Payload' is required of all IPAs.
 IPA_ALLOWED_SUBDIRS = [
     'Payload',
+    'Signatures',
     'SwiftSupport',
     'WatchKitSupport2',
-    'MessagesApplicationExtensionSupport',
-    'BCSymbolMaps',
-    'Signatures',
-    'Symbols',
 ]
 
 VALID_INPUT_EXTENSIONS = frozenset(['.zip', '.app', '.ipa'])
