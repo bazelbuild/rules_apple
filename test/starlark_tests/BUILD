@@ -18,6 +18,7 @@ load(":generate_import_framework_tests.bzl", "generate_import_framework_test_sui
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
+load(":ios_build_test_tests.bzl", "ios_build_test_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
@@ -29,6 +30,7 @@ load(":ios_ui_test_tests.bzl", "ios_ui_test_test_suite")
 load(":ios_unit_test_tests.bzl", "ios_unit_test_test_suite")
 load(":macos_application_resources_tests.bzl", "macos_application_resources_test_suite")
 load(":macos_application_tests.bzl", "macos_application_test_suite")
+load(":macos_build_test_tests.bzl", "macos_build_test_test_suite")
 load(":macos_bundle_tests.bzl", "macos_bundle_test_suite")
 load(":macos_command_line_application_tests.bzl", "macos_command_line_application_test_suite")
 load(":macos_dylib_tests.bzl", "macos_dylib_test_suite")
@@ -42,6 +44,7 @@ load(":macos_unit_test_tests.bzl", "macos_unit_test_test_suite")
 load(":order_file_tests.bzl", "order_file_test_suite")
 load(":tvos_application_swift_tests.bzl", "tvos_application_swift_test_suite")
 load(":tvos_application_tests.bzl", "tvos_application_test_suite")
+load(":tvos_build_test_tests.bzl", "tvos_build_test_test_suite")
 load(":tvos_dynamic_framework_tests.bzl", "tvos_dynamic_framework_test_suite")
 load(":tvos_extension_tests.bzl", "tvos_extension_test_suite")
 load(":tvos_framework_tests.bzl", "tvos_framework_test_suite")
@@ -49,8 +52,10 @@ load(":tvos_static_framework_tests.bzl", "tvos_static_framework_test_suite")
 load(":tvos_ui_test_tests.bzl", "tvos_ui_test_test_suite")
 load(":tvos_unit_test_tests.bzl", "tvos_unit_test_test_suite")
 load(":visionos_application_tests.bzl", "visionos_application_test_suite")
+load(":visionos_build_test_tests.bzl", "visionos_build_test_test_suite")
 load(":watchos_application_swift_tests.bzl", "watchos_application_swift_test_suite")
 load(":watchos_application_tests.bzl", "watchos_application_test_suite")
+load(":watchos_build_test_tests.bzl", "watchos_build_test_test_suite")
 load(":watchos_dynamic_framework_tests.bzl", "watchos_dynamic_framework_test_suite")
 load(":watchos_extension_tests.bzl", "watchos_extension_test_suite")
 load(":watchos_framework_tests.bzl", "watchos_framework_test_suite")
@@ -100,6 +105,8 @@ ios_application_test_suite(name = "ios_application")
 
 ios_app_clip_test_suite(name = "ios_app_clip")
 
+ios_build_test_test_suite(name = "ios_build_test")
+
 ios_extension_test_suite(name = "ios_extension")
 
 ios_framework_test_suite(name = "ios_framework")
@@ -117,6 +124,8 @@ ios_sticker_pack_extension_test_suite(name = "ios_sticker_pack_extension")
 ios_ui_test_test_suite(name = "ios_ui_test")
 
 ios_unit_test_test_suite(name = "ios_unit_test")
+
+macos_build_test_test_suite(name = "macos_build_test")
 
 macos_application_resources_test_suite(name = "macos_application_resources")
 
@@ -147,6 +156,8 @@ macos_unit_test_test_suite(name = "macos_unit_test")
 
 order_file_test_suite(name = "order_file")
 
+tvos_build_test_test_suite(name = "tvos_build_test")
+
 tvos_application_swift_test_suite(name = "tvos_application_swift")
 
 tvos_application_test_suite(name = "tvos_application")
@@ -163,7 +174,11 @@ tvos_ui_test_test_suite(name = "tvos_ui_test")
 
 tvos_unit_test_test_suite(name = "tvos_unit_test")
 
+visionos_build_test_test_suite(name = "visionos_build_test")
+
 visionos_application_test_suite(name = "visionos_application")
+
+watchos_build_test_test_suite(name = "watchos_build_test")
 
 watchos_application_swift_test_suite(name = "watchos_application_swift")
 
