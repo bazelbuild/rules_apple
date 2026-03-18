@@ -28,6 +28,30 @@ visibility([
 # features on Xcode 26.0 or later.
 _REQUIRED_XCODE_26_OPT_IN = "apple.enable_enhanced_security"
 
+# Every key that has been defined for the entitlements of Enhanced Security capabilities, including
+# those that have been deprecated or unused.
+_ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS = [
+    # Required opt-in entitlement for Xcode 26.0
+    "com.apple.security.hardened-process",
+    # Read-only platform memory.
+    "com.apple.security.hardened-process.dyld-ro",
+    # All forms of typed allocator support.
+    "com.apple.security.hardened-process.hardened-heap",
+    # Required opt-in entitlements for Xcode 26.0 - only the "-string" variant is functional.
+    "com.apple.security.hardened-process.enhanced-security-version",
+    "com.apple.security.hardened-process.enhanced-security-version-string",
+    # Additional runtime platform restrictions, typically enabled by Xcode when opting into the
+    # "enhanced-security-version" entitlement and its capability; only the "-string" variant is
+    # functional.
+    "com.apple.security.hardened-process.platform-restrictions",
+    "com.apple.security.hardened-process.platform-restrictions-string",
+    # ARM MTE, requiring Xcode 26.4 or later and an M5 or A19 or later chip (Device or Simulator).
+    "com.apple.security.hardened-process.checked-allocations",
+    "com.apple.security.hardened-process.checked-allocations.enable-pure-data",
+    "com.apple.security.hardened-process.checked-allocations.no-tagged-receive",
+    "com.apple.security.hardened-process.checked-allocations.soft-mode",
+]
+
 # A map of all of the secure features that requires crosstool support and the entitlements that they
 # enable. If a secure feature does not enable any entitlements, it should be mapped to an empty
 # object.
@@ -338,6 +362,7 @@ attempting to explicitly disable the feature via minus prefixed feature names, s
                 )
 
 secure_features_support = struct(
+    ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS = _ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS,
     crosstool_features_from_secure_features = _crosstool_features_from_secure_features,
     entitlements_from_secure_features = _entitlements_from_secure_features,
     environment_arch_specific_features = _environment_arch_specific_features,

@@ -52,6 +52,8 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+_SECURE_FEATURES_KEYS = secure_features_support.ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS
+
 def _tool_validation_mode(*, is_device, rules_mode):
     """Returns the tools validation_mode to use.
 
@@ -163,10 +165,15 @@ def _extract_signing_info(
       mac_exec_group: The exec group associated with the provisioning_profile_tool
 
     Returns:
-      A `struct` with two items: the entitlements file to use, a
-      profile_metadata file.
+      A `struct` with the following args:
+        entitlements: The entitlements file to use, or `None` if there are none.
+        have_extracted_entitlements: Whether the entitlements were extracted from the provisioning
+          profile.
+        profile_metadata: The `File` representing the profile_metadata file that was generated, or
+          `None` if no provisioning profile was processed.
     """
     profile_metadata = None
+    have_extracted_entitlements = False
 
     if provisioning_profile:
         profile_metadata = _new_entitlements_artifact(
@@ -189,6 +196,7 @@ def _extract_signing_info(
             )
             control["entitlements"] = entitlements.path
             outputs.append(entitlements)
+            have_extracted_entitlements = True
 
         control_file = _new_entitlements_artifact(
             actions = actions,
@@ -217,6 +225,7 @@ def _extract_signing_info(
 
     return struct(
         entitlements = entitlements,
+        have_extracted_entitlements = have_extracted_entitlements,
         profile_metadata = profile_metadata,
     )
 
@@ -310,6 +319,7 @@ def _process_entitlements(
     )
     plists = []
     forced_plists = []
+    entitlements_from_secure_features = []
     if signing_info.entitlements:
         plists.append(signing_info.entitlements)
     if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
@@ -337,6 +347,7 @@ def _process_entitlements(
         )
         if secure_features_entitlements:
             forced_plists.append(struct(**secure_features_entitlements))
+            entitlements_from_secure_features = secure_features_entitlements.keys()
 
     inputs = list(plists)
 
@@ -368,6 +379,7 @@ def _process_entitlements(
         extra_keys_to_match_profile.append("com.apple.security.application-groups")
 
     entitlements_options = {
+        "all_secure_features_keys": _SECURE_FEATURES_KEYS,
         "bundle_id": bundle_id,
         "extra_keys_to_match_profile": extra_keys_to_match_profile,
     }
@@ -378,6 +390,14 @@ def _process_entitlements(
             is_device = platform_prerequisites.platform.is_device,
             rules_mode = validation_mode,
         )
+
+    if signing_info.have_extracted_entitlements:
+        # Don't validate the entitlements keys for secure features if they're just the ones from the
+        # provisioning profile, otherwise we will flag features that have not been opted in. e.g.
+        # the "enhanced-security-version-string" will be a wildcard, which will not enable anything.
+        entitlements_options["allowed_secure_features_keys"] = _SECURE_FEATURES_KEYS
+    else:
+        entitlements_options["allowed_secure_features_keys"] = entitlements_from_secure_features
 
     control = struct(
         plists = [f.path for f in plists],
