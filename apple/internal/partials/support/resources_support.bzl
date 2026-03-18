@@ -445,11 +445,15 @@ def _mlmodels(
 def _plists_and_strings(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         files,
+        mac_exec_group,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
+        xplat_exec_group,
         **_kwargs):
     """Processes plists and string files.
 
@@ -458,12 +462,17 @@ def _plists_and_strings(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        files: The plist or string files to process.
+        apple_mac_toolchain_info: `struct` of mac tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
+        files: The infoplist files to process.
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
-        parent_dir: The path under which the files should be placed.
+        parent_dir: The path under which the plist or strings file should be placed for resource
+            bundles, or an empty string if the files are root level.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        xplat_exec_group: The exec group associated with apple_xplat_toolchain.
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
@@ -489,9 +498,16 @@ def _plists_and_strings(
         processed_origins[plist_file.short_path] = [file.short_path]
         resource_actions.compile_plist(
             actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_name_with_extension = paths.basename(parent_dir) if parent_dir else "",
             input_file = file,
+            mac_exec_group = mac_exec_group,
+            output_discriminator = output_discriminator,
             output_file = plist_file,
             platform_prerequisites = platform_prerequisites,
+            rule_label = rule_label,
+            xplat_exec_group = xplat_exec_group,
         )
         plist_files.append(plist_file)
 
