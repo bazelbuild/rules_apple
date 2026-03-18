@@ -42,8 +42,6 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
-malformed_plists = []
-
 def plisttool_action(
         *,
         actions,
@@ -96,100 +94,40 @@ def plisttool_action(
             outputs = outputs,
         )
 
-def compile_plist(
-        *,
-        actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
-        bundle_name_with_extension,
-        input_file,
-        mac_exec_group,
-        output_discriminator,
-        output_file,
-        platform_prerequisites,
-        rule_label,
-        xplat_exec_group):
+def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that compiles plist and strings files.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
-      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-      bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_file: The property list file that should be converted.
-      mac_exec_group: The exec_group associated with apple_mac_toolchain.
-      output_discriminator: A string to differentiate between different target intermediate files
-          or `None`.
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      rule_label: The label of the target being analyzed.
-      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     if input_file.basename.endswith(".strings"):
         mnemonic = "CompileStrings"
     else:
         mnemonic = "CompilePlist"
 
-    if str(rule_label) in malformed_plists:
-        # TODO: b/452613043 - Resolve XML issues in malformed plists and remove this fallback.
-        #
-        # This command will check whether the input file is non-empty, and then
-        # execute the version of plutil that takes the file directly. If the file is
-        # empty, it will echo an new line and then pipe it into plutil. We do this
-        # to handle empty files as plutil doesn't handle them very well.
-        plutil_command = "plutil -convert binary1 -o %s --" % shell.quote(output_file.path)
-        complete_command = ("if [[ -s {in_file} ]] ; then {plutil_command} {in_file} ; " +
-                            "elif [[ -f {in_file} ]] ; then echo | {plutil_command} - ; " +
-                            "else exit 1 ; " +
-                            "fi").format(
-            in_file = shell.quote(input_file.path),
-            plutil_command = plutil_command,
-        )
-        apple_support.run_shell(
-            actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            command = complete_command,
-            inputs = [input_file],
-            mnemonic = mnemonic,
-            outputs = [output_file],
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
-        return
-
-    target = '%s (while bundling under "%s")' % (
-        bundle_name_with_extension or "<root>",
-        str(rule_label),
+    # This command will check whether the input file is non-empty, and then
+    # execute the version of plutil that takes the file directly. If the file is
+    # empty, it will echo an new line and then pipe it into plutil. We do this
+    # to handle empty files as plutil doesn't handle them very well.
+    plutil_command = "plutil -convert binary1 -o %s --" % shell.quote(output_file.path)
+    complete_command = ("if [[ -s {in_file} ]] ; then {plutil_command} {in_file} ; " +
+                        "elif [[ -f {in_file} ]] ; then echo | {plutil_command} - ; " +
+                        "else exit 1 ; " +
+                        "fi").format(
+        in_file = shell.quote(input_file.path),
+        plutil_command = plutil_command,
     )
-
-    control = struct(
-        binary = True,
-        output = output_file.path,
-        individual_plist = input_file.path,
-        target = target,
-    )
-
-    control_file = intermediates.file(
+    apple_support.run_shell(
         actions = actions,
-        target_name = rule_label.name,
-        output_discriminator = output_discriminator,
-        file_name = paths.join(bundle_name_with_extension, "%s-control" % output_file.basename),
-    )
-    actions.write(
-        output = control_file,
-        content = json.encode(control),
-    )
-
-    plisttool_action(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        control_file = control_file,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        command = complete_command,
         inputs = [input_file],
-        mac_exec_group = mac_exec_group,
         mnemonic = mnemonic,
         outputs = [output_file],
-        platform_prerequisites = platform_prerequisites,
-        xplat_exec_group = xplat_exec_group,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )
 
 def merge_resource_infoplists(
