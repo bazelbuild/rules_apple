@@ -70,6 +70,10 @@ binary.
 The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
+        "preserved_framework_processor": """\
+The files_to_run for a tool to copy the runtime subset of an Apple developer
+framework without mutating its bytes or signature.
+""",
         "provisioning_profile_tool": """\
 The files_to_run for a tool that extracts entitlements from a
 provisioning profile.
@@ -149,6 +153,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
             environment_plist_tool = ctx.attr.environment_plist_tool.files_to_run,
             imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
             plisttool = ctx.attr.plisttool.files_to_run,
+            preserved_framework_processor = ctx.attr.preserved_framework_processor.files_to_run,
             provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
             swift_stdlib_tool = ctx.attr.swift_stdlib_tool.files_to_run,
             xcframework_processor_tool = ctx.attr.xcframework_processor_tool.files_to_run,
@@ -223,6 +228,14 @@ artifact.
             doc = """
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
 conversion of plist files to binary format.
+""",
+        ),
+        "preserved_framework_processor": attr.label(
+            cfg = "target",
+            executable = True,
+            doc = """
+A `File` referencing a tool to copy the runtime subset of an Apple developer
+framework without mutating it.
 """,
         ),
         "process_and_sign_template": attr.label(

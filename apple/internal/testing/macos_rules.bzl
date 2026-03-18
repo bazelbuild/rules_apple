@@ -19,8 +19,13 @@ load(
     "apple_support",
 )
 load(
+    "@rules_cc//cc/common:cc_info.bzl",
+    "CcInfo",
+)
+load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
+    "AppleDeveloperFrameworkImportInfo",
     "MacosApplicationBundleInfo",
     "MacosFrameworkBundleInfo",
 )
@@ -163,7 +168,10 @@ desired Contents subdirectory.
         },
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
@@ -243,7 +251,10 @@ desired Contents subdirectory.
         },
         {
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))

@@ -158,6 +158,21 @@ bzl_library(
 )
 
 bzl_library(
+    name = "developer_framework_import",
+    srcs = ["developer_framework_import.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple:providers",
+        "//apple/internal:intermediates",
+        "//apple/internal:processor",
+        "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
     name = "embedded_bundles",
     srcs = ["embedded_bundles.bzl"],
     visibility = [

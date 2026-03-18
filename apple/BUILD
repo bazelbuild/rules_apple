@@ -58,9 +58,11 @@ bzl_library(
     srcs = ["apple.bzl"],
     deps = [
         "//apple:apple_static_library",
+        "//apple/internal:apple_developer_framework_import",
         "//apple/internal:apple_framework_import",
         "//apple/internal:apple_universal_binary",
         "//apple/internal:apple_xcframework_import",
+        "//apple/internal:local_developer_frameworks",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
         "@bazel_features//:features",
@@ -175,6 +177,7 @@ bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [
+        "//apple/internal:apple_developer_framework_import",
         "//apple/internal:capabilities_rules",
         "//apple/internal:macos_binary_support",
         "//apple/internal:macos_rules",

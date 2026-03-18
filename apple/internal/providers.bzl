@@ -328,6 +328,37 @@ provide debug info.
     init = _make_banned_init(provider_name = "AppleFrameworkImportInfo"),
 )
 
+AppleDeveloperFrameworkImportInfo, new_appledeveloperframeworkimportinfo = provider(
+    doc = """
+Provider that propagates information about Apple developer framework import targets.
+
+Propagated by `apple_developer_framework_import`.
+""",
+    fields = {
+        "binary": """
+`File` referencing the framework binary used for compilation, linking, and
+runtime version detection.
+""",
+        "bundle": """
+`Boolean` indicating whether the framework should be embedded when present in a
+bundle rule's `frameworks` attribute.
+""",
+        "framework_name": """
+`String` naming the imported developer framework bundle without the
+`.framework` suffix.
+""",
+        "preserve_signature": """
+`Boolean` indicating that the runtime copy path must preserve the framework's
+original bytes and signature.
+""",
+        "runtime_imports": """
+`depset` of `File`s that represent the runtime subset to embed in the top-level
+bundle under the Frameworks directory.
+""",
+    },
+    init = _make_banned_init(provider_name = "AppleDeveloperFrameworkImportInfo"),
+)
+
 def merge_apple_framework_import_info(apple_framework_import_infos):
     """Merges multiple `AppleFrameworkImportInfo` into one.
 

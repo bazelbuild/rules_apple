@@ -30,6 +30,7 @@ load(
     "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleDeveloperFrameworkImportInfo",
     "ApplePlatformInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
@@ -343,6 +344,13 @@ def _macos_application_impl(ctx):
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             targets = embedded_targets,
+        ),
+        partials.developer_framework_import_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            targets = ctx.attr.frameworks,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -900,6 +908,13 @@ def _macos_extension_impl(ctx):
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
+        ),
+        partials.developer_framework_import_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            targets = ctx.attr.frameworks,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -2311,7 +2326,10 @@ desired Contents subdirectory.
             ),
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
@@ -2459,7 +2477,10 @@ desired Contents subdirectory.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))

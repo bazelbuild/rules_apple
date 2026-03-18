@@ -15,6 +15,10 @@
 """Bazel rules for creating macOS applications and bundles."""
 
 load(
+    "//apple/internal:apple_developer_framework_import.bzl",
+    _apple_developer_framework_import = "apple_developer_framework_import",
+)
+load(
     "//apple/internal:macos_binary_support.bzl",
     "macos_binary_infoplist",
     "macos_command_line_launchdplist",
@@ -49,6 +53,8 @@ load(
     _macos_ui_test = "macos_ui_test",
     _macos_unit_test = "macos_unit_test",
 )
+
+apple_developer_framework_import = _apple_developer_framework_import
 
 # TODO(b/118104491): Remove these re-exports and move the rule definitions into this file.
 macos_quick_look_plugin = _macos_quick_look_plugin

@@ -16,6 +16,7 @@ filegroup(
         "//tools/json_tool:for_bazel_tests",
         "//tools/main_thread_checker_tool:for_bazel_tests",
         "//tools/plisttool:for_bazel_tests",
+        "//tools/preserved_framework_processor:for_bazel_tests",
         "//tools/provisioning_profile_tool:for_bazel_tests",
         "//tools/swift_stdlib_tool:for_bazel_tests",
         "//tools/versiontool:for_bazel_tests",

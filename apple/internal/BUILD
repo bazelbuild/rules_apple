@@ -29,6 +29,7 @@ apple_mac_tools_toolchain(
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor",
     main_thread_checker_tool = "//tools/main_thread_checker_tool",
     plisttool = "//tools/plisttool",
+    preserved_framework_processor = "//tools/preserved_framework_processor",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
@@ -50,6 +51,26 @@ apple_xplat_tools_toolchain(
     # should be considered an implementation detail of the rules and
     # not used by other things.
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "apple_developer_framework_import",
+    srcs = ["apple_developer_framework_import.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":cc_toolchain_info_support",
+        ":framework_import_support",
+        ":rule_attrs",
+        "//apple:providers",
+        "//apple:utils",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//lib:sets",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
+    ],
 )
 
 bzl_library(
@@ -454,6 +475,7 @@ bzl_library(
         "//apple/internal/partials:clang_rt_dylibs",
         "//apple/internal/partials:codesigning_dossier",
         "//apple/internal/partials:debug_symbols",
+        "//apple/internal/partials:developer_framework_import",
         "//apple/internal/partials:embedded_bundles",
         "//apple/internal/partials:extension_safe_validation",
         "//apple/internal/partials:framework_header_modulemap",
@@ -818,6 +840,17 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift",
+    ],
+)
+
+bzl_library(
+    name = "local_developer_frameworks",
+    srcs = ["local_developer_frameworks.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@bazel_features//:features",
     ],
 )
 

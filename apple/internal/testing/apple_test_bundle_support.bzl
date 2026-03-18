@@ -506,6 +506,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             targets = ctx.attr.deps,
             targets_to_avoid = targets_to_avoid,
         ),
+        partials.developer_framework_import_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            targets = ctx.attr.frameworks,
+        ),
         partials.resources_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

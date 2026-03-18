@@ -51,6 +51,10 @@ load(
     _debug_symbols_partial = "debug_symbols_partial",
 )
 load(
+    "//apple/internal/partials:developer_framework_import.bzl",
+    _developer_framework_import_partial = "developer_framework_import_partial",
+)
+load(
     "//apple/internal/partials:embedded_bundles.bzl",
     _embedded_bundles_partial = "embedded_bundles_partial",
 )
@@ -124,6 +128,7 @@ partials = struct(
     main_thread_checker_dylibs_partial = _main_thread_checker_dylibs_partial,
     codesigning_dossier_partial = _codesigning_dossier_partial,
     debug_symbols_partial = _debug_symbols_partial,
+    developer_framework_import_partial = _developer_framework_import_partial,
     embedded_bundles_partial = _embedded_bundles_partial,
     cc_info_dylibs_partial = _cc_info_dylibs_partial,
     extension_safe_validation_partial = _extension_safe_validation_partial,

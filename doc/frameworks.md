@@ -36,6 +36,8 @@ For imported bundles there are two available rules:
 
 *   `apple_dynamic_framework_import` for Dynamic Frameworks.
 *   `apple_static_framework_import` for Static Frameworks.
+*   `apple_developer_framework_import` for Apple-supplied frameworks in
+    `$DEVELOPER_DIR/Library/Frameworks` on macOS.
 
 Frameworks created dynamically during the build is the recommended approach for
 1st party dependencies. For framework bundles created dynamically during the
@@ -245,3 +247,39 @@ apple_dynamic_framework_import(
 ```
 
 ![Framework imports](frameworks4.png)
+
+### `apple_developer_framework_import`
+
+Use `apple_developer_framework_import` for frameworks that ship with the
+selected Xcode inside `$DEVELOPER_DIR/Library/Frameworks`, such as
+`XcodeKit.framework`.
+
+```build
+load("@rules_apple//apple:apple.bzl", "apple_developer_framework_import")
+
+apple_developer_framework_import(
+  name = "xcodekit",
+  framework_name = "XcodeKit",
+)
+
+swift_library(
+  name = "editor_extension_lib",
+  srcs = ["Sources/EditorExtension.swift"],
+  deps = [":xcodekit"],
+)
+
+macos_extension(
+  name = "EditorExtension",
+  frameworks = [":xcodekit"],
+  deps = [":editor_extension_lib"],
+  ...
+)
+```
+
+This rule is macOS-only. Add it to `deps` for compile/link support and add it
+to the top-level bundle rule's `frameworks` attribute to embed it.
+
+The generated `@local_developer_frameworks` repository is keyed off the
+selected developer directory. To invalidate it correctly when Xcode changes,
+pass `--repo_env=DEVELOPER_DIR=...` as described in
+[`doc/common_info.md`](common_info.md).

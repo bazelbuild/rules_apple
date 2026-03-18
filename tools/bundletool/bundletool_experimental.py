@@ -165,13 +165,28 @@ class Bundler(object):
       bundle_root: The bundle root directory into which the files should be
           added.
     """
-    if os.path.isdir(src):
-      for root, _, files in os.walk(src):
+    if os.path.isdir(src) and not os.path.islink(src):
+      for root, dirs, files in os.walk(src):
         relpath = os.path.relpath(root, src)
+        symlink_dirs = []
+        for dirname in dirs:
+          dsrc = os.path.join(root, dirname)
+          if os.path.islink(dsrc):
+            symlink_dirs.append(dirname)
+
+        for dirname in symlink_dirs:
+          dirs.remove(dirname)
+          dsrc = os.path.join(root, dirname)
+          ddest = os.path.normpath(os.path.join(dest, relpath, dirname))
+          self._copy_symlink(dsrc, ddest, bundle_root)
+
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          self._copy_file(fsrc, fdest, executable, bundle_root)
+          if os.path.islink(fsrc):
+            self._copy_symlink(fsrc, fdest, bundle_root)
+          else:
+            self._copy_file(fsrc, fdest, executable, bundle_root)
     elif os.path.isfile(src):
       self._copy_file(src, dest, executable, bundle_root)
 
@@ -206,10 +221,19 @@ class Bundler(object):
                 if src_zipinfo.filename.endswith("/"):
                     continue
 
+                if self._is_zipinfo_symlink(src_zipinfo):
+                    target = src_zip.read(src_zipinfo).decode("utf-8")
+                    self._write_symlink(file_dest, target, bundle_root)
+                    continue
+
                 # Check for Unix --x--x--x permissions.
                 executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
                 data = src_zip.read(src_zipinfo)
                 self._write_entry(file_dest, data, executable, bundle_root)
+
+  def _copy_symlink(self, src, dest, bundle_root):
+    """Copies a symlink into the bundle without dereferencing it."""
+    self._write_symlink(dest, os.readlink(src), bundle_root)
 
   def _copy_file(self, src, dest, executable, bundle_root):
     """Copies a file into the bundle.
@@ -243,6 +267,10 @@ class Bundler(object):
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
 
+  def _is_zipinfo_symlink(self, zipinfo):
+    """Returns whether the given zip entry represents a Unix symlink."""
+    return zipinfo.external_attr >> 16 & 0o170000 == 0o120000
+
   def _write_entry(self, dest, data, executable, bundle_root):
     """Writes the given data as a file in the output ZIP archive.
 
@@ -268,6 +296,17 @@ class Bundler(object):
     with open(full_dest, 'wb') as f:
       f.write(data)
     os.chmod(full_dest, 0o755 if executable else 0o644)
+
+  def _write_symlink(self, dest, target, bundle_root):
+    """Writes a symlink in the bundle."""
+    full_dest = os.path.join(bundle_root, dest)
+    if os.path.lexists(full_dest):
+      if os.path.islink(full_dest) and os.readlink(full_dest) == target:
+        return
+      raise BundleConflictError(dest)
+
+    self._makedirs_safely(os.path.dirname(full_dest))
+    os.symlink(target, full_dest)
 
   def _makedirs_safely(self, path):
     """Creates a new directory, silently succeeding if it already exists.
