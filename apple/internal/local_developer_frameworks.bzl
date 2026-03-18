@@ -3,8 +3,15 @@
 load("@bazel_features//:features.bzl", "bazel_features")
 
 _REPOSITORY_NAME = "local_developer_frameworks"
+_FRAMEWORK_LINKER_INPUTS = {
+    "XcodeKit": ["usr/lib/libXcodeExtension.a"],
+}
 
-def _framework_targets(framework_name):
+def _framework_targets(framework_name, linker_inputs = []):
+    linker_inputs_srcs = ", ".join([
+        "\"{}\"".format(linker_input)
+        for linker_input in linker_inputs
+    ])
     return """\
 filegroup(
     name = "{framework_name}_build_files",
@@ -49,7 +56,16 @@ filegroup(
     ], allow_empty = True),
     visibility = ["//visibility:public"],
 )
-""".format(framework_name = framework_name)
+
+filegroup(
+    name = "{framework_name}_linker_inputs",
+    srcs = [{linker_inputs_srcs}],
+    visibility = ["//visibility:public"],
+)
+""".format(
+        framework_name = framework_name,
+        linker_inputs_srcs = linker_inputs_srcs,
+    )
 
 def _developer_frameworks_repository_impl(repository_ctx):
     developer_dir = repository_ctx.os.environ.get("DEVELOPER_DIR")
@@ -66,6 +82,10 @@ def _developer_frameworks_repository_impl(repository_ctx):
         fail("Developer frameworks directory does not exist: {}".format(frameworks_dir))
 
     repository_ctx.symlink(frameworks_dir, "Frameworks")
+    repository_ctx.symlink(
+        repository_ctx.path("{}/usr".format(developer_dir)),
+        "usr",
+    )
 
     framework_names = []
     for child in frameworks_dir.readdir():
@@ -78,7 +98,10 @@ def _developer_frameworks_repository_impl(repository_ctx):
         "",
     ]
     for framework_name in framework_names:
-        build_file_contents.append(_framework_targets(framework_name))
+        build_file_contents.append(_framework_targets(
+            framework_name,
+            linker_inputs = _FRAMEWORK_LINKER_INPUTS.get(framework_name, []),
+        ))
 
     repository_ctx.file(
         "BUILD.bazel",
@@ -93,7 +116,8 @@ local_developer_frameworks_repository = repository_rule(
     ],
     doc = """
 Declares an external repository exposing frameworks from
-`$DEVELOPER_DIR/Library/Frameworks`.
+`$DEVELOPER_DIR/Library/Frameworks` and companion linker inputs from the
+selected Xcode developer directory.
 """,
 )
 

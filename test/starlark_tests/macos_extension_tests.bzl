@@ -15,6 +15,10 @@
 """macos_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_ccinfo_static_libraries_test.bzl",
+    "analysis_ccinfo_static_libraries_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "entry_point_test",
@@ -48,6 +52,27 @@ def macos_extension_test_suite(name):
             "path @executable_path/../../../../Frameworks (offset 12)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext",
+        tags = [name],
+    )
+
+    analysis_ccinfo_static_libraries_test(
+        name = "{}_xcodekit_links_companion_archive_test".format(name),
+        expected_static_libraries = [
+            "usr/lib/libXcodeExtension.a",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:xcodekit_import",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_xcodekit_binary_contains_subsystem_test".format(name),
+        build_type = "simulator",
+        binary_contains_symbols = [
+            "_OBJC_CLASS_$_XCExtensionSubsystem",
+        ],
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ext_with_xcodekit_import",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_xcodekit_import",
         tags = [name],
     )
 

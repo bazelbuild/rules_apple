@@ -5,6 +5,7 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
@@ -32,6 +33,27 @@ load(
 )
 
 _REPOSITORY_NAME = "local_developer_frameworks"
+
+def _cc_info_for_static_linker_inputs(*, actions, label, libraries):
+    if not libraries:
+        return None
+
+    linker_input = cc_common.create_linker_input(
+        owner = label,
+        libraries = depset([
+            cc_common.create_library_to_link(
+                actions = actions,
+                alwayslink = True,
+                static_library = library,
+            )
+            for library in libraries
+        ]),
+    )
+    return CcInfo(
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset([linker_input]),
+        ),
+    )
 
 def _grouped_framework_files(framework_imports):
     framework_groups = group_files_by_directory(
@@ -101,8 +123,27 @@ def _apple_developer_framework_import_impl(ctx):
         fail("Expected exactly one framework binary for developer framework '{}'.".format(ctx.attr.framework_name))
     framework_binary = framework_binaries[0]
 
+    linker_imports = []
+    for linker_import in ctx.files.linker_imports:
+        if linker_import.extension != "a":
+            fail("""
+apple_developer_framework_import linker_imports may only contain static archives.
+Found: {}
+""".format(linker_import.short_path))
+        linker_imports.append(linker_import)
+
+    additional_cc_infos = []
+    static_linker_inputs_cc_info = _cc_info_for_static_linker_inputs(
+        actions = ctx.actions,
+        label = ctx.label,
+        libraries = linker_imports,
+    )
+    if static_linker_inputs_cc_info:
+        additional_cc_infos.append(static_linker_inputs_cc_info)
+
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = ctx.actions,
+        additional_cc_infos = additional_cc_infos,
         cc_toolchain = cc_toolchain,
         ctx = ctx,
         deps = ctx.attr.deps,
@@ -130,6 +171,7 @@ def _apple_developer_framework_import_impl(ctx):
             framework_name = ctx.attr.framework_name,
             preserve_signature = ctx.attr.preserve_signature,
             runtime_imports = depset(runtime_imports),
+            static_linking_files = depset(linker_imports),
         ),
     ]
 
@@ -147,6 +189,9 @@ _apple_developer_framework_import = rule(
                 providers = [[CcInfo]],
             ),
             "framework_name": attr.string(mandatory = True),
+            "linker_imports": attr.label_list(
+                allow_files = True,
+            ),
             "preserve_signature": attr.bool(default = True),
             "runtime_imports": attr.label_list(
                 allow_files = True,
@@ -173,6 +218,7 @@ def apple_developer_framework_import(
         preserve_signature = preserve_signature,
         bundle = bundle,
         build_imports = [repository + framework_name + "_build_files"],
+        linker_imports = [repository + framework_name + "_linker_inputs"],
         runtime_imports = [repository + framework_name + "_runtime_files"],
         **kwargs
     )

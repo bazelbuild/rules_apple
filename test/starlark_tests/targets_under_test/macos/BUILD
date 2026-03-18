@@ -5,6 +5,7 @@ load(
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple.bzl",
+    "apple_developer_framework_import",
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
@@ -616,6 +617,12 @@ apple_dynamic_framework_import(
     name = "bundle_only_imported_fmwk",
     bundle_only = True,
     framework_imports = [":generated_macos_dynamic_fmwk"],
+    tags = common.fixture_tags,
+)
+
+apple_developer_framework_import(
+    name = "xcodekit_import",
+    framework_name = "XcodeKit",
     tags = common.fixture_tags,
 )
 
@@ -1242,6 +1249,20 @@ macos_extension(
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
     bundle_id = "com.google.example.ext",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "ext_with_xcodekit_import",
+    bundle_id = "com.google.example.ext.with-xcodekit-import",
+    frameworks = [":xcodekit_import"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

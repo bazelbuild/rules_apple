@@ -155,6 +155,27 @@ load(
     "main_thread_checker_dylibs",
 )
 
+def _developer_framework_linking(frameworks):
+    link_inputs = []
+    linkopts = []
+
+    for framework in frameworks:
+        if AppleDeveloperFrameworkImportInfo not in framework:
+            continue
+
+        framework_info = framework[AppleDeveloperFrameworkImportInfo]
+        if not hasattr(framework_info, "static_linking_files"):
+            continue
+
+        for static_linking_file in framework_info.static_linking_files.to_list():
+            link_inputs.append(static_linking_file)
+            linkopts.append("-Wl,-force_load,{}".format(static_linking_file.path))
+
+    return struct(
+        link_inputs = link_inputs,
+        linkopts = linkopts,
+    )
+
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -237,6 +258,7 @@ def _macos_application_impl(ctx):
         rule_label = label,
         validation_mode = ctx.attr.entitlements_validation,
     )
+    developer_framework_linking = _developer_framework_linking(ctx.attr.frameworks)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -244,6 +266,8 @@ def _macos_application_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_link_inputs = developer_framework_linking.link_inputs,
+        extra_linkopts = developer_framework_linking.linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -800,6 +824,8 @@ def _macos_extension_impl(ctx):
         "-e",
         "_NSExtensionMain",
     ]
+    developer_framework_linking = _developer_framework_linking(ctx.attr.frameworks)
+    extra_linkopts.extend(developer_framework_linking.linkopts)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -807,6 +833,7 @@ def _macos_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_link_inputs = developer_framework_linking.link_inputs,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -2869,6 +2896,8 @@ def _macos_framework_impl(ctx):
     ]
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
+    developer_framework_linking = _developer_framework_linking(ctx.attr.frameworks)
+    extra_linkopts.extend(developer_framework_linking.linkopts)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -2877,6 +2906,7 @@ def _macos_framework_impl(ctx):
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_link_inputs = developer_framework_linking.link_inputs,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
@@ -3152,6 +3182,8 @@ def _macos_dynamic_framework_impl(ctx):
     ]
     if ctx.attr.extension_safe:
         extra_linkopts.append("-fapplication-extension")
+    developer_framework_linking = _developer_framework_linking(ctx.attr.frameworks)
+    extra_linkopts.extend(developer_framework_linking.linkopts)
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -3160,6 +3192,7 @@ def _macos_dynamic_framework_impl(ctx):
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_link_inputs = developer_framework_linking.link_inputs,
         extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,

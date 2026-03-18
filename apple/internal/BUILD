@@ -70,6 +70,8 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:sets",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common:cc_common",
+        "@rules_cc//cc/common:cc_info",
     ],
 )
 

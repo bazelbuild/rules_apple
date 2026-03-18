@@ -355,6 +355,10 @@ original bytes and signature.
 `depset` of `File`s that represent the runtime subset to embed in the top-level
 bundle under the Frameworks directory.
 """,
+        "static_linking_files": """
+`depset` of `File`s that represent companion static archives that must be
+passed directly to the final consumer link.
+""",
     },
     init = _make_banned_init(provider_name = "AppleDeveloperFrameworkImportInfo"),
 )
