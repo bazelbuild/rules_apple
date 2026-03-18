@@ -34,7 +34,6 @@ use_repo(non_module_deps, "xctestrunner")
 developer_frameworks_repository = use_extension(
     "//apple:apple.bzl",
     "developer_frameworks_repository_extension",
-    dev_dependency = True,
 )
 use_repo(developer_frameworks_repository, "local_developer_frameworks")
 
