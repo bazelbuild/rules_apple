@@ -90,6 +90,7 @@ def _update_modified_timestamps(framework_temp_path):
       for file_name in dirs + files:
         file_path = os.path.join(root, file_name)
         if os.path.islink(file_path):
+          os.utime(file_path, (timestamp, timestamp), follow_symlinks=False)
           continue
         os.utime(file_path, (timestamp, timestamp))
     os.utime(framework_temp_path, (timestamp, timestamp))

@@ -15,6 +15,7 @@
 
 import os
 import tempfile
+import time
 import unittest
 from argparse import Namespace
 from unittest import mock
@@ -104,6 +105,22 @@ class PreservedFrameworkProcessorTest(unittest.TestCase):
       self.assertEqual(
           "Versions/Current/Resources",
           os.readlink(os.path.join(args.temp_path, "Resources")))
+
+  def test_update_modified_timestamps_normalizes_symlink_mtime(self):
+    with tempfile.TemporaryDirectory() as temp_dir:
+      framework_dir = os.path.join(temp_dir, "My.framework")
+      os.makedirs(framework_dir)
+      target = os.path.join(framework_dir, "My")
+      with open(target, "w", encoding="utf-8") as file:
+        file.write("binary")
+      symlink = os.path.join(framework_dir, "Current")
+      os.symlink("My", symlink)
+
+      preserved_framework_processor._update_modified_timestamps(framework_dir)
+
+      expected_timestamp = 946684800 + time.timezone
+      self.assertEqual(expected_timestamp, os.stat(target).st_mtime)
+      self.assertEqual(expected_timestamp, os.lstat(symlink).st_mtime)
 
 
 if __name__ == "__main__":
