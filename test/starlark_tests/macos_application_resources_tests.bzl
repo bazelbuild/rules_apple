@@ -59,16 +59,14 @@ def macos_application_resources_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle_only_for_low_minimum_os_version",
         contains = [
             "$RESOURCE_ROOT/Assets.car",
-            # "$RESOURCE_ROOT/app_icon.icns",
+            "$RESOURCE_ROOT/app_icon.icns",
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
-            # "CFBundleIconFile": "app_icon",
+            "CFBundleIconFile": "app_icon",
             "CFBundleIconName": "app_icon",
         },
         tags = [
-            "manual",
-            "notap",
             name,
         ],
     )
