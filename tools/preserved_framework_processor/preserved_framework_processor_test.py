@@ -106,6 +106,48 @@ class PreservedFrameworkProcessorTest(unittest.TestCase):
           "Versions/Current/Resources",
           os.readlink(os.path.join(args.temp_path, "Resources")))
 
+  def test_copy_versioned_framework_without_current_in_source_structure(self):
+    with tempfile.TemporaryDirectory() as temp_dir:
+      framework_dir = os.path.join(temp_dir, "My.framework")
+      version_dir = os.path.join(framework_dir, "Versions", "A")
+      resources_dir = os.path.join(version_dir, "Resources")
+      os.makedirs(resources_dir)
+      binary = os.path.join(framework_dir, "My")
+      resources_file = os.path.join(resources_dir, "Info.plist")
+      with open(binary, "w", encoding="utf-8") as file:
+        file.write("binary")
+      with open(resources_file, "w", encoding="utf-8") as file:
+        file.write("plist")
+
+      args = Namespace(
+          framework_binary=binary,
+          framework_file=[resources_file],
+          output_zip=os.path.join(temp_dir, "out.zip"),
+          temp_path=os.path.join(temp_dir, "out", "My.framework"),
+      )
+      os.makedirs(os.path.dirname(args.temp_path), exist_ok=True)
+
+      preserved_framework_processor._copy_versioned_framework(
+          args, framework_dir, "My")
+
+      self.assertTrue(
+          os.path.exists(os.path.join(args.temp_path, "Versions", "A", "My")))
+      self.assertTrue(
+          os.path.exists(
+              os.path.join(args.temp_path, "Versions", "A", "Resources",
+                           "Info.plist")))
+      self.assertTrue(
+          os.path.islink(os.path.join(args.temp_path, "Versions", "Current")))
+      self.assertEqual(
+          "A", os.readlink(os.path.join(args.temp_path, "Versions", "Current")))
+      self.assertTrue(os.path.islink(os.path.join(args.temp_path, "My")))
+      self.assertEqual(
+          "Versions/Current/My", os.readlink(os.path.join(args.temp_path, "My")))
+      self.assertTrue(os.path.islink(os.path.join(args.temp_path, "Resources")))
+      self.assertEqual(
+          "Versions/Current/Resources",
+          os.readlink(os.path.join(args.temp_path, "Resources")))
+
   def test_update_modified_timestamps_normalizes_symlink_mtime(self):
     with tempfile.TemporaryDirectory() as temp_dir:
       framework_dir = os.path.join(temp_dir, "My.framework")

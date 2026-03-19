@@ -36,7 +36,7 @@ def macos_extension_test_suite(name):
     """
     entry_point_test(
         name = "{}_entry_point_nsextensionmain_test".format(name),
-        build_type = "simulator",
+        build_type = "device",
         entry_point = "_NSExtensionMain",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext",
         tags = [name],
@@ -66,7 +66,7 @@ def macos_extension_test_suite(name):
 
     archive_contents_test(
         name = "{}_xcodekit_binary_contains_subsystem_test".format(name),
-        build_type = "simulator",
+        build_type = "device",
         binary_contains_symbols = [
             "_OBJC_CLASS_$_XCExtensionSubsystem",
         ],
@@ -112,7 +112,7 @@ def macos_extension_test_suite(name):
     # Test that an ExtensionKit extension is bundled in Extensions and not PlugIns.
     archive_contents_test(
         name = "{}_extensionkit_bundling_test".format(name),
-        build_type = "simulator",
+        build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_extensionkit_ext",
         contains = ["$BUNDLE_ROOT/Contents/Extensions/extensionkit_ext.appex/Contents/MacOS/extensionkit_ext"],
         not_contains = ["$BUNDLE_ROOT/Contents/PlugIns/extensionkit_ext.appex/Contents/MacOS/extensionkit_ext"],

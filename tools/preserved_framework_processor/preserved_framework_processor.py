@@ -74,8 +74,11 @@ def _get_framework_version_from_install_path(binary):
 
 def _try_get_framework_version_from_structure(framework_directory):
   """Returns framework version string when there is a single version."""
-  versions = list(os.listdir(os.path.join(framework_directory, "Versions")))
-  versions.remove("Current")
+  versions = [
+      version
+      for version in os.listdir(os.path.join(framework_directory, "Versions"))
+      if version != "Current"
+  ]
   if len(versions) != 1:
     return None
   return versions[0]
