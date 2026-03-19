@@ -59,12 +59,8 @@ the following keys:
       Unlike variable_substitutions, there is now "wrapper" added to the keys
       so this can match any *raw* substring in any value in the plist. This
       should be used with extreme care.
+  skip_substitutions: A boolean indicating whether to skip all substitutions.
   target: The target name, used for warning/error messages.
-  unresolved_variable_substitutions: A list of strings that should be treated as
-      unresolved variables during variable substitution. This is useful for
-      plists such as strings files for App Intents and Shortcuts, where the
-      values such as "${applicationName}" and "${queryString}" are resolved by a
-      different process at app execution time.
   variable_substitutions: A dictionary of string pairs to use for ${VAR}/$(VAR)
       substitutions when processing the plists. All keys/values will get
       support for the rfc1034identifier qualifier.
@@ -242,6 +238,11 @@ UNKNOWN_TASK_OPTIONS_KEYS_MSG = (
     'Target "%s" used %s that included unknown key(s): %s'
 )
 
+SKIP_SUBSTITUTIONS_WITH_SUBSTITUTIONS_MSG = (
+    'Target "%s" used "skip_substitutions" with substitutions. '
+    'This is not allowed.'
+)
+
 INVALID_SUBSTITUTATION_REFERENCE_MSG = (
     'In target "%s"; invalid variable reference "%s" while merging '
     'plists (key: "%s", value: "%s").'
@@ -364,8 +365,8 @@ _CONTROL_KEYS = frozenset([
     'output',
     'plists',
     'raw_substitutions',
+    'skip_substitutions',
     'target',
-    'unresolved_variable_substitutions',
     'variable_substitutions',
 ])
 
@@ -720,7 +721,6 @@ class SubstitutionEngine(object):
       target,
       key_name,
       value,
-      allowed_unresolved_substitutions,
       msg_additions=None,
   ):
     """Ensures there are no variable references left in value (recursively).
@@ -729,8 +729,6 @@ class SubstitutionEngine(object):
       target: The name of the target for which the plist is being built.
       key_name: The name of the key this value is part of.
       value: The value to check.
-      allowed_unresolved_substitutions: A list of variable substitutions that
-        are allowed to remain not resolved.
       msg_additions: Dictionary of variable names to custom strings to add to
         the error messages.
 
@@ -754,10 +752,6 @@ class SubstitutionEngine(object):
                 INVALID_SUBSTITUTATION_REFERENCE_MSG
                 % (target, m.group(0), key_name, value)
             )
-          if variable_name in allowed_unresolved_substitutions:
-            # If this substitution is deliberately allowed to be unresolved,
-            # then continue without raising an error.
-            return
           err_msg = UNKNOWN_SUBSTITUTATION_REFERENCE_MSG % (
               target,
               m.group(0),
@@ -1738,8 +1732,13 @@ class PlistTool(object):
             task.unknown_variable_message_additions()
         )
         tasks.append(task)
-
-    subs_engine = SubstitutionEngine(target, var_subs, raw_subs)
+    subs_engine = None
+    if not self._control.get('skip_substitutions'):
+      subs_engine = SubstitutionEngine(target, var_subs, raw_subs)
+    elif var_subs or raw_subs:
+      raise PlistToolError(
+          SKIP_SUBSTITUTIONS_WITH_SUBSTITUTIONS_MSG % target
+      )
     out_plist = {}
     for p in self._control.get('plists', []):
       plist = PlistIO.get_object(p, target)
@@ -1767,15 +1766,13 @@ class PlistTool(object):
     for t in tasks:
       t.update_plist(out_plist, subs_engine)
 
-    SubstitutionEngine.validate_no_variable_references(
-        target,
-        '',
-        out_plist,
-        allowed_unresolved_substitutions=self._control.get(
-            'unresolved_variable_substitutions', []
-        ),
-        msg_additions=unknown_var_msg_additions,
-    )
+    if subs_engine:
+      SubstitutionEngine.validate_no_variable_references(
+          target,
+          '',
+          out_plist,
+          msg_additions=unknown_var_msg_additions,
+      )
 
     if tasks:
       saved_copy = copy.deepcopy(out_plist)
@@ -1798,7 +1795,8 @@ class PlistTool(object):
       src: The dictionary whose values will be merged into dest.
       dest: The dictionary into which the values will be merged.
       target: The name of the target for which the plist is being built.
-      subs_engine: The SubstitutionEngine to use during the merge.
+      subs_engine: The SubstitutionEngine to use during the merge, or None if
+        no substitutions should be made.
       override_collisions: If True, collisions will be resolved by replacing the
         previous value with the new value. If False, an error will be raised if
         old and new values do not match.
@@ -1808,7 +1806,10 @@ class PlistTool(object):
           same key.
     """
     for key in src:
-      src_value = subs_engine.apply_substitutions(src[key])
+      if subs_engine:
+        src_value = subs_engine.apply_substitutions(src[key])
+      else:
+        src_value = src[key]
 
       if key in dest:
         dest_value = dest[key]

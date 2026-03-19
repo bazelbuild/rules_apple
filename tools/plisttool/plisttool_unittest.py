@@ -818,24 +818,43 @@ class PlistToolTest(unittest.TestCase):
             'Key[1]', 'foo.bar.$(PRODUCT_NAME:rfc1034identifier)'))):
       _plisttool_result({'plists': [plist3]})
 
-  def test_allowed_nonexistant_variable_substitution(self):
-    unresolved_variable_substitutions = ['applicationName', 'queryString']
-
+  def test_skip_substitutions(self):
     plist1 = {
-        'FooBraces': 'A-${queryString}-B'
+        'FooBraces': 'A-${queryString}-B',
+        'FooParens': '$(applicationName)',
     }
     self._assert_plisttool_result({
         'plists': [plist1],
-        'unresolved_variable_substitutions': unresolved_variable_substitutions,
+        'skip_substitutions': True,
     }, plist1)
 
-    plist2 = {
-        'FooParens': '$(applicationName)'
+  def test_skip_substitutions_with_substitutions_raises_error(self):
+    plist1 = {
+        'FooBraces': 'A-${queryString}-B',
+        'FooParens': '$(applicationName)',
     }
-    self._assert_plisttool_result({
-        'plists': [plist2],
-        'unresolved_variable_substitutions': unresolved_variable_substitutions,
-    }, plist2)
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.SKIP_SUBSTITUTIONS_WITH_SUBSTITUTIONS_MSG % (
+            _testing_target))):
+      _plisttool_result({
+          'plists': [plist1],
+          'skip_substitutions': True,
+          'variable_substitutions': {
+              'queryString': 'foo',
+          },
+      })
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.SKIP_SUBSTITUTIONS_WITH_SUBSTITUTIONS_MSG % (
+            _testing_target))):
+      _plisttool_result({
+          'plists': [plist1],
+          'skip_substitutions': True,
+          'raw_substitutions': {
+              'applicationName': 'bar',
+          },
+      })
 
   def test_variable_substitution_in_key(self):
     plist1 = {
