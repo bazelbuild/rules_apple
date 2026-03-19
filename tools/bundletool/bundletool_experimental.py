@@ -165,7 +165,7 @@ class Bundler(object):
       bundle_root: The bundle root directory into which the files should be
           added.
     """
-    if os.path.isdir(src) and not os.path.islink(src):
+    if os.path.isdir(src):
       for root, dirs, files in os.walk(src):
         relpath = os.path.relpath(root, src)
         symlink_dirs = []

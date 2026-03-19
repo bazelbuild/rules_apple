@@ -100,6 +100,17 @@ def macos_extension_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_xcodekit_dylib_linked_when_in_deps_and_frameworks_test".format(name),
+        build_type = "device",
+        binary_test_file = "$CONTENT_ROOT/MacOS/ext_with_xcodekit_in_deps_and_frameworks",
+        macho_load_commands_contain = [
+            "name @rpath/XcodeKit.framework/Versions/A/XcodeKit (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_xcodekit_in_deps_and_frameworks",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_capability_set_derived_bundle_id",

@@ -149,6 +149,37 @@ class ExperimentalBundlerTest(unittest.TestCase):
     with open(bundled_binary, "r", encoding="utf-8") as f:
       self.assertEqual("binary", f.read())
 
+  def test_bundle_merge_files_dereferences_top_level_symlink_directories(self):
+    source_root = os.path.join(self._scratch_dir, "bin", "EditorExtension.appex")
+    self._scratch_file(
+        "bin/EditorExtension.appex/Contents/MacOS/EditorExtension",
+        content="binary",
+        executable=True,
+    )
+    symlink_path = os.path.join(self._scratch_dir, "bin", "EditorExtension_link.appex")
+    os.symlink(source_root, symlink_path)
+
+    output = os.path.join(self._scratch_dir, "out")
+    bundletool_experimental.Bundler({
+        "bundle_merge_files": [{
+            "src": symlink_path,
+            "dest": "PlugIns/EditorExtension.appex",
+        }],
+        "output": output,
+    }).run()
+
+    bundled_binary = os.path.join(
+        output,
+        "PlugIns",
+        "EditorExtension.appex",
+        "Contents",
+        "MacOS",
+        "EditorExtension",
+    )
+    self.assertFalse(os.path.islink(bundled_binary))
+    with open(bundled_binary, "r", encoding="utf-8") as f:
+      self.assertEqual("binary", f.read())
+
 
 if __name__ == "__main__":
   unittest.main()

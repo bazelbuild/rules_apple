@@ -628,6 +628,13 @@ apple_developer_framework_import(
 )
 
 objc_library(
+    name = "xcodekit_user_lib",
+    srcs = ["XcodeKitUser.m"],
+    tags = common.fixture_tags,
+    deps = [":xcodekit_import"],
+)
+
+objc_library(
     name = "objc_library_with_sdk_dylib_and_framework",
     linkopts = ["-lc++"],
     sdk_dylibs = ["sqlite3"],
@@ -1271,6 +1278,20 @@ macos_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "ext_with_xcodekit_in_deps_and_frameworks",
+    bundle_id = "com.google.example.ext.with-xcodekit-in-deps-and-frameworks",
+    frameworks = [":xcodekit_import"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":xcodekit_user_lib",
     ],
 )
 
@@ -2810,6 +2831,20 @@ macos_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_with_xcodekit_in_deps_and_frameworks",
+    frameworks = [":xcodekit_import"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        ":xcodekit_user_lib",
     ],
 )
 

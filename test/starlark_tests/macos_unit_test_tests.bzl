@@ -178,6 +178,17 @@ def macos_unit_test_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_xcodekit_dylib_linked_when_in_deps_and_frameworks_test".format(name),
+        build_type = "device",
+        binary_test_file = "$BINARY",
+        macho_load_commands_contain = [
+            "name @rpath/XcodeKit.framework/Versions/A/XcodeKit (offset 24)",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_with_xcodekit_in_deps_and_frameworks",
+        tags = [name],
+    )
+
     analysis_runfiles_test(
         name = "{}_transitive_runfiles_included".format(name),
         tags = [name],
