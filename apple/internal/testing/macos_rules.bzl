@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@rules_cc//cc/common:cc_info.bzl",
-    "CcInfo",
-)
-load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleDeveloperFrameworkImportInfo",
@@ -170,7 +166,7 @@ desired Contents subdirectory.
             "frameworks": attr.label_list(
                 providers = [
                     [AppleBundleInfo, MacosFrameworkBundleInfo],
-                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                    [AppleDeveloperFrameworkImportInfo],
                 ],
                 doc = """
 A list of framework targets (see
@@ -253,7 +249,7 @@ desired Contents subdirectory.
             "frameworks": attr.label_list(
                 providers = [
                     [AppleBundleInfo, MacosFrameworkBundleInfo],
-                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                    [AppleDeveloperFrameworkImportInfo],
                 ],
                 doc = """
 A list of framework targets (see

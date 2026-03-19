@@ -2355,7 +2355,7 @@ desired Contents subdirectory.
                 aspects = [framework_provider_aspect],
                 providers = [
                     [AppleBundleInfo, MacosFrameworkBundleInfo],
-                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                    [AppleDeveloperFrameworkImportInfo],
                 ],
                 doc = """
 A list of framework targets (see
@@ -2506,7 +2506,7 @@ desired Contents subdirectory.
             "frameworks": attr.label_list(
                 providers = [
                     [AppleBundleInfo, MacosFrameworkBundleInfo],
-                    [CcInfo, AppleDeveloperFrameworkImportInfo],
+                    [AppleDeveloperFrameworkImportInfo],
                 ],
                 doc = """
 A list of framework targets (see
