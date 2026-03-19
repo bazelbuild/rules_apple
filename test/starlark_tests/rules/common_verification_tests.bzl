@@ -68,6 +68,7 @@ def archive_contents_test(
         macho_load_commands_contain = [],
         macho_load_commands_not_contain = [],
         assert_file_permissions = {},
+        assert_symlink_targets = {},
         **kwargs):
     """Macro for calling the apple_verification_test with archive_contents_test.sh.
 
@@ -127,6 +128,8 @@ def archive_contents_test(
         assert_file_permissions: Optional; key/value pairs to test file permissions.
             Keys are paths within the bundle, values are the expected numerical file permissions.
             See `assert_permissions_equal` to see supported file permissions types.
+        assert_symlink_targets: Optional; key/value pairs to test symlink targets.
+            Keys are paths within the bundle, values are the expected result of `readlink`.
         **kwargs: Other arguments are passed through to the apple_verification_test rule.
     """
     if any([plist_test_file, plist_test_values]) and not all([plist_test_file, plist_test_values]):
@@ -184,6 +187,7 @@ def archive_contents_test(
         text_test_file,
         binary_test_file,
         assert_file_permissions,
+        assert_symlink_targets,
     ]):
         fail("There are no tests for the archive")
 
@@ -192,12 +196,17 @@ def archive_contents_test(
         assert_file_permissions,
         separator = ":",
     )
+    assert_symlink_targets_list = _dict_to_space_separated_string_array(
+        assert_symlink_targets,
+        separator = ":",
+    )
 
     apple_verification_test(
         name = name,
         build_type = build_type,
         env = {
             "ASSERT_FILE_PERMISSIONS": assert_file_permissions_list,
+            "ASSERT_SYMLINK_TARGETS": assert_symlink_targets_list,
             "ASSET_CATALOG_CONTAINS": asset_catalog_test_contains,
             "ASSET_CATALOG_FILE": [asset_catalog_test_file],
             "ASSET_CATALOG_NOT_CONTAINS": asset_catalog_test_not_contains,

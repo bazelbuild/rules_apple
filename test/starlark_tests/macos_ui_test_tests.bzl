@@ -137,6 +137,30 @@ def macos_ui_test_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_xcodekit_framework_archive_layout_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/XcodeKit",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/Resources/version.plist",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/_CodeSignature/CodeResources",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Headers",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Modules",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/Headers",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/A/Modules",
+        ],
+        assert_symlink_targets = {
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Resources": "Versions/Current/Resources",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/Versions/Current": "A",
+            "$CONTENT_ROOT/Frameworks/XcodeKit.framework/XcodeKit": "Versions/Current/XcodeKit",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test_with_xcodekit_import",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test_with_base_bundle_id_derived_bundle_id",

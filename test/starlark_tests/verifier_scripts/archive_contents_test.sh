@@ -89,6 +89,11 @@ newline=$'\n'
 #      specifies a bundle file path, and value is the expected numerical file
 #      permissions bits. See apple_shell_testutils' assert_permissions_equal
 #      for supported formats.
+#
+#  Archive symlink tests:
+#  - ASSERT_SYMLINK_TARGETS: Array of "KEY:VALUE" formatted strings where key
+#      specifies a bundle file path, and value is the expected `readlink`
+#      target.
 
 
 something_tested=false
@@ -427,6 +432,29 @@ if [[ -n "${ASSERT_FILE_PERMISSIONS-}" ]]; then
 
     expanded_path=$(eval echo "$path")
     assert_permissions_equal "$expanded_path" "$expected_permissions"
+  done
+fi
+
+if [[ -n "${ASSERT_SYMLINK_TARGETS-}" ]]; then
+  for test_values in "${ASSERT_SYMLINK_TARGETS[@]}"
+  do
+    something_tested=true
+    IFS=':' read -r path expected_target <<< "$test_values"
+
+    expanded_path=$(eval echo "$path")
+    if [[ ! -e $expanded_path && ! -L $expanded_path ]]; then
+      fail "Archive did not contain symlink at \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
+    fi
+    if [[ ! -L $expanded_path ]]; then
+      fail "Expected \"$expanded_path\" to be a symlink"
+    fi
+
+    actual_target="$(readlink "$expanded_path")"
+    if [[ "$actual_target" != "$expected_target" ]]; then
+      fail "Expected symlink \"$expanded_path\" to target \"$expected_target\"" \
+        "actual target was \"$actual_target\""
+    fi
   done
 fi
 
