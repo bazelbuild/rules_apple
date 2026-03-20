@@ -169,10 +169,18 @@ import plistlib
 import re
 import subprocess
 import sys
+import xml
 
 
 # Format strings for errors that are raised, exposed here to the tests
 # can validate against them.
+
+UNABLE_TO_READ_PLIST_FILE_MSG = (
+    'Plist file is not valid XML: "%s"\n\n'
+    'File was processed by target: "%s"\n\n'
+    'Raised the following exception while parsing XML:\n%s\n\n'
+    'Plist XML input with UTF-8 compatible substitutions made:\n%s'
+)
 
 CHILD_BUNDLE_ID_MISMATCH_MSG = (
     'While processing target "%s"; the CFBundleIdentifier of the child target '
@@ -477,8 +485,28 @@ def plutil_path():
     raise PlistToolError('plutil is not available on this platform.')
 
 
-def plist_from_bytes(byte_content):
-  return plistlib.loads(byte_content)
+def plist_from_bytes(byte_content, file_path = '<input>', target = '<unknown>'):
+  """Returns the plist from the given bytes.
+
+  Args:
+    byte_content: The bytes to parse.
+    file_path: The path to the file to parse, used in error messages.
+    target: The target name of the plist, used in error messages.
+
+  Returns:
+    An object representing the plist from the given bytes.
+
+  Raises:
+    PlistToolError: If the bytes cannot be parsed as a plist.
+  """
+  try:
+    return plistlib.loads(byte_content)
+  except xml.parsers.expat.ExpatError as e:
+    # Log XML parsing errors with full context.
+    raise PlistToolError(
+        UNABLE_TO_READ_PLIST_FILE_MSG
+        % (file_path, target, e, byte_content.decode('utf-8', errors='ignore'))
+    ) from e
 
 
 def extract_variable_from_match(re_match_obj):
@@ -819,7 +847,7 @@ class PlistIO(object):
     return cls._read_plist(p, '<input>', target)
 
   @classmethod
-  def _read_plist(cls, plist_file, name, target):
+  def _read_plist(cls, plist_file, file_path, target):
     """Reads a plist file and returns its contents as a dictionary.
 
     This method wraps the readPlist method in plistlib by checking the format
@@ -828,7 +856,8 @@ class PlistIO(object):
 
     Args:
       plist_file: The file-like object containing the plist data.
-      name: Name to report the file-like object as if it fails xml conversion.
+      file_path: String representing the path to report the file-like object as
+        if it fails xml conversion.
       target: The name of the target for which the plist is being built.
 
     Returns:
@@ -857,10 +886,10 @@ class PlistIO(object):
       if plutil_process.returncode:
         raise PlistToolError(
             PLUTIL_CONVERSION_TO_XML_FAILED_MSG
-            % (target, plutil_process.returncode, name)
+            % (target, plutil_process.returncode, file_path)
         )
 
-    return plist_from_bytes(plist_contents)
+    return plist_from_bytes(plist_contents, file_path, target)
 
   @classmethod
   def write(cls, plist, path_or_file, binary=False):

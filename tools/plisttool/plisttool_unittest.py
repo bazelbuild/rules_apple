@@ -49,7 +49,7 @@ def _xml_plist(content):
          content + '\n' +
          '</dict>\n'
          '</plist>\n')
-  xml_bytes = xml.encode('utf8')
+  xml_bytes = xml.encode('utf-8')
   return io.BytesIO(xml_bytes)
 
 
@@ -454,6 +454,31 @@ class PlistToolTest(unittest.TestCase):
     plist1 = {'Foo': 'abc'}
     self._assert_plisttool_result({'individual_plist': plist1}, plist1)
 
+  def test_invalid_plist_xml_raises_actionable_error(self):
+    plist1 = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+              '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+              '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
+              '<plist version="1.0">\n'
+              '<array>\n'
+              '<strig>abc</string>\n'
+              '</array>\n'
+              '</plist>\n')
+    xml_bytes = plist1.encode('utf-8')
+    plist1 = io.BytesIO(xml_bytes)
+    output = io.BytesIO()
+    control = {
+        'individual_plist': plist1,
+        'output': output,
+        'target': _testing_target,
+    }
+    tool = plisttool.PlistTool(control)
+    with self.assertRaisesRegex(
+        plisttool.PlistToolError,
+        re.escape(plisttool.UNABLE_TO_READ_PLIST_FILE_MSG % (
+            '<input>', _testing_target, 'mismatched tag: line 5, column 12',
+            xml_bytes.decode('utf-8', errors='ignore')))):
+        tool.run()
+
   def test_individual_plist_as_array(self):
     xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
            '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
@@ -463,7 +488,7 @@ class PlistToolTest(unittest.TestCase):
            '<string>abc</string>\n'
            '</array>\n'
            '</plist>\n')
-    xml_bytes = xml.encode('utf8')
+    xml_bytes = xml.encode('utf-8')
     plist1 = io.BytesIO(xml_bytes)
     output = io.BytesIO()
     control = {
