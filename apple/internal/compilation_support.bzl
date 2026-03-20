@@ -512,10 +512,6 @@ def _register_configuration_specific_link_actions_with_objc_variables(
     )
 
     extensions = user_variable_extensions | {
-        "framework_paths": [],
-        "framework_names": [],
-        "weak_framework_names": [],
-        "library_names": [],
         "filelist": input_file_list.path,
         "linked_binary": binary.path,
         # artifacts to be passed to the linker with `-force_load`
