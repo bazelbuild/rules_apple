@@ -247,7 +247,6 @@ All requested architectures must be either device or simulator architectures."""
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     archive_contents_test(
@@ -263,7 +262,6 @@ All requested architectures must be either device or simulator architectures."""
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1290,7 +1288,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1303,7 +1300,6 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1318,7 +1314,6 @@ Apple enhanced security features were requested, but the build is missing the re
 """,
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1345,7 +1340,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1358,7 +1352,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1402,7 +1395,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1417,7 +1409,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1445,7 +1436,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1459,7 +1449,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1501,7 +1490,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1515,7 +1503,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1566,7 +1553,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1581,7 +1567,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1609,7 +1594,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1623,7 +1607,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1653,7 +1636,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1668,7 +1650,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 
@@ -1696,7 +1677,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
     apple_verification_test(
@@ -1710,7 +1690,6 @@ Apple enhanced security features were requested, but the build is missing the re
         },
         tags = [
             name,
-            # TODO: b/466364519 - Remove this tag once Xcode 26+ is the default Xcode.
         ],
     )
 

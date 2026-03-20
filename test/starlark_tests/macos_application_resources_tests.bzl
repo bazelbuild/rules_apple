@@ -45,8 +45,6 @@ def macos_application_resources_test_suite(name):
             "CFBundleIconName": "app_icon",
         },
         tags = [
-            "manual",
-            "notap",
             name,
         ],
     )
