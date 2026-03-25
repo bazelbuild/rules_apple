@@ -373,6 +373,9 @@ Please file a bug against the Apple BUILD rules with repro steps.
             output = output_file.path,
             code_signing_commands = codesigning_command or "",
             post_processor = post_processor_path,
+            use_concurrent_apple_bundler = (
+                platform_prerequisites.build_settings.use_concurrent_apple_bundler
+            ),
         )
         actions.write(
             output = control_file,

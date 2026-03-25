@@ -54,6 +54,14 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
+    "use_concurrent_apple_bundler": struct(
+        doc = """
+Enables the concurrent Apple bundler for Apple bundle rules. This only applies to Apple bundle
+rules that are building with the Swift version of `bundletool`, which amounts to all tree artifact
+outputs and (non-default) Swift bundletool archives.
+""",
+        default = False,
+    ),
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).

@@ -386,6 +386,9 @@ def _generate_bundle_archive_action(
         bundle_merge_files = control_merge_files,
         bundle_merge_zips = control_merge_zips,
         output = output_archive.path,
+        use_concurrent_apple_bundler = (
+            apple_xplat_toolchain_info.build_settings.use_concurrent_apple_bundler
+        ),
         **additional_control_options
     )
     actions.write(
