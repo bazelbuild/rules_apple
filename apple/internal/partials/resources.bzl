@@ -370,6 +370,7 @@ def _merge_mergeable_strings(
                 binary = True,
                 output = merged_strings_file.path,
                 plists = [f.path for f in mergeable_files],
+                skip_substitutions = True,
                 target = str(rule_label),
             )
             plisttool_control_file = intermediates.file(
