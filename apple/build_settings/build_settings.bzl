@@ -60,7 +60,7 @@ Enables the concurrent Apple bundler for Apple bundle rules. This only applies t
 rules that are building with the Swift version of `bundletool`, which amounts to all tree artifact
 outputs and (non-default) Swift bundletool archives.
 """,
-        default = False,
+        default = True,
     ),
     "use_tree_artifacts_outputs": struct(
         doc = """
