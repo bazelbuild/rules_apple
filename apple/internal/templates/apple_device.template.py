@@ -30,6 +30,8 @@
 # 1. Installs and launches the application on a device corresponding to `device_identifier`.
 # 2. Displays the application's output on the console
 
+import re
+
 import collections.abc
 import contextlib
 import json
@@ -189,8 +191,11 @@ def os_version_number_to_int(version: str) -> int:
     An integer in the form 0xAABBCC, where AA is the major version, BB is
     the minor version, and CC is the micro version.
   """
-  # Pad the version to major.minor.micro.
-  version_components = (version.split(".") + ["0"] * 3)[:3]
+  # Strip non-numeric suffixes (e.g. Rapid Security Response "(a)") from each
+  # component, then pad to major.minor.micro.
+  version_components = (
+      [re.sub(r"[^0-9].*", "", c) or "0" for c in version.split(".")] + ["0"] * 3
+  )[:3]
   result = 0
   for component in version_components:
     result = (result << 8) | int(component)
