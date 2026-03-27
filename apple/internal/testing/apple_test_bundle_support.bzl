@@ -483,7 +483,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             debug_dependencies = debug_dependencies,
             dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
