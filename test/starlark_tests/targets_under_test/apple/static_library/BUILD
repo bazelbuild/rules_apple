@@ -34,15 +34,20 @@ apple_static_library(
 
 apple_static_library(
     name = "example_library_arm_sim_support",
-    minimum_os_version = common.min_os_ios.arm_sim_support,
+    minimum_os_version = common.min_os_ios.baseline,
     platform_type = "ios",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [":main_lib"],
 )
 
 apple_static_library(
     name = "example_watch_library_arm_sim_support",
-    minimum_os_version = common.min_os_watchos.arm_sim_support,
+    minimum_os_version = common.min_os_watchos.baseline,
     platform_type = "watchos",
     tags = common.fixture_tags,
     deps = [":main_lib"],
@@ -70,6 +75,35 @@ apple_static_library(
     name = "example_vision_library",
     minimum_os_version = common.min_os_visionos.baseline,
     platform_type = "visionos",
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
+)
+
+apple_static_library(
+    name = "example_arm64e_capable_ios_library",
+    minimum_os_version = common.min_os_ios.baseline,
+    platform_type = "ios",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
+)
+
+apple_static_library(
+    name = "example_ios_library_with_rule_level_disabled_features",
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    platform_type = "ios",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
     tags = common.fixture_tags,
     deps = [":main_lib"],
 )

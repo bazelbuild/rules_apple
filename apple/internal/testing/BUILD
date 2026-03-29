@@ -36,6 +36,7 @@ bzl_library(
         "//apple/internal:providers",
         "//apple/internal:resources",
         "//apple/internal:rule_support",
+        "//apple/internal:secure_features_support",
         "//apple/internal:swift_support",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
@@ -62,7 +63,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:features_support",
         "//apple/internal:providers",
+        "//apple/internal:rule_attrs",
+        "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
     ],
 )

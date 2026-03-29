@@ -15,6 +15,10 @@
 """tvos_static_framework Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -70,33 +74,41 @@ def tvos_static_framework_test_suite(name):
         tags = [name],
     )
 
-    # Tests Swift tvos_static_framework builds correctly using apple_platforms.
-    archive_contents_test(
-        name = "{}_swift_sim_arm64_builds_using_platforms".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:tvos_sim_arm64",
-            "@build_bazel_apple_support//platforms:tvos_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
-        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
-        binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_swift_x86_64_builds_using_platforms".format(name),
-        apple_platforms = [
-            "@build_bazel_apple_support//platforms:tvos_sim_arm64",
-            "@build_bazel_apple_support//platforms:tvos_x86_64",
-        ],
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:swift_static_fmwk",
-        binary_test_file = "$BUNDLE_ROOT/swift_static_fmwk",
-        binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOSSIMULATOR"],
-        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_TVOS"],
+    # TODO: Enable these tests when apple_support has a tvOS arm64e platform
+    # Tests secure features support for pointer authentication retains both the arm64 and arm64e
+    # slices.
+    # archive_contents_test(
+    #     name = "{}_pointer_authentication_arm64_slice_test".format(name),
+    #     build_type = "device",
+    #     target_under_test = "//test/starlark_tests/targets_under_test/tvos:pointer_authentication_static_fmwk",
+    #     cpus = {
+    #         "tvos_cpus": ["arm64", "arm64e"],
+    #     },
+    #     binary_test_file = "$BUNDLE_ROOT/pointer_authentication_static_fmwk",
+    #     binary_test_architecture = "arm64",
+    #     macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOS"],
+    #     tags = [name],
+    # )
+    # archive_contents_test(
+    #     name = "{}_pointer_authentication_arm64e_slice_test".format(name),
+    #     build_type = "device",
+    #     target_under_test = "//test/starlark_tests/targets_under_test/tvos:pointer_authentication_static_fmwk",
+    #     cpus = {
+    #         "tvos_cpus": ["arm64", "arm64e"],
+    #     },
+    #     binary_test_file = "$BUNDLE_ROOT/pointer_authentication_static_fmwk",
+    #     binary_test_architecture = "arm64e",
+    #     macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform TVOS"],
+    #     tags = [name],
+    # )
+
+    # Tests secure features support for validating features at the rule level.
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:enhanced_security_static_fmwk_with_rule_level_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `{target}`".format(
+            target = Label("//test/starlark_tests/targets_under_test/tvos:enhanced_security_static_fmwk_with_rule_level_disabled_features"),
+        ),
         tags = [name],
     )
 

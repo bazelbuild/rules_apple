@@ -23,6 +23,14 @@ load(
     "cc_common",
 )
 load(
+    "//apple/internal:fragment_support.bzl",
+    "fragment_support",
+)
+load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -31,27 +39,13 @@ visibility([
     "//apple/...",
 ])
 
-def _build_feature_configuration(common_variables):
-    ctx = common_variables.ctx
-
-    enabled_features = []
-    enabled_features.extend(ctx.features)
-    enabled_features.extend(common_variables.extra_enabled_features)
-
-    disabled_features = []
-    disabled_features.extend(ctx.disabled_features)
-    disabled_features.extend(common_variables.extra_disabled_features)
-    disabled_features.append("parse_headers")
-
-    return cc_common.configure_features(
-        ctx = common_variables.ctx,
-        cc_toolchain = common_variables.toolchain,
+def _build_feature_configuration(*, cc_configured_features, cc_toolchain):
+    return cc_configured_features.configure_features(
+        cc_toolchain = cc_toolchain,
         language = "objc",
-        requested_features = enabled_features,
-        unsupported_features = disabled_features,
     )
 
-def _build_fully_linked_variable_extensions(archive, libs):
+def _build_fully_linked_variable_extensions(*, archive, libs):
     extensions = {}
     extensions["fully_linked_archive_path"] = archive.path
     extensions["objc_library_exec_paths"] = [lib.path for lib in libs]
@@ -77,6 +71,52 @@ def _get_library_for_linking(library_to_link):
     else:
         return library_to_link.dynamic_library
 
+def _build_avoid_library_set(avoid_dep_linking_contexts):
+    avoid_library_set = dict()
+    for linking_context in avoid_dep_linking_contexts:
+        for linker_input in linking_context.linker_inputs.to_list():
+            for library_to_link in linker_input.libraries:
+                library_artifact = _get_static_library_for_linking(library_to_link)
+                if library_artifact:
+                    avoid_library_set[library_artifact.short_path] = True
+    return avoid_library_set
+
+def _subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_contexts):
+    """Subtracts the libraries in avoid_dep_linking_contexts from linking_contexts.
+
+    Args:
+      owner: The label of the target currently being analyzed.
+      linking_contexts: An iterable of CcLinkingContext objects.
+      avoid_dep_linking_contexts: An iterable of CcLinkingContext objects.
+
+    Returns:
+      A CcLinkingContext object.
+    """
+    libraries = []
+    user_link_flags = []
+    additional_inputs = []
+    linkstamps = []
+    avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
+    for linking_context in linking_contexts:
+        for linker_input in linking_context.linker_inputs.to_list():
+            for library_to_link in linker_input.libraries:
+                library_artifact = _get_library_for_linking(library_to_link)
+                if library_artifact.short_path not in avoid_library_set:
+                    libraries.append(library_to_link)
+            user_link_flags.extend(linker_input.user_link_flags)
+            additional_inputs.extend(linker_input.additional_inputs)
+            linkstamps.extend(linker_input.linkstamps)
+    linker_input = cc_common.create_linker_input(
+        owner = owner,
+        libraries = depset(libraries, order = "topological"),
+        user_link_flags = user_link_flags,
+        additional_inputs = depset(additional_inputs),
+        linkstamps = depset(linkstamps),
+    )
+    return cc_common.create_linking_context(
+        linker_inputs = depset([linker_input]),
+    )
+
 def _libraries_from_linking_context(linking_context):
     libraries = []
     for linker_input in linking_context.linker_inputs.to_list():
@@ -89,32 +129,40 @@ def _get_libraries_for_linking(libraries_to_link):
         libraries.append(_get_library_for_linking(library_to_link))
     return libraries
 
-def _register_fully_link_action(name, common_variables, cc_linking_context):
-    ctx = common_variables.ctx
-    feature_configuration = _build_feature_configuration(common_variables)
+def _register_fully_link_action(
+        *,
+        cc_configured_features,
+        cc_linking_context,
+        common_variables,
+        name):
+    feature_configuration = _build_feature_configuration(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain = common_variables.toolchain,
+    )
 
     libraries_to_link = _libraries_from_linking_context(cc_linking_context).to_list()
     libraries = _get_libraries_for_linking(libraries_to_link)
 
+    ctx = common_variables.ctx
     output_archive = ctx.actions.declare_file(name + ".a")
     extensions = _build_fully_linked_variable_extensions(
-        output_archive,
-        libraries,
+        archive = output_archive,
+        libs = libraries,
     )
 
     return cc_common.link(
-        name = name,
         actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = common_variables.toolchain,
-        language = "objc",
         additional_inputs = libraries,
+        cc_toolchain = common_variables.toolchain,
+        feature_configuration = feature_configuration,
+        language = "objc",
+        name = name,
         output_type = "archive",
         variables_extension = extensions,
     )
 
 # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
-def _register_obj_filelist_action(ctx, obj_files, build_config, split_transition_key):
+def _register_obj_filelist_action(*, apple_platform_info, ctx, obj_files, split_transition_key):
     """
     Returns a File containing the given set of object files.
 
@@ -126,7 +174,7 @@ def _register_obj_filelist_action(ctx, obj_files, build_config, split_transition
             ctx.label.name + "-intermediates-" + split_transition_key,
             ctx.label.name + "-linker.objlist",
         ),
-        build_config.bin_dir,
+        apple_platform_info.target_build_config.bin_dir,
     )
 
     args = ctx.actions.args()
@@ -137,12 +185,15 @@ def _register_obj_filelist_action(ctx, obj_files, build_config, split_transition
     return obj_list
 
 def _register_binary_strip_action(
+        *,
         ctx,
-        name,
+        apple_platform_info,
         binary,
+        bundle_name,
+        cc_toolchain,
+        extra_link_args,
         feature_configuration,
-        build_config,
-        extra_link_args):
+        name):
     """
     Registers an action that uses the 'strip' tool to perform binary stripping on the given binary.
     """
@@ -162,10 +213,13 @@ def _register_binary_strip_action(
         "-bundle" in extra_link_args or link_bundle or "-kext" in extra_link_args):
         strip_safe = True
 
-    # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
-    stripped_binary = ctx.actions.declare_shareable_artifact(
-        paths.join(ctx.label.package, name),
-        build_config.bin_dir,
+    stripped_binary = outputs.main_binary(
+        actions = ctx.actions,
+        bundle_name = bundle_name,
+        cc_toolchain = cc_toolchain,
+        cpp_fragment = ctx.fragments.cpp,
+        label = ctx.label,
+        unstripped = False,
     )
     args = ctx.actions.args()
     args.add("strip")
@@ -175,18 +229,18 @@ def _register_binary_strip_action(
     args.add(binary)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     apple_common_platform = platform_support.apple_common_platform_from_platform_info(
-        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
+        apple_platform_info = apple_platform_info,
     )
 
     ctx.actions.run(
-        mnemonic = "ObjcBinarySymbolStrip",
-        executable = "/usr/bin/xcrun",
         arguments = [args],
-        inputs = [binary],
-        outputs = [stripped_binary],
-        execution_requirements = xcode_config.execution_info(),
         env = apple_common.apple_host_system_env(xcode_config) |
               apple_common.target_apple_env(xcode_config, apple_common_platform),
+        executable = "/usr/bin/xcrun",
+        execution_requirements = xcode_config.execution_info(),
+        inputs = [binary],
+        mnemonic = "ObjcBinarySymbolStrip",
+        outputs = [stripped_binary],
     )
     return stripped_binary
 
@@ -196,15 +250,15 @@ def _create_deduped_linkopts_list(linker_inputs):
     final_linkopts = []
     for linker_input in linker_inputs.to_list():
         (_, new_flags, seen_flags) = _dedup_link_flags(
-            linker_input.user_link_flags,
-            seen_flags,
+            flags = linker_input.user_link_flags,
+            seen_flags = seen_flags,
         )
         final_linkopts.extend(new_flags)
 
     return final_linkopts
 
 # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
-def _linkstamp_map(ctx, linkstamps, output, build_config):
+def _linkstamp_map(*, apple_platform_info, ctx, linkstamps, output):
     # create linkstamps_map - mapping from linkstamps to object files
     linkstamps_map = {}
 
@@ -217,7 +271,7 @@ def _linkstamp_map(ctx, linkstamps, output, build_config):
         )
         stamp_output_file = ctx.actions.declare_shareable_artifact(
             stamp_output_path,
-            build_config.bin_dir,
+            apple_platform_info.target_build_config.bin_dir,
         )
         linkstamps_map[linkstamp_file] = stamp_output_file
     return linkstamps_map
@@ -239,21 +293,21 @@ def _classify_libraries(libraries_to_link):
     }
     return always_link_libraries.keys(), as_needed_libraries.keys()
 
-def _emit_builtin_objc_strip_action(ctx):
-    return ctx.fragments.cpp.objc_should_strip_binary
-
 def _register_configuration_specific_link_actions(
-        name,
-        common_variables,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
+        *,
         additional_outputs,
-        extra_link_inputs,
+        apple_platform_info,
         attr_linkopts,
-        split_transition_key):
+        bundle_name,
+        common_variables,
+        cc_configured_features,
+        cc_linking_context,
+        extra_link_args,
+        extra_link_inputs,
+        name,
+        split_transition_key,
+        stamp,
+        user_variable_extensions):
     """
     Registers actions to link a single-platform/architecture Apple binary in a specific config.
 
@@ -263,26 +317,27 @@ def _register_configuration_specific_link_actions(
     Returns:
         (File) the linked binary
     """
-    ctx = common_variables.ctx
-    feature_configuration = _build_feature_configuration(common_variables)
+    feature_configuration = _build_feature_configuration(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain = common_variables.toolchain,
+    )
 
-    # When compilation_mode=opt and objc_enable_binary_stripping are specified, the unstripped
-    # binary containing debug symbols is generated by the linker, which also needs the debug
-    # symbols for dead-code removal. The binary is also used to generate dSYM bundle if
-    # --apple_generate_dsym is specified. A symbol strip action is later registered to strip
-    # the symbol table from the unstripped binary.
-    if _emit_builtin_objc_strip_action(ctx):
-        # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
-        binary = ctx.actions.declare_shareable_artifact(
-            paths.join(ctx.label.package, name + "_unstripped"),
-            build_config.bin_dir,
-        )
+    ctx = common_variables.ctx
+
+    # TODO: Remove when we drop Bazel 8
+    if hasattr(ctx.fragments.objc, "builtin_objc_strip_action"):
+        unstripped = ctx.fragments.objc.builtin_objc_strip_action
     else:
-        # TODO(b/331163513): Use intermediates.file() instead of declare_shareable_artifact().
-        binary = ctx.actions.declare_shareable_artifact(
-            paths.join(ctx.label.package, name),
-            build_config.bin_dir,
-        )
+        unstripped = False
+
+    binary = outputs.main_binary(
+        actions = ctx.actions,
+        bundle_name = bundle_name,
+        cc_toolchain = common_variables.toolchain,
+        cpp_fragment = ctx.fragments.cpp,
+        label = ctx.label,
+        unstripped = unstripped,
+    )
 
     # TODO: Delete feature check and else branch when we drop Bazel 8 support (see f4a3fa40)
     if cc_common.is_enabled(
@@ -290,49 +345,52 @@ def _register_configuration_specific_link_actions(
         feature_name = "use_cpp_variables_for_objc_executable",
     ):
         return _register_configuration_specific_link_actions_with_cpp_variables(
-            name,
-            binary,
-            common_variables,
-            feature_configuration,
-            cc_linking_context,
-            build_config,
-            extra_link_args,
-            stamp,
-            user_variable_extensions,
-            additional_outputs,
-            extra_link_inputs,
-            attr_linkopts,
+            additional_outputs = additional_outputs,
+            apple_platform_info = apple_platform_info,
+            attr_linkopts = attr_linkopts,
+            binary = binary,
+            bundle_name = bundle_name,
+            cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            extra_link_args = extra_link_args,
+            extra_link_inputs = extra_link_inputs,
+            feature_configuration = feature_configuration,
+            name = name,
+            stamp = stamp,
+            user_variable_extensions = user_variable_extensions,
         )
     else:
         return _register_configuration_specific_link_actions_with_objc_variables(
-            name,
-            binary,
-            common_variables,
-            feature_configuration,
-            cc_linking_context,
-            build_config,
-            extra_link_args,
-            stamp,
-            user_variable_extensions,
-            additional_outputs,
-            extra_link_inputs,
-            attr_linkopts,
-            split_transition_key,
+            additional_outputs = additional_outputs,
+            apple_platform_info = apple_platform_info,
+            attr_linkopts = attr_linkopts,
+            binary = binary,
+            cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            extra_link_args = extra_link_args,
+            extra_link_inputs = extra_link_inputs,
+            feature_configuration = feature_configuration,
+            name = name,
+            split_transition_key = split_transition_key,
+            stamp = stamp,
+            user_variable_extensions = user_variable_extensions,
         )
 
 def _register_configuration_specific_link_actions_with_cpp_variables(
-        name,
-        binary,
-        common_variables,
-        feature_configuration,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
+        *,
         additional_outputs,
+        apple_platform_info,
+        attr_linkopts,
+        binary,
+        bundle_name,
+        cc_linking_context,
+        common_variables,
+        extra_link_args,
         extra_link_inputs,
-        attr_linkopts):
+        feature_configuration,
+        name,
+        stamp,
+        user_variable_extensions):
     ctx = common_variables.ctx
 
     prefixed_attr_linkopts = [
@@ -342,48 +400,55 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
 
     seen_flags = {}
     (_, user_link_flags, seen_flags) = _dedup_link_flags(
-        extra_link_args + prefixed_attr_linkopts,
-        seen_flags,
+        flags = extra_link_args + prefixed_attr_linkopts,
+        seen_flags = seen_flags,
     )
-    (cc_linking_context, _) = _create_deduped_linkopts_linking_context(
-        ctx.label,
-        cc_linking_context,
-        seen_flags,
+    cc_linking_context = _create_deduped_linkopts_linking_context(
+        cc_linking_context = cc_linking_context,
+        owner = ctx.label,
+        seen_flags = seen_flags,
     )
 
     cc_common.link(
-        name = name,
         actions = ctx.actions,
         additional_inputs = (
             extra_link_inputs +
             getattr(ctx.files, "additional_linker_inputs", [])
         ),
         additional_outputs = additional_outputs,
-        build_config = build_config,
+        build_config = apple_platform_info.target_build_config,
         cc_toolchain = common_variables.toolchain,
         feature_configuration = feature_configuration,
         language = "objc",
         linking_contexts = [cc_linking_context],
         main_output = binary,
+        name = name,
         output_type = "executable",
         stamp = stamp,
         user_link_flags = user_link_flags,
         variables_extension = user_variable_extensions,
     )
 
-    if _emit_builtin_objc_strip_action(ctx):
+    # TODO: Remove hasattr check when we drop Bazel 8
+    if hasattr(ctx.fragments.objc, "builtin_objc_strip_action") and \
+       fragment_support.is_objc_strip_action_enabled(
+           cpp_fragment = ctx.fragments.cpp,
+       ) and \
+       ctx.fragments.objc.builtin_objc_strip_action:
         return _register_binary_strip_action(
-            ctx,
-            name,
-            binary,
-            feature_configuration,
-            build_config,
-            extra_link_args,
+            ctx = ctx,
+            apple_platform_info = apple_platform_info,
+            binary = binary,
+            bundle_name = bundle_name,
+            cc_toolchain = common_variables.toolchain,
+            extra_link_args = extra_link_args,
+            feature_configuration = feature_configuration,
+            name = name,
         )
     else:
         return binary
 
-def _dedup_link_flags(flags, seen_flags = {}):
+def _dedup_link_flags(*, flags, seen_flags = {}):
     new_flags = []
     previous_arg = None
     for arg in flags:
@@ -422,51 +487,42 @@ def _dedup_link_flags(flags, seen_flags = {}):
 
     return (same, new_flags, seen_flags)
 
-def _create_deduped_linkopts_linking_context(owner, cc_linking_context, seen_flags):
+def _create_deduped_linkopts_linking_context(*, cc_linking_context, owner, seen_flags):
     linker_inputs = []
     for linker_input in cc_linking_context.linker_inputs.to_list():
         (same, new_flags, seen_flags) = _dedup_link_flags(
-            linker_input.user_link_flags,
-            seen_flags,
+            flags = linker_input.user_link_flags,
+            seen_flags = seen_flags,
         )
         if same:
             linker_inputs.append(linker_input)
         else:
             linker_inputs.append(cc_common.create_linker_input(
-                owner = linker_input.owner,
-                libraries = depset(linker_input.libraries),
-                user_link_flags = new_flags,
                 additional_inputs = depset(linker_input.additional_inputs),
+                libraries = depset(linker_input.libraries),
+                owner = linker_input.owner,
+                user_link_flags = new_flags,
+                linkstamps = depset(linker_input.linkstamps),
             ))
 
-    # Why does linker_input not expose linkstamp?  This needs to be fixed.
-    linker_inputs.append(cc_common.create_linker_input(
-        owner = owner,
-        linkstamps = cc_linking_context.linkstamps(),
-    ))
-
-    return (
-        cc_common.create_linking_context(
-            linker_inputs = depset(linker_inputs),
-        ),
-        seen_flags,
-    )
+    return cc_common.create_linking_context(linker_inputs = depset(linker_inputs))
 
 # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
 def _register_configuration_specific_link_actions_with_objc_variables(
-        name,
-        binary,
-        common_variables,
-        feature_configuration,
-        cc_linking_context,
-        build_config,
-        extra_link_args,
-        stamp,
-        user_variable_extensions,
+        *,
         additional_outputs,
-        extra_link_inputs,
+        apple_platform_info,
         attr_linkopts,
-        split_transition_key):
+        binary,
+        cc_linking_context,
+        common_variables,
+        extra_link_args,
+        extra_link_inputs,
+        feature_configuration,
+        name,
+        split_transition_key,
+        stamp,
+        user_variable_extensions):
     ctx = common_variables.ctx
 
     # We need to split input libraries into those that require -force_load and those that don't.
@@ -499,16 +555,16 @@ def _register_configuration_specific_link_actions_with_objc_variables(
             for linkstamp in linker_input.linkstamps
         ])
     linkstamp_map = _linkstamp_map(
-        ctx,
-        linkstamps,
-        binary,
-        build_config,
+        apple_platform_info = apple_platform_info,
+        ctx = ctx,
+        linkstamps = linkstamps,
+        output = binary,
     )
     input_file_list = _register_obj_filelist_action(
-        ctx,
-        as_needed_libraries + static_runtimes.to_list() + linkstamp_map.values(),
-        build_config,
-        split_transition_key,
+        apple_platform_info = apple_platform_info,
+        ctx = ctx,
+        obj_files = as_needed_libraries + static_runtimes.to_list() + linkstamp_map.values(),
+        split_transition_key = split_transition_key,
     )
 
     extensions = user_variable_extensions | {
@@ -547,7 +603,7 @@ def _register_configuration_specific_link_actions_with_objc_variables(
             )],
         ))],
         output_type = "executable",
-        build_config = build_config,
+        build_config = apple_platform_info.target_build_config,
         user_link_flags = extra_link_args,
         stamp = stamp,
         variables_extension = extensions,
@@ -555,22 +611,12 @@ def _register_configuration_specific_link_actions_with_objc_variables(
         main_output = binary,
     )
 
-    if _emit_builtin_objc_strip_action(ctx):
-        return _register_binary_strip_action(
-            ctx,
-            name,
-            binary,
-            feature_configuration,
-            build_config,
-            extra_link_args,
-        )
-    else:
-        return binary
+    return binary
 
 compilation_support = struct(
-    # TODO(b/331163513): Move apple_common.compliation_support.build_common_variables here, too.
     get_library_for_linking = _get_library_for_linking,
     get_static_library_for_linking = _get_static_library_for_linking,
     register_fully_link_action = _register_fully_link_action,
     register_configuration_specific_link_actions = _register_configuration_specific_link_actions,
+    subtract_linking_contexts = _subtract_linking_contexts,
 )

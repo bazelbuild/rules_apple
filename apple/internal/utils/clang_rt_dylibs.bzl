@@ -16,7 +16,7 @@
 
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 
-def _should_package_clang_runtime(*, features):
+def _should_package_clang_runtime(*, cc_configured_features):
     """Returns whether the Clang runtime should be bundled."""
 
     # List of crosstool sanitizer features that require packaging some clang
@@ -28,7 +28,7 @@ def _should_package_clang_runtime(*, features):
         "include_clang_rt": True,
     }
 
-    for feature in features:
+    for feature in cc_configured_features.enabled_features:
         if feature in features_requiring_clang_runtime:
             return True
     return False

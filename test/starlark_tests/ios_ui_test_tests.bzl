@@ -20,10 +20,12 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_dsymutil_bundle_files_test",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_dsymutil_bundle_test",
     "apple_dsym_bundle_info_test",
 )
 load(
@@ -93,11 +95,28 @@ def ios_ui_test_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_dsymutil_bundle_files_test(
+        name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM",
+            "ui_test.xctest.dSYM",
+        ],
+        tags = [name],
+    )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test",
         expected_direct_dsyms = ["dSYMs/ui_test.xctest.dSYM"],
         expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/ui_test.xctest.dSYM"],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_dsymutil_bundle_test(
+        name = "{}_apple_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test",
+        expected_direct_dsyms = ["ui_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["app.app.dSYM", "ui_test.xctest.dSYM"],
         tags = [name],
     )
 
@@ -170,6 +189,47 @@ def ios_ui_test_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.ui-test-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_test_bundle_min_os_different_from_test_host_error".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_different_min_os",
+        expected_error = "ERROR: The test at //test/starlark_tests/targets_under_test/ios:ui_test_different_min_os does not support the exact same minimum_os_version as its test host at //test/starlark_tests/targets_under_test/ios:app. These must match for correctness.",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64e_device_archs_with_pointer_authentication_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_ui_test",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_pointer_authentication_arm64_device_archs_with_pointer_authentication_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_ui_test",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_secure_features_disabled_at_rule_level_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_ui_test_with_rule_level_disabled_features",
+        expected_error = "Attempted to enable the secure feature `trivial_auto_var_init` for the target at `//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_ui_test_with_rule_level_disabled_features.__internal__.__test_bundle`",
         tags = [name],
     )
 

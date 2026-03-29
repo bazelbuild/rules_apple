@@ -73,10 +73,16 @@ bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [
+        "//apple/internal:apple_toolchains",
+        "//apple/internal:features_support",
         "//apple/internal:linking_support",
+        "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
+        "@build_bazel_apple_support//lib:apple_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -84,12 +90,14 @@ bzl_library(
     name = "apple_static_library",
     srcs = ["apple_static_library.bzl"],
     deps = [
-        ":providers",
+        "//apple/internal:features_support",
         "//apple/internal:linking_support",
         "//apple/internal:providers",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
+        "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -119,6 +127,7 @@ bzl_library(
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -276,6 +285,7 @@ bzl_library(
     name = "watchos",
     srcs = ["watchos.bzl"],
     deps = [
+        "//apple/internal:required_minimum_os",
         "//apple/internal:watchos_rules",
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",

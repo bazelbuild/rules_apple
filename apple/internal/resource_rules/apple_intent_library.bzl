@@ -61,10 +61,10 @@ def _apple_intent_library_impl(ctx):
         objc_output_hdrs = ctx.actions.declare_directory("{}.hdrs.h".format(ctx.attr.name))
         objc_public_header = ctx.actions.declare_file("{}.h".format(ctx.attr.header_name))
 
-    features = features_support.compute_enabled_features(
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+    cc_configured_features = features_support.cc_configured_features(
+        ctx = ctx,
     )
+    features = cc_configured_features.enabled_features
 
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     platform_prerequisites = platform_support.platform_prerequisites(

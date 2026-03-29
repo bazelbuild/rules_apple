@@ -140,6 +140,20 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_minimal_no_provisioning_profile",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 xcarchive(
     name = "app_minimal.xcarchive",
     bundle = ":app_minimal",
@@ -1120,7 +1134,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -1154,7 +1168,7 @@ ios_app_clip(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -1171,7 +1185,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -1187,7 +1201,7 @@ ios_app_clip(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -2727,6 +2741,11 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":dynamic_xcframework_depending_lib",
@@ -2825,6 +2844,10 @@ func swift_with_framework_function() {
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
+    expected_secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
@@ -3058,6 +3081,11 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    # TODO: enable secure_features in existing tests when CI has Xcode 26+
+    # secure_features = [
+    #     "apple.enable_enhanced_security",
+    #     "pointer_authentication",
+    # ],
     tags = common.fixture_tags,
     deps = [
         ":static_xcframework_depending_objc_lib",
@@ -3222,6 +3250,10 @@ func static_xcframework_depending_swift_lib_function_function() {
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
+    expected_secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
     features = ["-swift.layering_check"],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
@@ -3640,6 +3672,75 @@ ios_ui_test(
     ],
 )
 
+ios_ui_test(
+    name = "ui_test_different_min_os",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.test_mismatch_high_threshold,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "simple_pointer_authentication_ui_test",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "simple_enhanced_security_ui_test_with_rule_level_disabled_features",
+    families = [
+        "iphone",
+    ],
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 xctrunner(
     name = "ui_test_xctrunner_app",
     testonly = True,
@@ -3781,7 +3882,7 @@ ios_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.arm_sim_support,
+    minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     test_host = ":app",
     deps = [
@@ -3891,7 +3992,7 @@ ios_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.arm_sim_support,
+    minimum_os_version = common.min_os_ios.baseline,
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
         "//test/starlark_tests/resources:resource_bundle",
@@ -3900,6 +4001,79 @@ ios_unit_test(
     test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_swift_depending_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_different_min_os",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.test_mismatch_high_threshold,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "simple_pointer_authentication_unit_test",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "simple_enhanced_security_unit_test_with_rule_level_disabled_features",
+    families = [
+        "iphone",
+    ],
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
 
@@ -4785,7 +4959,7 @@ ios_app_clip(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -4804,7 +4978,7 @@ ios_app_clip(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.appclip_support,
+    minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -5641,6 +5815,433 @@ ios_extension(
     ],
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Swift concurrency
+
+# ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+ios_application(
+    name = "swift_app_requiring_concurrency_libs",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_concurrency_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Swift span support
+
+ios_application(
+    name = "swift_app_using_span_pre_26",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_span_main_lib",
+    ],
+)
+
+ios_application(
+    name = "swift_app_using_span_post_26",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.span_in_os,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_span_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing unexpected binary resources in transitive dependencies.
+
+objc_library(
+    name = "objc_lib_with_binary_resources",
+    data = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:objc_common_lib",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+)
+
+ios_application(
+    name = "app_with_binary_resources_in_transitive_deps",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_binary_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for secure_features testing.
+
+ios_application(
+    name = "simple_enhanced_security_app",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_enhanced_security_app_without_required_opt_in",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    families = ["iphone"],
+    frameworks = [":fmwk_min_os_baseline"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_and_extension_with_fmwk",
+    bundle_id = "com.google.example",
+    extensions = [":simple_pointer_authentication_extension"],
+    families = ["iphone"],
+    frameworks = [":fmwk_min_os_baseline"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "simple_pointer_authentication_extension",
+    bundle_id = "com.google.example.ext",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_app_clip",
+    app_clips = [":app_clip"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_app_clip(
+    name = "app_clip_with_pointer_authentication",
+    bundle_id = "com.google.example.clip",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
+    app_clips = [":app_clip_with_pointer_authentication"],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_watchos_app",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    watch_application = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
+    bundle_id = "com.google",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    watch_application = "//test/starlark_tests/targets_under_test/watchos:simple_pointer_authentication_app",
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_static_framework(
+    name = "enhanced_security_static_fmwk_with_rule_level_disabled_features",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    features = [
+        "-apple.enable_enhanced_security",
+        "-trivial_auto_var_init",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_static_framework(
+    name = "pointer_authentication_static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_dynamic_xcframework_and_no_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    srcs = [":dynamic_xcframework_depending_lib_file"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_dynamic_xcframework_and_mismatched_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_static_xcframework_and_no_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    srcs = [":objc_with_static_xcframework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "secure_features_app_with_imported_static_xcframework_and_mismatched_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_depending_objc_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

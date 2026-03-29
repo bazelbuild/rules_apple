@@ -40,14 +40,16 @@ def _clang_rt_dylibs_partial_impl(
         actions,
         apple_mac_toolchain_info,
         binary_artifact,
-        features,
+        cc_configured_features,
         label_name,
         output_discriminator,
         platform_prerequisites,
         dylibs):
     """Implementation for the Clang runtime dylibs processing partial."""
     bundle_zips = []
-    if clang_rt_dylibs.should_package_clang_runtime(features = features):
+    if clang_rt_dylibs.should_package_clang_runtime(
+        cc_configured_features = cc_configured_features,
+    ):
         clang_rt_zip = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -85,8 +87,8 @@ def clang_rt_dylibs_partial(
         actions,
         apple_mac_toolchain_info,
         binary_artifact,
+        cc_configured_features,
         dylibs,
-        features,
         label_name,
         output_discriminator = None,
         platform_prerequisites):
@@ -96,8 +98,9 @@ def clang_rt_dylibs_partial(
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       binary_artifact: The main binary artifact for this target.
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       dylibs: List of dylibs (usually from a toolchain).
-      features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -113,7 +116,7 @@ def clang_rt_dylibs_partial(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary_artifact = binary_artifact,
-        features = features,
+        cc_configured_features = cc_configured_features,
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
