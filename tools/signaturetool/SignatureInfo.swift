@@ -29,7 +29,8 @@ public struct SignatureInfo: Codable, Equatable {
   /// An array of certificates representing the certificate chain of the signing certificate.
   public let certificates: [Data]?
 
-  /// Mandatory key that is always set to "false" in Xcode 15.3.
+  /// Mandatory key that is always set to "false" in Xcode 26.4, even though the presence of a valid
+  /// timestamp should be indicated by "true" per TN3161.
   public let isSecureTimestamp: Bool = false
 
   /// A dictionary of additional, optional values supplied by the build graph.
@@ -81,7 +82,7 @@ public struct SignatureInfo: Codable, Equatable {
   }
 
   private enum CodingKeys: String, CodingKey {
-    // common_typos_disable - The misspelled key "bundleIndentifier" is what it is for Xcode 15.3.
+    // common_typos_disable - The misspelled key "bundleIndentifier" is what it is for Xcode 26.4.
     case bundleIdentifier = "bundleIndentifier"
     // common_typos_enable
     case cdhashes, certificates, isSecureTimestamp,

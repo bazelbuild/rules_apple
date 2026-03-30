@@ -69,23 +69,16 @@ There must be one root Info.plist in the framework bundle at \
         tags = [name],
     )
 
-    # Verify that if codesigned_xcframework_files is set and the input is an unsigned XCFramework,
-    # the signatures plist is written out with appropriate values.
+    # Verify that if xcframework_files is set and the input is an unsigned XCFramework, the
+    # signatures plist is not written out.
     archive_contents_test(
         name = "{}_with_unsigned_xcframework_bundles_signatures_xml_plist".format(name),
         build_type = "device",
         cpus = {"ios_multi_cpus": ["arm64", "arm64e"]},
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_library",
-        contains = [
+        not_contains = [
             "$ARCHIVE_ROOT/Signatures/generated_static_xcframework_with_headers.xcframework-ios.signature",
         ],
-        plist_test_file = "$ARCHIVE_ROOT/Signatures/generated_static_xcframework_with_headers.xcframework-ios.signature",
-        plist_test_values = {
-            "isSecureTimestamp": "false",
-            "metadata:library": "generated_static_xcframework_with_headers.a",
-            "metadata:platform": "ios",
-            "signed": "false",
-        },
         tags = [name],
     )
 

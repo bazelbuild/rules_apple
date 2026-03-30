@@ -2220,7 +2220,6 @@ func swift_with_framework_function() {
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
-    codesigned_xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
     expected_secure_features = [
         "pointer_authentication",
     ],
@@ -2626,7 +2625,6 @@ func static_xcframework_depending_swift_lib_function_function() {
 
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
-    codesigned_xcframework_imports = [":generated_static_xcframework_with_headers"],
     expected_secure_features = [
         "pointer_authentication",
     ],

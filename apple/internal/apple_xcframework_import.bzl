@@ -108,7 +108,6 @@ def _anticipated_framework_root_info_plist_path(
 def _classify_xcframework_imports(
         *,
         apple_xplat_toolchain_info,
-        config_vars,
         label_name,
         target_triplet,
         xcframework_imports):
@@ -116,7 +115,6 @@ def _classify_xcframework_imports(
 
     Args:
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-        config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
         label_name: Name of the target being built.
         target_triplet: Effective target triplet from CcToolchainInfo provider.
         xcframework_imports: List of File for an imported Apple XCFramework.
@@ -124,6 +122,7 @@ def _classify_xcframework_imports(
         A struct containing xcframework import files information:
             - bundle_name: The XCFramework bundle name infered by filepaths.
             - bundle_type: The XCFramework bundle type (frameworks or libraries).
+            - codesignature_files: The files found in the _CodeSignature directory, if any.
             - files: The XCFramework import files.
             - files_by_category: Classified XCFramework import files.
             - info_plist: The XCFramework bundle Info.plist file.
@@ -149,6 +148,7 @@ feature/build setting.
     info_plist = None
     bundle_name = None
 
+    codesignature_files = []
     framework_files = []
     xcframework_files = []
     for file in xcframework_imports:
@@ -160,8 +160,11 @@ feature/build setting.
             info_plist = file
             continue
 
-        if ".framework/" in file.short_path:
+        file_short_path = file.short_path
+        if ".framework/" in file_short_path:
             framework_files.append(file)
+        elif file_short_path.rfind(".xcframework/_CodeSignature/") != -1:
+            codesignature_files.append(file)
         else:
             xcframework_files.append(file)
 
@@ -191,6 +194,7 @@ Please verify that an Info.plist was supplied at the root of the XCFramework bun
     return struct(
         bundle_name = bundle_name,
         bundle_type = bundle_type,
+        codesignature_files = codesignature_files,
         files = files,
         files_by_category = files_by_category,
         info_plist = info_plist,
@@ -510,37 +514,46 @@ def _collect_signature_from_xcframework(
         apple_fragment,
         apple_mac_toolchain_info,
         binary,
-        codesigned_xcframework_imports,
+        codesignature_files,
         label,
         mac_exec_group,
         platform_type,
+        xcframework_info_plist,
         xcode_config):
-    """Given codesigned_xcframework_imports produces a signatures XML plist for the archive.
+    """Given the XCFramework as Files, produces a signatures XML plist for the archive if possible.
 
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         binary: The singular binary File to help us identify the library to report in metadata.
-        codesigned_xcframework_imports: A List of Files representing the complete XCFramework to
-            generate the signature XML plist from, representing its code signed status.
+        codesignature_files: A List of Files representing the code signing information for the
+            XCFramework.
         label: Label of the target being built.
         mac_exec_group: The exec_group associated with apple_mac_toolchain.
         platform_type: Platform to report in metadata.
+        xcframework_info_plist: The root Info.plist file of the XCFramework.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
         A File representing a generated signatures XML plist if one is necessary or None.
     """
-    if not codesigned_xcframework_imports:
+
+    # Only focus on the files with code signing information to avoid overwhelming the action to
+    # generate the signatures XML plist with too many large inputs.
+    if not codesignature_files:
         return None
+
+    # The root Info.plist file and the contents of _CodeSignature are required to get a static code
+    # object to extract code signing information from Security framework, so we need all of those
+    # files as inputs.
+    codesigned_xcframework_imports = codesignature_files + [xcframework_info_plist]
 
     args = actions.args()
     args.add("collect-signatures")
 
-    xcframework_path = bundle_paths.farthest_parent(binary.path, "xcframework")
+    xcframework_path = bundle_paths.farthest_parent(xcframework_info_plist.path, "xcframework")
     args.add("--signatures-input-path", xcframework_path)
 
-    inputs = codesigned_xcframework_imports
     signature_output = intermediates.file(
         actions = actions,
         file_name = "{xcframework_basename}-{platform_type}.signature".format(
@@ -588,7 +601,7 @@ invocation appear to be valid.
         arguments = [args],
         executable = signature_tool,
         exec_group = mac_exec_group,
-        inputs = inputs,
+        inputs = codesigned_xcframework_imports,
         mnemonic = "CollectXCFrameworkSignature",
         outputs = [signature_output],
         xcode_config = xcode_config,
@@ -705,7 +718,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         ctx = ctx,
     )
     cc_toolchain = find_cpp_toolchain(ctx)
-    codesigned_xcframework_imports = ctx.files.codesigned_xcframework_imports
     deps = ctx.attr.deps
     label = ctx.label
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
@@ -722,7 +734,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     xcframework = _classify_xcframework_imports(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        config_vars = ctx.var,
         label_name = label.name,
         target_triplet = target_triplet,
         xcframework_imports = xcframework_imports,
@@ -752,10 +763,11 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary = xcframework_library.binary,
-        codesigned_xcframework_imports = codesigned_xcframework_imports,
+        codesignature_files = xcframework.codesignature_files,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_type = target_triplet.os,
+        xcframework_info_plist = xcframework.info_plist,
         xcode_config = xcode_config,
     )
 
@@ -830,7 +842,6 @@ def _apple_static_xcframework_import_impl(ctx):
         ctx = ctx,
     )
     cc_toolchain = find_cpp_toolchain(ctx)
-    codesigned_xcframework_imports = ctx.files.codesigned_xcframework_imports
     deps = ctx.attr.deps
     has_swift = ctx.attr.has_swift
     label = ctx.label
@@ -849,7 +860,6 @@ def _apple_static_xcframework_import_impl(ctx):
 
     xcframework = _classify_xcframework_imports(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        config_vars = ctx.var,
         label_name = label.name,
         target_triplet = target_triplet,
         xcframework_imports = xcframework_imports,
@@ -880,10 +890,11 @@ def _apple_static_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary = xcframework_library.binary,
-        codesigned_xcframework_imports = codesigned_xcframework_imports,
+        codesignature_files = xcframework.codesignature_files,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_type = target_triplet.os,
+        xcframework_info_plist = xcframework.info_plist,
         xcode_config = xcode_config,
     )
 
@@ -985,14 +996,6 @@ through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
     attrs = rule_attrs.common_tool_attrs() | {
-        "codesigned_xcframework_imports": attr.label_list(
-            allow_files = True,
-            doc = """
-Optional List of code signed Files under an .xcframework directory which will be used to generate a
-"Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
-code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
-""",
-        ),
         "deps": attr.label_list(
             doc = """
 List of targets that are dependencies of the target being built, which will provide headers and be
@@ -1051,14 +1054,6 @@ object files for the XCFramework bundle, even if some contain no symbols referen
 This is useful if your code isn't explicitly called by code in the binary; for example, if you rely
 on runtime checks for protocol conformances added in extensions in the library but do not directly
 reference any other symbols in the object file that adds that conformance.
-""",
-        ),
-        "codesigned_xcframework_imports": attr.label_list(
-            allow_files = True,
-            doc = """
-Optional List of code signed Files under an .xcframework directory which will be used to generate a
-"Signatures" file. The entire contents of the .xcframework must be provided here to get accurate
-code signing information, which will be relayed to App Store Connect via the xcarchive or IPA.
 """,
         ),
         "deps": attr.label_list(
