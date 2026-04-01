@@ -141,6 +141,13 @@ _DEFAULT_MACOS_BUNDLE_LOCATIONS = _describe_bundle_locations(
     contents_relative_resources = "Resources",
 )
 
+# Kernel extensions on iOS are not bundled in the same way as other Apple artifacts.
+_DEFAULT_IOS_KERNEL_EXTENSION_BUNDLE_LOCATIONS = _describe_bundle_locations(
+    bundle_relative_contents = "",
+    contents_relative_binary = "",
+    contents_relative_resources = "",
+)
+
 # Descriptors for all possible platform/product type combinations.
 # TODO(b/248317958): Migrate rpaths to args on the linking_support methods.
 _RULE_TYPE_DESCRIPTORS = {
@@ -221,6 +228,16 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Xcode also adds this path when building frameworks.
                 "@loader_path/Frameworks",
             ],
+        ),
+        # ios_kernel_extension
+        apple_product_type.kernel_extension: _describe_rule_type(
+            allowed_device_families = ["iphone", "ipad"],
+            binary_infoplist = False,
+            bundle_extension = ".kext",
+            bundle_locations = _DEFAULT_IOS_KERNEL_EXTENSION_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.kernel_extension,
+            product_type = apple_product_type.kernel_extension,
+            requires_signing_for_device = False,
         ),
         # ios_imessage_application
         apple_product_type.messages_application: _describe_rule_type(

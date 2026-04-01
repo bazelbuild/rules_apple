@@ -24,6 +24,7 @@ load(
     "ios_framework",
     "ios_imessage_application",
     "ios_imessage_extension",
+    "ios_kernel_extension",
     "ios_static_framework",
     "ios_sticker_pack_extension",
     "ios_ui_test",
@@ -5642,5 +5643,20 @@ ios_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_kernel_extension(
+    name = "kext",
+    bundle_id = "com.google.kext",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )

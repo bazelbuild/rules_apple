@@ -28,7 +28,7 @@ cc_library(
     copts = [
         "-mkernel",
         "-fapple-kext",
-        "-isystem__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks/Kernel.framework/Headers",
+        "-isystem__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Kernel.framework/Headers",
     ],
     tags = common.fixture_tags,
     alwayslink = True,

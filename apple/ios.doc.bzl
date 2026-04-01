@@ -26,6 +26,7 @@ load(
     _ios_framework = "ios_framework",
     _ios_imessage_application = "ios_imessage_application",
     _ios_imessage_extension = "ios_imessage_extension",
+    _ios_kernel_extension = "ios_kernel_extension",
     _ios_static_framework = "ios_static_framework",
     _ios_sticker_pack_extension = "ios_sticker_pack_extension",
 )
@@ -57,6 +58,7 @@ ios_extension = _ios_extension
 ios_framework = _ios_framework
 ios_imessage_application = _ios_imessage_application
 ios_imessage_extension = _ios_imessage_extension
+ios_kernel_extension = _ios_kernel_extension
 ios_static_framework = _ios_static_framework
 ios_sticker_pack_extension = _ios_sticker_pack_extension
 ios_test_runner = _ios_test_runner
