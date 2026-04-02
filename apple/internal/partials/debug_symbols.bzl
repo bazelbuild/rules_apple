@@ -492,6 +492,7 @@ def _debug_symbols_partial_impl(
         debug_discriminator = None,
         dsym_outputs = {},
         dsym_info_plist_template,
+        executable_name = None,
         label_name,
         linkmaps = {},
         output_discriminator = None,
@@ -516,7 +517,7 @@ def _debug_symbols_partial_impl(
         if AppleFrameworkImportInfo in x
     ]
 
-    debug_output_filename = bundle_name
+    debug_output_filename = executable_name or bundle_name
     if debug_discriminator:
         debug_output_filename += "_" + debug_discriminator
 
@@ -611,6 +612,7 @@ def debug_symbols_partial(
         debug_discriminator = None,
         dsym_outputs = {},
         dsym_info_plist_template,
+        executable_name = None,
         label_name,
         linkmaps = {},
         output_discriminator = None,
@@ -639,6 +641,7 @@ def debug_symbols_partial(
         dsym_outputs: A mapping of architectures to Files representing dsym outputs for each
             architecture.
         dsym_info_plist_template: File referencing a plist template for dSYM bundles.
+        executable_name: The name of the output DWARF executable, or `None` to use bundle_name.
         label_name: The name of the target.
         linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
         output_discriminator: A string to differentiate between different target intermediate files
@@ -660,6 +663,7 @@ def debug_symbols_partial(
         debug_discriminator = debug_discriminator,
         dsym_outputs = dsym_outputs,
         dsym_info_plist_template = dsym_info_plist_template,
+        executable_name = executable_name,
         label_name = label_name,
         linkmaps = linkmaps,
         output_discriminator = output_discriminator,
