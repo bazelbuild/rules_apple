@@ -10,6 +10,9 @@ py_library(
 py_test(
     name = "plisttool_unittest",
     srcs = ["plisttool_unittest.py"],
+    env = {
+        "SWIFT_DETERMINISTIC_HASHING": "1",  # Required for stable binary1 plutil output.
+    },
     strict_deps = False,
     deps = [
         ":plisttool_lib",

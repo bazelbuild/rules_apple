@@ -87,6 +87,9 @@ def plisttool_action(
     else:
         actions.run(
             arguments = [control_file.path],
+            env = {
+                "SWIFT_DETERMINISTIC_HASHING": "1",  # Required for stable binary1 plutil output.
+            },
             exec_group = xplat_exec_group,
             executable = apple_xplat_toolchain_info.plisttool,
             inputs = inputs + [control_file],
