@@ -480,8 +480,6 @@ def _ios_application_impl(ctx):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         runner_template = ctx.file._runner_template,
-        simulator_device = ctx.fragments.objc.ios_simulator_device,
-        simulator_version = ctx.fragments.objc.ios_simulator_version,
     )
 
     archive = outputs.archive(
@@ -796,8 +794,6 @@ def _ios_app_clip_impl(ctx):
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         runner_template = ctx.file._runner_template,
-        simulator_device = ctx.fragments.objc.ios_simulator_device,
-        simulator_version = ctx.fragments.objc.ios_simulator_version,
     )
 
     archive = outputs.archive(
