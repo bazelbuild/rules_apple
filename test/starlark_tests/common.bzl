@@ -38,6 +38,7 @@ _min_os_ios = struct(
     icon_bundle_required = "26.0",
     oldest_supported = "11.0",
     nplus1 = "13.0",
+    span_in_os = "26.0",
     stable_swift_abi = "12.2",
     widget_configuration_intents_support = "16.0",
 )
