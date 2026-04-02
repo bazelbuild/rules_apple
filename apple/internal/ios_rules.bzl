@@ -769,7 +769,7 @@ def _ios_app_clip_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = embeddable_targets + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_outputs,
+            dsym_outputs = debug_outputs.dsym_outputs,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
