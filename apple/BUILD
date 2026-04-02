@@ -73,11 +73,11 @@ bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [
+        "//apple/internal:apple_toolchains",
         "//apple/internal:linking_support",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
-        "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

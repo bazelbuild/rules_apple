@@ -275,8 +275,8 @@ def _register_configuration_specific_link_actions(
     ctx = common_variables.ctx
     feature_configuration = _build_feature_configuration(common_variables)
 
-    # TODO: Remove when we drop Bazel 8
-    if bazel_features.cc.objc_fragment_has_builtin_objc_strip_action:
+    # TODO: Remove hasattr check when we drop Bazel 8
+    if hasattr(ctx.fragments.objc, "builtin_objc_strip_action"):
         unstripped = ctx.fragments.objc.builtin_objc_strip_action
     else:
         unstripped = False
@@ -377,8 +377,8 @@ def _register_configuration_specific_link_actions_with_cpp_variables(
         variables_extension = user_variable_extensions,
     )
 
-    # TODO: Remove bazel_features check when we drop Baze 8
-    if bazel_features.cc.objc_fragment_has_builtin_objc_strip_action and \
+    # TODO: Remove hasattr check when we drop Bazel 8
+    if hasattr(ctx.fragments.objc, "builtin_objc_strip_action") and \
        fragment_support.is_objc_strip_action_enabled(
            cpp_fragment = ctx.fragments.cpp,
        ) and \
