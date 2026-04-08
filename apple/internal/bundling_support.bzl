@@ -320,7 +320,6 @@ def _generate_bundle_archive_action(
         output_discriminator,
         progress_message,
         label_name,
-        test_output_zip_crc32 = True,
         xplat_exec_group):
     """Generates an action that creates a archive for a bundle rule output.
 
@@ -346,9 +345,6 @@ def _generate_bundle_archive_action(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       progress_message: A String. The progress message to use for the action.
-      test_output_zip_crc32: A boolean. Whether to perform an extra validation pass on the output
-          archive to ensure that all uncompressed files within in match the CRC32 checksums in the
-          archive file (PKZIP validation).
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
     force_python_bundletool = False
@@ -376,19 +372,13 @@ def _generate_bundle_archive_action(
             additional_control_options["enable_zip64_support"] = True
     else:
         executable = apple_xplat_toolchain_info.bundletool_swift
-        if max_cumulative_uncompressed_size:
-            additional_control_options["max_cumulative_uncompressed_size"] = (
-                max_cumulative_uncompressed_size
-            )
-        additional_control_options["test_output_zip_crc32"] = test_output_zip_crc32
+        # NOTE: "enable_zip64_support" and "max_cumulative_uncompressed_size" are currently not
+        # supported by the Swift bundletool.
 
     control = struct(
         bundle_merge_files = control_merge_files,
         bundle_merge_zips = control_merge_zips,
         output = output_archive.path,
-        use_concurrent_apple_bundler = (
-            apple_xplat_toolchain_info.build_settings.use_concurrent_apple_bundler
-        ),
         **additional_control_options
     )
     actions.write(

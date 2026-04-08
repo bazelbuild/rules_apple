@@ -1151,9 +1151,6 @@ def _create_xcframework_bundle(
             bundle_merge_files = final_bundle_merge_files,
             bundle_merge_zips = framework_archive_merge_zips,
             output = output_archive.path,
-            use_concurrent_apple_bundler = (
-                apple_xplat_toolchain_info.build_settings.use_concurrent_apple_bundler
-            ),
         )
         actions.write(
             output = bundletool_control_file,
