@@ -113,9 +113,9 @@ def _archive_multi_arch_static_library(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
         linking_outputs = compilation_support.register_fully_link_action(
-            name = name,
-            common_variables = common_variables,
             cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            name = name,
         )
 
         output = {
@@ -145,14 +145,13 @@ def _archive_multi_arch_static_library(
 def _link_multi_arch_binary(
         *,
         ctx,
-        avoid_deps = [],
+        avoid_deps,
         cc_toolchains,
-        extra_linkopts = [],
-        extra_link_inputs = [],
-        extra_requested_features = [],
-        extra_disabled_features = [],
-        stamp = -1,
-        variables_extension = {}):
+        extra_linkopts,
+        extra_link_inputs,
+        extra_requested_features,
+        extra_disabled_features,
+        stamp):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
 
     This method comprises a bulk of the logic of the Starlark `apple_binary`
@@ -182,8 +181,6 @@ def _link_multi_arch_binary(
             If -1 (the default), then the behavior is determined by the --[no]stamp
             flag. This should be set to 0 when generating the executable output for
             test rules.
-        variables_extension: A dictionary of user-defined variables to be added to the
-            toolchain configuration when create link command line.
 
     Returns:
         A `struct` which contains the following fields:
@@ -277,8 +274,6 @@ def _link_multi_arch_binary(
             avoid_dep_linking_contexts = avoid_cc_linking_contexts,
         )
 
-        child_config = child_toolchain[ApplePlatformInfo].target_build_config
-
         additional_outputs = []
         extensions = {}
 
@@ -312,18 +307,18 @@ def _link_multi_arch_binary(
 
         name = ctx.label.name + "_bin"
         executable = compilation_support.register_configuration_specific_link_actions(
-            name = name,
-            common_variables = common_variables,
-            cc_linking_context = cc_linking_context,
-            build_config = child_config,
-            extra_link_args = extra_linkopts,
-            stamp = stamp,
-            user_variable_extensions = variables_extension | extensions,
             additional_outputs = additional_outputs,
-            extra_link_inputs = extra_link_inputs,
+            apple_platform_info = platform_info,
             attr_linkopts = attr_linkopts,
+            cc_linking_context = cc_linking_context,
+            common_variables = common_variables,
+            extra_link_args = extra_linkopts,
+            extra_link_inputs = extra_link_inputs,
+            name = name,
             # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
             split_transition_key = split_transition_key,
+            stamp = stamp,
+            user_variable_extensions = extensions,
         )
 
         output = {
@@ -660,7 +655,6 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
 
 linking_support = struct(
     debug_outputs_by_architecture = _debug_outputs_by_architecture,
-    link_multi_arch_binary = _link_multi_arch_binary,
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_archive_action = _register_static_library_archive_action,

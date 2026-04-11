@@ -1,4 +1,4 @@
-// Copyright 2024 The Bazel Authors. All rights reserved.
+// Copyright 2025 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AppIntents
 
-struct ExtraIntent: AppIntent {
-  static var title: LocalizedStringResource = "Extra Intent"
-  static var description = IntentDescription("Additional app intent.")
-
-  func perform() async throws -> some ProvidesDialog {
-    return .result(dialog: "This is an extra intent")
-  }
+@main
+struct App {
+    static func main() {
+      // Many back-deployed functions are `@_alwaysEmitIntoClient` so referencing them won't
+      // necessarily require the dylib to be linked. Type metadata, on the other hand, will always
+      // require the dylib to be linked.
+      print(Span<Int>.self)
+    }
 }

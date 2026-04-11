@@ -34,7 +34,6 @@ def generate_app_intents_metadata_bundle(
         constvalues_files,
         intents_module_names,
         label,
-        dependency_metadata_bundles,
         platform_prerequisites,
         source_files,
         target_triples,
@@ -50,8 +49,6 @@ def generate_app_intents_metadata_bundle(
         intents_module_names: List of Strings with the module names corresponding to the modules
             found which have intents compiled.
         label: Label for the current target (`ctx.label`).
-        dependency_metadata_bundles: List of Metadata.appintents bundles of dependency modules,
-            only works on Xcode 26+ toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
         source_files: List of Swift source files implementing the AppIntents protocol.
         target_triples: List of Apple target triples from `CcToolchainInfo` providers.
@@ -69,21 +66,6 @@ def generate_app_intents_metadata_bundle(
         output_discriminator = None,
         dir_name = "Metadata.appintents",
     )
-
-    static_metadata_file_list = None
-    if dependency_metadata_bundles:
-        static_metadata_file_list = intermediates.file(
-            actions = actions,
-            target_name = label.name,
-            output_discriminator = None,
-            file_name = "{}.DependencyStaticMetadataFileList".format(label.name),
-        )
-
-        static_metadata_file_list_content = "\n".join([
-            "{}{}".format(f.path, "/extract.actionsdata")
-            for f in dependency_metadata_bundles
-        ]) + "\n"
-        actions.write(output = static_metadata_file_list, content = static_metadata_file_list_content)
 
     args = actions.args()
     args.add("/usr/bin/xcrun")
@@ -115,11 +97,6 @@ Could not find a module name for app_intents. One is required for App Intents me
         before_each = "--source-files",
     )
     transitive_inputs = [depset(source_files)]
-    if dependency_metadata_bundles:
-        transitive_inputs.append(depset(dependency_metadata_bundles))
-    if static_metadata_file_list:
-        args.add("--static-metadata-file-list", static_metadata_file_list.path)
-        transitive_inputs.append(depset([static_metadata_file_list]))
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     platform_type_string = str(platform_prerequisites.platform_type)
     platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]

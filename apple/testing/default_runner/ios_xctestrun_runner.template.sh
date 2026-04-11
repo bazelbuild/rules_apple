@@ -404,7 +404,7 @@ if [[ "$build_for_device" == false ]]; then
     exit 1
   fi
 
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" "%(create_simulator_action_binary)s")"
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0
@@ -662,7 +662,7 @@ if [[
   rm -r "$result_bundle_path"
 fi
 
-SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(clean_up_simulator_action_binary)s"
+SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(clean_up_simulator_action_binary)s"
 
 if [[ "$post_action_determines_exit_code" == true ]]; then
   if [[ "$post_action_exit_code" -ne 0 ]]; then
