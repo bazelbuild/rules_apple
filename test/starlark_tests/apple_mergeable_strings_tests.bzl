@@ -32,19 +32,67 @@ def apple_mergeable_strings_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
-    # Tests that mergeable strings are merged into a single strings file.
+    # Tests that mergeable strings are merged into a single strings file per table.
     archive_contents_test(
         name = "{}_ios_merged_strings_test".format(name),
         build_type = "device",
         contains = [
             "$BUNDLE_ROOT/en.lproj/m1.strings",
             "$BUNDLE_ROOT/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/fr.lproj/m2.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
         tags = [name],
     )
 
-    # Tests that mergeable strings are merged into a single strings file for macOS with the slightly
+    # Keys from the m1 table.
+    m1_keys = [
+        "formalGreetings",
+        "greetings",
+    ]
+
+    # Keys from the m2 table.
+    m2_keys = [
+        "casualGreetings",
+    ]
+
+    # Tests that keys from the same table (m1) are merged into a single strings file.
+    archive_contents_test(
+        name = "{}_ios_merged_strings_m1_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/fr.lproj/m2.strings",
+        ],
+        text_test_file = "$BUNDLE_ROOT/en.lproj/m1.strings",
+        text_test_values = m1_keys,
+        text_file_not_contains = m2_keys,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        tags = [name],
+    )
+
+    # Tests that keys from another table (m2) are present in the final project but not merged with
+    # the m1 table.
+    archive_contents_test(
+        name = "{}_ios_merged_strings_m2_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/fr.lproj/m2.strings",
+        ],
+        text_test_file = "$BUNDLE_ROOT/en.lproj/m2.strings",
+        text_test_values = m2_keys,
+        text_file_not_contains = m1_keys,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        tags = [name],
+    )
+
+    # Tests that mergeable strings are merged into a single table file for macOS with the slightly
     # different bundle structure.
     archive_contents_test(
         name = "{}_macos_merged_strings_test".format(name),
@@ -52,6 +100,8 @@ def apple_mergeable_strings_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/Contents/Resources/en.lproj/m1.strings",
             "$BUNDLE_ROOT/Contents/Resources/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/Contents/Resources/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/Contents/Resources/fr.lproj/m2.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_mergeable_strings",
         tags = [name],

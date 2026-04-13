@@ -359,61 +359,77 @@ def _merge_mergeable_strings(
         # Every bundle should have a default locale. This will almost always be "en.lproj"
         if not default_lproj in lproj_dirs:
             fail("No default locale '%s' found in: '%s'. Please define a strings file for '%s' in '%s'" % (default_lproj, owning_dir, default_lproj, owning_dir))
-        merged_strings_file_name = lproj_dirs[default_lproj][0].basename.removesuffix(".mergeable.strings") + ".strings"
         merged_strings_dir = root_merged_strings_dir + "/" + owning_dir
-        merged_strings_files = []
+
+        # Map of table name to list of merged files for that table. Used for validation at the end.
+        merged_table_files = {}
+
         for lproj_dir_name, mergeable_files in lproj_dirs.items():
             merged_lproj_dir = merged_strings_dir + "/" + lproj_dir_name
-            merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + merged_strings_file_name)
-            merged_strings_files.append(merged_strings_file)
-            plisttool_control = struct(
-                binary = True,
-                output = merged_strings_file.path,
-                plists = [f.path for f in mergeable_files],
-                skip_substitutions = True,
-                target = str(rule_label),
-            )
-            plisttool_control_file = intermediates.file(
-                actions = actions,
-                target_name = rule_label.name,
-                output_discriminator = output_discriminator,
-                file_name = merged_lproj_dir + "/" + "mergeable_strings_control.json",
-            )
-            actions.write(
-                output = plisttool_control_file,
-                content = json.encode(plisttool_control),
-            )
-            resource_actions.plisttool_action(
-                actions = actions,
-                apple_mac_toolchain_info = apple_mac_toolchain_info,
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                control_file = plisttool_control_file,
-                inputs = mergeable_files,
-                mac_exec_group = mac_exec_group,
-                mnemonic = "MergeStrings",
-                outputs = [merged_strings_file],
-                platform_prerequisites = platform_prerequisites,
-                xplat_exec_group = xplat_exec_group,
-            )
-            if owning_dir:
-                parent_dir = owning_dir + "/" + lproj_dir_name
-            else:
-                parent_dir = lproj_dir_name
 
-            merged.append((processor.location.resource, parent_dir, depset([merged_strings_file])))
+            # Group the mergeable strings files by table name.
+            # ["a/baz.mergeable.strings", "a/qux.mergeable.strings", "b/baz.mergeable.strings"] ->
+            # {"baz.strings": ["a/baz.mergeable.strings", "b/baz.mergeable.strings"],
+            #  "qux.strings": ["a/qux.mergeable.strings"]}
+            mergeable_tables = {}
+            for mergeable_file in mergeable_files:
+                table_name = mergeable_file.basename.removesuffix(".mergeable.strings") + ".strings"
+                mergeable_tables.setdefault(table_name, []).append(mergeable_file)
 
-        # This verifies that all of the merged string files have the same top-level keys per locale.
-        if len(merged_strings_files) > 1:
-            validation_output = actions.declare_file(merged_strings_dir + ".validation")
-            validation_outputs.append(validation_output)
-            actions.run(
-                arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
-                exec_group = xplat_exec_group,
-                executable = apple_xplat_toolchain_info.verifystringstool,
-                inputs = merged_strings_files,
-                mnemonic = "VerifyMergeStrings",
-                outputs = [validation_output],
-            )
+            # Iterate through the grouped mergeable strings and merge them for this locale.
+            for table_name, table_files in mergeable_tables.items():
+                merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + table_name)
+                merged_table_files.setdefault(table_name, []).append(merged_strings_file)
+                plisttool_control = struct(
+                    binary = True,
+                    output = merged_strings_file.path,
+                    plists = [f.path for f in table_files],
+                    skip_substitutions = True,
+                    target = str(rule_label),
+                )
+                plisttool_control_file = intermediates.file(
+                    actions = actions,
+                    target_name = rule_label.name,
+                    output_discriminator = output_discriminator,
+                    file_name = merged_lproj_dir + "/" + table_name + "_mergeable_strings_control.json",
+                )
+                actions.write(
+                    output = plisttool_control_file,
+                    content = json.encode(plisttool_control),
+                )
+                resource_actions.plisttool_action(
+                    actions = actions,
+                    apple_mac_toolchain_info = apple_mac_toolchain_info,
+                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                    control_file = plisttool_control_file,
+                    inputs = table_files,
+                    mac_exec_group = mac_exec_group,
+                    mnemonic = "MergeStrings",
+                    outputs = [merged_strings_file],
+                    platform_prerequisites = platform_prerequisites,
+                    xplat_exec_group = xplat_exec_group,
+                )
+                if owning_dir:
+                    parent_dir = owning_dir + "/" + lproj_dir_name
+                else:
+                    parent_dir = lproj_dir_name
+
+                merged.append((processor.location.resource, parent_dir, depset([merged_strings_file])))
+
+        # This verifies that all of the merged string files have the same top-level keys per locale
+        # per table.
+        for table_name, merged_strings_files in merged_table_files.items():
+            if len(merged_strings_files) > 1:
+                validation_output = actions.declare_file(merged_strings_dir + table_name + ".validation")
+                validation_outputs.append(validation_output)
+                actions.run(
+                    arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
+                    exec_group = xplat_exec_group,
+                    executable = apple_xplat_toolchain_info.verifystringstool,
+                    inputs = merged_strings_files,
+                    mnemonic = "VerifyMergeStrings",
+                    outputs = [validation_output],
+                )
 
     return (merged, validation_outputs)
 
