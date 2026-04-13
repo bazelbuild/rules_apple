@@ -238,6 +238,12 @@ swift_library(
 )
 
 swift_library(
+    name = "swift_span_main_lib",
+    srcs = ["span_main.swift"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
     name = "swift_lib_with_structured_resources",
     testonly = True,
     srcs = [
