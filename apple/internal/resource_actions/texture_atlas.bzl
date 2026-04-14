@@ -18,6 +18,10 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 def compile_texture_atlas(
         *,
@@ -38,6 +42,7 @@ def compile_texture_atlas(
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         arguments = [
             "TextureAtlas",
             input_path,

@@ -250,6 +250,7 @@ bzl_library(
     deps = [
         "//apple/internal:apple_toolchains",
         "//apple/internal:providers",
+        "//apple/internal:shared_environment",
         "@bazel_skylib//lib:dicts",
     ],
 )

@@ -50,6 +50,10 @@ load(
 )
 load("//apple/internal:rule_attrs.bzl", "rule_attrs")
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
@@ -389,6 +393,7 @@ def _get_xcframework_library_with_xcframework_processor(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = xcframework_processor_tool,
         inputs = inputs,
         mnemonic = "ProcessXCFrameworkFiles",
