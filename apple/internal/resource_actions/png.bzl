@@ -18,6 +18,10 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
@@ -51,6 +55,7 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
             input_file.path,
             output_file.path,
         ],
+        env = shared_environment.default_env,
         executable = "/usr/bin/xcrun",
         inputs = [input_file],
         mnemonic = "CopyPng",

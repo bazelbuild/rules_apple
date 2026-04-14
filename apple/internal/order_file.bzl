@@ -16,6 +16,10 @@
 A rule for providing support for order files during build.
 """
 
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
@@ -39,6 +43,7 @@ def _concatenate_files(*, actions, files, name):
     out_file = actions.declare_file("%s_concat.order" % name)
 
     actions.run_shell(
+        env = shared_environment.default_env,
         inputs = files,
         outputs = [out_file],
         progress_message = "Concatenating order files into %s" % out_file.short_path,
@@ -64,6 +69,7 @@ def _dedup_file(*, actions, file, name):
     out_file = actions.declare_file("%s_dedup.order" % name)
 
     actions.run_shell(
+        env = shared_environment.default_env,
         inputs = [file],
         outputs = [out_file],
         progress_message = "Deduping order files into %s" % out_file.short_path,

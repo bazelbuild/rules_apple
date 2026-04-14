@@ -17,6 +17,10 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_apple//apple/internal:intermediates.bzl", "intermediates")
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
@@ -261,6 +265,7 @@ def generate_app_intents_metadata_bundle(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = apple_mac_toolchain_info.xctoolrunner_alternative,
         exec_group = mac_exec_group,
         inputs = depset(direct_inputs),

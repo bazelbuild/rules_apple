@@ -31,6 +31,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -68,6 +72,7 @@ def _clang_rt_dylibs_partial_impl(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
+            env = shared_environment.default_env,
             executable = apple_mac_toolchain_info.clangrttool,
             # This action needs to read the contents of the Xcode bundle.
             execution_requirements = {"no-sandbox": "1"},

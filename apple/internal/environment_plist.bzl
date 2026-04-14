@@ -29,6 +29,10 @@ load(
     "rule_attrs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -59,6 +63,7 @@ def _environment_plist_impl(ctx):
     apple_support.run(
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         arguments = [
             # Custom xctoolrunner options.
             "passthrough-commands",

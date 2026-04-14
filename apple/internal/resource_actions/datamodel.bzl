@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
@@ -67,6 +71,7 @@ def compile_datamodels(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         exec_group = mac_exec_group,
         inputs = input_files,
@@ -104,6 +109,7 @@ def compile_mappingmodel(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         exec_group = mac_exec_group,
         inputs = input_files,

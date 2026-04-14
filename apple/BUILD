@@ -171,6 +171,7 @@ bzl_library(
     srcs = ["versioning.bzl"],
     deps = [
         "//apple/internal:providers",
+        "//apple/internal:shared_environment",
         "//apple/internal/toolchains:apple_toolchains",
     ],
 )

@@ -52,6 +52,10 @@ load(
     "resources",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
     "resources_support",
 )
@@ -424,6 +428,7 @@ def _merge_mergeable_strings(
                 validation_outputs.append(validation_output)
                 actions.run(
                     arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
+                    env = shared_environment.default_env,
                     exec_group = xplat_exec_group,
                     executable = apple_xplat_toolchain_info.verifystringstool,
                     inputs = merged_strings_files,

@@ -40,6 +40,10 @@ load(
     "secure_features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_usage_aspect.bzl",
     "SwiftUsageInfo",
 )
@@ -392,6 +396,7 @@ attempting to mix simulator and device architectures.
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = xcframework_processor_tool,
         exec_group = mac_exec_group,
         inputs = inputs,
@@ -599,6 +604,7 @@ invocation appear to be valid.
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = signature_tool,
         exec_group = mac_exec_group,
         inputs = codesigned_xcframework_imports,
@@ -697,6 +703,7 @@ such as a static framework or a framework with mergeable libraries.
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         executable = xcframework_processor_tool,
         exec_group = mac_exec_group,
         inputs = inputs,

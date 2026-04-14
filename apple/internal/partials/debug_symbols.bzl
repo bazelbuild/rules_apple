@@ -43,6 +43,10 @@ load(
     "new_appledsymbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
     "AppleDebugInfo",
 )
@@ -265,7 +269,7 @@ def _generate_merged_dsym_bundle(
         inputs = command_inputs,
         outputs = [dsym_bundle_dir],
         command = command,
-        env = {
+        env = shared_environment.default_env | {
             "OUTPUT_DIR": dsym_bundle_dir.path,
         },
         mnemonic = "DSYMBundleCopy",

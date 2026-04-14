@@ -103,6 +103,7 @@ bzl_library(
     deps = [
         ":intermediates",
         ":providers",
+        ":shared_environment",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -156,6 +157,7 @@ bzl_library(
     deps = [
         ":intermediates",
         ":rule_support",
+        ":shared_environment",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
@@ -173,7 +175,7 @@ bzl_library(
         ":fragment_support",
         ":outputs",
         ":platform_support",
-        "@bazel_skylib//lib:paths",
+        ":shared_environment",
         "@rules_cc//cc/common",
     ],
 )
@@ -374,7 +376,10 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = ["@rules_cc//cc/common"],
+    deps = [
+        ":shared_environment",
+        "@rules_cc//cc/common",
+    ],
 )
 
 bzl_library(
@@ -582,6 +587,7 @@ bzl_library(
     ],
     deps = [
         ":intermediates",
+        ":shared_environment",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:lipo",
     ],
@@ -614,6 +620,15 @@ bzl_library(
     srcs = ["required_minimum_os.bzl"],
     visibility = [
         "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "shared_environment",
+    srcs = ["shared_environment.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+        "//test:__subpackages__",
     ],
 )
 
@@ -748,6 +763,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":cc_info_support",
+        ":codesigning_support",
         ":features_support",
         ":intermediates",
         ":linking_support",
@@ -764,7 +780,6 @@ bzl_library(
         ":secure_features_support",
         ":swift_support",
         ":transition_support",
-        "//apple/internal:codesigning_support",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_generated_header_aspect",
         "//apple/internal/aspects:swift_usage_aspect",

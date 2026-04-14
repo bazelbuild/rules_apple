@@ -35,6 +35,10 @@ load(
     "bundling_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
@@ -542,6 +546,7 @@ def compile_asset_catalog(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,
         exec_group = mac_exec_group,

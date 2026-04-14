@@ -34,6 +34,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:processor.bzl",
     "processor",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility("@build_bazel_rules_apple//apple/...")
 
@@ -109,6 +113,7 @@ def _generate_macho_header_stub(
 
     actions.run(
         arguments = [swift_stdlib_stub_tool_args],
+        env = shared_environment.default_env,
         exec_group = xplat_exec_group,
         executable = apple_xplat_toolchain_info.swiftstdlibstubtool,
         inputs = [binary_file],
@@ -152,6 +157,7 @@ def _generate_swift_support_dylibs(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [swift_stdlib_tool_args],
+        env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = apple_mac_toolchain_info.swift_stdlib_tool,
         inputs = binary_inputs,

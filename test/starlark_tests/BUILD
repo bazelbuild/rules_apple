@@ -145,6 +145,7 @@ bzl_library(
     deps = [
         "//apple:linker",
         "//apple/build_settings",
+        "//apple/internal:shared_environment",
         "//test/starlark_tests/rules:test_rules",
         "//tools/build_defs/write_file:bzl_lib",
     ],

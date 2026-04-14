@@ -27,6 +27,10 @@ load(
     "AppleBaseBundleIdInfo",
     "AppleSharedCapabilityInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -389,6 +393,7 @@ def _generate_bundle_archive_action(
     bundletool_final_inputs = depset([control_file], transitive = [bundletool_inputs])
     actions.run(
         arguments = [args],
+        env = shared_environment.default_env,
         executable = executable.files_to_run,
         exec_group = xplat_exec_group,
         inputs = bundletool_final_inputs,
@@ -431,6 +436,7 @@ def _generate_tree_artifact_bundle_action(
         arguments = [
             bundletool_control_file.path,
         ],
+        env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = apple_mac_toolchain_info.bundletool_mac,
         execution_requirements = {

@@ -43,6 +43,10 @@ load(
     "secure_features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -212,6 +216,7 @@ def _extract_signing_info(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [control_file.path],
+            env = shared_environment.default_env,
             executable = provisioning_profile_tool,
             # Since the tools spawns openssl and/or security tool, it doesn't
             # support being sandboxed.
@@ -473,6 +478,7 @@ def _generate_der_entitlements(
             der_entitlements.path,
             "--raw",
         ],
+        env = shared_environment.default_env,
         executable = "/usr/bin/derq",
         inputs = [entitlements],
         mnemonic = "ProcessDEREntitlements",

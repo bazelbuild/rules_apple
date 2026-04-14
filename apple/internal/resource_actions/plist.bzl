@@ -39,6 +39,10 @@ load(
     "AppleBundleVersionInfo",
     "AppleResourceLocalesInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
@@ -87,9 +91,7 @@ def plisttool_action(
     else:
         actions.run(
             arguments = [control_file.path],
-            env = {
-                "SWIFT_DETERMINISTIC_HASHING": "1",  # Required for stable binary1 plutil output.
-            },
+            env = shared_environment.default_env,
             exec_group = xplat_exec_group,
             executable = apple_xplat_toolchain_info.plisttool,
             inputs = inputs + [control_file],
@@ -127,6 +129,7 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         command = complete_command,
+        env = shared_environment.default_env,
         inputs = [input_file],
         mnemonic = mnemonic,
         outputs = [output_file],

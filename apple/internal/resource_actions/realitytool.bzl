@@ -23,6 +23,10 @@ load(
     "intermediates",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
@@ -110,6 +114,7 @@ def create_schema_rkassets(
             output_file.path,
             module_with_deps_json_file.path,
         ],
+        env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,
@@ -181,6 +186,7 @@ support if you have a project that desires this feature.
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,

@@ -35,6 +35,10 @@ load(
     "rule_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -509,6 +513,7 @@ def _generate_dossier_file(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
         execution_requirements = {
@@ -668,6 +673,7 @@ def _post_process_and_sign_archive_action(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = arguments,
+            env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
@@ -688,6 +694,7 @@ def _post_process_and_sign_archive_action(
     else:
         actions.run(
             arguments = arguments,
+            env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
             inputs = input_files,
             mnemonic = mnemonic,
@@ -745,6 +752,7 @@ def _sign_binary_action(
     apple_support.run_shell(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         command = [
             "/bin/bash",
             "-c",

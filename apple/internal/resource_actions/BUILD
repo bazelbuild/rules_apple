@@ -17,6 +17,7 @@ bzl_library(
         "//apple:utils",
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:xctoolrunner",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
@@ -31,6 +32,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:intermediates",
+        "//apple/internal:shared_environment",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -43,6 +45,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:xctoolrunner",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -55,6 +58,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:xctoolrunner",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
@@ -71,6 +75,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
+        "//apple/internal:shared_environment",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
         "@build_bazel_apple_support//lib:apple_support",
@@ -84,6 +89,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:shared_environment",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -96,6 +102,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:intermediates",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:xctoolrunner",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -108,6 +115,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:shared_environment",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

@@ -43,6 +43,10 @@ load(
     "processor",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -239,6 +243,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
+            env = shared_environment.default_env,
             executable = imported_dynamic_framework_processor,
             exec_group = mac_exec_group,
             inputs = input_files,

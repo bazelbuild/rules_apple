@@ -19,6 +19,10 @@ load(
     "new_applebundleversioninfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -135,6 +139,7 @@ def _apple_bundle_version_impl(ctx):
     ctx.actions.run(
         executable = versiontool.files_to_run,
         arguments = [control_file.path, bundle_version_file.path],
+        env = shared_environment.default_env,
         inputs = inputs,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",

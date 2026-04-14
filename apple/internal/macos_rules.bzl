@@ -107,6 +107,10 @@ load(
     "secure_features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -1398,6 +1402,7 @@ def _macos_command_line_application_impl(ctx):
             outputs = [output_file],
             command = "cp -f \"$1\" \"$2\"",
             arguments = [binary_artifact.path, output_file.path],
+            env = shared_environment.default_env,
             mnemonic = "CopyBinary",
             progress_message = "Copying binary",
         )
@@ -1585,6 +1590,7 @@ def _macos_dylib_impl(ctx):
             outputs = [output_file],
             command = "cp -f \"$1\" \"$2\"",
             arguments = [binary_artifact.path, output_file.path],
+            env = shared_environment.default_env,
             mnemonic = "CopyDylib",
             progress_message = "Copying dylib",
         )
