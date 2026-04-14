@@ -117,7 +117,6 @@ bzl_library(
         "//apple/internal:outputs",
         "//apple/internal:providers",
         "//apple/internal:shared_environment",
-        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

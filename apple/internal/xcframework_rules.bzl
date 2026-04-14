@@ -969,11 +969,6 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 framework_archive_files.append(depset([provider.archive]))
 
             if library_type == _LIBRARY_TYPE.dynamic:
-                # Save the linkmaps.
-                if getattr(provider, "linkmaps", None):
-                    framework_output_files.append(depset(transitive = [provider.linkmaps]))
-                    framework_output_groups.append({"linkmaps": provider.linkmaps})
-
                 # Save the AppleDynamicFrameworkInfo, identified via the presence of the
                 # "framework_linking_context" field.
                 if getattr(provider, "framework_linking_context", None):
@@ -991,6 +986,12 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             if dsyms:
                 framework_output_files.append(depset(transitive = [dsyms]))
                 framework_output_groups.append({"dsyms": dsyms})
+            linkmaps = outputs.linkmaps(
+                processor_result = processor_result,
+            )
+            if linkmaps:
+                framework_output_files.append(depset(transitive = [linkmaps]))
+                framework_output_groups.append({"linkmaps": linkmaps})
 
             # Save the XCFrameworkDepsInfo inputs for this particular framework.
             framework_deps.append(struct(

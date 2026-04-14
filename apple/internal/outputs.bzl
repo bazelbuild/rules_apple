@@ -116,6 +116,18 @@ def _infoplist(*, actions, label_name, output_discriminator):
         file_name = "Info.plist",
     )
 
+def _linkmaps(*, processor_result):
+    """Returns a depset of all of the linkmaps from the result."""
+    direct_linkmaps = []
+    transitive_linkmaps = []
+    for provider in processor_result.providers:
+        # Sourcing fields from the public AppleLinkmapInfo provider.
+        if getattr(provider, "direct_linkmaps", None):
+            direct_linkmaps.extend(provider.direct_linkmaps)
+        if getattr(provider, "transitive_linkmaps", None):
+            transitive_linkmaps.append(provider.transitive_linkmaps)
+    return depset(direct_linkmaps, transitive = transitive_linkmaps)
+
 def _main_binary(
         *,
         actions,
@@ -222,6 +234,7 @@ outputs = struct(
     dsyms = _dsyms,
     executable = _executable,
     infoplist = _infoplist,
+    linkmaps = _linkmaps,
     main_binary = _main_binary,
     main_binary_basename = _main_binary_basename,
     merge_output_groups = _merge_output_groups,

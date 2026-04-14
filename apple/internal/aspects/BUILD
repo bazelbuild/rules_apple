@@ -45,7 +45,6 @@ bzl_library(
         "//apple/internal:resources",
         "//apple/internal:swift_support",
         "//apple/internal/providers:app_intents_info",
-        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/providers:apple_resource_hint_info",
         "//apple/internal/providers:apple_resource_swift_srcs_info",
         "//apple/internal/providers:apple_resource_validation_info",

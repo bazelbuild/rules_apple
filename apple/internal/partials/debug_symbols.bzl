@@ -33,6 +33,7 @@ load(
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleDsymBundleInfo",
+    "AppleLinkmapInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
@@ -41,14 +42,11 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
+    "new_applelinkmapinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
     "shared_environment",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
@@ -295,10 +293,10 @@ def _debug_symbols_partial_impl(
         for x in debug_dependencies
         if AppleDsymBundleInfo in x
     ]
-    deps_debug_info_providers = [
-        x[AppleDebugInfo]
+    deps_linkmap_info_providers = [
+        x[AppleLinkmapInfo]
         for x in debug_dependencies
-        if AppleDebugInfo in x
+        if AppleLinkmapInfo in x
     ]
 
     debug_output_filename = bundle_name
@@ -309,7 +307,7 @@ def _debug_symbols_partial_impl(
     transitive_dsym_bundles = [x.transitive_dsyms for x in deps_dsym_bundle_providers]
 
     direct_linkmaps = []
-    transitive_linkmaps = [x.linkmaps for x in deps_debug_info_providers]
+    transitive_linkmaps = [x.transitive_linkmaps for x in deps_linkmap_info_providers]
 
     output_providers = []
 
@@ -333,7 +331,8 @@ def _debug_symbols_partial_impl(
                 debug_output_filename = debug_output_filename,
                 linkmaps = linkmaps,
             )
-            direct_linkmaps.extend(linkmaps)
+            if linkmaps:
+                direct_linkmaps.extend(linkmaps)
 
     # Only output dependency debug files if requested.
     propagate_embedded_extra_outputs = defines.bool_value(
@@ -342,30 +341,29 @@ def _debug_symbols_partial_impl(
         default = False,
     )
 
+    dsyms_group = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
     linkmaps_group = depset(direct_linkmaps, transitive = transitive_linkmaps)
 
-    all_output_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles)
-    direct_output_dsyms = direct_dsym_bundles
-
     if propagate_embedded_extra_outputs:
-        output_files = depset(transitive = [all_output_dsyms, linkmaps_group])
+        output_files = depset(transitive = [dsyms_group, linkmaps_group])
     else:
-        output_files = depset(direct_output_dsyms + direct_linkmaps)
+        output_files = depset(direct_dsym_bundles + direct_linkmaps)
 
     output_providers.extend([
         new_appledsymbundleinfo(
             direct_dsyms = direct_dsym_bundles,
             transitive_dsyms = depset(direct_dsym_bundles, transitive = transitive_dsym_bundles),
         ),
-        AppleDebugInfo(
-            linkmaps = linkmaps_group,
+        new_applelinkmapinfo(
+            direct_linkmaps = direct_linkmaps,
+            transitive_linkmaps = depset(direct_linkmaps, transitive = transitive_linkmaps),
         ),
     ])
 
     return struct(
         output_files = output_files,
         output_groups = {
-            "dsyms": all_output_dsyms,
+            "dsyms": dsyms_group,
             "linkmaps": linkmaps_group,
         },
         providers = output_providers,

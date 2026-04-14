@@ -361,6 +361,25 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
         signature_files = depset(transitive = transitive_signature_files),
     )
 
+AppleLinkmapInfo, new_applelinkmapinfo = provider(
+    doc = """
+Provides information about linkmap files.
+
+This provider propagates information if requested in the build with --objc_generate_linkmap.
+""",
+    fields = {
+        "direct_linkmaps": """
+`List` containing `File` references to each of the linkmap files that act as direct dependencies of
+the given target if any were generated.
+""",
+        "transitive_linkmaps": """
+`depset` containing `File` references to each of the linkmap files that act as transitive
+dependencies of the given target if any were generated.
+""",
+    },
+    init = make_banned_init(provider_name = "AppleLinkmapInfo"),
+)
+
 ApplePlatformInfo, new_appleplatforminfo = provider(
     doc = "Provides information for the currently selected Apple platforms.",
     fields = {

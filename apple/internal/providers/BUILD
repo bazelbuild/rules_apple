@@ -24,16 +24,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "apple_debug_info",
-    srcs = ["apple_debug_info.bzl"],
-    visibility = [
-        # Visibility set to subpackages since this provider is used both
-        # by the `resource_aspect` and `debug_symbols` partial.
-        "//apple/internal:__subpackages__",
-    ],
-)
-
-bzl_library(
     name = "apple_dynamic_framework_info",
     srcs = ["apple_dynamic_framework_info.bzl"],
     visibility = [

@@ -35,8 +35,10 @@ load(
     "AppleBundleInfo",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
+    "AppleLinkmapInfo",
     "AppleResourceInfo",
     "new_appledsymbundleinfo",
+    "new_applelinkmapinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -49,10 +51,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_debug_info.bzl",
-    "AppleDebugInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_hint_info.bzl",
@@ -316,7 +314,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
     apple_resource_validation_infos = []
-    apple_debug_infos = []
+    apple_linkmap_infos = []
     apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
     for attr in provider_deps:
@@ -365,10 +363,11 @@ App Intents are not supported within frameworks that aren't directly loaded by a
                     # avoid propagating resources that should not be extended beyond the framework.
                     inherited_apple_resource_infos.append(target[AppleResourceInfo])
 
-                # Propagate AppleDebugInfo providers from deps/resources-referenced dependencies
-                # required for the debug_symbols partial. This will often start from frameworks.
-                if AppleDebugInfo in target:
-                    apple_debug_infos.append(target[AppleDebugInfo])
+                # Propagate AppleLinkMapInfo and AppleDsymBundleInfo providers from deps/resources
+                # referenced dependencies required for the debug_symbols partial. This will often
+                # start from frameworks.
+                if AppleLinkmapInfo in target:
+                    apple_linkmap_infos.append(target[AppleLinkmapInfo])
 
                 if AppleDsymBundleInfo in target:
                     apple_dsym_bundle_infos.append(target[AppleDsymBundleInfo])
@@ -434,10 +433,13 @@ App Intents are not supported within frameworks that aren't directly loaded by a
             ),
         )
 
-    if apple_debug_infos:
+    if apple_linkmap_infos:
         providers.append(
-            AppleDebugInfo(
-                linkmaps = depset(transitive = [x.linkmaps for x in apple_debug_infos]),
+            new_applelinkmapinfo(
+                direct_linkmaps = [],
+                transitive_linkmaps = depset(
+                    transitive = [x.transitive_linkmaps for x in apple_linkmap_infos],
+                ),
             ),
         )
 

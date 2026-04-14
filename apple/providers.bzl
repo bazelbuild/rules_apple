@@ -36,6 +36,7 @@ load(
     _AppleExtraOutputsInfo = "AppleExtraOutputsInfo",
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
     _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
+    _AppleLinkmapInfo = "AppleLinkmapInfo",
     _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
     _AppleResourceInfo = "AppleResourceInfo",
@@ -89,6 +90,7 @@ AppleDsymBundleInfo = _AppleDsymBundleInfo
 AppleExecutableBinaryInfo = _AppleExecutableBinaryInfo
 AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
+AppleLinkmapInfo = _AppleLinkmapInfo
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
 ApplePlatformInfo = _ApplePlatformInfo
 AppleResourceBundleInfo = _AppleResourceBundleInfo
