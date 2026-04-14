@@ -154,6 +154,7 @@ def _framework_import_partial_impl(
     ]
 
     # Start assembling our partial's outputs.
+    bundle_files = []
     bundle_zips = []
     signed_frameworks_list = []
 
@@ -180,16 +181,9 @@ def _framework_import_partial_impl(
 
         framework_binaries_by_framework[framework_basename].append(file)
 
+    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
-        temp_path = paths.join("_imported_frameworks/", framework_basename)
-        framework_zip = intermediates.file(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-            file_name = temp_path + ".zip",
-        )
-        temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
 
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
@@ -205,14 +199,38 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
 
         args.add_all(build_archs_found, before_each = "--requested-architectures")
 
-        args.add("--output-zip-path", framework_zip.path)
+        framework_output = None
+        framework_bundle_path = None
+        if tree_artifact_is_enabled:
+            framework_output = intermediates.directory(
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                dir_name = framework_basename,
+            )
+            framework_bundle_path = framework_output.path
+            bundle_files.append(
+                (processor.location.framework, framework_basename, depset([framework_output])),
+            )
+        else:
+            framework_output = intermediates.file(
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                file_name = paths.join("_imported_frameworks/", framework_basename + ".zip"),
+            )
+            framework_bundle_path = paths.split_extension(framework_output.path)[0]
+            bundle_zips.append(
+                (processor.location.framework, None, depset([framework_output])),
+            )
+        args.add("--output-path", framework_output.path)
 
         args.add_all(files_by_framework[framework_basename], before_each = "--framework-file-paths")
 
         codesign_args = codesigning_support.codesigning_args(
             cc_configured_features = cc_configured_features,
             entitlements = None,
-            full_archive_path = temp_framework_bundle_path,
+            full_archive_path = framework_bundle_path,
             is_framework = True,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -221,8 +239,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
         if codesign_args:
             args.add_all(codesign_args)
         else:
-            # Add required argument to disable signing because
-            # code sign arguments are mutually exclusive groups.
+            # Add the required argument to disable signing.
             args.add("--disable-signing")
 
         codesigningtool = apple_mac_toolchain_info.codesigningtool
@@ -230,7 +247,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             apple_mac_toolchain_info.imported_dynamic_framework_processor
         )
 
-        # Inputs of action are all the framework files, plus binaries needed for identifying the
+        # Inputs of the action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, and the provisioning profile if specified.
         input_files = (
             files_by_framework[framework_basename] +
@@ -248,25 +265,18 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             exec_group = mac_exec_group,
             inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
-            outputs = [framework_zip],
-            tools = [codesigningtool],
+            outputs = [framework_output],
+            tools = [codesigningtool] if codesign_args else [],
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 
-        bundle_zips.append(
-            (processor.location.framework, None, depset([framework_zip])),
-        )
         signed_frameworks_list.append(framework_basename)
 
     # Process signature files separately; we can bundle them as is thanks to earlier deduplication.
     if signature_files_to_bundle:
-        bundle_files = [(
-            processor.location.archive,
-            "Signatures",
-            depset(signature_files_to_bundle),
-        )]
-    else:
-        bundle_files = []
+        bundle_files.append(
+            (processor.location.archive, "Signatures", depset(signature_files_to_bundle)),
+        )
 
     return struct(
         bundle_files = bundle_files,
