@@ -317,7 +317,6 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
 
         test_label_package_name = label.package
 
-        # TODO(b/337080510): Apply this failure case to all Apple platforms.
         if platform_prerequisites.platform_type != "ios" or (
             apple_common.dotted_version(test_min_os) > apple_common.dotted_version(
                 _HIGHEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING,

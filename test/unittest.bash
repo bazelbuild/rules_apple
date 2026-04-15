@@ -263,8 +263,6 @@ TESTS=()                        # A subset or "working set" of test
 if [ $# -gt 0 ]; then
   # Legacy behavior is to ignore missing regexp, but with errexit
   # the following line fails without || true.
-  # TODO(dmarting): maybe we should revisit the way of selecting
-  # test with that framework (use Bazel's environment variable instead).
   TESTS=($(for i in $@; do echo $i; done | grep ^test_ || true))
   if (( ${#TESTS[@]} == 0 )); then
     echo "WARNING: Arguments do not specify tests!" >&2

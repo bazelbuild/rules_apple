@@ -80,7 +80,6 @@ def _create_stub_binary(
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
-        # TODO(b/79323243): Replace this with a symlink instead of a hard copy.
         apple_support.run_shell(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,

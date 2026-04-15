@@ -154,28 +154,20 @@ apple_resource_bundle(
 apple_resource_bundle(
     name = "bundle_library_macos",
     bundle_name = "bundle_library_macos",
-    # TODO: Bazel seems to crash with an exception if given datamodels
-    # and targeting macOS. So until objc_bundle_library is redone in
-    # starlark we might just have to live with this.
     infoplists = [
         "Info-template.plist",
     ],
     resources = [
-        # TODO: asset_catalogs
-        ":basic_bundle",
-        ":mapping_model",
-        #    ":unversioned_datamodel",
-        #    ":versioned_datamodel",
-        "nonlocalized.plist",
-        ":localized_plists",
-        "sample.png",
-        "nonlocalized.strings",
         "generated.strings",
-        ":localized_strings",
+        "nonlocalized.plist",
+        "nonlocalized.strings",
         "nonlocalized_resource.txt",
+        "sample.png",
+        ":basic_bundle",
         ":localized_generic_resources",
-        # TODO: storyboards
-        # TODO: xibs
+        ":localized_plists",
+        ":localized_strings",
+        ":mapping_model",
     ],
     structured_resources = [
         ":generate_structured_strings",

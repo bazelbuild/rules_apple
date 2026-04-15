@@ -1393,7 +1393,6 @@ watchos_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.simulator_runner_template_attr(),
         {
-            # TODO(b/155313625): Deprecate this in favor of a "real" `extensions` attr.
             "extension": attr.label(
                 cfg = transition_support.watchos2_app_extension_transition,
                 providers = [

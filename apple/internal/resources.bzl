@@ -848,7 +848,7 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
 def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
 
-    # TODO(b/36412967): Remove the to_json and to_proto elements of this list.
+    # TODO(b/502581357): Remove the to_json and to_proto elements of this list.
     return [
         f
         for f in dir(provider)

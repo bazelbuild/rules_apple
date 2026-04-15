@@ -821,7 +821,6 @@ def _apple_bundle(bundle_type):
         if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
             bundle_files = []
             for bundle in files.to_list():
-                # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.
                 basename = paths.basename(bundle.short_path)
                 bundle_files.append((location, basename, depset([bundle])))
             return struct(files = bundle_files)

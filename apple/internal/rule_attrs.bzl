@@ -535,7 +535,6 @@ def _extensionkit_attrs():
 def _ipa_post_processor_attrs():
     """Returns the attributes required to support the deprecated ipa_post_processor feature."""
 
-    # TODO(b/36512239): Rename to "bundle_post_processor", if we have to continue supporting this.
     return {
         "ipa_post_processor": attr.label(
             allow_files = True,

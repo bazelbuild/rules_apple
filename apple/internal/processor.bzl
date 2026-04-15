@@ -509,7 +509,6 @@ def _bundle_post_process_and_sign(
         if provisioning_profile:
             extra_input_files.append(provisioning_profile)
 
-        # TODO(b/149874635): Don't pass frameworks_path unless the rule has it (*_application).
         codesigning_command = codesigning_support.codesigning_command(
             cc_configured_features = cc_configured_features,
             codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,

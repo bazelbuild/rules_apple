@@ -39,7 +39,6 @@ visibility([
 ])
 
 # Returns the common set of rule attributes to support Apple test rules.
-# TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
 _COMMON_TEST_ATTRS = {
     "data": attr.label_list(
         allow_files = True,

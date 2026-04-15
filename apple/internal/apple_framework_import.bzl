@@ -122,8 +122,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         rule_label = label,
     )
 
-    # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
-    # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
+    # TODO(b/258492867): Allow tree artifact outputs when signing is disabled via features.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         framework_imports,

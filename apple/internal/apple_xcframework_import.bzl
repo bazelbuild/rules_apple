@@ -136,8 +136,7 @@ def _classify_xcframework_imports(
     )
     tree_artifact_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
     if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
-        # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
-        # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
+        # TODO(b/258492867): Allow tree artifact outputs when signing is disabled via features.
         fail(
             """
 Error: "{label_name}" does not currently support versioned frameworks with the bundle outputs \

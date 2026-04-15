@@ -508,7 +508,6 @@ def compile_asset_catalog(
     args.add("--compress-pngs")
 
     platform_type = platform_prerequisites.platform_type
-
     extra_actool_args = _validate_asset_files_and_generate_args(
         asset_files = asset_files,
         bundle_id = bundle_id,

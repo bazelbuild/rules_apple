@@ -1286,7 +1286,6 @@ A list of framework targets (see
 that this target depends on.
 """,
             ),
-            # TODO(b/250090851): Document this attribute and its limitations.
             "hdrs": attr.label_list(
                 allow_files = [".h"],
             ),

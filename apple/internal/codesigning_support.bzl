@@ -616,10 +616,8 @@ def _post_process_and_sign_archive_action(
         default = (config_vars["COMPILATION_MODE"] == "opt"),
     )
 
-    # TODO(b/163217926): These are kept the same for the three different actions
-    # that could be run to ensure anything keying off these values continues to
-    # work. After some data is collected, the values likely can be revisited and
-    # changed.
+    # These mnemonics are kept the same for the three different actions that could be run to ensure
+    # anything keying off these values (e.g. Bazel scheduler, metrics collection) continues to work.
     mnemonic = "ProcessAndSign"
     progress_message = "Processing and signing %s" % label_name
 

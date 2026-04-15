@@ -262,8 +262,6 @@ ios_application(
     ],
 )
 
-# TODO: b/425967223 - Add .icon test cases for multiple app icons with a primary app icon selected.
-
 ios_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:app_icons_ios"],

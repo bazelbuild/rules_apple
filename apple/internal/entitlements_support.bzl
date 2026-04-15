@@ -128,12 +128,6 @@ def _force_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
-
-    # TODO: b/473768498 - Consider if this should return True for the simulator with no provisioning
-    # profile case that needs to be handled here, and if we can entirely drop the
-    # apple.add_debugger_entitlement define support above in favor of that simplification. One means
-    # would be to have an explicit "if not device -> return True else False" as the entire
-    # implementation of this function.
     return False
 
 def _include_app_clip_entitlements(*, product_type):

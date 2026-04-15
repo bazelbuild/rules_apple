@@ -109,7 +109,6 @@ if [[ -n "${TEXT_TEST_FILE-}" ]]; then
     fail "Archive did not contain text file at \"$path\"" \
       "contents were:$newline$(find $ARCHIVE_ROOT)"
   fi
-  # TODO(b/237302518): Rename `TEXT_TEST_VALUES` to `TEXT_FILE_CONTAINS`.
   for test_regexp in "${TEXT_TEST_VALUES[@]}"
   do
     something_tested=true
