@@ -197,7 +197,7 @@ def _group_link_outputs_by_library_identifier(
         A list of structs with the following fields; `architectures` containing a list of the
         architectures that the binary was built with, `binary` referencing the output binary linked
         with the `lipo` tool if necessary, or referencing a symlink to the original binary if not,
-        `dsym_binaries` which is a mapping of architectures to dsym binaries if any were created,
+        `dsym_outputs` which is a mapping of architectures to dsym outputs if any were created,
         `environment` to reference the target environment the binary was built for, `linkmaps` which
         is a mapping of architectures to linkmaps if any were created, and `platform` to reference
         the target platform the binary was built for.
@@ -228,7 +228,7 @@ def _group_link_outputs_by_library_identifier(
 
     # Iterate through the structure again, this time creating a structure equivalent to link_result
     # .outputs but with .architecture replaced with .architectures, .dsym_binary replaced with
-    # .dsym_binaries, and .linkmap replaced with .linkmaps
+    # .dsym_outputs, and .linkmap replaced with .linkmaps
     for framework_key, link_outputs in link_outputs_by_framework.items():
         inputs = [getattr(output, linking_type) for output in link_outputs]
         filename = "{}_{}".format(label_name, framework_key)
@@ -245,7 +245,7 @@ def _group_link_outputs_by_library_identifier(
         )
 
         architectures = []
-        dsym_binaries = {}
+        dsym_outputs = {}
         linkmaps = {}
         split_attr_keys = []
         framework_swift_infos = {}
@@ -273,9 +273,9 @@ def _group_link_outputs_by_library_identifier(
                 if _has_non_system_swift_modules(target = dep):
                     framework_swift_infos[link_output.architecture] = dep[SwiftInfo]
 
-            # static library linking does not support dsym, and linkmaps yet.
+            # dSYMs and linkmaps are exclusive to linked binaries, not static library archives.
             if linking_type == "binary":
-                dsym_binaries[link_output.architecture] = link_output.dsym_binary
+                dsym_outputs[link_output.architecture] = link_output.dsym_output
                 linkmaps[link_output.architecture] = link_output.linkmap
 
         environment = link_outputs[0].environment
@@ -290,7 +290,7 @@ def _group_link_outputs_by_library_identifier(
         link_outputs_by_library_identifier[library_identifier] = struct(
             architectures = architectures,
             binary = fat_binary,
-            dsym_binaries = dsym_binaries,
+            dsym_outputs = dsym_outputs,
             environment = environment,
             linkmaps = linkmaps,
             platform = platform,
@@ -590,6 +590,7 @@ def _apple_xcframework_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         cc_toolchains = cc_toolchain_forwarder,
         # Frameworks do not have entitlements.
         entitlements = None,
@@ -736,9 +737,8 @@ def _apple_xcframework_impl(ctx):
                 bundle_extension = nested_bundle_extension,
                 bundle_name = bundle_name,
                 debug_discriminator = link_output.platform + "_" + link_output.environment,
-                dsym_binaries = link_output.dsym_binaries,
+                dsym_outputs = link_output.dsym_outputs,
                 dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-                executable_name = executable_name,
                 label_name = label.name,
                 linkmaps = link_output.linkmaps,
                 output_discriminator = library_identifier,
@@ -842,15 +842,19 @@ def _apple_xcframework_impl(ctx):
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
 
-            # Save the dSYMs.
-            if getattr(provider, "dsyms", None):
-                framework_output_files.append(depset(transitive = [provider.dsyms]))
-                framework_output_groups.append({"dsyms": provider.dsyms})
-
             # Save the linkmaps.
             if getattr(provider, "linkmaps", None):
                 framework_output_files.append(depset(transitive = [provider.linkmaps]))
                 framework_output_groups.append({"linkmaps": provider.linkmaps})
+
+            dsyms = outputs.dsyms(
+                platform_prerequisites = platform_prerequisites,
+                processor_result = processor_result,
+            )
+            if dsyms:
+                # Save the dSYMs.
+                framework_output_files.append(depset(transitive = [dsyms]))
+                framework_output_groups.append({"dsyms": dsyms})
 
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(

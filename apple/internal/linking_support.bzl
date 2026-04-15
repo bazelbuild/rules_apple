@@ -38,6 +38,10 @@ load(
     "subtract_linking_contexts",
 )
 load(
+    "//apple/internal:outputs.bzl",
+    "outputs",
+)
+load(
     "//apple/internal:providers.bzl",
     "AppleDynamicFrameworkInfo",
     "AppleExecutableBinaryInfo",
@@ -146,11 +150,13 @@ def _link_multi_arch_binary(
         *,
         ctx,
         avoid_deps,
+        build_settings,
         cc_toolchains,
         extra_linkopts,
         extra_link_inputs,
         extra_requested_features,
         extra_disabled_features,
+        rule_descriptor,
         stamp):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
 
@@ -168,6 +174,7 @@ def _link_multi_arch_binary(
             dependencies that will be found at runtime in another image, such as the
             bundle loader or any dynamic libraries/frameworks that will be loaded by
             this binary.
+        build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
@@ -176,6 +183,9 @@ def _link_multi_arch_binary(
             to the linker action.
         extra_disabled_features: A list of strings: Extra disabled features to be passed
             to the linker action.
+        rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
+            will define additional parameters required for linking, such as the dSYM bundle name. If
+            `None`, these additional parameters will not be set on the linked binary.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, build information is always excluded.
             If -1 (the default), then the behavior is determined by the --[no]stamp
@@ -217,7 +227,7 @@ def _link_multi_arch_binary(
     avoid_cc_infos.extend([dep[CcInfo] for dep in avoid_deps if CcInfo in dep])
     avoid_cc_linking_contexts = [dep.linking_context for dep in avoid_cc_infos]
 
-    outputs = []
+    linker_outputs = []
     cc_infos = []
     legacy_debug_outputs = {}
 
@@ -277,21 +287,52 @@ def _link_multi_arch_binary(
         additional_outputs = []
         extensions = {}
 
-        dsym_binary = None
+        dsym_output = None
         if ctx.fragments.cpp.apple_generate_dsym:
-            if ctx.fragments.cpp.objc_should_strip_binary:
-                suffix = "_bin_unstripped.dwarf"
+            dsym_variants = build_settings.dsym_variant_flag
+            if dsym_variants == "bundle":
+                if rule_descriptor:
+                    dsym_bundle_name = ctx.label.name + rule_descriptor.bundle_extension
+                else:
+                    dsym_bundle_name = ctx.label.name
+
+                # Avoiding "intermediates" as this will be the canonical dSYM in a single arch build
+                dsym_output = ctx.actions.declare_directory(
+                    "{split_transition_key}/{dsym_bundle_name}.dSYM".format(
+                        split_transition_key = split_transition_key,
+                        dsym_bundle_name = dsym_bundle_name,
+                    ),
+                )
+            elif dsym_variants != "flat":
+                fail("""
+Internal Error: Found unsupported dsym_variant_flag: {dsym_variants}.
+
+Please report this as a bug to the Apple BUILD Rules team.
+                """.format(
+                    dsym_variants = dsym_variants,
+                ))
             else:
-                suffix = "_bin.dwarf"
-            dsym_binary = intermediates.file(
-                actions = ctx.actions,
-                target_name = ctx.label.name,
-                output_discriminator = split_transition_key,
-                file_name = ctx.label.name + suffix,
-            )
-            extensions["dsym_path"] = dsym_binary.path  # dsym symbol file
-            additional_outputs.append(dsym_binary)
-            legacy_debug_outputs.setdefault(platform_info.target_arch, {})["dsym_binary"] = dsym_binary
+                main_binary_unstripped_basename = outputs.main_binary_basename(
+                    cpp_fragment = ctx.fragments.cpp,
+                    label_name = ctx.label.name,
+                    unstripped = True,
+                )
+                dsym_output = intermediates.file(
+                    actions = ctx.actions,
+                    target_name = ctx.label.name,
+                    output_discriminator = split_transition_key,
+                    file_name = "{}.dwarf".format(main_binary_unstripped_basename),
+                )
+
+                # TODO(b/391401130): Remove this once all users are migrated to the downstream
+                # provider AppleDsymBundleInfo.
+                legacy_debug_outputs.setdefault(
+                    platform_info.target_arch,
+                    {},
+                )["dsym_binary"] = dsym_output
+
+            extensions["dsym_path"] = dsym_output.path  # dsym symbol file
+            additional_outputs.append(dsym_output)
 
         linkmap = None
         if ctx.fragments.cpp.objc_generate_linkmap:
@@ -305,7 +346,12 @@ def _link_multi_arch_binary(
             additional_outputs.append(linkmap)
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["linkmap"] = linkmap
 
-        name = ctx.label.name + "_bin"
+        main_binary_basename = outputs.main_binary_basename(
+            cpp_fragment = ctx.fragments.cpp,
+            label_name = ctx.label.name,
+            unstripped = False,
+        )
+
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,
             apple_platform_info = platform_info,
@@ -314,7 +360,7 @@ def _link_multi_arch_binary(
             common_variables = common_variables,
             extra_link_args = extra_linkopts,
             extra_link_inputs = extra_link_inputs,
-            name = name,
+            name = main_binary_basename,
             # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
             split_transition_key = split_transition_key,
             stamp = stamp,
@@ -326,11 +372,11 @@ def _link_multi_arch_binary(
             "platform": platform_info.target_os,
             "architecture": platform_info.target_arch,
             "environment": platform_info.target_environment,
-            "dsym_binary": dsym_binary,
+            "dsym_output": dsym_output,
             "linkmap": linkmap,
         }
 
-        outputs.append(struct(**output))
+        linker_outputs.append(struct(**output))
 
     header_tokens = []
     for _, deps in split_deps.items():
@@ -343,7 +389,7 @@ def _link_multi_arch_binary(
     return struct(
         cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos),
         output_groups = output_groups,
-        outputs = outputs,
+        outputs = linker_outputs,
         debug_outputs_provider = new_appledebugoutputsinfo(outputs_map = legacy_debug_outputs),
     )
 
@@ -357,20 +403,20 @@ def _debug_outputs_by_architecture(link_outputs):
     Returns:
         A `struct` containing three fields:
 
-        *   `dsym_binaries`: A mapping of architectures to Files representing dSYM binary outputs
-            for each architecture.
+        *   `dsym_outputs`: A mapping of architectures to Files representing dSYM outputs for each
+            architecture.
         *   `linkmaps`: A mapping of architectures to Files representing linkmaps for each
             architecture.
     """
-    dsym_binaries = {}
+    dsym_outputs = {}
     linkmaps = {}
 
     for link_output in link_outputs:
-        dsym_binaries[link_output.architecture] = link_output.dsym_binary
+        dsym_outputs[link_output.architecture] = link_output.dsym_output
         linkmaps[link_output.architecture] = link_output.linkmap
 
     return struct(
-        dsym_binaries = dsym_binaries,
+        dsym_outputs = dsym_outputs,
         linkmaps = linkmaps,
     )
 
@@ -416,6 +462,7 @@ def _register_binary_linking_action(
         ctx,
         *,
         avoid_deps = [],
+        build_settings,
         bundle_loader = None,
         cc_toolchains,
         entitlements = None,
@@ -436,6 +483,7 @@ def _register_binary_linking_action(
         ctx: The rule context.
         avoid_deps: A list of `Target`s representing dependencies of the binary but whose
             symbols should not be linked into it.
+        build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
         bundle_loader: For Mach-O bundles, the `Target` whose binary will load this bundle.
             This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
@@ -547,6 +595,7 @@ def _register_binary_linking_action(
     linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
+        build_settings = build_settings,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
@@ -554,6 +603,7 @@ def _register_binary_linking_action(
         # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
         # being routed to the wrong exec platform.
         extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
+        rule_descriptor = rule_descriptor,
         stamp = stamp,
     )
 

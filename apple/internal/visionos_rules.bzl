@@ -233,6 +233,7 @@ Resolved Xcode is version {xcode_version}.
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
@@ -313,9 +314,8 @@ Resolved Xcode is version {xcode_version}.
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -373,7 +373,7 @@ Resolved Xcode is version {xcode_version}.
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = embeddable_targets,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -450,7 +450,10 @@ Resolved Xcode is version {xcode_version}.
         rule_descriptor = rule_descriptor,
     )
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     return [
         DefaultInfo(
@@ -497,7 +500,6 @@ def _visionos_dynamic_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_id = ctx.attr.bundle_id
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
@@ -562,6 +564,7 @@ def _visionos_dynamic_framework_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -613,6 +616,7 @@ def _visionos_dynamic_framework_impl(ctx):
         partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = processor.location.framework,
             bundle_name = bundle_name,
@@ -620,6 +624,7 @@ def _visionos_dynamic_framework_impl(ctx):
             embedded_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
+            predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
         ),
@@ -646,9 +651,8 @@ def _visionos_dynamic_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -669,13 +673,13 @@ def _visionos_dynamic_framework_impl(ctx):
         ),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -785,7 +789,6 @@ def _visionos_framework_impl(ctx):
     actions = ctx.actions
     apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
     apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
-    bin_root_path = ctx.bin_dir.path
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -800,13 +803,6 @@ def _visionos_framework_impl(ctx):
     )
     cc_toolchain = find_cc_toolchain(ctx)
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    cc_features = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        language = "objc",
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
     executable_name = ctx.attr.executable_name
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
@@ -850,6 +846,7 @@ def _visionos_framework_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -938,9 +935,8 @@ def _visionos_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -962,13 +958,13 @@ def _visionos_framework_impl(ctx):
         partials.framework_headers_partial(hdrs = ctx.files.hdrs),
         partials.framework_provider_partial(
             actions = actions,
-            bin_root_path = bin_root_path,
             binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
             bundle_only = ctx.attr.bundle_only,
-            cc_features = cc_features,
+            cc_configured_features_init = features_support.make_cc_configured_features_init(ctx),
             cc_info = link_result.cc_info,
             cc_toolchain = cc_toolchain,
+            features = features,
+            disabled_features = ctx.disabled_features,
             rule_label = label,
         ),
         partials.resources_partial(
@@ -1002,7 +998,7 @@ def _visionos_framework_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,
@@ -1122,6 +1118,7 @@ def _visionos_extension_impl(ctx):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
@@ -1215,9 +1212,8 @@ def _visionos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = ctx.attr.frameworks + ctx.attr.deps,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
-            executable_name = executable_name,
             label_name = label.name,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
@@ -1267,7 +1263,7 @@ def _visionos_extension_impl(ctx):
             actions = actions,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             label_name = label.name,
             include_symbols_in_bundle = False,
             platform_prerequisites = platform_prerequisites,

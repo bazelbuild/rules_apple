@@ -392,6 +392,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = getattr(ctx.attr, "frameworks", []),
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_loader = bundle_loader,
         # Unit/UI tests do not use entitlements.
         entitlements = None,
@@ -480,7 +481,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = debug_dependencies,
-            dsym_binaries = debug_outputs.dsym_binaries,
+            dsym_outputs = debug_outputs.dsym_outputs,
             dsym_info_plist_template = apple_mac_toolchain_info.dsym_info_plist_template,
             executable_name = executable_name,
             label_name = label.name,
@@ -571,7 +572,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         rule_descriptor = rule_descriptor,
     )
 
-    dsyms = outputs.dsyms(processor_result = processor_result)
+    dsyms = outputs.dsyms(
+        platform_prerequisites = platform_prerequisites,
+        processor_result = processor_result,
+    )
 
     # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
