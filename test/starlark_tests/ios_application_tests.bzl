@@ -295,7 +295,7 @@ def ios_application_test_suite(name):
 
     # Verify ios_application with imported dynamic framework bundles files for Objective-C/Swift
     archive_contents_test(
-        name = "{}_with_imported_dynamic_fmwk_bundles_files".format(name),
+        name = "{}_zip_output_with_imported_dynamic_fmwk_bundles_files".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
         contains = [
@@ -308,10 +308,13 @@ def ios_application_test_suite(name):
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
         ],
+        assert_file_permissions = {
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework": "755",
+        },
         tags = [name],
     )
     archive_contents_test(
-        name = "{}_swift_with_imported_dynamic_fmwk_bundles_files".format(name),
+        name = "{}_zip_output_swift_with_imported_dynamic_fmwk_bundles_files".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_dynamic_fmwk",
         contains = [
@@ -324,6 +327,53 @@ def ios_application_test_suite(name):
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
         ],
+        assert_file_permissions = {
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework": "755",
+        },
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundle_output_with_imported_dynamic_fmwk_bundles_files".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
+        ],
+        assert_file_permissions = {
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework": "755",
+        },
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_bundle_output_swift_with_imported_dynamic_fmwk_bundles_files".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_dynamic_fmwk",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Modules/module.modulemap",
+        ],
+        assert_file_permissions = {
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework": "755",
+        },
         tags = [name],
     )
 

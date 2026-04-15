@@ -35,6 +35,10 @@ load(
     "codesigning_support",
 )
 load(
+    "//apple/internal:experimental.bzl",
+    "is_experimental_tree_artifact_enabled",
+)
+load(
     "//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -90,6 +94,7 @@ def _framework_import_partial_impl(
     ]).to_list()
 
     # Start assembling our partial's outputs.
+    bundle_files = []
     bundle_zips = []
     signed_frameworks_list = []
 
@@ -129,17 +134,10 @@ def _framework_import_partial_impl(
         else:
             files_by_framework[framework_basename].append(file)
 
+    tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
+        platform_prerequisites = platform_prerequisites,
+    )
     for framework_basename in files_by_framework.keys():
-        # Create a temporary path for intermediate files and the anticipated zip output.
-        temp_path = paths.join("_imported_frameworks/", framework_basename)
-        framework_zip = intermediates.file(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-            file_name = temp_path + ".zip",
-        )
-        temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
-
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()
 
@@ -152,16 +150,41 @@ def _framework_import_partial_impl(
 
         args.add("--strip_bitcode")
 
-        args.add("--output_zip", framework_zip.path)
-
-        args.add("--temp_path", temp_framework_bundle_path)
+        framework_output = None
+        framework_bundle_path = None
+        if tree_artifact_is_enabled:
+            framework_output = intermediates.directory(
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                dir_name = framework_basename,
+            )
+            framework_bundle_path = framework_output.path
+            args.add("--output_directory", framework_output.path)
+            bundle_files.append(
+                (processor.location.framework, framework_basename, depset([framework_output])),
+            )
+        else:
+            temp_path = paths.join("_imported_frameworks/", framework_basename)
+            framework_output = intermediates.file(
+                actions = actions,
+                target_name = label_name,
+                output_discriminator = output_discriminator,
+                file_name = temp_path + ".zip",
+            )
+            framework_bundle_path = paths.split_extension(framework_output.path)[0]
+            args.add("--output_zip", framework_output.path)
+            args.add("--temp_path", framework_bundle_path)
+            bundle_zips.append(
+                (processor.location.framework, None, depset([framework_output])),
+            )
 
         args.add_all(files_by_framework[framework_basename], before_each = "--framework_file")
 
         codesign_args = codesigning_support.codesigning_args(
             entitlements = None,
             features = features,
-            full_archive_path = temp_framework_bundle_path,
+            full_archive_path = framework_bundle_path,
             is_framework = True,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
@@ -202,17 +225,15 @@ def _framework_import_partial_impl(
             execution_requirements = execution_requirements,
             inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
-            outputs = [framework_zip],
+            outputs = [framework_output],
             tools = [codesigningtool],
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 
-        bundle_zips.append(
-            (processor.location.framework, None, depset([framework_zip])),
-        )
         signed_frameworks_list.append(framework_basename)
 
     return struct(
+        bundle_files = bundle_files,
         bundle_zips = bundle_zips,
         signed_frameworks = depset(signed_frameworks_list),
     )
