@@ -283,7 +283,6 @@ ios_application(
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
-        "//tools/dossier_codesigningtool:__pkg__",
     ],
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",
@@ -353,7 +352,6 @@ ios_application(
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
-        "//tools/dossier_codesigningtool:__pkg__",
     ],
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",

@@ -58,7 +58,6 @@ macos_application(
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
-        "//tools/dossier_codesigningtool:__pkg__",
     ],
     deps = [
         "//test/starlark_tests/resources:apple_localized_assets_lib",

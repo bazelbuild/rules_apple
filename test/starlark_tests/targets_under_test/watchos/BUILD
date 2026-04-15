@@ -413,7 +413,6 @@ ios_application(
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
-        "//tools/dossier_codesigningtool:__pkg__",
     ],
     watch_application = ":app",
     deps = [
