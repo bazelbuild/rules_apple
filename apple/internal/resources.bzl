@@ -724,8 +724,6 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
     buckets = {}
 
     for provider in providers:
-        # Get the initialized fields in the provider, with the exception of to_json and to_proto,
-        # which are not desireable for our use case.
         fields = _populated_resource_fields(provider)
         for field in fields:
             buckets.setdefault(field, []).extend(getattr(provider, field))
@@ -847,12 +845,10 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
 
 def _populated_resource_fields(provider):
     """Returns a list of field names of the provider's resource buckets that are non empty."""
-
-    # TODO(b/502581357): Remove the to_json and to_proto elements of this list.
     return [
         f
         for f in dir(provider)
-        if f not in ["owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
+        if f not in ["owners", "unowned_resources", "processed_origins"]
     ]
 
 def _structured_resources_parent_dir(*, parent_dir = None, resource):

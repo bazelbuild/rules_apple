@@ -36,8 +36,7 @@ def _get_output_group_files(ctx, provider):
         fail(
             "OutputGroupInfo does not have output group: %s, available output groups are: %s" % (
                 output_group_name,
-                # TODO(b/502581357): Remove the to_json and to_proto elements of this list.
-                [x for x in dir(provider) if x not in ["to_json", "to_proto"]],
+                dir(provider),
             ),
         )
 
