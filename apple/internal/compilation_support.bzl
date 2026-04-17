@@ -15,20 +15,8 @@
 """Utility methods used for creating objc_* rules actions"""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:fragment_support.bzl",
-    "fragment_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
-    "shared_environment",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
@@ -158,69 +146,6 @@ def _register_fully_link_action(
         variables_extension = extensions,
     )
 
-def _register_binary_strip_action(
-        *,
-        ctx,
-        apple_platform_info,
-        binary,
-        bundle_name,
-        cc_toolchain,
-        extra_link_args,
-        feature_configuration,
-        name):
-    """
-    Registers an action that uses the 'strip' tool to perform binary stripping on the given binary.
-    """
-
-    strip_safe = ctx.fragments.objc.strip_executable_safely
-
-    # For dylibs, loadable bundles, and kexts, must strip only local symbols.
-    link_dylib = cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "link_dylib",
-    )
-    link_bundle = cc_common.is_enabled(
-        feature_configuration = feature_configuration,
-        feature_name = "link_bundle",
-    )
-    if ("-dynamiclib" in extra_link_args or link_dylib or
-        "-bundle" in extra_link_args or link_bundle or "-kext" in extra_link_args):
-        strip_safe = True
-
-    stripped_binary = outputs.main_binary(
-        actions = ctx.actions,
-        bundle_name = bundle_name,
-        cc_toolchain = cc_toolchain,
-        cpp_fragment = ctx.fragments.cpp,
-        label = ctx.label,
-        unstripped = False,
-    )
-    args = ctx.actions.args()
-    args.add("strip")
-    if strip_safe:
-        args.add("-x")
-    args.add("-o", stripped_binary)
-    args.add(binary)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
-    apple_common_platform = platform_support.apple_common_platform_from_platform_info(
-        apple_platform_info = apple_platform_info,
-    )
-
-    ctx.actions.run(
-        arguments = [args],
-        env = (
-            shared_environment.default_env |
-            apple_common.apple_host_system_env(xcode_config) |
-            apple_common.target_apple_env(xcode_config, apple_common_platform)
-        ),
-        executable = "/usr/bin/xcrun",
-        execution_requirements = xcode_config.execution_info(),
-        inputs = [binary],
-        mnemonic = "ObjcBinarySymbolStrip",
-        outputs = [stripped_binary],
-    )
-    return stripped_binary
-
 def _register_configuration_specific_link_actions(
         *,
         additional_outputs,
@@ -254,11 +179,7 @@ def _register_configuration_specific_link_actions(
         actions = ctx.actions,
         bundle_name = bundle_name,
         cc_toolchain = common_variables.toolchain,
-        cpp_fragment = ctx.fragments.cpp,
         label = ctx.label,
-        # LINT.IfChange
-        unstripped = ctx.fragments.objc.builtin_objc_strip_action,
-        # LINT.ThenChange(partials/debug_symbols.bzl)
     )
 
     prefixed_attr_linkopts = [
@@ -296,21 +217,7 @@ def _register_configuration_specific_link_actions(
         variables_extension = user_variable_extensions,
     )
 
-    if fragment_support.is_objc_strip_action_enabled(
-        cpp_fragment = ctx.fragments.cpp,
-    ) and ctx.fragments.objc.builtin_objc_strip_action:
-        return _register_binary_strip_action(
-            ctx = ctx,
-            apple_platform_info = apple_platform_info,
-            binary = binary,
-            bundle_name = bundle_name,
-            cc_toolchain = common_variables.toolchain,
-            extra_link_args = extra_link_args,
-            feature_configuration = feature_configuration,
-            name = name,
-        )
-    else:
-        return binary
+    return binary
 
 def _dedup_link_flags(*, flags, seen_flags = {}):
     new_flags = []

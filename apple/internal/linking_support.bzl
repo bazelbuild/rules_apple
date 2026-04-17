@@ -361,11 +361,7 @@ def _link_multi_arch_binary(
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
             additional_outputs.append(linkmap)
 
-        main_binary_basename = outputs.main_binary_basename(
-            bundle_name = bundle_name,
-            cpp_fragment = ctx.fragments.cpp,
-            unstripped = False,
-        )
+        main_binary_basename = outputs.main_binary_basename(bundle_name)
 
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,

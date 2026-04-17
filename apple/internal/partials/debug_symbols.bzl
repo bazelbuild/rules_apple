@@ -110,21 +110,21 @@ def _collect_linkmaps(
 
 def _lipo_command_for_dsyms(
         *,
-        found_dsyms_by_arch,
-        main_binary_basename):
+        bundle_name,
+        found_dsyms_by_arch):
     """Returns a shell command to invoke lipo against all provided dSYMs for a given bundle.
 
     Args:
+        bundle_name: The name of the output bundle.
         found_dsyms_by_arch: A mapping of architectures to Files representing dsym outputs for each
             architecture.
-        main_binary_basename: The basename of the main unstripped binary that was linked to generate
-            the dSYM.
 
     Returns:
         A String representing the shell command to invoke lipo, referencing an OUTPUT_DIR shell
         variable that is expected to represent the dSYM bundle root.
     """
     found_binary_paths = []
+    main_binary_basename = outputs.main_binary_basename(bundle_name)
     for dsym_bundle in found_dsyms_by_arch.values():
         found_binary = dsym_bundle.path + paths.join(
             "/Contents/Resources/DWARF",
@@ -212,17 +212,6 @@ def _generate_merged_dsym_bundle(
     if not dsym_inputs:
         return None
 
-    # The name of the main binary is currently contingent on the Objective-C fragment's
-    # `builtin_objc_strip_action` attribute, which determines *how* the unstripped binary is
-    # named as an artifact.
-    main_binary_basename = outputs.main_binary_basename(
-        cpp_fragment = platform_prerequisites.cpp_fragment,
-        bundle_name = bundle_name,
-        # LINT.IfChange
-        unstripped = platform_prerequisites.objc_fragment.builtin_objc_strip_action,
-        # LINT.ThenChange(../compilation_support.bzl)
-    )
-
     command_inputs = dsym_inputs.values()
 
     if len(dsym_inputs) == 1 and not output_discriminator:
@@ -232,8 +221,8 @@ def _generate_merged_dsym_bundle(
 
     # 1. Lipo the binaries (Resources/DWARF/{main_binary_basename}).
     lipo_command = _lipo_command_for_dsyms(
+        bundle_name = bundle_name,
         found_dsyms_by_arch = dsym_inputs,
-        main_binary_basename = main_binary_basename,
     )
 
     # 2. Merge the files within (Resources/Relocations, Info.plist).
