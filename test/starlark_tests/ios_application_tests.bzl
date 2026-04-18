@@ -966,16 +966,16 @@ def ios_application_test_suite(name):
     )
 
     # Tests that app clips also contribute .symbols package files when
-    # `include_symbols_in_bundle` is enabled on the embedding application.
+    # `include_symbols` is enabled on the wrapping archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_with_app_clip_test".format(name),
         binary_paths = [
-            "Payload/app_with_app_clip_and_symbols_in_bundle.app/app_with_app_clip_and_symbols_in_bundle",
-            "Payload/app_with_app_clip_and_symbols_in_bundle.app/AppClips/app_clip.app/app_clip",
+            "Payload/app_with_app_clip.app/app_with_app_clip",
+            "Payload/app_with_app_clip.app/AppClips/app_clip.app/app_clip",
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_app_clip_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_app_clip_and_symbols",
     )
 
     # Tests that the archive contains .symbols package files generated from
