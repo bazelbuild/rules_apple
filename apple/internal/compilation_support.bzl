@@ -26,6 +26,10 @@ load(
     "//apple/internal:platform_support.bzl",
     "platform_support",
 )
+load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 visibility([
     "//apple/...",
@@ -181,8 +185,11 @@ def _register_binary_strip_action(
 
     ctx.actions.run(
         arguments = [args],
-        env = apple_common.apple_host_system_env(xcode_config) |
-              apple_common.target_apple_env(xcode_config, apple_common_platform),
+        env = (
+            shared_environment.default_env |
+            apple_common.apple_host_system_env(xcode_config) |
+            apple_common.target_apple_env(xcode_config, apple_common_platform)
+        ),
         executable = "/usr/bin/xcrun",
         execution_requirements = xcode_config.execution_info(),
         inputs = [binary],

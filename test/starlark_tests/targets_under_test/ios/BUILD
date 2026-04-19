@@ -125,6 +125,21 @@ ios_application(
 )
 
 ios_application(
+    name = "app_minimal_order_file",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_order_file_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_minimal_with_space_and_post_processor",
     bundle_id = "com.google.example",
     bundle_name = "app minimal",
@@ -5543,6 +5558,22 @@ ios_application(
     deps = [
         ":app_order_file",
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_order_file_symbols",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":app_order_file",
+        "//test/starlark_tests/resources:objc_order_file_main_lib",
     ],
 )
 

@@ -35,6 +35,10 @@ load(
     "processor",
 )
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -104,6 +108,7 @@ def _swift_dylib_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [swift_stdlib_tool_args],
+        env = shared_environment.default_env,
         executable = swift_stdlib_tool,
         inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",

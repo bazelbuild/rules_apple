@@ -43,6 +43,10 @@ load(
     "processor",
 )
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -198,6 +202,7 @@ def _framework_import_partial_impl(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
+            env = shared_environment.default_env,
             executable = imported_dynamic_framework_processor,
             execution_requirements = execution_requirements,
             inputs = input_files,

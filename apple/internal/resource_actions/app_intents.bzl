@@ -16,6 +16,7 @@
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("//apple/internal:intermediates.bzl", "intermediates")
+load("//apple/internal:shared_environment.bzl", "shared_environment")
 
 # Maps the strings passed in to the "families" attribute to the string represention used as an input
 # for the App Intents Metadata Processor tool.
@@ -128,6 +129,7 @@ an issue with the Apple BUILD rules with repro steps.
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [args],
+        env = shared_environment.default_env,
         command = '''\
 set -euo pipefail
 
