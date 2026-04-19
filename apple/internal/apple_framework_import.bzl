@@ -79,9 +79,6 @@ load(
     "AppleFrameworkImportBundleInfo",
 )
 
-# The name of the execution group that houses the Swift toolchain and is used to run Swift actions.
-_SWIFT_EXEC_GROUP = "swift"
-
 def _swiftmodule_for_cpu(swiftmodule_files, cpu):
     """Select the cpu specific swiftmodule."""
 
@@ -244,7 +241,7 @@ def _apple_dynamic_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchain = swift_common.get_toolchain(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -310,7 +307,7 @@ def _apple_static_framework_import_impl(ctx):
     additional_objc_providers = []
     additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
-        toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        toolchain = swift_common.get_toolchain(ctx)
         providers.append(SwiftUsageInfo())
 
         # The Swift toolchain propagates Swift-specific linker flags (e.g.,
@@ -382,7 +379,7 @@ def _apple_static_framework_import_impl(ctx):
 
     if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
         # Create SwiftInfo provider
-        swift_toolchain = swift_common.get_toolchain(ctx, exec_group = _SWIFT_EXEC_GROUP)
+        swift_toolchain = swift_common.get_toolchain(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
@@ -482,15 +479,8 @@ objc_library(
 )
 ```
 """,
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
-    toolchains = use_cpp_toolchain(),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -595,13 +585,6 @@ objc_library(
 )
 ```
 """,
-    exec_groups = dicts.add(
-        {
-            _SWIFT_EXEC_GROUP: exec_group(
-                toolchains = swift_common.use_toolchain(),
-            ),
-        },
-        apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    ),
-    toolchains = use_cpp_toolchain(),
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
 )
