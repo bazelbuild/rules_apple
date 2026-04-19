@@ -44,6 +44,7 @@ def macos_extension_test_suite(name):
         binary_test_file = "$CONTENT_ROOT/MacOS/ext",
         macho_load_commands_contain = [
             "path @executable_path/../Frameworks (offset 12)",
+            "path @loader_path/../Frameworks (offset 12)",
             "path @executable_path/../../../../Frameworks (offset 12)",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext",
