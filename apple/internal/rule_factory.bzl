@@ -155,7 +155,7 @@ def _create_apple_rule(
         ],
         executable = is_executable,
         exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-        fragments = ["apple", "cpp", "objc", "j2objc"],
+        fragments = ["apple", "cpp", "objc"],
         toolchains = toolchains,
         **extra_args
     )
