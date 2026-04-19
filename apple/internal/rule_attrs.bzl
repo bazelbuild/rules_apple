@@ -110,6 +110,11 @@ def _app_intents_attrs(*, deps_cfg):
             aspects = [app_intents_aspect],
             providers = [SwiftInfo],
         ),
+        "_json_tool": attr.label(
+            cfg = "exec",
+            default = "//tools/json_tool",
+            executable = True,
+        ),
     }
 
 def _common_linking_api_attrs(*, deps_cfg):

@@ -893,7 +893,7 @@ reproducible error case.".format(
             deps = ctx.split_attr.app_intents,
             label = label,
             platform_prerequisites = platform_prerequisites,
-            json_tool = apple_xplat_toolchain_info.json_tool,
+            json_tool = ctx.attr._json_tool.files_to_run,
         ),
         partials.binary_partial(
             actions = actions,
@@ -1172,7 +1172,7 @@ def _watchos_extension_impl(ctx):
             deps = ctx.split_attr.app_intents,
             label = label,
             platform_prerequisites = platform_prerequisites,
-            json_tool = apple_xplat_toolchain_info.json_tool,
+            json_tool = ctx.attr._json_tool.files_to_run,
         ),
         partials.binary_partial(
             actions = actions,
@@ -1642,7 +1642,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             deps = ctx.split_attr.app_intents,
             label = label,
             platform_prerequisites = platform_prerequisites,
-            json_tool = apple_xplat_toolchain_info.json_tool,
+            json_tool = ctx.attr._json_tool.files_to_run,
         ),
         partials.binary_partial(
             actions = actions,

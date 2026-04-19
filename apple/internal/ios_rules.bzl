@@ -283,7 +283,7 @@ def _ios_application_impl(ctx):
             deps = ctx.split_attr.app_intents,
             label = label,
             platform_prerequisites = platform_prerequisites,
-            json_tool = apple_xplat_toolchain_info.json_tool,
+            json_tool = ctx.attr._json_tool.files_to_run,
         ),
         partials.apple_bundle_info_partial(
             actions = actions,
@@ -1324,7 +1324,7 @@ def _ios_extension_impl(ctx):
             deps = ctx.split_attr.app_intents,
             label = label,
             platform_prerequisites = platform_prerequisites,
-            json_tool = apple_xplat_toolchain_info.json_tool,
+            json_tool = ctx.attr._json_tool.files_to_run,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
