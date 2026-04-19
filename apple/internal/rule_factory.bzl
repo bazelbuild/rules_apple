@@ -196,7 +196,7 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
             apple_toolchain_utils.use_apple_exec_group_toolchain(),
         ),
         test = True,
-        toolchains = use_cpp_toolchain(),
+        toolchains = use_cc_toolchain(),
     )
 
 rule_factory = struct(

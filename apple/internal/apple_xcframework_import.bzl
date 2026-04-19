@@ -489,7 +489,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -586,7 +586,7 @@ def _apple_static_xcframework_import_impl(ctx):
     apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -806,7 +806,7 @@ Unnecssary and ignored, will be removed in the future.
         CcInfo,
         AppleDynamicFrameworkInfo,
     ],
-    toolchains = use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
 
 apple_static_xcframework_import = rule(
@@ -944,5 +944,5 @@ Unnecssary and ignored, will be removed in the future.
         apple_toolchain_utils.use_apple_exec_group_toolchain(),
     ),
     fragments = ["apple", "cpp", "objc"],
-    toolchains = use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )

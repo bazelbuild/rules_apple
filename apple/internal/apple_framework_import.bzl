@@ -173,7 +173,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    cc_toolchain = find_cpp_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
     features = ctx.features
@@ -480,7 +480,7 @@ objc_library(
 ```
 """,
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
 
 apple_static_framework_import = rule(
@@ -586,5 +586,5 @@ objc_library(
 ```
 """,
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    toolchains = swift_common.use_toolchain() + use_cpp_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
