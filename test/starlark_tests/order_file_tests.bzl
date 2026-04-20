@@ -121,12 +121,11 @@ def order_file_test_suite(*, name):
     apple_verification_test(
         name = "{}_not_applied_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_order_file",
         verifier_script = "verifier_scripts/order_file_verifier.sh",
         env = {
             # No apple_order_file in ios_application deps, so order file shouldn't be applied.
-            "FIRST_SYMBOL": ["dyld_stub_binder"],
-            "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
+            "ORDERED_SYMBOLS": ["__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
         },
         tags = [name],
         timeout = "short",
@@ -135,12 +134,11 @@ def order_file_test_suite(*, name):
     apple_verification_test(
         name = "{}_not_opt_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_order_file",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_order_file_symbols",
         verifier_script = "verifier_scripts/order_file_verifier.sh",
         env = {
             # Not "opt" build, so order file shouldn't be applied.
-            "FIRST_SYMBOL": ["dyld_stub_binder"],
-            "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
+            "ORDERED_SYMBOLS": ["__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
         },
         tags = [name],
         timeout = "short",
@@ -149,12 +147,11 @@ def order_file_test_suite(*, name):
     apple_verification_test(
         name = "{}_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_order_file",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_order_file_symbols",
         verifier_script = "verifier_scripts/order_file_verifier.sh",
         env = {
             # Order file should be applied.
-            "FIRST_SYMBOL": ["dyld_stub_binder"],
-            "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_main", "_dontCallMeMain", "_anotherFunctionMain"],
+            "ORDERED_SYMBOLS": ["__mh_execute_header", "_main", "_dontCallMeMain", "_anotherFunctionMain"],
         },
         tags = [name],
         timeout = "short",

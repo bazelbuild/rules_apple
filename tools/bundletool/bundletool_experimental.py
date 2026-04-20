@@ -52,6 +52,7 @@ import json
 import os
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import zipfile
@@ -72,6 +73,13 @@ def _load_clonefile():
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the bundle')
+
+INVALID_BUNDLE_PATH_MSG_TEMPLATE = (
+    'Cannot place bundle entry %r outside the bundle root')
+
+INVALID_SYMLINK_TARGET_MSG_TEMPLATE = (
+    'Cannot create bundle symlink %r -> %r because the target escapes the '
+    'bundle root')
 
 CODE_SIGN_ERROR_MSG_TEMPLATE = 'Code signing failed with exit code %d'
 
@@ -96,6 +104,24 @@ class CodeSignError(EnvironmentError):
   def __init__(self, exit_code):
     self.exit_code = exit_code
     EnvironmentError.__init__(self, CODE_SIGN_ERROR_MSG_TEMPLATE % exit_code)
+
+
+class BundlePathError(ValueError):
+  """Raised when a bundle path escapes the bundle root."""
+
+  def __init__(self, dest):
+    self.dest = dest
+    ValueError.__init__(self, INVALID_BUNDLE_PATH_MSG_TEMPLATE % dest)
+
+
+class BundleSymlinkError(ValueError):
+  """Raised when a bundle symlink target escapes the bundle root."""
+
+  def __init__(self, dest, target):
+    self.dest = dest
+    self.target = target
+    ValueError.__init__(
+        self, INVALID_SYMLINK_TARGET_MSG_TEMPLATE % (dest, target))
 
 
 class PostProcessorError(EnvironmentError):
@@ -165,15 +191,33 @@ class Bundler(object):
       bundle_root: The bundle root directory into which the files should be
           added.
     """
-    if os.path.isdir(src):
-      for root, _, files in os.walk(src):
+    if os.path.islink(src) and os.path.isdir(src):
+      self._copy_symlink(src, dest, bundle_root)
+    elif os.path.isdir(src):
+      for root, dirs, files in os.walk(src):
         relpath = os.path.relpath(root, src)
+        symlink_dirs = []
+        for dirname in dirs:
+          dirsrc = os.path.join(root, dirname)
+          if os.path.islink(dirsrc):
+            symlink_dirs.append(dirname)
+            dirdest = os.path.normpath(os.path.join(dest, relpath, dirname))
+            self._copy_symlink(dirsrc, dirdest, bundle_root)
+
+        for dirname in symlink_dirs:
+          dirs.remove(dirname)
+
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          self._copy_file(fsrc, fdest, executable, bundle_root)
+          if os.path.islink(fsrc):
+            self._copy_symlink(fsrc, fdest, bundle_root)
+          else:
+            self._copy_file(fsrc, fdest, executable, bundle_root)
     elif os.path.isfile(src):
       self._copy_file(src, dest, executable, bundle_root)
+    elif os.path.islink(src):
+      self._copy_symlink(src, dest, bundle_root)
 
   def _add_zip_contents(self, src, dest, bundle_root):
     """Adds the contents of another ZIP file/App to the bundle.
@@ -193,7 +237,8 @@ class Bundler(object):
         # If so, we can just copy those into the expected location
         # without any additional processing
         app_name = os.path.basename(src)
-        shutil.copytree(src, os.path.join(bundle_root, dest, app_name))
+        shutil.copytree(
+            src, os.path.join(bundle_root, dest, app_name), symlinks=True)
     else:
         with zipfile.ZipFile(src, "r") as src_zip:
             for src_zipinfo in src_zip.infolist():
@@ -203,6 +248,10 @@ class Bundler(object):
                 file_dest = os.path.normpath(
                     os.path.join(dest, src_zipinfo.filename)
                 )
+                if self._is_zipinfo_symlink(src_zipinfo):
+                    symlink_target = src_zip.read(src_zipinfo).decode("utf-8")
+                    self._write_symlink(file_dest, symlink_target, bundle_root)
+                    continue
                 if src_zipinfo.filename.endswith("/"):
                     continue
 
@@ -210,6 +259,10 @@ class Bundler(object):
                 executable = src_zipinfo.external_attr >> 16 & 0o111 != 0
                 data = src_zip.read(src_zipinfo)
                 self._write_entry(file_dest, data, executable, bundle_root)
+
+  def _copy_symlink(self, src, dest, bundle_root):
+    """Copies a symbolic link into the bundle."""
+    self._write_symlink(dest, os.readlink(src), bundle_root)
 
   def _copy_file(self, src, dest, executable, bundle_root):
     """Copies a file into the bundle.
@@ -224,6 +277,7 @@ class Bundler(object):
           added.
     """
     full_dest = os.path.join(bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
     if (os.path.isfile(full_dest) and
         not filecmp.cmp(full_dest, src, shallow=False)):
       raise BundleConflictError(dest)
@@ -243,6 +297,19 @@ class Bundler(object):
       shutil.copy(src, full_dest)
     os.chmod(full_dest, 0o755 if executable else 0o644)
 
+  def _write_symlink(self, dest, target, bundle_root):
+    """Writes the given symbolic link in the output bundle."""
+    full_dest = os.path.join(bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
+    self._validate_symlink_target(full_dest, target, bundle_root, dest)
+    if os.path.lexists(full_dest):
+      if not os.path.islink(full_dest) or os.readlink(full_dest) != target:
+        raise BundleConflictError(dest)
+      return
+
+    self._makedirs_safely(os.path.dirname(full_dest))
+    os.symlink(target, full_dest)
+
   def _write_entry(self, dest, data, executable, bundle_root):
     """Writes the given data as a file in the output ZIP archive.
 
@@ -259,6 +326,7 @@ class Bundler(object):
           at the same location in the ZIP file.
     """
     full_dest = os.path.join(bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
     if os.path.isfile(full_dest):
       with open(full_dest, "rb") as f:
         if f.read() != data:
@@ -268,6 +336,28 @@ class Bundler(object):
     with open(full_dest, 'wb') as f:
       f.write(data)
     os.chmod(full_dest, 0o755 if executable else 0o644)
+
+  def _is_zipinfo_symlink(self, zipinfo):
+    """Returns whether a zip entry stores a symbolic link."""
+    return stat.S_ISLNK(zipinfo.external_attr >> 16)
+
+  def _validate_dest_in_bundle(self, full_dest, bundle_root, dest):
+    """Validates that a destination path resolves within the bundle root."""
+    bundle_root_real = os.path.realpath(bundle_root)
+    dest_real = os.path.realpath(full_dest)
+    if os.path.commonpath([bundle_root_real, dest_real]) != bundle_root_real:
+      raise BundlePathError(dest)
+
+  def _validate_symlink_target(self, full_dest, target, bundle_root, dest):
+    """Validates that a symlink target does not escape the bundle root."""
+    if os.path.isabs(target):
+      raise BundleSymlinkError(dest, target)
+
+    bundle_root_real = os.path.realpath(bundle_root)
+    target_path = os.path.normpath(os.path.join(os.path.dirname(full_dest), target))
+    target_real = os.path.realpath(target_path)
+    if os.path.commonpath([bundle_root_real, target_real]) != bundle_root_real:
+      raise BundleSymlinkError(dest, target)
 
   def _makedirs_safely(self, path):
     """Creates a new directory, silently succeeding if it already exists.
@@ -292,7 +382,9 @@ class Bundler(object):
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
     try:
-      subprocess.check_call((post_processor, work_dir), env={"TREE_ARTIFACT_OUTPUT": bundle_root})
+      env = os.environ.copy()
+      env["TREE_ARTIFACT_OUTPUT"] = bundle_root
+      subprocess.check_call((post_processor, work_dir), env=env)
     except subprocess.CalledProcessError as e:
       raise PostProcessorError(e.returncode) from e
 

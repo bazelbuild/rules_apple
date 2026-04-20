@@ -120,6 +120,12 @@ objc_library(
 )
 
 objc_library(
+    name = "objc_order_file_main_lib",
+    srcs = ["order_file_main.m"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
     name = "objc_lib_with_sdk_dylibs",
     srcs = ["common.m"],
     hdrs = ["common.h"],
@@ -234,6 +240,12 @@ objc_library(
 swift_library(
     name = "swift_main_lib",
     srcs = ["//test/testdata/sources:main.swift"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_span_main_lib",
+    srcs = ["span_main.swift"],
     tags = common.fixture_tags,
 )
 

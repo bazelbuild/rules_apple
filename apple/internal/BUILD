@@ -121,6 +121,7 @@ bzl_library(
         ":framework_import_support",
         ":intermediates",
         ":rule_attrs",
+        ":shared_environment",
         "//apple:providers",
         "//apple/internal/aspects:swift_usage_aspect",
         "@bazel_skylib//lib:dicts",
@@ -188,6 +189,7 @@ bzl_library(
     deps = [
         ":intermediates",
         ":rule_support",
+        ":shared_environment",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
@@ -203,6 +205,7 @@ bzl_library(
     ],
     deps = [
         ":platform_support",
+        ":shared_environment",
         "@bazel_skylib//lib:paths",
         "@rules_cc//cc/common",
     ],
@@ -218,6 +221,7 @@ bzl_library(
         ":apple_product_type",
         ":bundling_support",
         ":resource_actions",
+        ":shared_environment",
         "//apple:common",
         "//apple/internal/utils:defines",
         "@build_bazel_apple_support//lib:apple_support",
@@ -234,8 +238,18 @@ bzl_library(
         ":apple_toolchains",
         ":platform_support",
         ":rule_attrs",
+        ":shared_environment",
         "@bazel_skylib//lib:dicts",
         "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "shared_environment",
+    srcs = ["shared_environment.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+        "//test:__subpackages__",
     ],
 )
 
@@ -420,6 +434,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":shared_environment",
         "@rules_cc//cc/common",
     ],
 )
@@ -630,6 +645,7 @@ bzl_library(
     ],
     deps = [
         ":intermediates",
+        ":shared_environment",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:lipo",
     ],

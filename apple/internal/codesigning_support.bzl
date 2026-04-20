@@ -35,6 +35,10 @@ load(
     "rule_support",
 )
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -561,6 +565,7 @@ def _generate_codesigning_dossier_action(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        env = shared_environment.default_env,
         executable = dossier_codesigningtool,
         inputs = input_files,
         mnemonic = mnemonic,
@@ -720,6 +725,7 @@ def _post_process_and_sign_archive_action(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = arguments,
+            env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
             execution_requirements = execution_requirements,
             inputs = input_files + codesign_inputs,
@@ -732,6 +738,7 @@ def _post_process_and_sign_archive_action(
     else:
         actions.run(
             arguments = arguments,
+            env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
             inputs = input_files,
             mnemonic = mnemonic,
@@ -800,6 +807,7 @@ def _sign_binary_action(
             input_binary = input_binary.path,
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
+        env = shared_environment.default_env,
         execution_requirements = execution_requirements,
         inputs = [input_binary] + codesign_inputs,
         mnemonic = "SignBinary",

@@ -24,6 +24,7 @@ load(
     "ios_framework",
     "ios_imessage_application",
     "ios_imessage_extension",
+    "ios_kernel_extension",
     "ios_static_framework",
     "ios_sticker_pack_extension",
     "ios_ui_test",
@@ -124,6 +125,21 @@ ios_application(
 )
 
 ios_application(
+    name = "app_minimal_order_file",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_order_file_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_minimal_with_space_and_post_processor",
     bundle_id = "com.google.example",
     bundle_name = "app minimal",
@@ -144,6 +160,36 @@ xcarchive(
     name = "app_minimal.xcarchive",
     bundle = ":app_minimal",
     tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "swift_app_using_span_pre_26",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.stable_swift_abi,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_span_main_lib",
+    ],
+)
+
+ios_application(
+    name = "swift_app_using_span_post_26",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.span_in_os,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_span_main_lib",
+    ],
 )
 
 ios_application(
@@ -5516,6 +5562,22 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_order_file_symbols",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":app_order_file",
+        "//test/starlark_tests/resources:objc_order_file_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_with_duplicate_bundle",
     bundle_id = "com.google.example",
     bundle_name = "app_with_duplicate_bundle",
@@ -5642,5 +5704,20 @@ ios_extension(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_kernel_extension(
+    name = "kext",
+    bundle_id = "com.google.kext",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )

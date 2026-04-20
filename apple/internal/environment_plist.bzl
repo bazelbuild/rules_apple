@@ -40,6 +40,10 @@ load(
     "//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
+load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
@@ -68,6 +72,7 @@ def _environment_plist_impl(ctx):
     apple_support.run(
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         arguments = [
             "--platform",
             (platform.name_in_plist + str(sdk_version)).lower(),

@@ -27,6 +27,10 @@ load(
     "//apple/internal:providers.bzl",
     "new_applebundleversioninfo",
 )
+load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 def _collect_group_names(s):
     """Returns the list of placeholder names found in the given string.
@@ -138,6 +142,7 @@ def _apple_bundle_version_impl(ctx):
     ctx.actions.run(
         executable = versiontool,
         arguments = [control_file.path, bundle_version_file.path],
+        env = shared_environment.default_env,
         inputs = inputs,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",
