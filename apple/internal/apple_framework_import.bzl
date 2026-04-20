@@ -38,8 +38,7 @@ load(
 load(
     "@rules_cc//cc:find_cc_toolchain.bzl",
     "find_cc_toolchain",
-    "find_cpp_toolchain",
-    "use_cpp_toolchain",
+    "use_cc_toolchain",
 )
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
@@ -172,7 +171,6 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
