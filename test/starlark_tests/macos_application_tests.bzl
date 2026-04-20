@@ -15,8 +15,8 @@
 """macos_application Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -43,6 +43,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "apple_symbols_file_test",
     "archive_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
@@ -416,14 +420,23 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing versioned framework with tree artifacts enabled fails.
-    analysis_failure_message_with_tree_artifact_outputs_test(
-        name = "{}_fails_with_imported_versioned_framework_and_tree_artifact_outputs".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
-        expected_error = (
-            "The apple_dynamic_framework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
-        ),
+    directory_test(
+        name = "{}_bundles_imported_versioned_framework_with_tree_artifact_outputs".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk_tree_artifacts",
+        expected_directories = {
+            "app_with_imported_versioned_fmwk_tree_artifacts.app": [
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources/Info.plist",
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current/Resources/Info.plist",
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist",
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk",
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current/generated_macos_dynamic_versioned_fmwk",
+                "Contents/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/generated_macos_dynamic_versioned_fmwk",
+            ],
+        },
         tags = [name],
     )
 
@@ -435,30 +448,6 @@ def macos_application_test_suite(name):
         contains = [
             "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
             "$RESOURCE_ROOT/Metadata.appintents/version.json",
-        ],
-        tags = [name],
-    )
-
-    # Test app with App Intents from multiple modules includes both intents.
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_simulator_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
-        ],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
         ],
         tags = [name],
     )

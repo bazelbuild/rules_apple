@@ -47,6 +47,10 @@ load(
     "intermediates",
 )
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
@@ -619,6 +623,7 @@ def compile_asset_catalog(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = asset_files,

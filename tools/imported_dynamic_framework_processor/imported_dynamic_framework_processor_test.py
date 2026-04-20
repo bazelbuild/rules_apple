@@ -14,6 +14,8 @@
 """Tests for xcframework_processor_tool."""
 
 import os
+import shutil
+import tempfile
 import unittest
 from unittest import mock
 
@@ -23,6 +25,21 @@ from tools.wrapper_common import lipo
 
 
 class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    self._scratch_dir = tempfile.mkdtemp("importedDynamicFrameworkProcessor")
+
+  def tearDown(self):
+    super().tearDown()
+    shutil.rmtree(self._scratch_dir)
+
+  def _scratch_file(self, path, content=""):
+    full_path = os.path.join(self._scratch_dir, path)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    with open(full_path, "w", encoding="utf-8") as fp:
+      fp.write(content)
+    return full_path
 
   @mock.patch.object(execute, "execute_and_filter_output")
   def test_get_install_path_for_binary(self, mock_execute):
@@ -172,6 +189,88 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
         "/tmp/path/to/fake/binary",
         executable=True,
         output_path="/tmp/path/to/outputs")
+
+  @mock.patch.object(
+      imported_dynamic_framework_processor.codesigningtool,
+      "find_identity_and_sign_bundle_paths")
+  @mock.patch.object(
+      imported_dynamic_framework_processor.execute, "execute_and_filter_output")
+  @mock.patch.object(
+      imported_dynamic_framework_processor, "_update_modified_timestamps")
+  @mock.patch.object(
+      imported_dynamic_framework_processor, "_try_get_framework_version_from_structure")
+  @mock.patch.object(
+      imported_dynamic_framework_processor.argparse.ArgumentParser, "parse_args")
+  def test_main_reconstructs_versioned_framework_and_signs_current_version(
+      self,
+      mock_parse_args,
+      mock_try_get_framework_version_from_structure,
+      mock_update_modified_timestamps,
+      mock_execute,
+      mock_sign):
+    framework_binary = self._scratch_file(
+        "Foo.framework/Versions/A/Foo", "framework-binary")
+    framework_resource = self._scratch_file(
+        "Foo.framework/Versions/A/Resources/Info.plist", "plist-content")
+    self._scratch_file("Foo.framework/Versions/B/Resources/Info.plist", "other")
+    temp_path = os.path.join(self._scratch_dir, "out", "Foo.framework")
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+
+    mock_parse_args.return_value = mock.Mock(
+        framework_binary=framework_binary,
+        framework_file=[
+            framework_binary,
+            framework_resource,
+            os.path.join(
+                self._scratch_dir,
+                "Foo.framework/Versions/B/Resources/Info.plist",
+            ),
+        ],
+        slice=["x86_64"],
+        strip_bitcode=False,
+        temp_path=temp_path,
+        output_zip=output_zip,
+        disable_signing=False,
+        target_to_sign=[],
+    )
+    mock_try_get_framework_version_from_structure.return_value = "A"
+    mock_sign.return_value = 0
+
+    with mock.patch.object(
+        imported_dynamic_framework_processor,
+        "_strip_or_copy_binary",
+        side_effect=lambda **kwargs: (
+            imported_dynamic_framework_processor._copy_framework_file(
+                kwargs["framework_binary"],
+                executable=True,
+                output_path=kwargs["output_path"],
+            )
+        ),
+    ):
+      imported_dynamic_framework_processor.main()
+
+    self.assertTrue(os.path.exists(os.path.join(temp_path, "Versions/A/Foo")))
+    self.assertTrue(os.path.exists(os.path.join(
+        temp_path, "Versions/A/Resources/Info.plist")))
+    self.assertFalse(os.path.exists(os.path.join(
+        temp_path, "Versions/B/Resources/Info.plist")))
+    self.assertTrue(os.path.islink(os.path.join(temp_path, "Versions/Current")))
+    self.assertEqual("A", os.readlink(os.path.join(temp_path, "Versions/Current")))
+    self.assertTrue(os.path.islink(os.path.join(temp_path, "Foo")))
+    self.assertEqual(
+        "Versions/Current/Foo", os.readlink(os.path.join(temp_path, "Foo")))
+    self.assertTrue(os.path.islink(os.path.join(temp_path, "Resources")))
+    self.assertEqual(
+        "Versions/Current/Resources",
+        os.readlink(os.path.join(temp_path, "Resources")),
+    )
+    self.assertEqual(
+        [os.path.join(temp_path, "Versions", "A")],
+        mock_parse_args.return_value.target_to_sign,
+    )
+    mock_sign.assert_called_once()
+    mock_update_modified_timestamps.assert_called_once_with(temp_path)
+    mock_execute.assert_called_once()
 
 if __name__ == "__main__":
   unittest.main()

@@ -1,4 +1,4 @@
-// Copyright 2024 The Bazel Authors. All rights reserved.
+// Copyright 2019 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AppIntents
+#import <Foundation/Foundation.h>
 
-struct ExtraIntent: AppIntent {
-  static var title: LocalizedStringResource = "Extra Intent"
-  static var description = IntentDescription("Additional app intent.")
+__attribute__((used)) void dontCallMeMain() {
+  int *foo = NULL;
+  *foo = 0;
+}
 
-  func perform() async throws -> some ProvidesDialog {
-    return .result(dialog: "This is an extra intent")
-  }
+__attribute__((used)) void anotherFunctionMain() {
+  int *foo = NULL;
+  *foo = 0;
+}
+
+int main() {
+  return 0;
 }

@@ -97,6 +97,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
@@ -149,6 +150,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:providers",
         "//apple/internal:resource_actions",
+        "//apple/internal:shared_environment",
         "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
@@ -218,6 +220,7 @@ bzl_library(
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
@@ -324,6 +327,7 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

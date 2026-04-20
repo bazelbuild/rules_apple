@@ -851,6 +851,31 @@ that requirement.
 | <a id="IosImessageExtensionBundleInfo-_init-kwargs"></a>kwargs | <p align="center">-</p> | none |
 
 
+<a id="IosKernelExtensionBundleInfo"></a>
+
+## IosKernelExtensionBundleInfo
+
+<pre>
+load("@rules_apple//apple:providers.bzl", "IosKernelExtensionBundleInfo")
+
+IosKernelExtensionBundleInfo(<a href="#IosKernelExtensionBundleInfo-_init-kwargs">*kwargs</a>)
+</pre>
+
+Denotes that a target is an iOS kernel extension.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically an iOS kernel extension
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is an iOS kernel extension should use this provider to describe that
+requirement.
+
+**CONSTRUCTOR PARAMETERS**
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="IosKernelExtensionBundleInfo-_init-kwargs"></a>kwargs | <p align="center">-</p> | none |
+
+
 <a id="IosStaticFrameworkBundleInfo"></a>
 
 ## IosStaticFrameworkBundleInfo

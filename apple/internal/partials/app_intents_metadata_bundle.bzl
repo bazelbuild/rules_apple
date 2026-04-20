@@ -16,7 +16,6 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
-load("//apple/internal:intermediates.bzl", "intermediates")
 load("//apple/internal:processor.bzl", "processor")
 load(
     "//apple/internal/providers:app_intents_info.bzl",
@@ -46,89 +45,33 @@ def _app_intents_metadata_bundle_partial_impl(
     # available archs.
     first_cc_toolchain_key = cc_toolchains.keys()[0]
 
-    metadata_bundle = None
-    if platform_prerequisites.xcode_version_config.xcode_version() >= apple_common.dotted_version("26.0"):
-        per_dep_metadata_bundles = []
-        for dep in deps[first_cc_toolchain_key]:
-            per_dep_metadata_bundles.append(
-                generate_app_intents_metadata_bundle(
-                    actions = actions,
-                    apple_fragment = platform_prerequisites.apple_fragment,
-                    constvalues_files = dep[AppIntentsInfo].swiftconstvalues_files,
-                    intents_module_names = dep[AppIntentsInfo].intent_module_names,
-                    label = label.relative(label.name + dep[AppIntentsInfo].intent_module_names[0]),
-                    dependency_metadata_bundles = [],
-                    platform_prerequisites = platform_prerequisites,
-                    source_files = dep[AppIntentsInfo].swift_source_files,
-                    target_triples = [
-                        cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
-                        for cc_toolchain in cc_toolchains.values()
-                    ],
-                    xcode_version_config = platform_prerequisites.xcode_version_config,
-                    json_tool = json_tool,
-                ),
-            )
-
-        # Merge multiple intent metadatas into a single.
-        dummy_source_file = intermediates.file(
-            actions = actions,
-            target_name = label.name,
-            output_discriminator = None,
-            file_name = "{}_app_intents_dummy_source.swift".format(label.name),
-        )
-        dummy_constvalues_file = intermediates.file(
-            actions = actions,
-            target_name = label.name,
-            output_discriminator = None,
-            file_name = "{}_app_intents_dummy_constvalues.swiftconstvalues".format(label.name),
-        )
-        actions.write(output = dummy_source_file, content = "")
-        actions.write(output = dummy_constvalues_file, content = "[]")
-        metadata_bundle = generate_app_intents_metadata_bundle(
-            actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            constvalues_files = [dummy_constvalues_file],
-            intents_module_names = ["{}AppIntents".format(label.name)],
-            label = label,
-            dependency_metadata_bundles = per_dep_metadata_bundles,
-            platform_prerequisites = platform_prerequisites,
-            source_files = [dummy_source_file],
-            target_triples = [
-                cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
-                for cc_toolchain in cc_toolchains.values()
-            ],
-            xcode_version_config = platform_prerequisites.xcode_version_config,
-            json_tool = json_tool,
-        )
-    else:
-        metadata_bundle = generate_app_intents_metadata_bundle(
-            actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
-            constvalues_files = [
-                swiftconstvalues_file
-                for dep in deps[first_cc_toolchain_key]
-                for swiftconstvalues_file in dep[AppIntentsInfo].swiftconstvalues_files
-            ],
-            intents_module_names = [
-                intent_module_name
-                for dep in deps[first_cc_toolchain_key]
-                for intent_module_name in dep[AppIntentsInfo].intent_module_names
-            ],
-            label = label,
-            dependency_metadata_bundles = [],
-            platform_prerequisites = platform_prerequisites,
-            source_files = [
-                swift_source_file
-                for dep in deps[first_cc_toolchain_key]
-                for swift_source_file in dep[AppIntentsInfo].swift_source_files
-            ],
-            target_triples = [
-                cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
-                for cc_toolchain in cc_toolchains.values()
-            ],
-            xcode_version_config = platform_prerequisites.xcode_version_config,
-            json_tool = json_tool,
-        )
+    metadata_bundle = generate_app_intents_metadata_bundle(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        constvalues_files = [
+            swiftconstvalues_file
+            for dep in deps[first_cc_toolchain_key]
+            for swiftconstvalues_file in dep[AppIntentsInfo].swiftconstvalues_files
+        ],
+        intents_module_names = [
+            intent_module_name
+            for dep in deps[first_cc_toolchain_key]
+            for intent_module_name in dep[AppIntentsInfo].intent_module_names
+        ],
+        label = label,
+        platform_prerequisites = platform_prerequisites,
+        source_files = [
+            swift_source_file
+            for dep in deps[first_cc_toolchain_key]
+            for swift_source_file in dep[AppIntentsInfo].swift_source_files
+        ],
+        target_triples = [
+            cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
+            for cc_toolchain in cc_toolchains.values()
+        ],
+        xcode_version_config = platform_prerequisites.xcode_version_config,
+        json_tool = json_tool,
+    )
 
     bundle_location = processor.location.bundle
     if str(platform_prerequisites.platform_type) == "macos":

@@ -268,16 +268,6 @@ Found the following legacy .appiconset files: """,
         tags = [name],
     )
 
-    # Tests that icon composer icons will be flagged when building against Xcode 16 instead of 26.
-    analysis_failure_message_test(
-        name = "{}_test_xcode_16_with_icon_composer_icons_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_icon_bundle_only_for_low_minimum_os_version",
-        expected_error = """
-Found Icon Composer .icon bundles among the assigned app_icons. These are only supported on Xcode 26 or later.""",
-        # Skip on CI since we no longer run tests using Xcode 16.
-        tags = [name] + common.skip_ci_tags,
-    )
-
     # Tests that the launch storyboard is bundled with the application and that
     # the bundler inserts the correct key/value into Info.plist.
     archive_contents_test(
