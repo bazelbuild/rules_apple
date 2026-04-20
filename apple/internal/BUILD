@@ -40,11 +40,18 @@ apple_mac_tools_toolchain(
     xctoolrunner = "//tools/xctoolrunner",
 )
 
+toolchain_type(name = "apple_xplat_toolchain_type")
+
+toolchain(
+    name = "apple_xplat_toolchain",
+    toolchain = "xplat_tools_toolchain",
+    toolchain_type = ":apple_xplat_toolchain_type",
+)
+
 apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
-    json_tool = "//tools/json_tool",
     versiontool = "//tools/versiontool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
@@ -103,7 +110,9 @@ bzl_library(
 bzl_library(
     name = "apple_toolchains",
     srcs = ["apple_toolchains.bzl"],
-    visibility = ["//apple:__subpackages__"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
     deps = [
         "@bazel_skylib//rules:common_settings",
     ],

@@ -35,7 +35,11 @@ load(
     "swift_clang_module_aspect",
     "swift_common",
 )
-load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load(
+    "@rules_cc//cc:find_cc_toolchain.bzl",
+    "find_cc_toolchain",
+    "use_cc_toolchain",
+)
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
@@ -44,6 +48,10 @@ load(
 load(
     "//apple:utils.bzl",
     "group_files_by_directory",
+)
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:cc_toolchain_info_support.bzl",
@@ -469,6 +477,7 @@ objc_library(
 )
 ```
 """,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
 
@@ -553,7 +562,6 @@ not include Swift interface or Swift module files.
             ),
         },
     ),
-    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
 files in exactly one `.framework` directory. `apple_static_framework_import` targets
@@ -575,4 +583,6 @@ objc_library(
 )
 ```
 """,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    toolchains = swift_common.use_toolchain() + use_cc_toolchain(),
 )
