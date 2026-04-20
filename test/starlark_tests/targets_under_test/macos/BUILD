@@ -2175,6 +2175,20 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_with_imported_versioned_fmwk_tree_artifacts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 objc_library(
     name = "dynamic_versioned_fmwk_depending_lib",
     tags = common.fixture_tags,
@@ -2254,6 +2268,20 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_imported_dynamic_versioned_xcframework_tree_artifacts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [

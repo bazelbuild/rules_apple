@@ -21,7 +21,6 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -40,6 +39,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "binary_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:directory_test.bzl",
+    "directory_test",
 )
 
 analysis_output_group_info_files_with_xcframework_processor_test = make_analysis_output_group_info_files_test({
@@ -483,14 +486,23 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing XCFramework with versioned frameworks and tree artifacts fails.
-    analysis_failure_message_with_tree_artifact_outputs_test(
-        name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
-        expected_error = (
-            "The apple_dynamic_xcframework_import rule does not yet support versioned " +
-            "frameworks with the experimental tree artifact feature/build setting."
-        ),
+    directory_test(
+        name = "{}_bundles_versioned_frameworks_with_tree_artifact_outputs_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework_tree_artifacts",
+        expected_directories = {
+            "app_with_imported_dynamic_versioned_xcframework_tree_artifacts.app": [
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources/Info.plist",
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current/generated_dynamic_macos_versioned_xcframework",
+                "Contents/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework",
+            ],
+        },
         tags = [name],
     )
 

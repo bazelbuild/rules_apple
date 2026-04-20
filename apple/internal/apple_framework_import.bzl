@@ -46,16 +46,8 @@ load(
     "group_files_by_directory",
 )
 load(
-    "//apple/internal:apple_toolchains.bzl",
-    "AppleXPlatToolsToolchainInfo",
-)
-load(
     "//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
-)
-load(
-    "//apple/internal:experimental.bzl",
-    "is_experimental_tree_artifact_enabled",
 )
 load(
     "//apple/internal:framework_import_support.bzl",
@@ -171,7 +163,6 @@ def _framework_search_paths(header_imports):
 def _apple_dynamic_framework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
     cc_toolchain = find_cc_toolchain(ctx)
     deps = ctx.attr.deps
     disabled_features = ctx.disabled_features
@@ -179,22 +170,7 @@ def _apple_dynamic_framework_import_impl(ctx):
     framework_imports = ctx.files.framework_imports
     label = ctx.label
 
-    # TODO(b/258492867): Add tree artifacts support when Bazel can handle remote actions with
-    # symlinks. See https://github.com/bazelbuild/bazel/issues/16361.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
-    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
-        framework_imports,
-    )
-    tree_artifact_enabled = (
-        apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs or
-        is_experimental_tree_artifact_enabled(config_vars = ctx.var)
-    )
-    if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
-        fail("The apple_dynamic_framework_import rule does not yet support versioned " +
-             "frameworks with the experimental tree artifact feature/build setting. " +
-             "Please ensure that the `apple.experimental.tree_artifact_outputs` variable is not " +
-             "set to 1 on the command line or in your active build configuration.")
-
     providers = []
     framework = framework_import_support.classify_framework_imports(
         ctx.var,
