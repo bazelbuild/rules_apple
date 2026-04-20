@@ -2988,6 +2988,15 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
 )
 
+apple_dynamic_xcframework_import(
+    name = "ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [
+        "//test/starlark_tests/targets_under_test/apple:swift_3p_xcframework_with_generated_header_and_private_swiftinterface",
+    ],
+)
+
 genrule(
     name = "ios_swift_dynamic_xcframework",
     srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header"],
@@ -3010,6 +3019,13 @@ genrule(
     ],
     cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header) -d $(RULEDIR)",
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_with_private_swiftinterface_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_with_private_swiftinterface"],
 )
 
 # Swift app with imported Objective-C static framework.

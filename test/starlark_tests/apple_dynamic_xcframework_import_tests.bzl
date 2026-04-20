@@ -19,6 +19,10 @@ load(
     "build_settings_labels",
 )
 load(
+    "//test/starlark_tests/rules:action_inputs_test.bzl",
+    "make_action_inputs_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -47,6 +51,10 @@ load(
 
 analysis_output_group_info_files_with_xcframework_processor_test = make_analysis_output_group_info_files_test({
     build_settings_labels.parse_xcframework_info_plist: True,
+})
+
+action_inputs_with_ios_x86_64_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
 })
 
 def apple_dynamic_xcframework_import_test_suite(name):
@@ -127,6 +135,16 @@ def apple_dynamic_xcframework_import_test_suite(name):
         binary_test_file = "$BINARY",
         macho_load_commands_contain = [
             "name @rpath/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader (offset 24)",
+        ],
+        tags = [name],
+    )
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_declares_private_swiftinterface_inputs".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_swiftinterface_depending_swift_lib",
+        mnemonic = "SwiftCompile",
+        expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
         ],
         tags = [name],
     )

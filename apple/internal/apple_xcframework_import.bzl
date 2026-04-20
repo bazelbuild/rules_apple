@@ -164,8 +164,10 @@ def _get_xcframework_library(
             headers: List of File referencing XCFramework library header files. This can be either
                 a single tree artifact or a list of regular artifacts.
             clang_module_map: File referencing the XCFramework library Clang modulemap file.
-            swift_module_interface: File referencing the XCFramework library Swift module interface
-                file (`.swiftinterface`).
+            swift_module_interface: File referencing the XCFramework library's primary Swift
+                module interface file (`.swiftinterface`).
+            swift_module_interfaces: List of File referencing all XCFramework library Swift
+                module interface files required during compilation.
     """
     xcframework_library = None
     if not parse_xcframework_info_plist:
@@ -261,6 +263,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         includes = includes,
         clang_module_map = module_maps[0] if module_maps else None,
         swiftmodule = swiftmodules,
+        swift_module_interfaces = swift_module_interfaces,
         swift_module_interface = swift_module_interfaces[0] if swift_module_interfaces else None,
     )
 
@@ -422,6 +425,7 @@ def _get_xcframework_library_with_xcframework_processor(
         includes = includes,
         clang_module_map = module_map_file,
         swiftmodule = [],
+        swift_module_interfaces = [swiftinterface_file] if swiftinterface_file else [],
         swift_module_interface = swiftinterface_file,
         framework_files = [],
     )
@@ -541,7 +545,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         kind = "dynamic",
         label = label,
         libraries = [] if ctx.attr.bundle_only else [xcframework_library.binary],
-        swiftinterface_imports = [xcframework_library.swift_module_interface] if xcframework_library.swift_module_interface else [],
+        swiftinterface_imports = xcframework_library.swift_module_interfaces,
         swiftmodule_imports = xcframework_library.swiftmodule,
     )
     providers.append(cc_info)
@@ -680,7 +684,7 @@ def _apple_static_xcframework_import_impl(ctx):
         libraries = [xcframework_library.binary],
         framework_includes = xcframework_library.framework_includes,
         linkopts = sdk_linkopts + linkopts,
-        swiftinterface_imports = [xcframework_library.swift_module_interface] if xcframework_library.swift_module_interface else [],
+        swiftinterface_imports = xcframework_library.swift_module_interfaces,
         swiftmodule_imports = xcframework_library.swiftmodule,
         # User-specified includes are relative to the platform directory inside the xcframework.
         # For framework XCFrameworks, binary is inside .framework bundle, so go up one level.
