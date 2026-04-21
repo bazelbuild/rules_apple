@@ -37,8 +37,10 @@ set -euo pipefail
 #    This is a trivial way to test that the order file has been applied to the
 #    binary and that the symbols inside have been re-ordered as a result.
 #
-#  ORDERED_SYMBOLS: Will be compared against all symbols found in the binary.
-#    This is a more thorough test that the order file has been applied.
+#  ORDERED_SYMBOLS: Will be compared against a contiguous block of symbols
+#    found in the binary, starting at the first expected symbol. This tolerates
+#    extra leading toolchain symbols while still asserting that the ordered
+#    symbols stay grouped together in the expected order.
 #
 
 something_tested=false
@@ -62,10 +64,31 @@ if [[ -n "${ORDERED_SYMBOLS-}" ]]; then
   something_tested=true
 
   ordered_symbols_length=${#ORDERED_SYMBOLS[@]}
-  IFS=$'\n' symbols_output_idx=($(head -n $ordered_symbols_length "$symbols_output"))
+  first_expected_symbol="${ORDERED_SYMBOLS[0]}"
+  first_expected_line=""
+  current_line=0
+
+  while IFS= read -r symbol; do
+    ((current_line += 1))
+    if [[ "$symbol" == "$first_expected_symbol" ]]; then
+      first_expected_line=$current_line
+      break
+    fi
+  done < "$symbols_output"
+
+  if [[ -z "$first_expected_line" ]]; then
+    fail "First ordered symbol not found: $first_expected_symbol"
+  fi
+
+  last_expected_line=$((first_expected_line + ordered_symbols_length - 1))
+  IFS=$'\n' contiguous_symbols=($(sed -n "${first_expected_line},${last_expected_line}p" "$symbols_output"))
+
+  if (( ${#contiguous_symbols[@]} != ordered_symbols_length )); then
+    fail "Expected ${ordered_symbols_length} contiguous ordered symbols starting at line ${first_expected_line}, got ${#contiguous_symbols[@]}"
+  fi
 
   for ((idx=0; idx<ordered_symbols_length; ++idx)); do
-    assert_equals "${ORDERED_SYMBOLS[idx]}" "${symbols_output_idx[idx]}"
+    assert_equals "${ORDERED_SYMBOLS[idx]}" "${contiguous_symbols[idx]}"
   done
 fi
 

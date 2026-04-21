@@ -26,6 +26,10 @@ load(
     "//apple/internal:intermediates.bzl",
     "intermediates",
 )
+load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
 
 def _create_stub_binary(
         *,
@@ -75,6 +79,7 @@ def _create_stub_binary(
         apple_support.run_shell(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
+            env = shared_environment.default_env,
             command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
                 output_path = binary_artifact.path,
                 xcode_stub_path = xcode_stub_path,

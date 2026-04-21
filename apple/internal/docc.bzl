@@ -29,7 +29,6 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleXPlatToolsToolchainInfo",
     "apple_toolchain_utils",
 )
 load(
@@ -59,7 +58,7 @@ def _docc_archive_impl(ctx):
     """
 
     apple_fragment = ctx.fragments.apple
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     default_code_listing_language = ctx.attr.default_code_listing_language
     diagnostic_level = ctx.attr.diagnostic_level
     enable_inherited_docs = ctx.attr.enable_inherited_docs
@@ -205,6 +204,7 @@ def _docc_archive_impl(ctx):
 
 docc_archive = rule(
     implementation = _docc_archive_impl,
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = [
         "apple",
         "cpp",

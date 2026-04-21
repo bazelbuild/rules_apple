@@ -83,6 +83,10 @@ def _common_tool_attrs():
         apple_toolchain_utils.shared_attrs(),
     )
 
+def _common_exec_groups():
+    """Returns a set of exec_groups"""
+    return apple_toolchain_utils.use_apple_exec_group_toolchain()
+
 def _custom_transition_allowlist_attr():
     """Returns the required attribute to use Starlark defined custom transitions."""
     return {
@@ -105,6 +109,11 @@ def _app_intents_attrs(*, deps_cfg):
             cfg = deps_cfg,
             aspects = [app_intents_aspect],
             providers = [SwiftInfo],
+        ),
+        "_json_tool": attr.label(
+            cfg = "exec",
+            default = "//tools/json_tool",
+            executable = True,
         ),
     }
 
@@ -725,6 +734,7 @@ rule_attrs = struct(
     common_attrs = _common_attrs,
     common_bundle_attrs = _common_bundle_attrs,
     common_tool_attrs = _common_tool_attrs,
+    common_exec_groups = _common_exec_groups,
     custom_transition_allowlist_attr = _custom_transition_allowlist_attr,
     device_family_attrs = _device_family_attrs,
     device_runner_template_attr = _device_runner_template_attr,
