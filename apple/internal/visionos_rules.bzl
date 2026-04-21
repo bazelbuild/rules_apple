@@ -1507,7 +1507,9 @@ visionos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.visionos,
         ),
         rule_attrs.device_runner_template_attr(),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.visionos_application_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.locales_to_include_attrs(),
         rule_attrs.platform_attrs(

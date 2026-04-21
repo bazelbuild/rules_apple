@@ -26,6 +26,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
     "analysis_target_outputs_test",
+    "analysis_target_tree_artifacts_outputs_test",
 )
 load(
     "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
@@ -414,6 +415,25 @@ def visionos_application_test_suite(name):
     #        "needs-xcode-latest-beta",
     #    ],
     #)
+
+    # Test that visionos_application works without explicit infoplists
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_no_infoplist_builds_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal_no_infoplist",
+        expected_outputs = ["app_minimal_no_infoplist.zip"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_infoplist_has_default_values_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal_no_infoplist",
+        expected_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "app_minimal_no_infoplist",
+            "CFBundlePackageType": "APPL",
+        },
+        tags = [name],
+    )
 
     native.test_suite(
         name = name,

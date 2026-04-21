@@ -120,6 +120,17 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    tags = common.fixture_tags,
+    deps = [
+        ":main_lib",
+    ],
+)
+
 macos_unit_test(
     name = "dedupe_test_test",
     minimum_os_version = common.min_os_macos.baseline,

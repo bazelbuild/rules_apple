@@ -65,6 +65,17 @@ tvos_application(
 )
 
 tvos_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
+tvos_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     infoplists = [

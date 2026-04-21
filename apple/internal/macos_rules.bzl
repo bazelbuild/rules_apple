@@ -2296,7 +2296,9 @@ simple command line tool as a standalone binary, use
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
         ),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.macos_application_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.locales_to_include_attrs(),
         rule_attrs.platform_attrs(
