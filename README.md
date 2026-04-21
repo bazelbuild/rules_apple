@@ -47,7 +47,6 @@ ios_application(
         "iphone",
         "ipad",
     ],
-    infoplists = [":Info.plist"],  # Optional; a default Info.plist will be used if not provided
     minimum_os_version = "15.0",
     deps = [":MyLibrary"],
 )
