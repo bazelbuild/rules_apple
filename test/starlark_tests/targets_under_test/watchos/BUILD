@@ -61,8 +61,8 @@ watchos_application(
 watchos_application(
     name = "app_minimal_no_infoplist",
     bundle_id = "com.google.example",
-    extension = ":generic_ext",
-    minimum_os_version = common.min_os_watchos.single_target_app,
+    extension = ":ext",
+    minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
 )

@@ -420,7 +420,7 @@ def visionos_application_test_suite(name):
     analysis_target_tree_artifacts_outputs_test(
         name = "{}_no_infoplist_builds_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app_minimal_no_infoplist",
-        expected_outputs = ["app_minimal_no_infoplist.zip"],
+        expected_outputs = ["app_minimal_no_infoplist.app"],
         tags = [name],
     )
 
