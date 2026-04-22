@@ -158,6 +158,8 @@ def _get_xcframework_library(
             headers: List of File referencing XCFramework library header files. This can be either
                 a single tree artifact or a list of regular artifacts.
             clang_module_map: File referencing the XCFramework library Clang modulemap file.
+            private_clang_module_map: File referencing the XCFramework library private Clang
+                modulemap file.
             swift_module_interface: File referencing the XCFramework library Swift module interface
                 file (`.swiftinterface`).
     """
@@ -550,10 +552,12 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     )
     providers.append(apple_framework_import_info)
 
-    # Create CcInfo provider
+    # Collect header imports
     header_imports = list(xcframework_library.headers)
     if xcframework_library.private_clang_module_map:
         header_imports.append(xcframework_library.private_clang_module_map)
+
+    # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -689,10 +693,12 @@ def _apple_static_xcframework_import_impl(ctx):
         sdk_linkopts.append("-weak_framework")
         sdk_linkopts.append(sdk_framework)
 
-    # Create CcInfo provider
+    # Collect header imports
     header_imports = list(xcframework_library.headers)
     if xcframework_library.private_clang_module_map:
         header_imports.append(xcframework_library.private_clang_module_map)
+
+    # Create CcInfo provider
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         additional_cc_infos = additional_cc_infos,

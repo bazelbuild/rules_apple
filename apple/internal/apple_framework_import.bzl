@@ -222,10 +222,12 @@ def _apple_dynamic_framework_import_impl(ctx):
         ),
     ))
 
-    # Create CcInfo provider.
+    # Collect header imports
     header_imports = list(framework.header_imports)
     if framework.private_module_map_imports:
         header_imports.extend(framework.private_module_map_imports)
+
+    # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -368,10 +370,12 @@ def _apple_static_framework_import_impl(ctx):
             linkopts.append("-weak_framework")
             linkopts.append(sdk_framework)
 
-    # Create CcInfo provider
+    # Collect header imports
     header_imports = list(framework.header_imports)
     if framework.private_module_map_imports:
         header_imports.extend(framework.private_module_map_imports)
+
+    # Create CcInfo provider
     providers.append(
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
