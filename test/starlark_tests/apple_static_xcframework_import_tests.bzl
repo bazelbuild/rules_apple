@@ -278,6 +278,14 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify static XCFramework with module.private.modulemap builds successfully.
+    analysis_contains_xcframework_processor_action_test(
+        name = "{}_ios_static_xcframework_with_private_modulemap_registers_action".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_static_xcframework_with_private_modulemap",
+        target_mnemonic = "ProcessXCFrameworkFiles",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

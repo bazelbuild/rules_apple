@@ -3249,6 +3249,36 @@ generate_static_xcframework(
     tags = common.fixture_tags,
 )
 
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_private_modulemap",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_xcframework_with_private_modulemap"],
+)
+
+generate_static_xcframework(
+    name = "generated_static_xcframework_with_private_modulemap",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    generate_private_modulemap = True,
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
 # Swift app with imported Swift XCFramework
 ios_application(
     name = "swift_app_with_imported_swift_xcframework_with_static_library",

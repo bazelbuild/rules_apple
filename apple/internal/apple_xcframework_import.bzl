@@ -209,6 +209,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
     framework_imports = filter_by_library_identifier(files_by_category.bundling_imports)
     headers = filter_by_library_identifier(files_by_category.header_imports)
     module_maps = filter_by_library_identifier(files_by_category.module_map_imports)
+    private_module_maps = filter_by_library_identifier(files_by_category.private_module_map_imports)
     dsyms = filter_by_library_identifier(files_by_category.dsym_imports)
     dsym_binaries = framework_import_support.get_dsym_binaries(dsyms)
     debug_info_binaries = framework_import_support.get_debug_info_binaries(
@@ -254,6 +255,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
         headers = headers,
         includes = includes,
         clang_module_map = module_maps[0] if module_maps else None,
+        private_clang_module_map = private_module_maps[0] if private_module_maps else None,
         swiftmodule = swiftmodules,
         swift_module_interface = swift_module_interfaces[0] if swift_module_interfaces else None,
     )
@@ -315,6 +317,15 @@ def _get_xcframework_library_with_xcframework_processor(
         **intermediates_common
     )
 
+    files_by_category = xcframework.files_by_category
+
+    private_module_map_file = None
+    if files_by_category.private_module_map_imports:
+        private_module_map_file = intermediates.file(
+            file_name = paths.join(modules_dir_path, "module.private.modulemap"),
+            **intermediates_common
+        )
+
     args = actions.args()
     args.add("--bundle_name", xcframework.bundle_name)
     args.add("--info_plist", xcframework.info_plist.path)
@@ -323,11 +334,11 @@ def _get_xcframework_library_with_xcframework_processor(
     args.add("--architecture", target_triplet.architecture)
     args.add("--environment", target_triplet.environment)
 
-    files_by_category = xcframework.files_by_category
     args.add_all(files_by_category.binary_imports, before_each = "--binary_file")
     args.add_all(files_by_category.bundling_imports, before_each = "--bundle_file")
     args.add_all(files_by_category.header_imports, before_each = "--header_file")
     args.add_all(files_by_category.module_map_imports, before_each = "--modulemap_file")
+    args.add_all(files_by_category.private_module_map_imports, before_each = "--private_modulemap_file")
 
     args.add("--binary", binary.path)
     args.add("--library_dir", binary.dirname)
@@ -343,6 +354,8 @@ def _get_xcframework_library_with_xcframework_processor(
         headers_dir,
         module_map_file,
     ]
+    if private_module_map_file:
+        outputs.append(private_module_map_file)
 
     swiftinterface_file = None
     if files_by_category.swift_interface_imports:
@@ -414,6 +427,7 @@ def _get_xcframework_library_with_xcframework_processor(
         headers = [headers_dir],
         includes = includes,
         clang_module_map = module_map_file,
+        private_clang_module_map = private_module_map_file,
         swiftmodule = [],
         swift_module_interface = swiftinterface_file,
         framework_files = [],
@@ -537,6 +551,9 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(apple_framework_import_info)
 
     # Create CcInfo provider
+    header_imports = list(xcframework_library.headers)
+    if xcframework_library.private_clang_module_map:
+        header_imports.append(xcframework_library.private_clang_module_map)
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -545,7 +562,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         disabled_features = disabled_features,
         features = features,
         framework_includes = xcframework_library.framework_includes,
-        header_imports = xcframework_library.headers,
+        header_imports = header_imports,
         kind = "dynamic",
         label = label,
         libraries = [] if ctx.attr.bundle_only else [xcframework_library.binary],
@@ -673,6 +690,9 @@ def _apple_static_xcframework_import_impl(ctx):
         sdk_linkopts.append(sdk_framework)
 
     # Create CcInfo provider
+    header_imports = list(xcframework_library.headers)
+    if xcframework_library.private_clang_module_map:
+        header_imports.append(xcframework_library.private_clang_module_map)
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         additional_cc_infos = additional_cc_infos,
@@ -682,7 +702,7 @@ def _apple_static_xcframework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        header_imports = xcframework_library.headers,
+        header_imports = header_imports,
         kind = "static",
         label = label,
         libraries = [xcframework_library.binary],

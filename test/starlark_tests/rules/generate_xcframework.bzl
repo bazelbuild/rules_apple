@@ -443,6 +443,16 @@ def _generate_static_xcframework_impl(ctx):
                 ),
             )
 
+        if ctx.attr.generate_private_modulemap:
+            modulemaps.append(
+                generation_support.generate_private_module_map(
+                    actions = actions,
+                    bundle_name = label.name,
+                    label = label,
+                    module_map_path = headers_path,
+                ),
+            )
+
         libraries.append(static_library)
 
     # Create static XCFramework
@@ -671,6 +681,11 @@ represented as a dotted version number as values.
                 doc = "Flag to indicate if modulemap generation is enabled.",
                 mandatory = False,
                 default = True,
+            ),
+            "generate_private_modulemap": attr.bool(
+                doc = "Flag to indicate if a module.private.modulemap should be generated.",
+                mandatory = False,
+                default = False,
             ),
             "swift_library": attr.label(
                 allow_files = True,

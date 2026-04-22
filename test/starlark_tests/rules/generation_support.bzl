@@ -807,6 +807,37 @@ def _generate_module_map(
 
     return modulemap_file
 
+def _generate_private_module_map(
+        *,
+        actions,
+        bundle_name,
+        label,
+        module_map_path):
+    """Generates a module.private.modulemap file for testing.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        bundle_name: Name of the framework/XCFramework bundle.
+        label: Label of the target being built.
+        module_map_path: Base path for the generated modulemap file.
+    Returns:
+        File for the generated private modulemap file.
+    """
+    modulemap_content = actions.args()
+    modulemap_content.set_param_file_format("multiline")
+    modulemap_content.add("explicit module %s.Private {" % bundle_name)
+    modulemap_content.add("}")
+
+    modulemap_file = intermediates.file(
+        actions = actions,
+        file_name = paths.join(module_map_path, "module.private.modulemap"),
+        output_discriminator = None,
+        target_name = label.name,
+    )
+    actions.write(output = modulemap_file, content = modulemap_content)
+
+    return modulemap_file
+
 generation_support = struct(
     compile_binary = _compile_binary,
     copy_file = _copy_file,
@@ -816,5 +847,6 @@ generation_support = struct(
     create_static_library = _create_static_library,
     get_file_with_extension = _get_file_with_extension,
     generate_module_map = _generate_module_map,
+    generate_private_module_map = _generate_private_module_map,
     generate_umbrella_header = _generate_umbrella_header,
 )

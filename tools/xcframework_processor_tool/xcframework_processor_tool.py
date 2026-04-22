@@ -106,6 +106,7 @@ def _create_args_parser() -> argparse.ArgumentParser:
   optional_list_args = {
       "bundle_file": "Imported XCFramework bundle file path.",
       "modulemap_file": "Imported XCFramework modulemap file path.",
+      "private_modulemap_file": "Imported XCFramework private modulemap file path.",
       "swiftinterface_file": "Imported XCFramework Swift module file path.",
       "dsym": "Imported XCFramework dSYM bundle path.",
   }
@@ -330,6 +331,11 @@ def main() -> int:
       library_identifier=library_identifier,
       output_directories=[modules_dir],
       xcframework_files=args.modulemap_files)
+
+  _copy_xcframework_files(
+      library_identifier=library_identifier,
+      output_directories=[modules_dir],
+      xcframework_files=args.private_modulemap_files)
 
   swiftmodule_dir = os.path.join(modules_dir, f"{bundle_name}.swiftmodule")
   _copy_xcframework_files(

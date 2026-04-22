@@ -152,6 +152,7 @@ def _classify_file_imports(config_vars, import_files):
         A struct containing classified import files by categories:
             - header_imports: Objective-C(++) header imports.
             - module_map_imports: Clang modulemap imports.
+            - private_module_map_imports: Clang private modulemap imports (module.private.modulemap).
             - swift_module_imports: Swift module imports.
             - swift_interface_imports: Swift module interface imports.
             - dsym_imports: dSYM imports.
@@ -162,6 +163,7 @@ def _classify_file_imports(config_vars, import_files):
     dsym_imports = []
     header_imports = []
     module_map_imports = []
+    private_module_map_imports = []
     swift_module_imports = []
     swift_interface_imports = []
     for file in import_files:
@@ -185,7 +187,14 @@ def _classify_file_imports(config_vars, import_files):
                 default = False,
             ):
                 header_imports.append(file)
-            module_map_imports.append(file)
+
+            # Clang supports module.private.modulemap as a standard convention
+            # for private submodule declarations. Classify these separately so
+            # they don't get confused with the public module map.
+            if file.basename == "module.private.modulemap":
+                private_module_map_imports.append(file)
+            else:
+                module_map_imports.append(file)
             continue
         if file_extension == "swiftmodule":
             swift_module_imports.append(file)
@@ -221,6 +230,7 @@ def _classify_file_imports(config_vars, import_files):
         dsym_imports = dsym_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
+        private_module_map_imports = private_module_map_imports,
         swift_interface_imports = swift_interface_imports,
         swift_module_imports = swift_module_imports,
         bundling_imports = bundling_imports,
@@ -272,6 +282,7 @@ def _classify_framework_imports(config_vars, framework_imports):
         dsym_imports = framework_imports_by_category.dsym_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
+        private_module_map_imports = framework_imports_by_category.private_module_map_imports,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
         swift_module_imports = framework_imports_by_category.swift_module_imports,
     )

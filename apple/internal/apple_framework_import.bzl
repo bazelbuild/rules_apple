@@ -223,6 +223,9 @@ def _apple_dynamic_framework_import_impl(ctx):
     ))
 
     # Create CcInfo provider.
+    header_imports = list(framework.header_imports)
+    if framework.private_module_map_imports:
+        header_imports.extend(framework.private_module_map_imports)
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
         cc_toolchain = cc_toolchain,
@@ -235,7 +238,7 @@ def _apple_dynamic_framework_import_impl(ctx):
             framework.swift_interface_imports +
             framework.swift_module_imports,
         ),
-        header_imports = framework.header_imports,
+        header_imports = header_imports,
         kind = "dynamic",
         label = label,
         libraries = [] if ctx.attr.bundle_only else framework.binary_imports,
@@ -366,6 +369,9 @@ def _apple_static_framework_import_impl(ctx):
             linkopts.append(sdk_framework)
 
     # Create CcInfo provider
+    header_imports = list(framework.header_imports)
+    if framework.private_module_map_imports:
+        header_imports.extend(framework.private_module_map_imports)
     providers.append(
         framework_import_support.cc_info_with_dependencies(
             actions = actions,
@@ -381,7 +387,7 @@ def _apple_static_framework_import_impl(ctx):
                 framework.swift_interface_imports +
                 framework.swift_module_imports,
             ),
-            header_imports = framework.header_imports,
+            header_imports = header_imports,
             kind = "static",
             label = label,
             libraries = framework.binary_imports,
