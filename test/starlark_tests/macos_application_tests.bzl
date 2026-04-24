@@ -544,6 +544,18 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that user-provided infoplist values override default values.
+    # The custom plist provides CFBundleVersion=2.0, which should win over the default's 1.0.
+    infoplist_contents_test(
+        name = "{}_custom_infoplist_overrides_defaults_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_custom_infoplist_values",
+        expected_values = {
+            "CFBundleVersion": "2.0",
+            "CFBundleShortVersionString": "2.0",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

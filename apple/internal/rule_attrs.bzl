@@ -724,11 +724,7 @@ _TEST_HOST_ASPECTS = [framework_provider_aspect]
 _test_bundle_infoplist = "//apple/testing:DefaultTestBundlePlist"
 
 # Returns the default Info.plist for application rules.
-_ios_application_infoplist = "//apple/internal/templates:default_application_infoplist"
-_macos_application_infoplist = "//apple/internal/templates:default_application_infoplist"
-_tvos_application_infoplist = "//apple/internal/templates:default_application_infoplist"
-_watchos_application_infoplist = "//apple/internal/templates:default_application_infoplist"
-_visionos_application_infoplist = "//apple/internal/templates:default_application_infoplist"
+_default_infoplist = "//apple/internal/templates:default_application_infoplist"
 
 rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,
@@ -763,10 +759,10 @@ rule_attrs = struct(
             watchos = ["watch"],
         ),
         test_bundle_infoplist = _test_bundle_infoplist,
-        ios_application_infoplist = _ios_application_infoplist,
-        macos_application_infoplist = _macos_application_infoplist,
-        tvos_application_infoplist = _tvos_application_infoplist,
-        watchos_application_infoplist = _watchos_application_infoplist,
-        visionos_application_infoplist = _visionos_application_infoplist,
+        ios_application_infoplist = _default_infoplist,
+        macos_application_infoplist = _default_infoplist,
+        tvos_application_infoplist = _default_infoplist,
+        watchos_application_infoplist = _default_infoplist,
+        visionos_application_infoplist = _default_infoplist,
     ),
 )
