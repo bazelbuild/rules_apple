@@ -160,6 +160,25 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that ios_application works without explicit infoplists
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_no_infoplist_builds_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_infoplist",
+        expected_outputs = ["app_minimal_no_infoplist.app"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_infoplist_has_default_values_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_infoplist",
+        expected_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "app_minimal_no_infoplist",
+            "CFBundlePackageType": "APPL",
+        },
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_ipa_opt_strip_test".format(name),
         build_type = "simulator",

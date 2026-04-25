@@ -59,6 +59,15 @@ watchos_application(
 )
 
 watchos_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    extension = ":ext",
+    minimum_os_version = common.min_os_watchos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+watchos_application(
     name = "app_with_ext_with_invalid_watchos_version",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",

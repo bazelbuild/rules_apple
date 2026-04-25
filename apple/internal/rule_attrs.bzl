@@ -491,18 +491,25 @@ def _infoplist_attrs(*, default_infoplist = None):
     attr_args = {}
     if default_infoplist:
         attr_args["default"] = [Label(default_infoplist)]
+        doc_text = """
+A list of .plist files that will be merged to form the Info.plist for this target. If not provided,
+a default Info.plist will be used. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
+for what is supported.
+"""
     else:
         attr_args["mandatory"] = True
-    return {
-        "infoplists": attr.label_list(
-            allow_empty = False,
-            allow_files = [".plist"],
-            doc = """
+        doc_text = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
 [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
-""",
+"""
+    return {
+        "infoplists": attr.label_list(
+            allow_empty = False,
+            allow_files = [".plist"],
+            doc = doc_text,
             **attr_args
         ),
     }
@@ -716,6 +723,9 @@ _TEST_HOST_ASPECTS = [framework_provider_aspect]
 # Returns the default root Info.plist required to support a test bundle rule.
 _test_bundle_infoplist = "//apple/testing:DefaultTestBundlePlist"
 
+# Returns the default Info.plist for application rules.
+_default_infoplist = "//apple/internal/templates:default_application_infoplist"
+
 rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,
     app_intents_attrs = _app_intents_attrs,
@@ -749,5 +759,10 @@ rule_attrs = struct(
             watchos = ["watch"],
         ),
         test_bundle_infoplist = _test_bundle_infoplist,
+        ios_application_infoplist = _default_infoplist,
+        macos_application_infoplist = _default_infoplist,
+        tvos_application_infoplist = _default_infoplist,
+        watchos_application_infoplist = _default_infoplist,
+        visionos_application_infoplist = _default_infoplist,
     ),
 )

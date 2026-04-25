@@ -31,6 +31,17 @@ visionos_application(
 )
 
 visionos_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_visionos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_visionos.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+visionos_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:VisionAppIcon.xcassets"],
     bundle_id = "com.google.example",

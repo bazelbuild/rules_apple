@@ -125,6 +125,18 @@ ios_application(
 )
 
 ios_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_minimal_order_file",
     bundle_id = "com.google.example",
     families = ["iphone"],

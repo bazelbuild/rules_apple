@@ -1508,7 +1508,9 @@ tvos_application = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.tvos,
         ),
         rule_attrs.device_runner_template_attr(),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.tvos_application_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.locales_to_include_attrs(),
         rule_attrs.launch_images_attrs(),

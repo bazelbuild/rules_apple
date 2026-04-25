@@ -32,6 +32,10 @@ load(
     "make_analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_tree_artifacts_outputs_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -518,6 +522,37 @@ def macos_application_test_suite(name):
             "$CONTENT_ROOT/Resources/test/starlark_tests/resources/cc_lib_resources/suppressed_resource.txt",
             "$CONTENT_ROOT/Resources/suppressed_resource.txt",
         ],
+        tags = [name],
+    )
+
+    # Test that macos_application works without explicit infoplists
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_no_infoplist_builds_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_minimal_no_infoplist",
+        expected_outputs = ["app_minimal_no_infoplist.app"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_infoplist_has_default_values_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_minimal_no_infoplist",
+        expected_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "app_minimal_no_infoplist",
+            "CFBundlePackageType": "APPL",
+        },
+        tags = [name],
+    )
+
+    # Test that user-provided infoplist values override default values.
+    # The custom plist provides CFBundleVersion=2.0, which should win over the default's 1.0.
+    infoplist_contents_test(
+        name = "{}_custom_infoplist_overrides_defaults_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_custom_infoplist_values",
+        expected_values = {
+            "CFBundleVersion": "2.0",
+            "CFBundleShortVersionString": "2.0",
+        },
         tags = [name],
     )
 
