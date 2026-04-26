@@ -160,6 +160,25 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test that ios_application works without explicit infoplists
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_no_infoplist_builds_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_infoplist",
+        expected_outputs = ["app_minimal_no_infoplist.app"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_infoplist_has_default_values_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_infoplist",
+        expected_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "app_minimal_no_infoplist",
+            "CFBundlePackageType": "APPL",
+        },
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_ipa_opt_strip_test".format(name),
         build_type = "simulator",
@@ -235,6 +254,54 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_present_on_older_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_device_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
+    )
+    archive_contents_test(
+        name = "{}_simulator_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
+        ],
+        tags = [
+            name,
+        ],
     )
 
     apple_verification_test(
@@ -857,28 +924,18 @@ def ios_application_test_suite(name):
         ],
     )
 
-    # Test app with App Intents from multiple modules includes both intents.
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_simulator_test".format(name),
-        build_type = "simulator",
+    # Test app that has two Intents defined as top level modules generates an error message.
+    analysis_failure_message_test(
+        name = "{}_with_two_app_intents_and_two_modules_fails".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
+        expected_error = (
+            "App Intents must have only one module name for metadata generation to work correctly."
+        ).format(
+            package = "//test/starlark_tests/targets_under_test/ios",
+        ),
+        tags = [
+            name,
         ],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
-        ],
-        tags = [name],
     )
 
     # Test app with App Intents generates and bundles Metadata.appintents bundle for fat binaries.
@@ -903,9 +960,11 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
         text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [
-            ".*HelloWorldIntent.*",
+            ".*\"identifier\":\"HelloWorldIntent\".*",
             ".*IntelIntent.*",
             ".*iOSIntent.*",
+            ".*TestAppShortcuts.*",
+            ".*\"actionIdentifier\":\"HelloWorldIntent\".*",
         ],
         text_file_not_contains = [
             ".*ArmIntent.*",
@@ -921,9 +980,11 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
         text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [
-            ".*HelloWorldIntent.*",
+            ".*\"identifier\":\"HelloWorldIntent\".*",
             ".*ArmIntent.*",
             ".*iOSIntent.*",
+            ".*TestAppShortcuts.*",
+            ".*\"actionIdentifier\":\"HelloWorldIntent\".*",
         ],
         text_file_not_contains = [
             ".*IntelIntent.*",

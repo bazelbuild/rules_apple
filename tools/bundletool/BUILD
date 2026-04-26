@@ -32,6 +32,16 @@ py_binary(
     visibility = [
         "//apple/internal:__pkg__",
     ],
+    deps = [":bundletool_experimental_lib"],
+)
+
+py_library(
+    name = "bundletool_experimental_lib",
+    srcs = [
+        "__init__.py",
+        "bundletool_experimental.py",
+    ],
+    srcs_version = "PY3",
 )
 
 py_test(
@@ -39,6 +49,13 @@ py_test(
     srcs = ["bundletool_test.py"],
     python_version = "PY3",
     deps = [":bundletool_lib"],
+)
+
+py_test(
+    name = "bundletool_experimental_test",
+    srcs = ["bundletool_experimental_test.py"],
+    python_version = "PY3",
+    deps = [":bundletool_experimental_lib"],
 )
 
 filegroup(

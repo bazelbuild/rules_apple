@@ -363,6 +363,7 @@ _RULE_TYPE_DESCRIPTORS = {
                 # Application.app/Contents/PlugIns/Extension.appex/Contents/Frameworks
                 # or Application.app/Contents/Frameworks
                 "@executable_path/../Frameworks",
+                "@loader_path/../Frameworks",
                 "@executable_path/../../../../Frameworks",
             ],
         ),
@@ -378,7 +379,11 @@ _RULE_TYPE_DESCRIPTORS = {
             rpaths = [
                 # ExtensionKit binaries live in
                 # Application.app/Contents/Extensions/Extension.appex/Contents/MacOS/Extension
-                # Frameworks are packaged in Application.app/Contents/Frameworks
+                # Frameworks are packaged in
+                # Application.app/Contents/Extensions/Extension.appex/Contents/Frameworks
+                # or Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                "@loader_path/../Frameworks",
                 "@executable_path/../../../../Frameworks",
             ],
         ),

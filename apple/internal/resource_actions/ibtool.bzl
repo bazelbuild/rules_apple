@@ -23,6 +23,10 @@ load(
     "apple_support",
 )
 load(
+    "//apple/internal:shared_environment.bzl",
+    "shared_environment",
+)
+load(
     "//apple/internal/utils:xctoolrunner.bzl",
     xctoolrunner_support = "xctoolrunner",
 )
@@ -77,6 +81,7 @@ def compile_storyboard(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [input_file],
@@ -130,6 +135,7 @@ def link_storyboards(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = storyboardc_dirs,
@@ -184,6 +190,7 @@ def compile_xib(
         actions = actions,
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
+        env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [input_file],

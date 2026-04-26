@@ -24,6 +24,10 @@ load(
     "make_analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_tree_artifacts_outputs_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -324,31 +328,6 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
-    # Test app with App Intents from multiple modules includes both intents.
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_simulator_test".format(name),
-        build_type = "simulator",
-        cpus = {"watchos_cpus": ["arm64"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
-        ],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_two_app_intents_modules_metadata_bundle_contents_for_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_app_intent_and_widget_configuration_intent",
-        text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
-        text_test_values = [
-            ".*HelloWorldIntent.*",
-            ".*FavoriteSoup.*",
-        ],
-        tags = [name],
-    )
-
     apple_verification_test(
         name = "{}_app_intents_metadata_json_keys_sorted_test".format(name),
         build_type = "simulator",
@@ -377,6 +356,25 @@ def watchos_application_test_suite(name):
         name = "{}_test_watchos_single_target_application_required_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_invalid_watchos_version",
         expected_error = "Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.",
+        tags = [name],
+    )
+
+    # Test that watchos_application works without explicit infoplists
+    analysis_target_tree_artifacts_outputs_test(
+        name = "{}_no_infoplist_builds_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_minimal_no_infoplist",
+        expected_outputs = ["app_minimal_no_infoplist.app"],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_no_infoplist_has_default_values_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_minimal_no_infoplist",
+        expected_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "CFBundleName": "app_minimal_no_infoplist",
+            "CFBundlePackageType": "APPL",
+        },
         tags = [name],
     )
 

@@ -83,7 +83,7 @@ def _action_command_line_test_impl(ctx):
     # `-foo` in the expected list doesn't match `-foobar`, for example.
     concatenated_args = " ".join(action.argv) + " "
     for expected in ctx.attr.expected_argv:
-        if expected + " " not in concatenated_args and expected + "=" not in concatenated_args:
+        if expected + " " not in concatenated_args and expected + "=" not in concatenated_args and expected + "," not in concatenated_args:
             unittest.fail(
                 env,
                 "{}expected argv to contain '{}', but it did not: {}".format(
@@ -93,7 +93,7 @@ def _action_command_line_test_impl(ctx):
                 ),
             )
     for not_expected in ctx.attr.not_expected_argv:
-        if not_expected + " " in concatenated_args or not_expected + "=" in concatenated_args:
+        if not_expected + " " in concatenated_args or not_expected + "=" in concatenated_args or not_expected + "," in concatenated_args:
             unittest.fail(
                 env,
                 "{}expected argv to not contain '{}', but it did: {}".format(

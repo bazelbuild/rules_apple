@@ -79,23 +79,45 @@ def ios_kernel_extension_test_suite(name):
     )
 
     _action_arm64e_ios_cpu_test(
-        name = "{}_no_entitlements_test".format(name),
+        name = "{}_arm64e_no_entitlements_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:kext",
         mnemonic = "ObjcLink",
         not_expected_argv = [
-            "-sectcreate __TEXT __entitlements",
-            "-sectcreate __TEXT __ents_der",
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_arm64e_ios_cpu_test(
+        name = "{}_arm64e_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
         ],
         tags = [name],
     )
 
     _action_x86_64_ios_cpu_test(
-        name = "{}_no_entitlements_sim_test".format(name),
+        name = "{}_x86_64_no_entitlements_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:kext",
         mnemonic = "ObjcLink",
         not_expected_argv = [
-            "-sectcreate __TEXT __entitlements",
-            "-sectcreate __TEXT __ents_der",
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_x86_64_ios_cpu_test(
+        name = "{}_x86_64_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
         ],
         tags = [name],
     )

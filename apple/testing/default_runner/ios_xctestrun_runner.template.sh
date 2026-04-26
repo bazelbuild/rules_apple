@@ -353,39 +353,24 @@ if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
     ALL_TESTS="$TEST_FILTER"
   fi
 
+  SKIP_TESTS_ARRAY=()
+  ONLY_TESTS_ARRAY=()
   saved_IFS=$IFS
   IFS=","; for TEST in $ALL_TESTS; do
     if [[ $TEST == -* ]]; then
-      if [[ -n "${SKIP_TESTS:-}" ]]; then
-        SKIP_TESTS+=",${TEST:1}"
-      else
-        SKIP_TESTS="${TEST:1}"
-      fi
+      SKIP_TESTS_ARRAY+=("${TEST:1}")
     else
-      if [[ -n "${ONLY_TESTS:-}" ]]; then
-          ONLY_TESTS+=",$TEST"
-      else
-          ONLY_TESTS="$TEST"
-      fi
+      ONLY_TESTS_ARRAY+=("$TEST")
     fi
   done
-
   IFS=$saved_IFS
 
-  if [[ -n "${SKIP_TESTS:-}" ]]; then
-    xctestrun_skip_test_section="\n"
-    for skip_test in ${SKIP_TESTS//,/ }; do
-      xctestrun_skip_test_section+="      <string>$skip_test</string>\n"
-    done
-    xctestrun_skip_test_section="    <key>SkipTestIdentifiers</key>\n    <array>$xctestrun_skip_test_section    </array>"
+  if (( ${#SKIP_TESTS_ARRAY[@]} )); then
+    xctestrun_skip_test_section="    <key>SkipTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${SKIP_TESTS_ARRAY[@]}")    </array>"
   fi
 
-  if [[ -n "${ONLY_TESTS:-}" ]]; then
-    xctestrun_only_test_section="\n"
-    for only_test in ${ONLY_TESTS//,/ }; do
-      xctestrun_only_test_section+="      <string>$only_test</string>\n"
-    done
-    xctestrun_only_test_section="    <key>OnlyTestIdentifiers</key>\n    <array>$xctestrun_only_test_section    </array>"
+  if (( ${#ONLY_TESTS_ARRAY[@]} )); then
+    xctestrun_only_test_section="    <key>OnlyTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${ONLY_TESTS_ARRAY[@]}")    </array>"
   fi
 fi
 
@@ -404,7 +389,7 @@ if [[ "$build_for_device" == false ]]; then
     exit 1
   fi
 
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" "%(create_simulator_action_binary)s")"
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0
@@ -662,7 +647,7 @@ if [[
   rm -r "$result_bundle_path"
 fi
 
-SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" "%(clean_up_simulator_action_binary)s"
+SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(clean_up_simulator_action_binary)s"
 
 if [[ "$post_action_determines_exit_code" == true ]]; then
   if [[ "$post_action_exit_code" -ne 0 ]]; then

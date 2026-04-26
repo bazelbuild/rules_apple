@@ -77,6 +77,7 @@ bzl_library(
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
+        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -249,6 +250,7 @@ bzl_library(
     deps = [
         "//apple/internal:apple_toolchains",
         "//apple/internal:providers",
+        "//apple/internal:shared_environment",
         "@bazel_skylib//lib:dicts",
     ],
 )

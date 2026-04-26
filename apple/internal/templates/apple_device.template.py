@@ -30,6 +30,8 @@
 # 1. Installs and launches the application on a device corresponding to `device_identifier`.
 # 2. Displays the application's output on the console
 
+import re
+
 import collections.abc
 import contextlib
 import json
@@ -189,8 +191,11 @@ def os_version_number_to_int(version: str) -> int:
     An integer in the form 0xAABBCC, where AA is the major version, BB is
     the minor version, and CC is the micro version.
   """
-  # Pad the version to major.minor.micro.
-  version_components = (version.split(".") + ["0"] * 3)[:3]
+  # Strip non-numeric suffixes (e.g. Rapid Security Response "(a)") from each
+  # component, then pad to major.minor.micro.
+  version_components = (
+      [re.sub(r"[^0-9].*", "", c) or "0" for c in version.split(".")] + ["0"] * 3
+  )[:3]
   result = 0
   for component in version_components:
     result = (result << 8) | int(component)
@@ -346,7 +351,18 @@ def extracted_app(
       )
       with zipfile.ZipFile(application_output_path) as ipa_zipfile:
         ipa_zipfile.extractall(temp_dir)
-        yield os.path.join(temp_dir, "Payload", app_name + ".app")
+        # iOS/tvOS apps use Payload/ directory structure, while watchOS apps
+        # have the .app bundle at the root of the archive.
+        payload_path = os.path.join(temp_dir, "Payload", app_name + ".app")
+        root_path = os.path.join(temp_dir, app_name + ".app")
+        if os.path.isdir(payload_path):
+          yield payload_path
+        elif os.path.isdir(root_path):
+          yield root_path
+        else:
+          raise FileNotFoundError(
+              f"Couldn't find {app_name}.app in the archive."
+          )
 
 
 def bundle_id(bundle_path: str) -> str:
@@ -544,6 +560,7 @@ def main(
   )
   developer_path = xcode_select_result.stdout.rstrip()
   devicectl_path = os.path.join(developer_path, "usr", "bin", "devicectl")
+  device_identifier = os.environ.get("BAZEL_APPLE_DEVICE_UDID", device_identifier)
 
   if not device_identifier:
     logger.info(

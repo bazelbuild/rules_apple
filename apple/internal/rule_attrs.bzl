@@ -83,6 +83,10 @@ def _common_tool_attrs():
         apple_toolchain_utils.shared_attrs(),
     )
 
+def _common_exec_groups():
+    """Returns a set of exec_groups"""
+    return apple_toolchain_utils.use_apple_exec_group_toolchain()
+
 def _custom_transition_allowlist_attr():
     """Returns the required attribute to use Starlark defined custom transitions."""
     return {
@@ -105,6 +109,11 @@ def _app_intents_attrs(*, deps_cfg):
             cfg = deps_cfg,
             aspects = [app_intents_aspect],
             providers = [SwiftInfo],
+        ),
+        "_json_tool": attr.label(
+            cfg = "exec",
+            default = "//tools/json_tool",
+            executable = True,
         ),
     }
 
@@ -482,18 +491,25 @@ def _infoplist_attrs(*, default_infoplist = None):
     attr_args = {}
     if default_infoplist:
         attr_args["default"] = [Label(default_infoplist)]
+        doc_text = """
+A list of .plist files that will be merged to form the Info.plist for this target. If not provided,
+a default Info.plist will be used. Please see
+[Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
+for what is supported.
+"""
     else:
         attr_args["mandatory"] = True
-    return {
-        "infoplists": attr.label_list(
-            allow_empty = False,
-            allow_files = [".plist"],
-            doc = """
+        doc_text = """
 A list of .plist files that will be merged to form the Info.plist for this target. At least one file
 must be specified. Please see
 [Info.plist Handling](https://github.com/bazelbuild/rules_apple/blob/main/doc/common_info.md#infoplist-handling)
 for what is supported.
-""",
+"""
+    return {
+        "infoplists": attr.label_list(
+            allow_empty = False,
+            allow_files = [".plist"],
+            doc = doc_text,
             **attr_args
         ),
     }
@@ -707,6 +723,9 @@ _TEST_HOST_ASPECTS = [framework_provider_aspect]
 # Returns the default root Info.plist required to support a test bundle rule.
 _test_bundle_infoplist = "//apple/testing:DefaultTestBundlePlist"
 
+# Returns the default Info.plist for application rules.
+_default_infoplist = "//apple/internal/templates:default_application_infoplist"
+
 rule_attrs = struct(
     app_icon_attrs = _app_icon_attrs,
     app_intents_attrs = _app_intents_attrs,
@@ -715,6 +734,7 @@ rule_attrs = struct(
     common_attrs = _common_attrs,
     common_bundle_attrs = _common_bundle_attrs,
     common_tool_attrs = _common_tool_attrs,
+    common_exec_groups = _common_exec_groups,
     custom_transition_allowlist_attr = _custom_transition_allowlist_attr,
     device_family_attrs = _device_family_attrs,
     device_runner_template_attr = _device_runner_template_attr,
@@ -739,5 +759,10 @@ rule_attrs = struct(
             watchos = ["watch"],
         ),
         test_bundle_infoplist = _test_bundle_infoplist,
+        ios_application_infoplist = _default_infoplist,
+        macos_application_infoplist = _default_infoplist,
+        tvos_application_infoplist = _default_infoplist,
+        watchos_application_infoplist = _default_infoplist,
+        visionos_application_infoplist = _default_infoplist,
     ),
 )

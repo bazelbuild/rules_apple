@@ -157,12 +157,23 @@ def macos_kernel_extension_test_suite(name):
     )
 
     _action_arm64_macos_cpu_test(
-        name = "{}_no_entitlements_test".format(name),
+        name = "{}_arm64_no_entitlements_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:kext",
         mnemonic = "ObjcLink",
         not_expected_argv = [
-            "-sectcreate __TEXT __entitlements",
-            "-sectcreate __TEXT __ents_der",
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_arm64_macos_cpu_test(
+        name = "{}_arm64_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
         ],
         tags = [name],
     )

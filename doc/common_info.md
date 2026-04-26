@@ -493,7 +493,7 @@ There are a few steps required to properly make Bazel use the right Xcode versio
 3. In your Bazel wrapper (`tools/bazel` in your repository, read more [here](https://github.com/bazelbuild/bazelisk#ensuring-that-your-developers-use-bazelisk-rather-than-bazel)), you should pass a few flags to every invocation or generate and import a `bazelrc`:
     * Capture `xcode-select -p` or use the value of `DEVELOPER_DIR` if available and forward it to repository rules for invalidation when changed: `--repo_env=DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
     * Pass `--repo_env=XCODE_VERSION=$xcode_version` where `xcode_version` should be the value of `xcodebuild -version | tail -1 | cut -d " " -f3` which is unique to each version. This will make sure the `apple_support` toolchain and `xcode_configure` repository rule are re-evaluated when your version changes.
-    * To invalidate the repository rule when Xcode's path changes but the version doesn't, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag. This forwards an argument to the JVM which is ignored except for causing the server to restart when its value changes.
+    * To invalidate bazel's in-memory cache of Xcode version -> absolute path on disk, pass the `--host_jvm_args=-Xdock:name=$developer_dir` startup flag. This forwards an argument to the JVM which is ignored except for causing the server to restart when its value changes.
 
 The above flags can be passed either directly to each invocation or by generating a `bazelrc` which is imported from your main `.bazelrc`. This snippet shows the latter option:
 

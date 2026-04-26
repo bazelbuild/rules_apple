@@ -120,6 +120,50 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_minimal_no_infoplist",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    tags = common.fixture_tags,
+    deps = [
+        ":main_lib",
+    ],
+)
+
+# Test that user-provided infoplist values override default values
+genrule(
+    name = "custom_version_infoplist",
+    outs = ["CustomVersionInfo.plist"],
+    cmd = """
+cat > $@ << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleVersion</key>
+	<string>2.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.0</string>
+</dict>
+</plist>
+EOF
+""",
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_custom_infoplist_values",
+    bundle_id = "com.google.example",
+    infoplists = [":custom_version_infoplist"],
+    minimum_os_version = common.min_os_macos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    tags = common.fixture_tags,
+    deps = [
+        ":main_lib",
+    ],
+)
+
 macos_unit_test(
     name = "dedupe_test_test",
     minimum_os_version = common.min_os_macos.baseline,
@@ -2175,6 +2219,20 @@ macos_application(
     ],
 )
 
+macos_application(
+    name = "app_with_imported_versioned_fmwk_tree_artifacts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 objc_library(
     name = "dynamic_versioned_fmwk_depending_lib",
     tags = common.fixture_tags,
@@ -2254,6 +2312,20 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_versioned_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_imported_dynamic_versioned_xcframework_tree_artifacts",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -2533,6 +2605,21 @@ macos_kernel_extension(
 )
 
 macos_kernel_extension(
+    name = "kext_with_entitlements",
+    bundle_id = "com.google.kext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["macos"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)
+
+macos_kernel_extension(
     name = "kext_dead_stripped",
     bundle_id = "com.google.kext",
     exported_symbols_lists = [
@@ -2791,23 +2878,6 @@ macos_application(
     name = "app_with_app_intents",
     app_intents = [
         "//test/starlark_tests/resources:app_intent",
-    ],
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_macos.app_intents_support,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
-    ],
-)
-
-macos_application(
-    name = "app_with_app_intent_and_widget_configuration_intent",
-    app_intents = [
-        "//test/starlark_tests/resources:app_intent",
-        "//test/starlark_tests/resources:widget_configuration_intent",
     ],
     bundle_id = "com.google.example",
     infoplists = [

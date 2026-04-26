@@ -31,8 +31,7 @@ load(
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
-    "AppleMacToolsToolchainInfo",
-    "AppleXPlatToolsToolchainInfo",
+    "apple_toolchain_utils",
 )
 load(
     "//apple/internal:cc_info_support.bzl",
@@ -467,7 +466,8 @@ def _create_xcframework_bundle(
         output_archive,
         root_info_plist,
         tree_artifact_enabled,
-        xcode_config):
+        xcode_config,
+        xplat_exec_group):
     """Generates the bundle archive for an XCFramework.
 
      Args:
@@ -491,6 +491,7 @@ def _create_xcframework_bundle(
             `bundle_path`.
         label_name: Name of the target being built.
         output_archive: The file representing the final bundled archive.
+        xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
         root_info_plist: A `File` representing a fully formed root Info.plist for this XCFramework.
         tree_artifact_enabled: A boolean indicating whether tree artifact outputs are enabled.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -542,7 +543,7 @@ def _create_xcframework_bundle(
         bundletool = apple_xplat_toolchain_info.bundletool
         actions.run(
             arguments = [bundletool_control_file.path],
-            executable = bundletool,
+            executable = bundletool.files_to_run,
             inputs = depset(
                 direct = [bundletool_control_file, root_info_plist],
                 transitive = framework_archive_files,
@@ -550,13 +551,14 @@ def _create_xcframework_bundle(
             mnemonic = "CreateXCFrameworkBundle",
             outputs = [output_archive],
             progress_message = "Bundling %s" % label_name,
+            exec_group = xplat_exec_group,
         )
 
 def _apple_xcframework_impl(ctx):
     """Implementation of apple_xcframework."""
     actions = ctx.actions
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     executable_name = getattr(ctx.attr, "executable_name", bundle_name)
@@ -801,6 +803,7 @@ def _apple_xcframework_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
             entitlements = None,
@@ -882,6 +885,7 @@ def _apple_xcframework_impl(ctx):
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
         output_archive = outputs_archive,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,
         tree_artifact_enabled = tree_artifact_enabled,
         xcode_config = xcode_config,
@@ -915,7 +919,6 @@ apple_xcframework = rule_factory.create_apple_rule(
     doc = "Builds and bundles an XCFramework for third-party distribution.",
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
-    toolchains = [],
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -1066,8 +1069,8 @@ def _apple_static_xcframework_impl(ctx):
 
     actions = ctx.actions
     apple_fragment = ctx.fragments.apple
-    apple_mac_toolchain_info = ctx.attr._mac_toolchain[AppleMacToolsToolchainInfo]
-    apple_xplat_toolchain_info = ctx.attr._xplat_toolchain[AppleXPlatToolsToolchainInfo]
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.label.name
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     deps = ctx.split_attr.deps
@@ -1293,6 +1296,7 @@ def _apple_static_xcframework_impl(ctx):
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
         output_archive = outputs_archive,
+        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,
         tree_artifact_enabled = tree_artifact_enabled,
         xcode_config = xcode_config,
