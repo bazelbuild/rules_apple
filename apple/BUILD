@@ -8,16 +8,6 @@ package(
 licenses(["notice"])
 
 bzl_library(
-    name = "apple",
-    srcs = ["apple.bzl"],
-    deps = [
-        ":apple_imports",
-        ":apple_universal_binary",
-        ":apple_xcframework",
-    ],
-)
-
-bzl_library(
     name = "apple_binary",
     srcs = ["apple_binary.bzl"],
     deps = [

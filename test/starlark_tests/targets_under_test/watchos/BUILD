@@ -4,7 +4,7 @@ load(
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
-    "//apple:apple.bzl",
+    "//apple:apple_imports.bzl",
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
     "apple_static_xcframework_import",

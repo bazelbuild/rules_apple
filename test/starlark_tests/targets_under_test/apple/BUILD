@@ -5,11 +5,17 @@ load(
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
-    "//apple:apple.bzl",
+    "//apple:apple_imports.bzl",
     "apple_dynamic_xcframework_import",
-    "apple_static_xcframework",
     "apple_static_xcframework_import",
+)
+load(
+    "//apple:apple_universal_binary.bzl",
     "apple_universal_binary",
+)
+load(
+    "//apple:apple_xcframework.bzl",
+    "apple_static_xcframework",
     "apple_xcframework",
 )
 load(

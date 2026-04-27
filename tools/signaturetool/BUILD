@@ -1,6 +1,6 @@
 load("@build_bazel_rules_swift//swift:swift_binary.bzl", "swift_binary")
 load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
-load("//apple:apple.bzl", "apple_universal_binary")
+load("//apple:apple_universal_binary.bzl", "apple_universal_binary")
 load("//tools/build_rules:build_test.bzl", "build_test")
 
 licenses(["notice"])
