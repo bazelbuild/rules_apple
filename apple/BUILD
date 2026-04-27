@@ -11,10 +11,9 @@ bzl_library(
     name = "apple",
     srcs = ["apple.bzl"],
     deps = [
-        "//apple/internal:apple_framework_import",
-        "//apple/internal:apple_universal_binary",
-        "//apple/internal:apple_xcframework_import",
-        "//apple/internal:xcframework_rules",
+        ":apple_imports",
+        ":apple_universal_binary",
+        ":apple_xcframework",
     ],
 )
 
@@ -31,6 +30,31 @@ bzl_library(
         "//apple/internal:transition_support",
         "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
+    ],
+)
+
+bzl_library(
+    name = "apple_imports",
+    srcs = ["apple_imports.bzl"],
+    deps = [
+        "//apple/internal:apple_framework_import",
+        "//apple/internal:apple_xcframework_import",
+    ],
+)
+
+bzl_library(
+    name = "apple_universal_binary",
+    srcs = ["apple_universal_binary.bzl"],
+    deps = [
+        "//apple/internal:apple_universal_binary",
+    ],
+)
+
+bzl_library(
+    name = "apple_xcframework",
+    srcs = ["apple_xcframework.bzl"],
+    deps = [
+        "//apple/internal:xcframework_rules",
     ],
 )
 
