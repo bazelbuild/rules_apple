@@ -152,20 +152,24 @@ def _local_provisioning_profile(ctx):
     selected_profile_path = profile_name + ctx.attr.profile_extension
     selected_profile = ctx.actions.declare_file(selected_profile_path)
 
-    args = ctx.actions.args()
-    args.add(profile_name)
-    args.add(selected_profile)
-    if ctx.attr.team_id:
-        args.add("--team_id", ctx.attr.team_id)
-    if ctx.files._local_srcs:
-        args.add_all("--local_profiles", ctx.files._local_srcs)
-    if ctx.files._fallback_srcs:
-        args.add_all("--fallback_profiles", ctx.files._fallback_srcs)
+    control_file = ctx.actions.declare_file(
+        ctx.label.name + ".local_provisioning_profile_finder-control",
+    )
+    ctx.actions.write(
+        output = control_file,
+        content = json.encode({
+            "fallback_profiles": [f.path for f in ctx.files._fallback_srcs],
+            "local_profiles": [f.path for f in ctx.files._local_srcs],
+            "name": profile_name,
+            "output": selected_profile.path,
+            "team_id": ctx.attr.team_id,
+        }),
+    )
 
     ctx.actions.run(
         executable = ctx.executable._finder,
-        arguments = [args],
-        inputs = ctx.files._local_srcs + ctx.files._fallback_srcs,
+        arguments = ["--control", control_file.path],
+        inputs = [control_file] + ctx.files._local_srcs + ctx.files._fallback_srcs,
         outputs = [selected_profile],
         mnemonic = "FindProvisioningProfile",
         execution_requirements = {"no-sandbox": "1", "no-remote-exec": "1"},

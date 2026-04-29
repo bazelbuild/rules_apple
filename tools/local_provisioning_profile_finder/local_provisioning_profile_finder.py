@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import json
 import plistlib
 import shutil
 import subprocess
@@ -10,8 +11,14 @@ _USE_SECURITY = sys.platform == "darwin"
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("name", help="The name (or UUID) of the profile to find")
-    parser.add_argument("output", help="The path to copy the profile to")
+    parser.add_argument(
+        "name", nargs="?", help="The name (or UUID) of the profile to find"
+    )
+    parser.add_argument("output", nargs="?", help="The path to copy the profile to")
+    parser.add_argument(
+        "--control",
+        help="Path to a JSON control file with the profile search parameters",
+    )
     parser.add_argument(
         "--local_profiles",
         nargs="*",
@@ -29,6 +36,18 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
     )
     return parser
+
+
+def _args_from_control(control: str) -> argparse.Namespace:
+    with open(control) as control_file:
+        control_data = json.load(control_file)
+    return argparse.Namespace(
+        name=control_data["name"],
+        output=control_data["output"],
+        local_profiles=control_data.get("local_profiles", []),
+        fallback_profiles=control_data.get("fallback_profiles", []),
+        team_id=control_data.get("team_id"),
+    )
 
 
 def _profile_contents(profile: str) -> Tuple[str, datetime.datetime, str]:
@@ -92,6 +111,12 @@ def _find_profile(
 
 if __name__ == "__main__":
     args = _build_parser().parse_args()
+    if args.control:
+        args = _args_from_control(args.control)
+    if not args.name or not args.output:
+        _build_parser().error(
+            "name and output are required unless --control is provided"
+        )
     _find_profile(
         args.name,
         args.team_id,

@@ -67,15 +67,21 @@ def generate_intent_classes_sources(
         xctoolrunner_support.prefixed_path(input_file.path),
         "-language",
         language,
-        "-classPrefix",
-        class_prefix,
-        "-swiftVersion",
-        swift_version,
     ]
+    if class_prefix:
+        arguments += [
+            "-classPrefix",
+            class_prefix,
+        ]
+    if swift_version:
+        arguments += [
+            "-swiftVersion",
+            swift_version,
+        ]
 
     # Starting Xcode 12, intentbuilderc accepts new parameters
     xcode_version = str(platform_prerequisites.xcode_version_config.xcode_version())
-    if versions.is_at_least("12.0.0", xcode_version):
+    if class_visibility and versions.is_at_least("12.0.0", xcode_version):
         arguments += [
             "-visibility",
             class_visibility,
