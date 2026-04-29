@@ -15,6 +15,10 @@
 """ios_kernel_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "make_analysis_target_actions_test",
 )
@@ -25,6 +29,14 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+
+_action_arm64e_ios_cpu_test = make_action_command_line_test_rule(
+    config_settings = {"//command_line_option:ios_multi_cpus": "arm64e"},
+)
+
+_action_x86_64_ios_cpu_test = make_action_command_line_test_rule(
+    config_settings = {"//command_line_option:ios_multi_cpus": "x86_64"},
 )
 
 _analysis_arm64e_ios_cpu_test = make_analysis_target_actions_test(
@@ -63,6 +75,50 @@ def ios_kernel_extension_test_suite(name):
             "CFBundleIdentifier": "com.google.kext",
             "CFBundlePackageType": "KEXT",
         },
+        tags = [name],
+    )
+
+    _action_arm64e_ios_cpu_test(
+        name = "{}_arm64e_no_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext",
+        mnemonic = "ObjcLink",
+        not_expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_arm64e_ios_cpu_test(
+        name = "{}_arm64e_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_x86_64_ios_cpu_test(
+        name = "{}_x86_64_no_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext",
+        mnemonic = "ObjcLink",
+        not_expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_x86_64_ios_cpu_test(
+        name = "{}_x86_64_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
         tags = [name],
     )
 

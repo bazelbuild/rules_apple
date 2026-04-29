@@ -5733,3 +5733,19 @@ ios_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
+
+ios_kernel_extension(
+    name = "kext_with_entitlements",
+    bundle_id = "com.google.kext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)

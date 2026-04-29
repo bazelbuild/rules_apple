@@ -2605,6 +2605,21 @@ macos_kernel_extension(
 )
 
 macos_kernel_extension(
+    name = "kext_with_entitlements",
+    bundle_id = "com.google.kext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = ["macos"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)
+
+macos_kernel_extension(
     name = "kext_dead_stripped",
     bundle_id = "com.google.kext",
     exported_symbols_lists = [

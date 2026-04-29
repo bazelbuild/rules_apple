@@ -2664,7 +2664,7 @@ def _ios_kernel_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
-        entitlements = entitlements.linking,
+        entitlements = entitlements.linking if ctx.file.entitlements else None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
         extra_requested_features = ["kernel_extension"],

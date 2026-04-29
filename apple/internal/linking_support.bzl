@@ -22,6 +22,10 @@ load(
     objc_compilation_support = "compilation_support",
 )  # buildifier: disable=bzl-visibility
 load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "//apple/internal:compilation_support.bzl",
     "compilation_support",
 )
@@ -499,7 +503,7 @@ def _register_binary_linking_action(
         link_inputs.append(exported_symbols_list)
 
     if entitlements:
-        if platform_prerequisites and platform_prerequisites.platform.is_device:
+        if platform_prerequisites and platform_prerequisites.platform.is_device and rule_descriptor and rule_descriptor.product_type != apple_product_type.kernel_extension:
             fail("entitlements should be None when targeting a device")
 
         # Add an entitlements and a DER entitlements section, required of all Simulator builds that

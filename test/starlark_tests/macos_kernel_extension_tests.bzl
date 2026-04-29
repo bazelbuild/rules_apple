@@ -15,6 +15,10 @@
 """macos_kernel_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
     "make_analysis_target_actions_test",
@@ -41,6 +45,10 @@ _analysis_arm64_macos_cpu_test = make_analysis_target_actions_test(
 )
 _analysis_x86_64_macos_cpu_test = make_analysis_target_actions_test(
     config_settings = {"//command_line_option:macos_cpus": "x86_64"},
+)
+
+_action_arm64_macos_cpu_test = make_action_command_line_test_rule(
+    config_settings = {"//command_line_option:macos_cpus": "arm64"},
 )
 
 def macos_kernel_extension_test_suite(name):
@@ -145,6 +153,28 @@ def macos_kernel_extension_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example",
         },
+        tags = [name],
+    )
+
+    _action_arm64_macos_cpu_test(
+        name = "{}_arm64_no_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:kext",
+        mnemonic = "ObjcLink",
+        not_expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
+        tags = [name],
+    )
+
+    _action_arm64_macos_cpu_test(
+        name = "{}_arm64_with_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:kext_with_entitlements",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-sectcreate,__TEXT,__entitlements",
+            "-Wl,-sectcreate,__TEXT,__ents_der",
+        ],
         tags = [name],
     )
 

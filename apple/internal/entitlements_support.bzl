@@ -318,7 +318,7 @@ def _process_entitlements(
         plisttool = apple_mac_toolchain_info.plisttool,
     )
 
-    if platform_prerequisites.platform.is_device:
+    if platform_prerequisites.platform.is_device and product_type != apple_product_type.kernel_extension:
         return struct(
             bundle = final_entitlements,
             codesigning = final_entitlements,
