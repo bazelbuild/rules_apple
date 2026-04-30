@@ -137,6 +137,25 @@ def _generate_import_framework_impl(ctx):
                             environment = "-simulator" if sdk.endswith("simulator") else "",
                         ),
                     ),
+                    # Emit a sibling `.private.swiftinterface` (same content as
+                    # the public one) so test fixtures look like real-world
+                    # frameworks that ship SPI interfaces.
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = swiftinterface,
+                        label = label,
+                        target_filename = "%s.private.swiftinterface" % architectures[0],
+                    ),
+                    generation_support.copy_file(
+                        actions = actions,
+                        file = swiftinterface,
+                        label = label,
+                        target_filename = "{arch}-apple-{os}{environment}.private.swiftinterface".format(
+                            arch = architectures[0],
+                            os = target_os,
+                            environment = "-simulator" if sdk.endswith("simulator") else "",
+                        ),
+                    ),
                 ])
             else:
                 swiftmodule = generation_support.get_file_with_extension(

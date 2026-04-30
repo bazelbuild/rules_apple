@@ -503,6 +503,7 @@ def _swift_info_from_module_interface(
     )
     compile_result = swift_common.compile_module_interface(
         actions = actions,
+        additional_inputs = swiftinterface_files,
         compilation_contexts = compilation_contexts,
         feature_configuration = swift_common.configure_features(
             ctx = ctx,

@@ -37,6 +37,7 @@ def apple_static_framework_import_test_suite(name):
         mnemonic = "SwiftCompileModuleInterface",
         expected_inputs = [
             "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64-apple-ios-simulator.swiftinterface",
+            "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64-apple-ios-simulator.private.swiftinterface",
         ],
         tags = [name],
     )

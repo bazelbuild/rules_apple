@@ -156,6 +156,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         mnemonic = "SwiftCompileModuleInterface",
         expected_inputs = [
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
         ],
         tags = [name],
     )

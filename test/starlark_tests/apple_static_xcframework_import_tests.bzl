@@ -58,6 +58,7 @@ def apple_static_xcframework_import_test_suite(name):
         mnemonic = "SwiftCompileModuleInterface",
         expected_inputs = [
             "generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",
+            "generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.private.swiftinterface",
         ],
         tags = [name],
     )
