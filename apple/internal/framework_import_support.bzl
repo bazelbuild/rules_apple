@@ -392,20 +392,26 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
         if target_triplet.environment != "device":
             environment = "-" + target_triplet.environment
 
-        target_triplet_file = files.get_file_with_name(
-            files = module_files.to_list(),
-            name = "{architecture}-{vendor}-{os}{environment}".format(
-                architecture = target_triplet.architecture,
-                environment = environment,
-                os = target_triplet.os,
-                vendor = target_triplet.vendor,
-            ),
+        module_files_list = module_files.to_list()
+        target_triplet_name = "{architecture}-{vendor}-{os}{environment}".format(
+            architecture = target_triplet.architecture,
+            environment = environment,
+            os = target_triplet.os,
+            vendor = target_triplet.vendor,
         )
-        architecture_file = files.get_file_with_name(
-            files = module_files.to_list(),
-            name = target_triplet.architecture,
-        )
-        filtered_files.append(target_triplet_file or architecture_file)
+
+        for file_name in [
+            target_triplet_name,
+            target_triplet_name + ".private",
+            target_triplet.architecture,
+            target_triplet.architecture + ".private",
+        ]:
+            matching_file = files.get_file_with_name(
+                files = module_files_list,
+                name = file_name,
+            )
+            if matching_file:
+                filtered_files.append(matching_file)
 
     return filtered_files
 
