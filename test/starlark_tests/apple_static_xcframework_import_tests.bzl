@@ -19,6 +19,10 @@ load(
     "build_settings_labels",
 )
 load(
+    "//test/starlark_tests/rules:action_inputs_test.bzl",
+    "make_action_inputs_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
 )
@@ -26,6 +30,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+
+_action_inputs_with_ios_x86_64_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
+})
 
 def apple_static_xcframework_import_test_suite(name):
     """Test suite for apple_static_xcframework_import.
@@ -40,6 +48,17 @@ def apple_static_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_multi_level_static_xcframework",
         contains = ["$ARCHIVE_ROOT/Payload"],
         build_type = "simulator",
+        tags = [name],
+    )
+
+    # Make sure the SwiftCompileModuleInterface action codepath is used
+    _action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_compiles_module_from_swiftinterface".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_static_xcframework",
+        mnemonic = "SwiftCompileModuleInterface",
+        expected_inputs = [
+            "generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",
+        ],
         tags = [name],
     )
 
