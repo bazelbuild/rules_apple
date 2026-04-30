@@ -112,6 +112,7 @@ def _anticipated_framework_root_info_plist_path(
 def _classify_xcframework_imports(
         *,
         apple_xplat_toolchain_info,
+        cc_configured_features,
         label_name,
         target_triplet,
         xcframework_imports):
@@ -119,6 +120,7 @@ def _classify_xcframework_imports(
 
     Args:
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+        cc_configured_features: A list of configured features.
         label_name: Name of the target being built.
         target_triplet: Effective target triplet from CcToolchainInfo provider.
         xcframework_imports: List of File for an imported Apple XCFramework.
@@ -135,16 +137,18 @@ def _classify_xcframework_imports(
         xcframework_imports,
     )
     tree_artifact_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
-    if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
-        # TODO(b/258492867): Allow tree artifact outputs when signing is disabled via features.
+    if (target_triplet.os == "macos" and
+        has_versioned_framework_files and
+        tree_artifact_enabled and
+        not "disable_legacy_signing" in cc_configured_features.enabled_features):
         fail(
             """
-Error: "{label_name}" does not currently support versioned frameworks with the bundle outputs \
-feature/build setting.
+Error: "{label_name}" does not support versioned frameworks with the bundle outputs feature/build \
+setting without disabling legacy signing.
 """.format(label_name = label_name) +
-            """
-            Check that the following build setting is not set:
-              --@build_bazel_rules_apple//apple/build_settings:use_tree_artifacts_outputs=true
+            """,
+            Please build with --features=disable_legacy_signing and rely on dossier code signing to sign your \
+            final Bazel-generated bundle instead of relying on Bazel to sign the framework binaries.
             """,
         )
 
@@ -740,6 +744,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     xcframework = _classify_xcframework_imports(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        cc_configured_features = cc_configured_features,
         label_name = label.name,
         target_triplet = target_triplet,
         xcframework_imports = xcframework_imports,
@@ -866,6 +871,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     xcframework = _classify_xcframework_imports(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        cc_configured_features = cc_configured_features,
         label_name = label.name,
         target_triplet = target_triplet,
         xcframework_imports = xcframework_imports,

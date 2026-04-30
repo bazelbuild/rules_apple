@@ -431,7 +431,6 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
     minimum_os_version = common.min_os_macos.baseline,
     secure_features = [
         "apple.enable_enhanced_security",

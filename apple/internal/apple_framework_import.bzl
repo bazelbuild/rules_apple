@@ -122,21 +122,23 @@ def _apple_dynamic_framework_import_impl(ctx):
         rule_label = label,
     )
 
-    # TODO(b/258492867): Allow tree artifact outputs when signing is disabled via features.
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         framework_imports,
     )
     tree_artifact_enabled = ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value
-    if target_triplet.os == "macos" and has_versioned_framework_files and tree_artifact_enabled:
+    if (target_triplet.os == "macos" and
+        has_versioned_framework_files and
+        tree_artifact_enabled and
+        not "disable_legacy_signing" in cc_configured_features.enabled_features):
         fail(
             """
-Error: "{label_name}" does not currently support versioned frameworks with the bundle outputs \
-feature/build setting.
+Error: "{label_name}" does not support versioned frameworks with the bundle outputs feature/build \
+setting without disabling legacy signing.
 """.format(label_name = ctx.label.name) +
-            """
-            Check that the following build setting is not set:
-              --@build_bazel_rules_apple//apple/build_settings:use_tree_artifacts_outputs=true
+            """,
+            Please build with --features=disable_legacy_signing and rely on dossier code signing to sign your \
+            final Bazel-generated bundle instead of relying on Bazel to sign the framework binaries.
             """,
         )
 

@@ -373,11 +373,15 @@ def apple_dynamic_xcframework_import_test_suite(name):
     )
 
     # Verify importing Dynamic Framework XCFrameworks with versioned frameworks and tree artifacts
-    # fails.
+    # requires disabling legacy signing.
     analysis_failure_message_with_tree_artifact_outputs_test(
         name = "{}_fails_with_versioned_frameworks_and_tree_artifact_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
-        expected_error = "Error: \"imported_dynamic_versioned_xcframework\" does not currently support versioned frameworks with the bundle outputs feature/build setting.",
+        expected_error = (
+            "Error: \"imported_dynamic_versioned_xcframework\" does not support versioned " +
+            "frameworks with the bundle outputs feature/build setting without disabling legacy " +
+            "signing."
+        ),
         tags = [name],
     )
 
