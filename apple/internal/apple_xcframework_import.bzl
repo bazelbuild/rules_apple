@@ -567,7 +567,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 features = features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
-                swiftinterface_file = xcframework_library.swift_module_interfaces[0],
+                swiftinterface_files = xcframework_library.swift_module_interfaces,
             ),
         )
     else:
@@ -713,7 +713,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 features = features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
-                swiftinterface_file = xcframework_library.swift_module_interfaces[0],
+                swiftinterface_files = xcframework_library.swift_module_interfaces,
             ),
         )
     else:

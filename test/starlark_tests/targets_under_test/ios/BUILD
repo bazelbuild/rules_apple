@@ -3004,7 +3004,6 @@ apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
     features = [
         "-swift.layering_check",
-        "-apple.import_framework_via_swiftinterface",
     ],
     tags = common.fixture_tags,
     xcframework_imports = [
