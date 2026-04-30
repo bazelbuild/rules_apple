@@ -237,7 +237,10 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_files = depset(framework_imports),
     ))
 
-    if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
+    if (
+        "apple.import_framework_via_swiftinterface" not in disabled_features and
+        framework.swift_interface_imports
+    ):
         # Create SwiftInfo provider
         swift_toolchain = swift_common.get_toolchain(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
@@ -375,7 +378,10 @@ def _apple_static_framework_import_impl(ctx):
         ),
     )
 
-    if "apple._import_framework_via_swiftinterface" in features and framework.swift_interface_imports:
+    if (
+        "apple.import_framework_via_swiftinterface" not in disabled_features and
+        framework.swift_interface_imports
+    ):
         # Create SwiftInfo provider
         swift_toolchain = swift_common.get_toolchain(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
