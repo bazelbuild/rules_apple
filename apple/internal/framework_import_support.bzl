@@ -509,17 +509,10 @@ def _swift_info_from_module_interface(
         target_name = ctx.label.name,
     )
 
-    # TODO: use SwiftInfo directly when rules_apple sets min for rules_swift to v3+
-    if hasattr(swift_common, "create_swift_info"):
-        return swift_common.create_swift_info(
-            modules = [module_context],
-            swift_infos = swift_infos,
-        )
-    else:
-        return SwiftInfo(
-            modules = [module_context],
-            swift_infos = swift_infos,
-        )
+    return SwiftInfo(
+        modules = [module_context],
+        swift_infos = swift_infos,
+    )
 
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
     """Return a Swift interop provider for the framework if it has a module map."""
