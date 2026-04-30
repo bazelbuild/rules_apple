@@ -1491,6 +1491,53 @@ generate_dynamic_xcframework(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "swift_3p_xcframework_with_generated_header_and_private_swiftinterface",
+    testonly = True,
+    srcs = ["//test/starlark_tests/targets_under_test/ios:ios_swift_dynamic_xcframework"],
+    outs = [
+        "Swift3PFmwkWithGenHeader.xcframework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.private.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.private.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
+        "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+    ],
+    cmd = """
+set -eu
+
+for src in $(SRCS); do
+  rel_path="$${src#*Swift3PFmwkWithGenHeader.xcframework/}"
+  output_path="$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/$$rel_path"
+  mkdir -p "$$(dirname "$$output_path")"
+  cp "$$src" "$$output_path"
+done
+
+cp \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface" \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.private.swiftinterface"
+cp \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface" \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.private.swiftinterface"
+cp \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface" \
+  "$(RULEDIR)/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface"
+""",
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple Core ML library tests.
 
