@@ -411,9 +411,7 @@ def _generate_static_xcframework_impl(ctx):
                         file = interface_file,
                         label = label,
                         target_filename = (
-                            "%s.private.swiftinterface" % architectures[0]
-                            if interface_file.basename.endswith(".private.swiftinterface")
-                            else "{architecture}.{extension}".format(
+                            "%s.private.swiftinterface" % architectures[0] if interface_file.basename.endswith(".private.swiftinterface") else "{architecture}.{extension}".format(
                                 architecture = architectures[0],
                                 extension = interface_file.extension,
                             )
