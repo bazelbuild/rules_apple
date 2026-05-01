@@ -553,7 +553,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     providers.append(apple_dynamic_framework_info)
 
     if (
-        "apple._import_framework_via_swiftinterface" in features and
+        "apple.import_framework_via_swiftinterface" not in disabled_features and
         xcframework_library.swift_module_interfaces
     ):
         # Create SwiftInfo provider
@@ -567,7 +567,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 features = features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
-                swiftinterface_file = xcframework_library.swift_module_interfaces[0],
+                swiftinterface_files = xcframework_library.swift_module_interfaces,
             ),
         )
     else:
@@ -699,7 +699,7 @@ def _apple_static_xcframework_import_impl(ctx):
     providers.append(cc_info)
 
     if (
-        "apple._import_framework_via_swiftinterface" in features and
+        "apple.import_framework_via_swiftinterface" not in disabled_features and
         xcframework_library.swift_module_interfaces
     ):
         # Create SwiftInfo provider
@@ -713,7 +713,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 features = features,
                 module_name = xcframework.bundle_name,
                 swift_toolchain = swift_toolchain,
-                swiftinterface_file = xcframework_library.swift_module_interfaces[0],
+                swiftinterface_files = xcframework_library.swift_module_interfaces,
             ),
         )
     else:

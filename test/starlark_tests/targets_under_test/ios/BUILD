@@ -3002,7 +3002,9 @@ apple_dynamic_xcframework_import(
 
 apple_dynamic_xcframework_import(
     name = "ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
-    features = ["-swift.layering_check"],
+    features = [
+        "-swift.layering_check",
+    ],
     tags = common.fixture_tags,
     xcframework_imports = [
         "//test/starlark_tests/targets_under_test/apple:swift_3p_xcframework_with_generated_header_and_private_swiftinterface",
@@ -3429,10 +3431,7 @@ ios_application(
 
 apple_static_xcframework_import(
     name = "ios_imported_swift_static_xcframework",
-    features = [
-        "-swift.layering_check",
-        "apple._import_framework_via_swiftinterface",
-    ],
+    features = ["-swift.layering_check"],
     tags = common.fixture_tags,
     visibility = ["//visibility:public"],
     xcframework_imports = [":generated_swift_static_xcframework"],

@@ -148,6 +148,19 @@ def apple_dynamic_xcframework_import_test_suite(name):
         ],
         tags = [name],
     )
+
+    # Make sure the SwiftCompileModuleInterface action codepath is used
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_compiles_module_from_swiftinterface".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
+        mnemonic = "SwiftCompileModuleInterface",
+        expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
+        ],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_contains_implementation_deps_imported_xcframework_framework_files".format(name),
         build_type = "simulator",

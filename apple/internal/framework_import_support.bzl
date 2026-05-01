@@ -472,7 +472,7 @@ def _swift_info_from_module_interface(
         features,
         module_name,
         swift_toolchain,
-        swiftinterface_file):
+        swiftinterface_files):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
 
 
@@ -484,18 +484,27 @@ def _swift_info_from_module_interface(
         features: List of features to be enabled for cc_common.compile.
         module_name: Swift module name.
         swift_toolchain: SwiftToolchainInfo provider for current target.
-        swiftinterface_file: `.swiftinterface` File to compile.
+        swiftinterface_files: List of `.swiftinterface` Files for the module. The first entry is
+            compiled; any remaining entries (e.g. `.private.swiftinterface`) are declared as action
+            inputs so the compiler can resolve sibling references in the sandbox.
     Returns:
         A SwiftInfo provider.
     """
     swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
-    module_context = swift_common.compile_module_interface(
+    compilation_contexts = [
+        dep[CcInfo].compilation_context
+        for dep in deps
+        if CcInfo in dep
+    ]
+    compilation_contexts.append(
+        cc_common.create_compilation_context(
+            headers = depset(swiftinterface_files),
+        ),
+    )
+    compile_result = swift_common.compile_module_interface(
         actions = actions,
-        compilation_contexts = [
-            dep[CcInfo].compilation_context
-            for dep in deps
-            if CcInfo in dep
-        ],
+        additional_inputs = swiftinterface_files,
+        compilation_contexts = compilation_contexts,
         feature_configuration = swift_common.configure_features(
             ctx = ctx,
             swift_toolchain = swift_toolchain,
@@ -503,11 +512,17 @@ def _swift_info_from_module_interface(
             unsupported_features = disabled_features,
         ),
         module_name = module_name,
-        swiftinterface_file = swiftinterface_file,
+        swiftinterface_file = swiftinterface_files[0],
         swift_infos = swift_infos,
         swift_toolchain = swift_toolchain,
         target_name = ctx.label.name,
     )
+
+    # TODO: Remove once we don't support rules_swift <4.x
+    if hasattr(compile_result, "module_context"):
+        module_context = compile_result.module_context
+    else:
+        module_context = compile_result
 
     return SwiftInfo(
         modules = [module_context],

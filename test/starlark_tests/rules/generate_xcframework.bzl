@@ -416,6 +416,26 @@ def _generate_static_xcframework_impl(ctx):
                     if interface_file.extension.startswith("swift")
                 ]
 
+                # Emit a sibling `.private.swiftinterface` (same content as
+                # the public one) so test fixtures look like real-world
+                # frameworks that ship SPI interfaces.
+                swiftinterface_file = generation_support.get_file_with_extension(
+                    files = swift_library,
+                    extension = "swiftinterface",
+                )
+                if swiftinterface_file:
+                    module_interfaces.append(
+                        generation_support.copy_file(
+                            actions = actions,
+                            base_path = swiftmodule_path,
+                            file = swiftinterface_file,
+                            label = label,
+                            target_filename = "{architecture}.private.swiftinterface".format(
+                                architecture = architectures[0],
+                            ),
+                        ),
+                    )
+
             # Copy swiftc generated headers to intermediate directory
             headers.append(
                 generation_support.copy_file(
