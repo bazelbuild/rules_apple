@@ -5765,3 +5765,17 @@ ios_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
+
+ios_kernel_extension(
+    name = "kext_no_provisioning_profile",
+    bundle_id = "com.google.kext",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources/kext_resources:Info-IOKit.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/kext_resources:kext_lib",
+    ],
+)

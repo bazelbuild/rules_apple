@@ -27,6 +27,10 @@ load(
     "analysis_target_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
@@ -119,6 +123,22 @@ def ios_kernel_extension_test_suite(name):
             "-Wl,-sectcreate,__TEXT,__entitlements",
             "-Wl,-sectcreate,__TEXT,__ents_der",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_contains_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext",
+        contains = ["$BUNDLE_ROOT/embedded.mobileprovision"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_no_provisioning_profile_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:kext_no_provisioning_profile",
+        not_contains = ["$BUNDLE_ROOT/embedded.mobileprovision"],
         tags = [name],
     )
 
