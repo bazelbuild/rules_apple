@@ -15,6 +15,10 @@
 """apple_dynamic_xcframework_import Starlark tests."""
 
 load(
+    "//apple:ios.bzl",
+    "ios_build_test",
+)
+load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -47,6 +51,10 @@ load(
 load(
     "//test/starlark_tests/rules:directory_test.bzl",
     "directory_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 analysis_output_group_info_files_with_xcframework_processor_test = make_analysis_output_group_info_files_test({
@@ -158,6 +166,14 @@ def apple_dynamic_xcframework_import_test_suite(name):
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
         ],
+        tags = [name],
+    )
+
+    # Framework with swiftmodule and generated modulemap
+    ios_build_test(
+        name = "{}_swiftmodule_xcframework_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_no_modulemap_consumer"],
         tags = [name],
     )
 

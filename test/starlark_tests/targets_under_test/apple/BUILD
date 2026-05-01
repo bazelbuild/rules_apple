@@ -1417,6 +1417,44 @@ swift_library(
     tags = common.fixture_tags,
 )
 
+# No swiftinterface, import swiftmodule directly
+swift_library(
+    name = "Swift3PFmwkBinarySwiftmodule",
+    srcs = ["DummyFmwk.swift"],
+    generates_header = True,
+    module_name = "Swift3PFmwkBinarySwiftmodule",
+    tags = common.fixture_tags,
+)
+
+# An xcframework whose Swift module artifacts are binary `.swiftmodule` files
+# rather than textual `.swiftinterface`.
+apple_xcframework(
+    name = "ios_swift_3p_xcframework_binary_swiftmodule",
+    bundle_id = "com.google.example",
+    bundle_name = "Swift3PFmwkBinarySwiftmodule",
+    features = ["swift.emit_c_module"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.baseline,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    deps = [":Swift3PFmwkBinarySwiftmodule"],
+)
+
 apple_universal_binary(
     name = "multi_arch_cc_binary",
     binary = "//test/starlark_tests/resources:cc_test_binary",
