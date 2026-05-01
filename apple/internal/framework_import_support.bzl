@@ -475,7 +475,7 @@ def _swift_info_from_module_interface(
         includes = [],
         module_map = None,
         module_name,
-        rule_label,
+        rule_label,  # @unused
         swift_toolchain,
         swiftinterface_files):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
@@ -533,14 +533,6 @@ def _swift_info_from_module_interface(
         )
         if clang_result:
             clang_module = clang_result.clang_module
-        else:
-            fail("""
-ERROR: precompiled modules are not supported for the current configuration, but they are required \
-to generate a Clang module for the imported framework {rule_label}.
-
-Normally this means that precompiled modules haven't been generated for the version of Xcode used \
-by this build.
-""".format(rule_label = rule_label))
 
     compile_result = swift_common.compile_module_interface(
         actions = actions,
