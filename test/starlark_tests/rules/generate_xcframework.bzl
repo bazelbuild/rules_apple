@@ -410,34 +410,18 @@ def _generate_static_xcframework_impl(ctx):
                         base_path = swiftmodule_path,
                         file = interface_file,
                         label = label,
-                        target_filename = "{architecture}.{extension}".format(
-                            architecture = architectures[0],
-                            extension = interface_file.extension,
+                        target_filename = (
+                            "%s.private.swiftinterface" % architectures[0]
+                            if interface_file.basename.endswith(".private.swiftinterface")
+                            else "{architecture}.{extension}".format(
+                                architecture = architectures[0],
+                                extension = interface_file.extension,
+                            )
                         ),
                     )
                     for interface_file in swift_library
                     if interface_file.extension.startswith("swift")
                 ]
-
-                # Emit a sibling `.private.swiftinterface` (same content as
-                # the public one) so test fixtures look like real-world
-                # frameworks that ship SPI interfaces.
-                swiftinterface_file = generation_support.get_file_with_extension(
-                    files = swift_library,
-                    extension = "swiftinterface",
-                )
-                if swiftinterface_file:
-                    module_interfaces.append(
-                        generation_support.copy_file(
-                            actions = actions,
-                            base_path = swiftmodule_path,
-                            file = swiftinterface_file,
-                            label = label,
-                            target_filename = "{architecture}.private.swiftinterface".format(
-                                architecture = architectures[0],
-                            ),
-                        ),
-                    )
 
             # Copy the headers (in the case of a mixed-language Swift library)
             # and the generated header.

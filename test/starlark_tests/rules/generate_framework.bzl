@@ -114,12 +114,20 @@ def _generate_import_framework_impl(ctx):
         )
 
         if include_module_interface_files:
-            swiftinterface = generation_support.get_file_with_extension(
-                files = swift_library_files,
-                extension = "swiftinterface",
-            )
+            swiftinterface = None
+            private_swiftinterface = None
+            for f in swift_library_files:
+                if f.basename.endswith(".private.swiftinterface"):
+                    private_swiftinterface = f
+                elif f.extension == "swiftinterface":
+                    swiftinterface = f
 
             if swiftinterface:
+                triplet = "{arch}-apple-{os}{environment}".format(
+                    arch = architectures[0],
+                    os = target_os,
+                    environment = "-simulator" if sdk.endswith("simulator") else "",
+                )
                 module_interfaces.extend([
                     generation_support.copy_file(
                         actions = actions,
@@ -131,32 +139,24 @@ def _generate_import_framework_impl(ctx):
                         actions = actions,
                         file = swiftinterface,
                         label = label,
-                        target_filename = "{arch}-apple-{os}{environment}.swiftinterface".format(
-                            arch = architectures[0],
-                            os = target_os,
-                            environment = "-simulator" if sdk.endswith("simulator") else "",
-                        ),
-                    ),
-                    # Emit a sibling `.private.swiftinterface` (same content as
-                    # the public one) so test fixtures look like real-world
-                    # frameworks that ship SPI interfaces.
-                    generation_support.copy_file(
-                        actions = actions,
-                        file = swiftinterface,
-                        label = label,
-                        target_filename = "%s.private.swiftinterface" % architectures[0],
-                    ),
-                    generation_support.copy_file(
-                        actions = actions,
-                        file = swiftinterface,
-                        label = label,
-                        target_filename = "{arch}-apple-{os}{environment}.private.swiftinterface".format(
-                            arch = architectures[0],
-                            os = target_os,
-                            environment = "-simulator" if sdk.endswith("simulator") else "",
-                        ),
+                        target_filename = "%s.swiftinterface" % triplet,
                     ),
                 ])
+                if private_swiftinterface:
+                    module_interfaces.extend([
+                        generation_support.copy_file(
+                            actions = actions,
+                            file = private_swiftinterface,
+                            label = label,
+                            target_filename = "%s.private.swiftinterface" % architectures[0],
+                        ),
+                        generation_support.copy_file(
+                            actions = actions,
+                            file = private_swiftinterface,
+                            label = label,
+                            target_filename = "%s.private.swiftinterface" % triplet,
+                        ),
+                    ])
             else:
                 swiftmodule = generation_support.get_file_with_extension(
                     files = swift_library_files,
