@@ -3090,7 +3090,7 @@ swift_library(
         "swift.use_c_modules",
     ],
     tags = common.fixture_tags,
-    deps = [":ios_imported_swift_dynamic_xcframework_no_modulemap"],
+    deps = [":ios_imported_xcframework_swiftmodule_no_modulemap"],
 )
 
 # Swift app with imported Objective-C static framework.

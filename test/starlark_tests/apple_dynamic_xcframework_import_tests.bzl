@@ -173,7 +173,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     ios_build_test(
         name = "{}_swiftmodule_xcframework_build_test".format(name),
         minimum_os_version = common.min_os_ios.baseline,
-        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_no_modulemap_consumer"],
+        targets = ["//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_consumer"],
         tags = [name],
     )
 
