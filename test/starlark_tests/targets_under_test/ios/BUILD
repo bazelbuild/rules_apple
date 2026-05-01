@@ -3365,7 +3365,9 @@ ios_unit_test(
         "pointer_authentication",
     ],
     tags = common.fixture_tags,
-    test_host = ":app",
+    # The test_host should be similarly configured with "pointer_authentication", otherwise the
+    # arm64e slice within the host binary will be dropped.
+    test_host = ":simple_pointer_authentication_app_and_extension_with_fmwk",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
