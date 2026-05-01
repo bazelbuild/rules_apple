@@ -87,16 +87,13 @@ def _cc_info_with_dependencies(
         unsupported_features = disabled_features,
     )
 
-    public_hdrs = []
-    public_hdrs.extend(header_imports)
-    public_hdrs.extend(swiftmodule_imports)
-    public_hdrs.extend(swiftinterface_imports)
     (compilation_context, _compilation_outputs) = cc_common.compile(
         name = label.name,
         actions = actions,
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
-        public_hdrs = public_hdrs,
+        public_hdrs = header_imports,
+        textual_hdrs = swiftmodule_imports + swiftinterface_imports,
         framework_includes = framework_includes if is_framework else [],
         includes = includes,
         compilation_contexts = dep_compilation_contexts,
