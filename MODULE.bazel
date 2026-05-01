@@ -21,6 +21,16 @@ bazel_dep(
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 
+# TODO: Remove before the major release after bumping to >=4
+archive_override(
+    module_name = "rules_swift",
+    integrity = "sha256-4chJk5OXis0vpf+S4TP2438gEABkzTGXDBMegPkGEn0=",
+    strip_prefix = "rules_swift-5b33243ffe5cbc2f5c99e182df236d13ddec9c0d",
+    urls = [
+        "https://github.com/bazelbuild/rules_swift/archive/5b33243ffe5cbc2f5c99e182df236d13ddec9c0d.tar.gz",
+    ],
+)
+
 bazel_dep(
     name = "stardoc",
     version = "0.8.0",
