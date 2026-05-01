@@ -3042,6 +3042,57 @@ swift_library(
     deps = [":ios_imported_swift_dynamic_xcframework_with_private_swiftinterface"],
 )
 
+genrule(
+    name = "swiftmodule_xcframework",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule"],
+    outs = [
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/Info.plist",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Info.plist",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Swift3PFmwkBinarySwiftmodule",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftdoc",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Swift3PFmwkBinarySwiftmodule",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Info.plist",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftdoc",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftdoc",
+        "no_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftmodule",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule) -d $(RULEDIR)/no_modulemap && find $(RULEDIR)/no_modulemap -name module.modulemap -delete",
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_xcframework_swiftmodule_no_modulemap",
+    features = [
+        "-swift.layering_check",
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    xcframework_imports = [":swiftmodule_xcframework"],
+)
+
+write_file(
+    name = "import_swiftmodule_framework",
+    out = "SwiftWithBinarySwiftmoduleFramework.swift",
+    content = ["import Swift3PFmwkBinarySwiftmodule"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swiftmodule_xcframework_consumer",
+    srcs = [":import_swiftmodule_framework"],
+    features = [
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_no_modulemap"],
+)
+
 # Swift app with imported Objective-C static framework.
 ios_application(
     name = "swift_app_with_imported_static_fmwk",
