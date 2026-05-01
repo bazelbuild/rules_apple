@@ -19,6 +19,7 @@ load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",
@@ -307,7 +308,9 @@ def _generate_static_xcframework_impl(ctx):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
 
     srcs = ctx.files.srcs
-    hdrs = ctx.files.hdrs
+    hdrs = list(ctx.files.hdrs)
+    if ctx.attr.swift_library:
+        hdrs.extend(ctx.attr.swift_library[CcInfo].compilation_context.direct_headers)
     swift_library = ctx.files.swift_library
     include_module_interface_files = ctx.attr.include_module_interface_files
 
@@ -436,7 +439,17 @@ def _generate_static_xcframework_impl(ctx):
                         ),
                     )
 
-            # Copy swiftc generated headers to intermediate directory
+            # Copy the headers (in the case of a mixed-language Swift library)
+            # and the generated header.
+            headers.extend([
+                generation_support.copy_file(
+                    actions = actions,
+                    base_path = headers_path,
+                    file = header,
+                    label = label,
+                )
+                for header in hdrs
+            ])
             headers.append(
                 generation_support.copy_file(
                     actions = actions,
