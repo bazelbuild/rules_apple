@@ -464,6 +464,7 @@ def _swift_info_from_module_interface(
         *,
         actions,
         ctx,
+        default_precompiled_modules,
         deps,
         disabled_features,
         features,
@@ -480,6 +481,8 @@ def _swift_info_from_module_interface(
     Args:
         actions: The actions provider from `ctx.actions`.
         ctx: The Starlark context for a rule target being built.
+        default_precompiled_modules: The `Target` configured by the calling
+            rule's `_default_precompiled_modules` attribute.
         deps: List of dependencies for a given target to retrieve transitive CcInfo providers.
         disabled_features: List of features to be disabled for cc_common.compile
         features: List of features to be enabled for cc_common.compile.
@@ -502,6 +505,12 @@ def _swift_info_from_module_interface(
         requested_features = features,
         unsupported_features = disabled_features,
     )
+    extra_cc_infos, extra_swift_infos = (
+        swift_common.default_precompiled_modules_providers(
+            default_precompiled_modules,
+            feature_configuration,
+        )
+    )
     direct_compilation_context = cc_common.create_compilation_context(
         headers = depset(hdrs + swiftinterface_files),
         framework_includes = depset(framework_includes),
@@ -512,9 +521,12 @@ def _swift_info_from_module_interface(
             dep[CcInfo].compilation_context
             for dep in deps
             if CcInfo in dep
-        ] + [direct_compilation_context],
+        ] + [direct_compilation_context] + [
+            cc_info.compilation_context
+            for cc_info in extra_cc_infos
+        ],
     )
-    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep]
+    swift_infos = [dep[SwiftInfo] for dep in deps if SwiftInfo in dep] + extra_swift_infos
 
     clang_module = None
     if hdrs and module_map:
