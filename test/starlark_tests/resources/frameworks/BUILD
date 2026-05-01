@@ -11,28 +11,20 @@ licenses(["notice"])
 # generating the compiled Swift module interface file (`.swiftmodule`) from
 # this target and the associated framework/XCFramework import rules which
 # compile the Swift module interface file.
-# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "swift_library",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
-    features = [
-        "swift.emit_swiftinterface",
-        "swift.enable_library_evolution",
-    ],
     generates_header = True,
+    library_evolution = True,
     module_name = "iOSSwiftStaticFramework",
     tags = common.fixture_tags,
 )
 
-# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "swift_lib_for_static_xcframework",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
-    features = [
-        "swift.emit_swiftinterface",
-        "swift.enable_library_evolution",
-    ],
     generates_header = True,
+    library_evolution = True,
     module_name = "generated_swift_static_xcframework",
     tags = common.fixture_tags,
 )

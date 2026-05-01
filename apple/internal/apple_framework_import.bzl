@@ -206,6 +206,12 @@ def _apple_dynamic_framework_import_impl(ctx):
         ),
     ))
 
+    framework_includes = _framework_search_paths(
+        framework.header_imports +
+        framework.swift_interface_imports +
+        framework.swift_module_imports,
+    )
+
     # Create CcInfo provider.
     cc_info = framework_import_support.cc_info_with_dependencies(
         actions = actions,
@@ -214,11 +220,7 @@ def _apple_dynamic_framework_import_impl(ctx):
         deps = deps,
         disabled_features = disabled_features,
         features = features,
-        framework_includes = _framework_search_paths(
-            framework.header_imports +
-            framework.swift_interface_imports +
-            framework.swift_module_imports,
-        ),
+        framework_includes = framework_includes,
         header_imports = framework.header_imports,
         kind = "dynamic",
         label = label,
@@ -257,6 +259,9 @@ def _apple_dynamic_framework_import_impl(ctx):
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
+                framework_includes = framework_includes,
+                hdrs = framework.header_imports,
+                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
                 module_name = framework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_files = swiftinterface_files,
@@ -355,6 +360,12 @@ def _apple_static_framework_import_impl(ctx):
             linkopts.append("-weak_framework")
             linkopts.append(sdk_framework)
 
+    framework_includes = _framework_search_paths(
+        framework.header_imports +
+        framework.swift_interface_imports +
+        framework.swift_module_imports,
+    )
+
     # Create CcInfo provider
     providers.append(
         framework_import_support.cc_info_with_dependencies(
@@ -366,11 +377,7 @@ def _apple_static_framework_import_impl(ctx):
             deps = deps,
             disabled_features = disabled_features,
             features = features,
-            framework_includes = _framework_search_paths(
-                framework.header_imports +
-                framework.swift_interface_imports +
-                framework.swift_module_imports,
-            ),
+            framework_includes = framework_includes,
             header_imports = framework.header_imports,
             kind = "static",
             label = label,
@@ -401,6 +408,9 @@ def _apple_static_framework_import_impl(ctx):
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
+                framework_includes = framework_includes,
+                hdrs = framework.header_imports,
+                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
                 module_name = framework.bundle_name,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_files = swiftinterface_files,
