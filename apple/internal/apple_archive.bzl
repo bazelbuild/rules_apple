@@ -175,7 +175,7 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
     bundle_merge_files, symbols_inputs, swift_support_inputs, watchos_stub_inputs, messages_stub_inputs = all_inputs
 
     archive = ctx.actions.declare_file("%s.%s" % (
-        ctx.attr.bundle.label.name,
+        ctx.label.name,
         _archive_extension(bundle_info),
     ))
 
@@ -205,12 +205,11 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
 
     return archive
 
-def _create_combined_dossier_zip(ctx, bundle_info, bundletool, archive, dossier_zip):
+def _create_combined_dossier_zip(ctx, bundletool, archive, dossier_zip):
     """Creates a combined zip file containing both the IPA and dossier.
 
     Args:
         ctx: The rule context.
-        bundle_info: The AppleBundleInfo provider.
         bundletool: The bundletool executable.
         archive: The archive file.
         dossier_zip: The dossier zip file.
@@ -218,7 +217,7 @@ def _create_combined_dossier_zip(ctx, bundle_info, bundletool, archive, dossier_
     Returns:
         The combined zip file.
     """
-    combined_zip = ctx.actions.declare_file("%s_dossier_with_bundle.zip" % bundle_info.bundle_name)
+    combined_zip = ctx.actions.declare_file("%s_dossier_with_bundle.zip" % ctx.label.name)
 
     control = struct(
         bundle_merge_zips = [
@@ -307,7 +306,7 @@ def _apple_archive_impl(ctx):
     if AppleCodesigningDossierInfo in ctx.attr.bundle:
         dossier_info = ctx.attr.bundle[AppleCodesigningDossierInfo]
         dossier_zip = dossier_info.dossier
-        combined_zip = _create_combined_dossier_zip(ctx, bundle_info, bundletool, archive, dossier_zip)
+        combined_zip = _create_combined_dossier_zip(ctx, bundletool, archive, dossier_zip)
         output_groups["combined_dossier_zip"] = depset([combined_zip])
 
     apple_archive_bundle_info = _create_apple_bundle_info(bundle_info, archive)
@@ -360,7 +359,7 @@ ios_application(
 )
 
 apple_archive(
-    name = "App.ipa",
+    name = "AppArchive",
     bundle = ":App",
 )
 ````

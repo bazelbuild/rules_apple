@@ -111,7 +111,7 @@ def watchos_application_swift_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_with_swift_watchos_with_swift",
         output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/watchos/companion_dossier_with_bundle.zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/watchos/ipa_ios_with_swift_watchos_with_swift_dossier_with_bundle.zip",
         contains = [
             "bundle/Payload/companion.app/Info.plist",
             "bundle/Payload/companion.app/companion",

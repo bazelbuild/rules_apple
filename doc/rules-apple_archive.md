@@ -30,7 +30,7 @@ ios_application(
 )
 
 apple_archive(
-    name = "App.ipa",
+    name = "AppArchive",
     bundle = ":App",
 )
 ````

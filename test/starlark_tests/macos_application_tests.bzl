@@ -131,7 +131,7 @@ def macos_application_test_suite(name):
     analysis_target_outputs_test(
         name = "{}_archive_output_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_zip",
-        expected_outputs = ["app.zip"],
+        expected_outputs = ["app_zip.zip"],
         tags = [name],
     )
 
@@ -161,7 +161,7 @@ def macos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_zip",
         output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/macos/app_dossier_with_bundle.zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/macos/app_zip_dossier_with_bundle.zip",
         contains = [
             "bundle/app.app/Contents/Info.plist",
             "bundle/app.app/Contents/MacOS/app",

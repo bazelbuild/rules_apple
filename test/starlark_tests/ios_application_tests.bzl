@@ -161,7 +161,7 @@ def ios_application_test_suite(name):
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
-        expected_outputs = ["app.ipa"],
+        expected_outputs = ["ipa_with_app.ipa"],
         tags = [name],
     )
     analysis_target_tree_artifacts_outputs_test(
@@ -394,7 +394,7 @@ def ios_application_test_suite(name):
     analysis_target_outputs_test(
         name = "{}_mixed_target_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
-        expected_outputs = ["app_with_fmwk_with_multiple_objc_library_and_swift_library_deps.ipa"],
+        expected_outputs = ["ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps.ipa"],
         tags = [name],
     )
 
@@ -1128,7 +1128,7 @@ def ios_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
         output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/app_dossier_with_bundle.zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/ipa_with_app_dossier_with_bundle.zip",
         contains = [
             "bundle/Payload/app.app/Info.plist",
             "bundle/Payload/app.app/app",
