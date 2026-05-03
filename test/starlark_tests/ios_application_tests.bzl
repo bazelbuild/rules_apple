@@ -31,6 +31,10 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_exact_test.bzl",
+    "analysis_output_group_info_files_exact_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -162,6 +166,46 @@ def ios_application_test_suite(name):
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
         expected_outputs = ["ipa_with_app.ipa"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_exact_test(
+        name = "{}_ipa_has_only_archive_combined_dossier_zip_output_group_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        output_group_name = "combined_dossier_zip",
+        expected_outputs = [
+            "ipa_with_app_dossier_with_bundle.zip",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_ipa_forwards_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_ipa_forwards_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_arm64.linkmap",
+            "app_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_ipa_forwards_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        expected_direct_dsyms = [
+            "dSYMs/app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app.app.dSYM",
+        ],
         tags = [name],
     )
     analysis_target_tree_artifacts_outputs_test(

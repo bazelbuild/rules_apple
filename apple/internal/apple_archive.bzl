@@ -6,6 +6,7 @@ load(
     "//apple:providers.bzl",
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
+    "AppleDsymBundleInfo",
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
@@ -14,6 +15,10 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "new_applebundleinfo",
+)
+load(
+    "//apple/internal/providers:apple_debug_info.bzl",
+    "AppleDebugInfo",
 )
 load(
     "//apple/internal/providers:apple_messages_stub_info.bzl",
@@ -35,6 +40,24 @@ load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
+
+def _output_group_names(output_group_info):
+    """Returns the declared output group names for an OutputGroupInfo provider."""
+    return [name for name in dir(output_group_info) if name not in ["to_json", "to_proto"]]
+
+def _output_groups_for_archive(bundle_target, combined_zip = None):
+    """Returns the output groups that should be exposed by apple_archive."""
+    output_groups = {}
+
+    if OutputGroupInfo in bundle_target:
+        bundle_output_groups = bundle_target[OutputGroupInfo]
+        for output_group_name in _output_group_names(bundle_output_groups):
+            output_groups[output_group_name] = getattr(bundle_output_groups, output_group_name)
+
+    if combined_zip:
+        output_groups["combined_dossier_zip"] = depset([combined_zip])
+
+    return output_groups
 
 def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
@@ -302,20 +325,30 @@ def _apple_archive_impl(ctx):
     all_inputs = (bundle_merge_files, symbols_inputs, swift_support_inputs, watchos_stub_inputs, messages_stub_inputs)
     archive = _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inputs)
 
-    output_groups = {}
+    combined_zip = None
     if AppleCodesigningDossierInfo in ctx.attr.bundle:
         dossier_info = ctx.attr.bundle[AppleCodesigningDossierInfo]
         dossier_zip = dossier_info.dossier
         combined_zip = _create_combined_dossier_zip(ctx, bundletool, archive, dossier_zip)
-        output_groups["combined_dossier_zip"] = depset([combined_zip])
 
     apple_archive_bundle_info = _create_apple_bundle_info(bundle_info, archive)
 
-    return [
+    providers = [
         DefaultInfo(files = depset([archive])),
         apple_archive_bundle_info,
-        OutputGroupInfo(**output_groups),
+        OutputGroupInfo(**_output_groups_for_archive(
+            bundle_target = ctx.attr.bundle,
+            combined_zip = combined_zip,
+        )),
     ]
+
+    if AppleDsymBundleInfo in ctx.attr.bundle:
+        providers.append(ctx.attr.bundle[AppleDsymBundleInfo])
+
+    if AppleDebugInfo in ctx.attr.bundle:
+        providers.append(ctx.attr.bundle[AppleDebugInfo])
+
+    return providers
 
 apple_archive = rule(
     implementation = _apple_archive_impl,
@@ -345,7 +378,9 @@ Re-packages an Apple bundle into an Apple archive.
 
 This rule uses the providers from the bundle target to construct the required
 metadata for the archive. iOS/tvOS/watchOS applications produce an `.ipa`;
-macOS applications produce a `.zip`.
+macOS applications produce a `.zip`. The archive target preserves the wrapped
+bundle target's debug providers and output groups so follow-on artifacts such
+as dSYMs and linkmaps remain available from the archive target.
 
 Example:
 

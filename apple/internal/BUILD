@@ -93,6 +93,7 @@ bzl_library(
         ":apple_toolchains",
         ":providers",
         "//apple:providers",
+        "//apple/internal/providers:apple_debug_info",
         "//apple/internal/providers:apple_messages_stub_info",
         "//apple/internal/providers:apple_swift_dylibs_info",
         "//apple/internal/providers:apple_symbols_file_info",

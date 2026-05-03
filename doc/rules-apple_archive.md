@@ -16,7 +16,9 @@ Re-packages an Apple bundle into an Apple archive.
 
 This rule uses the providers from the bundle target to construct the required
 metadata for the archive. iOS/tvOS/watchOS applications produce an `.ipa`;
-macOS applications produce a `.zip`.
+macOS applications produce a `.zip`. The archive target preserves the wrapped
+bundle target's debug providers and output groups so follow-on artifacts such
+as dSYMs and linkmaps remain available from the archive target.
 
 Example:
 
