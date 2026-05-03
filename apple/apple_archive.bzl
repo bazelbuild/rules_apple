@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Rules for creating iOS Package Archive (.ipa).
+Rules for creating Apple application archives.
 """
 
 load(

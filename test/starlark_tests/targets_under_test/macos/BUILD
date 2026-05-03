@@ -11,6 +11,7 @@ load(
     "apple_static_xcframework",
     "apple_xcframework",
 )
+load("//apple:apple_archive.bzl", "apple_archive")
 load(
     "//apple:macos.bzl",
     "macos_application",
@@ -1203,6 +1204,26 @@ macos_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "app_zip",
+    bundle = ":app",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "app_with_ext_and_symbols_in_bundle_zip",
+    bundle = ":app_with_ext_and_symbols_in_bundle",
+    include_symbols = True,
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "app_with_imported_dynamic_fmwk_with_dsym_zip",
+    bundle = ":app_with_imported_dynamic_fmwk_with_dsym",
+    include_symbols = True,
+    tags = common.fixture_tags,
 )
 
 macos_application(

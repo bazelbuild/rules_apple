@@ -36,6 +36,21 @@ load(
     "defines",
 )
 
+def _is_macos_bundle(bundle_info):
+    """Returns whether the bundle targets macOS."""
+    return bundle_info.platform_type == "macos"
+
+def _archive_extension(bundle_info):
+    """Returns the archive file extension for the bundle."""
+    return "zip" if _is_macos_bundle(bundle_info) else "ipa"
+
+def _archive_bundle_destination(bundle_info):
+    """Returns the archive-relative destination for the packaged bundle."""
+    bundle_with_extension = "%s%s" % (bundle_info.bundle_name, bundle_info.bundle_extension)
+    if _is_macos_bundle(bundle_info):
+        return bundle_with_extension
+    return "Payload/%s" % bundle_with_extension
+
 def _should_compress_archive(ctx):
     """Determines if the archive should be compressed based on defines and compilation mode."""
     return defines.bool_value(
@@ -159,7 +174,10 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
     """
     bundle_merge_files, symbols_inputs, swift_support_inputs, watchos_stub_inputs, messages_stub_inputs = all_inputs
 
-    archive = ctx.actions.declare_file("%s.ipa" % ctx.attr.bundle.label.name)
+    archive = ctx.actions.declare_file("%s.%s" % (
+        ctx.attr.bundle.label.name,
+        _archive_extension(bundle_info),
+    ))
 
     control = struct(
         bundle_merge_files = bundle_merge_files,
@@ -181,7 +199,7 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
             bundle_info.archive,
         ] + symbols_inputs + swift_support_inputs + watchos_stub_inputs + messages_stub_inputs,
         outputs = [archive],
-        mnemonic = "CreateIPA",
+        mnemonic = "CreateArchive",
         exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     )
 
@@ -259,8 +277,9 @@ def _apple_archive_impl(ctx):
     """
     Implementation for apple_archive.
 
-    This rule uses the providers from the bundle target to re-package it into a .ipa.
-    The .ipa is a directory that contains the Payload/*.app bundle.
+    This rule uses the providers from the bundle target to re-package it into an archive.
+    Apple application bundles are packaged as `.ipa` files for iOS/tvOS/watchOS and `.zip`
+    files for macOS.
     """
     bundle_info = ctx.attr.bundle[AppleBundleInfo]
     xplat_tools = apple_toolchain_utils.get_xplat_toolchain(ctx)
@@ -268,11 +287,11 @@ def _apple_archive_impl(ctx):
 
     should_compress = _should_compress_archive(ctx)
 
-    # Package the bundle tree artifact into an IPA
+    # Package the bundle tree artifact into an Apple archive.
     bundle_merge_files = [
         struct(
             src = bundle_info.archive.path,
-            dest = "Payload/%s%s" % (bundle_info.bundle_name, bundle_info.bundle_extension),
+            dest = _archive_bundle_destination(bundle_info),
         ),
     ]
 
@@ -307,8 +326,8 @@ apple_archive = rule(
                 AppleBundleInfo,
             ],
             doc = """\
-The label to a target to re-package into a .ipa. For example, an
-`ios_application` target.
+The label to a target to re-package into an Apple archive. For example, an
+`ios_application` or `macos_application` target.
             """,
         ),
         "include_symbols": attr.bool(
@@ -317,16 +336,17 @@ The label to a target to re-package into a .ipa. For example, an
     If true, collects `$UUID.symbols`
     files from all `{binary: .dSYM, ...}` pairs for the application and its
     dependencies, then packages them under the `Symbols/` directory in the
-    final .ipa.
+    final archive.
     """,
         ),
     },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = """\
-Re-packages an Apple bundle into a .ipa.
+Re-packages an Apple bundle into an Apple archive.
 
 This rule uses the providers from the bundle target to construct the required
-metadata for the .ipa.
+metadata for the archive. iOS/tvOS/watchOS applications produce an `.ipa`;
+macOS applications produce a `.zip`.
 
 Example:
 

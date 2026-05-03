@@ -33,6 +33,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
@@ -55,6 +56,10 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
+    "output_group_zip_contents_test",
 )
 load(
     "//test/starlark_tests/rules:plisttool_error_test.bzl",
@@ -120,6 +125,48 @@ def macos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    analysis_target_outputs_test(
+        name = "{}_archive_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_zip",
+        expected_outputs = ["app.zip"],
+        tags = [name],
+    )
+
+    analysis_target_outputs_test(
+        name = "{}_default_tree_artifact_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expected_outputs = ["app.app"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_zip",
+        contains = [
+            "$BUNDLE_ROOT/Contents/Info.plist",
+            "$CONTENT_ROOT/MacOS/app",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/Payload",
+        ],
+        tags = [name],
+    )
+
+    output_group_zip_contents_test(
+        name = "{}_has_combined_zip_output_group".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_zip",
+        output_group_name = "combined_dossier_zip",
+        output_group_file_shortpath = "test/starlark_tests/targets_under_test/macos/app_dossier_with_bundle.zip",
+        contains = [
+            "bundle/app.app/Contents/Info.plist",
+            "bundle/app.app/Contents/MacOS/app",
+            "dossier/manifest.json",
+        ],
         tags = [name],
     )
 
@@ -561,7 +608,19 @@ def macos_application_test_suite(name):
         ],
         build_type = "device",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_in_bundle_zip",
+    )
+
+    apple_symbols_file_test(
+        name = "{}_archive_contains_apple_symbols_files_from_external_fmwk_test".format(name),
+        binary_paths = [
+            "app_with_imported_dynamic_fmwk_with_dsym.app/Contents/MacOS/app_with_imported_dynamic_fmwk_with_dsym",
+            "app_with_imported_dynamic_fmwk_with_dsym.app/Contents/Frameworks/macOSDynamicFramework.framework/macOSDynamicFramework",
+            "app_with_imported_dynamic_fmwk_with_dsym.app/Contents/Frameworks/macOSDynamicFrameworkWithDebugInfo.framework/macOSDynamicFrameworkWithDebugInfo",
+        ],
+        build_type = "simulator",
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_fmwk_with_dsym_zip",
     )
 
     infoplist_contents_test(

@@ -45,12 +45,13 @@ def is_experimental_tree_artifact_enabled(
     if platform_prerequisites and platform_prerequisites.build_settings.use_tree_artifacts_outputs:
         return True
 
-    # Enable tree artifacts by default for iOS/tvOS/visionOS applications
-    # These will produce .app bundles that can be wrapped into .ipa files
+    # Enable tree artifacts by default for application targets that are wrapped
+    # into Apple archives.
     if rule_descriptor and platform_prerequisites:
         if (platform_prerequisites.platform.platform_type, rule_descriptor.product_type) in [
             (apple_common.platform_type.ios, apple_product_type.application),
             (apple_common.platform_type.ios, apple_product_type.messages_application),
+            (apple_common.platform_type.macos, apple_product_type.application),
             (apple_common.platform_type.tvos, apple_product_type.application),
             (apple_common.platform_type.visionos, apple_product_type.application),
         ]:
