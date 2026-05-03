@@ -75,6 +75,9 @@ ios_application(<a href="#ios_application-name">name</a>, <a href="#ios_applicat
 
 Builds and bundles an iOS Application.
 
+This rule produces an `.app` bundle. To package that bundle as an `.ipa`, wrap
+it in [`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+
 **ATTRIBUTES**
 
 

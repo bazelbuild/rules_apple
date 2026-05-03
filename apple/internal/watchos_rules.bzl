@@ -1883,7 +1883,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles a watchOS Application.",
+    doc = """Builds and bundles a watchOS Application.
+
+This rule produces an `.app` bundle. To package that bundle as an `.ipa`, wrap
+it in [`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+""",
     implementation = _watchos_application_impl,
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},

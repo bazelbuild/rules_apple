@@ -2830,7 +2830,11 @@ def _ios_kernel_extension_impl(ctx):
     ] + processor_result.providers
 
 ios_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles an iOS Application.",
+    doc = """Builds and bundles an iOS Application.
+
+This rule produces an `.app` bundle. To package that bundle as an `.ipa`, wrap
+it in [`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+""",
     implementation = _ios_application_impl,
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},

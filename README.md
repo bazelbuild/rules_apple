@@ -4,8 +4,9 @@ This repository contains rules for [Bazel](https://bazel.build) that can be
 used to bundle applications for Apple platforms.
 
 These rules handle the linking and bundling of applications and extensions
-(that is, the formation of an `.app` with an executable and resources,
-archived in an `.ipa`). Compilation is still performed by the existing
+(that is, the formation of an `.app` with an executable and resources, and
+optionally packaging those bundles into distributable archives such as `.ipa`
+and `.zip` files). Compilation is still performed by the existing
 [`objc_library` rule](https://bazel.build/reference/be/objective-c#objc_library)
 in Bazel, and by the
 [`swift_library` rule](https://github.com/bazelbuild/rules_swift/blob/main/doc/rules.md#swift_library)
@@ -28,6 +29,7 @@ Copy the latest `MODULE.bazel` snippet from [the releases page](https://github.c
 Minimal example:
 
 ```python
+load("@rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_swift//swift:swift.bzl", "swift_library")
 
@@ -38,8 +40,7 @@ swift_library(
 )
 
 # Links code from "deps" into an executable, collects and compiles resources
-# from "deps" and places them with the executable in an .app bundle, and then
-# outputs an .ipa with the bundle in its Payload directory.
+# from "deps" and places them with the executable in an .app bundle.
 ios_application(
     name = "App",
     bundle_id = "com.example.app",
@@ -49,6 +50,12 @@ ios_application(
     ],
     minimum_os_version = "15.0",
     deps = [":MyLibrary"],
+)
+
+# If you want a distributable archive, wrap the bundle target in apple_archive.
+apple_archive(
+    name = "AppArchive",
+    bundle = ":App",
 )
 ```
 

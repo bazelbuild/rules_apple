@@ -89,6 +89,7 @@ Run `touch BUILD` to create a file, then open it in your preferred text editor.
 Then, add load statements to bring the [rules](https://bazel.build/reference/glossary#rule) you will be using into scope:
 
 ```starlark
+load("@rules_apple//apple:apple_archive.bzl", "apple_archive")
 load("@rules_apple//apple:ios.bzl", "ios_application")
 load("@rules_swift//swift:swift.bzl", "swift_library")
 ```
@@ -104,7 +105,7 @@ swift_library(
 
 This rule informs Bazel how to build your Swift source code prior to packaging it. Note the name of the target, `lib`, which can be referenced with the label `//:lib` (or simply `lib` when running Bazel in the current directory). Also note the [`glob`](https://bazel.build/reference/be/functions#glob) function passed to the `srcs` attribute, which will automatically add all files in `Sources` with the `.swift` extension to the library.
 
-Finally, you're going to set up an `ios_application` target in much the same way. You will be using this target to build the iOS application as an `.ipa`. Create another directory next to `Sources` named `Resources` and create an `Info.plist` in that directory. You may use [this example Info.plist](/examples/ios/HelloWorldSwift/Info.plist) as a reference to populate your new `Info.plist`.
+Finally, you're going to set up an `ios_application` target in much the same way. This target builds the iOS app bundle that Bazel can run in the simulator or on a device. If you also want a distributable `.ipa`, you can wrap that bundle target in `apple_archive`. Create another directory next to `Sources` named `Resources` and create an `Info.plist` in that directory. You may use [this example Info.plist](/examples/ios/HelloWorldSwift/Info.plist) as a reference to populate your new `Info.plist`.
 
 Then, below the `swift_library`, add the following code snippet to the file:
 
@@ -116,6 +117,11 @@ ios_application(
     infoplists = ["Resources/Info.plist"],
     minimum_os_version = "17.0",
     deps = [":lib"],
+)
+
+apple_archive(
+    name = "iOSAppArchive",
+    bundle = ":iOSApp",
 )
 ```
 
@@ -131,16 +137,24 @@ To build the app you just created, execute the following:
 bazel build //:iOSApp
 ```
 
-Bazel will build the app and package it into an uncompressed `.ipa` targeting the Simulator. Once it's finished, you should see output similar to the following:
+Bazel will build the app bundle for the Simulator. Once it's finished, you should see output similar to the following:
 
 ```shell
 INFO: Found 1 target...
 Target //:iOSApp up-to-date:
-  bazel-bin/iOSApp.ipa
+  bazel-bin/iOSApp.app
 INFO: Elapsed time: 1.999s, Critical Path: 1.89s
 ```
 
-The `bazel-bin/iOSApp.ipa` in the above output refers to one of the outputs of the build command – namely the `.ipa` you just built with Bazel! This file is also available in a subdirectory of `bazel-out`, under a path resembling `bazel-out/ios-sim_arm64-min17.0-applebin_ios-ios_sim_arm64-fastbuild-ST-b6790d224f6d/bin/iOSApp.ipa`.
+The `bazel-bin/iOSApp.app` in the above output refers to the app bundle you just built with Bazel. This bundle is also available in a subdirectory of `bazel-out`, under a path resembling `bazel-out/ios-sim_arm64-min17.0-applebin_ios-ios_sim_arm64-fastbuild-ST-b6790d224f6d/bin/iOSApp.app`.
+
+If you want to build a distributable `.ipa`, build the `apple_archive` target instead:
+
+```shell
+bazel build //:iOSAppArchive
+```
+
+That target will produce `bazel-bin/iOSAppArchive.ipa`.
 
 To run this app in a simulator, replace the `build` command above with `run`:
 
@@ -226,7 +240,7 @@ rules_apple wraps devicectl in a tool to find any attached devices with an OS ve
 > [!TIP]
 > Use `xcrun devicectl list devices` to list the devices available to devicectl.
 
-Another method to install the app on a connected device is using Xcode. Launch Xcode, and open the **Devices and Simulators** window under the **Window** menu item. Select your connected device from the list, click the **Add** (plus sign) button under **Installed Apps**, and select the `.ipa` you built. If your app fails to install on your device, ensure that your provisioning profile is valid and configured for your device. If your app fails to launch, the **View Device Logs** button may provide more insight into why.
+`bazel run //:iOSApp --ios_multi_cpus=arm64` installs the `.app` bundle directly onto a compatible connected device by using `devicectl`. If you prefer to install the app manually with other tooling, you can also build the `//:iOSAppArchive` target to produce a distributable `.ipa`. If your app fails to install on your device, ensure that your provisioning profile is valid and configured for your device. If your app fails to launch, the device logs may provide more insight into why.
 
 ## Further Reading
 

@@ -2269,7 +2269,10 @@ macos_application = rule_factory.create_apple_rule(
 
 This rule creates an application that is a `.app` bundle. If you want to build a
 simple command line tool as a standalone binary, use
-[`macos_command_line_application`](#macos_command_line_application) instead.""",
+[`macos_command_line_application`](#macos_command_line_application) instead.
+
+To package the resulting bundle as a `.zip`, wrap it in
+[`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).""",
     implementation = _macos_application_impl,
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},
