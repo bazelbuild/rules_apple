@@ -34,9 +34,11 @@ import argparse
 import os
 import re
 import shutil
+import stat
 import sys
 import textwrap
 import time
+import zipfile
 from typing import List, Optional
 
 from tools.bitcode_strip import bitcode_strip
@@ -127,6 +129,47 @@ def _update_modified_timestamps(framework_temp_path: str) -> None:
           continue
         os.utime(file_path, (timestamp, timestamp))
     os.utime(framework_temp_path, (timestamp, timestamp))
+
+
+def _create_framework_zip(framework_temp_path: str, output_zip: str) -> None:
+  """Creates a zip archive for a processed framework bundle.
+
+  The macOS `ditto` zip writer has varied in how it records symlinked
+  directories. Write entries directly so versioned framework symlinks stay
+  symlinks across host OS versions.
+  """
+  framework_parent = os.path.dirname(framework_temp_path)
+  fixed_date_time = (2000, 1, 1, 0, 0, 0)
+
+  with zipfile.ZipFile(output_zip, "w", allowZip64=True) as out_zip:
+    for root, dirs, files in os.walk(framework_temp_path, followlinks=False):
+      dirs.sort()
+      files.sort()
+      entries = dirs + files
+      for entry in entries:
+        path = os.path.join(root, entry)
+        zip_path = os.path.relpath(path, framework_parent)
+
+        if os.path.islink(path):
+          zip_info = zipfile.ZipInfo(zip_path, fixed_date_time)
+          zip_info.create_system = 3
+          zip_info.compress_type = zipfile.ZIP_STORED
+          zip_info.external_attr = (stat.S_IFLNK | 0o755) << 16
+          out_zip.writestr(zip_info, os.readlink(path).encode("utf-8"))
+        elif os.path.isdir(path):
+          zip_info = zipfile.ZipInfo(zip_path + "/", fixed_date_time)
+          zip_info.create_system = 3
+          zip_info.compress_type = zipfile.ZIP_STORED
+          zip_info.external_attr = (stat.S_IFDIR | 0o755) << 16 | 0x10
+          out_zip.writestr(zip_info, b"")
+        elif os.path.isfile(path):
+          mode = stat.S_IMODE(os.stat(path).st_mode)
+          zip_info = zipfile.ZipInfo(zip_path, fixed_date_time)
+          zip_info.create_system = 3
+          zip_info.compress_type = zipfile.ZIP_DEFLATED
+          zip_info.external_attr = (stat.S_IFREG | mode) << 16
+          with open(path, "rb") as file:
+            out_zip.writestr(zip_info, file.read())
 
 
 def _relpath_from_framework(framework_absolute_path):
@@ -381,23 +424,9 @@ def main() -> None:
     if status_code:
       return status_code
 
-  # Update modified timestamps and create archive using ditto.
+  # Update modified timestamps and create archive.
   _update_modified_timestamps(args.temp_path)
-
-  # Previous implementation of creating the processed framework archive
-  # using shutil/zip already stripped the extended attributes of the bundle.
-  execute.execute_and_filter_output(
-      cmd_args=[
-          "/usr/bin/ditto",
-          "-c",
-          "-k",  # use PKZip format for bundletool compatibility.
-          "--keepParent",  # preserves the .framework directory.
-          "--norsrc",  # strip resource forks and HFS metadata.
-          "--noextattr",  # strip extended attributes.
-          args.temp_path,
-          args.output_zip
-      ],
-      raise_on_failure=True)
+  _create_framework_zip(args.temp_path, args.output_zip)
 
 
 if __name__ == "__main__":
