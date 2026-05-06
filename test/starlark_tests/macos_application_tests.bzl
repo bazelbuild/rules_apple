@@ -215,7 +215,7 @@ def macos_application_test_suite(name):
     apple_verification_test(
         name = "{}_imported_versioned_fmwk_codesign_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk_zip",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -223,7 +223,7 @@ def macos_application_test_suite(name):
     apple_verification_test(
         name = "{}_imported_versioned_xcframework_codesign_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework_zip",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -452,7 +452,7 @@ def macos_application_test_suite(name):
     archive_contents_test(
         name = "{}_prebuilt_dynamic_versioned_framework_dependency_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk_zip",
         contains = [
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist",
@@ -485,7 +485,7 @@ def macos_application_test_suite(name):
     archive_contents_test(
         name = "{}_prebuilt_dynamic_versioned_xcframework_dependency_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework_zip",
         contains = [
             "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
             "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",

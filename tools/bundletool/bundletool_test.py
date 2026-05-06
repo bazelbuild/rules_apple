@@ -114,6 +114,15 @@ class BundlerTest(unittest.TestCase):
         z.writestr(zipinfo, content)
     return path
 
+  def _scratch_symlink_zip(self, name, entry, target):
+    path = os.path.join(self._scratch_dir, name)
+    with zipfile.ZipFile(path, 'w') as z:
+      zipinfo = zipfile.ZipInfo(entry)
+      zipinfo.compress_type = zipfile.ZIP_STORED
+      zipinfo.external_attr = 0o120755 << 16
+      z.writestr(zipinfo, target)
+    return path
+
   def _assert_zip_contains(self, zip_file, entry, executable=False,
                            compressed=False):
     """Asserts that a `ZipFile` has an entry with the given path.
@@ -148,6 +157,16 @@ class BundlerTest(unittest.TestCase):
             'Expected %r not to be compressed, but it was' % entry)
     except KeyError:
       self.fail('Bundled ZIP should have contained %r, but it did not' % entry)
+
+  def _assert_zip_contains_symlink(self, zip_file, entry, target):
+    try:
+      zipinfo = zip_file.getinfo(entry)
+      self.assertTrue(
+          stat.S_ISLNK(zipinfo.external_attr >> 16),
+          'Expected %r to be a symlink, but it was not' % entry)
+      self.assertEqual(target.encode('utf-8'), zip_file.read(entry))
+    except KeyError:
+      self.fail('Bundled ZIP should have contained symlink %r, but it did not' % entry)
 
   def test_bundle_merge_files(self):
     out_zip = _run_bundler({
@@ -206,6 +225,107 @@ class BundlerTest(unittest.TestCase):
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/b.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/c/d.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/x/y/z/c/e/f.txt', True)
+
+  def test_bundle_merge_files_with_directories_preserves_symlinks(self):
+    root = os.path.join(self._scratch_dir, 'framework')
+    versions_dir = os.path.join(root, 'Versions', 'A')
+    resources_dir = os.path.join(versions_dir, 'Resources')
+    os.makedirs(resources_dir)
+    self._scratch_file('framework/Versions/A/generated_fmwk', executable=True)
+    self._scratch_file('framework/Versions/A/Resources/Info.plist')
+    os.symlink('A', os.path.join(root, 'Versions', 'Current'))
+    os.symlink(
+        'Versions/Current/generated_fmwk',
+        os.path.join(root, 'generated_fmwk'))
+    os.symlink(
+        'Versions/Current/Resources',
+        os.path.join(root, 'Resources'))
+
+    out_zip = _run_bundler({
+        'bundle_merge_files': [{'src': root, 'dest': 'Foo.framework'}],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(
+          z, 'Foo.framework/Versions/A/generated_fmwk', True)
+      self._assert_zip_contains(
+          z, 'Foo.framework/Versions/A/Resources/Info.plist')
+      self._assert_zip_contains_symlink(
+          z, 'Foo.framework/Versions/Current', 'A')
+      self._assert_zip_contains_symlink(
+          z, 'Foo.framework/generated_fmwk',
+          'Versions/Current/generated_fmwk')
+      self._assert_zip_contains_symlink(
+          z, 'Foo.framework/Resources',
+          'Versions/Current/Resources')
+
+  def test_bundle_merge_files_with_directories_rewrites_absolute_internal_symlinks(self):
+    root = os.path.join(self._scratch_dir, 'framework')
+    versions_dir = os.path.join(root, 'Versions', 'A')
+    os.makedirs(versions_dir)
+    target = self._scratch_file('framework/Versions/A/generated_fmwk', executable=True)
+    os.symlink(target, os.path.join(root, 'generated_fmwk'))
+
+    out_zip = _run_bundler({
+        'bundle_merge_files': [{'src': root, 'dest': 'Foo.framework'}],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(
+          z, 'Foo.framework/Versions/A/generated_fmwk', True)
+      self._assert_zip_contains_symlink(
+          z, 'Foo.framework/generated_fmwk',
+          'Versions/A/generated_fmwk')
+
+  def test_bundle_merge_files_with_directories_dereferences_external_symlinks(self):
+    root = os.path.join(self._scratch_dir, 'app')
+    os.makedirs(root)
+    external_file = self._scratch_file('external/Info.plist', content='plist')
+    os.symlink(external_file, os.path.join(root, 'Info.plist'))
+
+    out_zip = _run_bundler({
+        'bundle_merge_files': [{'src': root, 'dest': 'App.app'}],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(z, 'App.app/Info.plist')
+      self.assertFalse(
+          stat.S_ISLNK(z.getinfo('App.app/Info.plist').external_attr >> 16),
+          'Expected App.app/Info.plist to be stored as a regular file')
+      self.assertEqual(b'plist', z.read('App.app/Info.plist'))
+
+  def test_bundle_merge_files_normalizes_bundle_permissions(self):
+    root = os.path.join(self._scratch_dir, 'app.app', 'Contents')
+    os.makedirs(os.path.join(root, 'MacOS'))
+    framework_resources = os.path.join(
+        root, 'Frameworks', 'Foo.framework', 'Versions', 'A', 'Resources')
+    os.makedirs(framework_resources)
+    self._scratch_file('app.app/Contents/Info.plist', executable=True)
+    self._scratch_file('app.app/Contents/MacOS/app', executable=True)
+    self._scratch_file('app.app/Contents/Helpers/tool', executable=True)
+    self._scratch_file(
+        'app.app/Contents/Frameworks/Foo.framework/Versions/A/Resources/Info.plist',
+        executable=True)
+    self._scratch_file(
+        'app.app/Contents/Frameworks/Foo.framework/Versions/A/Foo',
+        executable=True)
+
+    out_zip = _run_bundler({
+        'bundle_merge_files': [{
+            'src': os.path.join(self._scratch_dir, 'app.app'),
+            'dest': 'app.app',
+            'normalize_bundle_file_permissions': True,
+        }],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(z, 'app.app/Contents/Info.plist', False)
+      self._assert_zip_contains(z, 'app.app/Contents/MacOS/app', True)
+      self._assert_zip_contains(z, 'app.app/Contents/Helpers/tool', True)
+      self._assert_zip_contains(
+          z,
+          'app.app/Contents/Frameworks/Foo.framework/Versions/A/Resources/Info.plist',
+          False)
+      self._assert_zip_contains(
+          z,
+          'app.app/Contents/Frameworks/Foo.framework/Versions/A/Foo',
+          True)
 
   def test_bundle_merge_zips(self):
     foo_zip = self._scratch_zip('foo.zip',
@@ -301,6 +421,42 @@ class BundlerTest(unittest.TestCase):
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/some.dylib')
+
+  def test_zips_with_escaping_symlink_raise_error(self):
+    support_zip = self._scratch_symlink_zip('support.zip', 'some.dylib', '../outside')
+    with self.assertRaisesRegex(
+        bundletool.BundleSymlinkError,
+        re.escape(bundletool.INVALID_SYMLINK_TARGET_MSG_TEMPLATE %
+                  ('some.dylib', '../outside'))):
+      _run_bundler({
+          'bundle_merge_zips': [{'src': support_zip, 'dest': '.'}],
+      })
+
+  def test_zips_with_absolute_symlink_raise_error(self):
+    support_zip = self._scratch_symlink_zip('support.zip', 'some.dylib', '/tmp/outside')
+    with self.assertRaisesRegex(
+        bundletool.BundleSymlinkError,
+        re.escape(bundletool.INVALID_SYMLINK_TARGET_MSG_TEMPLATE %
+                  ('Payload/foo.app/some.dylib', '/tmp/outside'))):
+      _run_bundler({
+          'bundle_path': 'Payload/foo.app',
+          'bundle_merge_zips': [{'src': support_zip, 'dest': '.'}],
+      })
+
+  def test_zip_file_and_symlink_with_same_content_raise_error(self):
+    one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
+    two_zip = self._scratch_symlink_zip('two.zip', 'some.dylib', 'foo')
+    with self.assertRaisesRegex(
+        bundletool.BundleConflictError,
+        re.escape(bundletool.BUNDLE_CONFLICT_MSG_TEMPLATE %
+                  'Payload/foo.app/some.dylib')):
+      _run_bundler({
+          'bundle_path': 'Payload/foo.app',
+          'bundle_merge_zips': [
+              {'src': one_zip, 'dest': '.'},
+              {'src': two_zip, 'dest': '.'},
+          ]
+      })
 
   def test_zips_with_duplicate_files_and_different_content_raise_error(self):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')

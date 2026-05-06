@@ -59,7 +59,7 @@ def _output_groups_for_archive(bundle_target, combined_zip = None):
 
 def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
-    return bundle_info.platform_type == "macos"
+    return bundle_info.platform_type == apple_common.platform_type.macos
 
 def _archive_extension(bundle_info):
     """Returns the archive file extension for the bundle."""
@@ -221,6 +221,11 @@ def _create_archive_file(ctx, bundle_info, bundletool, should_compress, all_inpu
         ] + symbols_inputs + swift_support_inputs + watchos_stub_inputs + messages_stub_inputs,
         outputs = [archive],
         mnemonic = "CreateArchive",
+        # macOS versioned frameworks rely on filesystem symlinks and mode bits
+        # being visible as authored when bundletool walks the tree artifact.
+        execution_requirements = {
+            "no-sandbox": "1",
+        } if _is_macos_bundle(bundle_info) else {},
         exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
     )
 
@@ -312,6 +317,9 @@ def _apple_archive_impl(ctx):
         struct(
             src = bundle_info.archive.path,
             dest = _archive_bundle_destination(bundle_info),
+            # Normalize macOS bundle entry permissions so plist/resource files
+            # are not accidentally emitted as executable in the final zip.
+            normalize_bundle_file_permissions = _is_macos_bundle(bundle_info),
         ),
     ]
 

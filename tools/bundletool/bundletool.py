@@ -63,6 +63,10 @@ import zipfile
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the archive')
 
+INVALID_SYMLINK_TARGET_MSG_TEMPLATE = (
+    'Cannot create bundle symlink %r -> %r because the target escapes the '
+    'bundle root')
+
 
 class BundleConflictError(ValueError):
   """Raised when two different files would be bundled in the same location.
@@ -81,6 +85,15 @@ class BundleConflictError(ValueError):
 
 class BadZipFileError(Exception):
   """Raised when testzip discovers a corrupt entry in the zip file."""
+
+
+class BundleSymlinkError(ValueError):
+  """Raised when a bundle symlink target escapes the bundle root."""
+
+  def __init__(self, dest, target):
+    self.dest = dest
+    self.target = target
+    ValueError.__init__(self, INVALID_SYMLINK_TARGET_MSG_TEMPLATE % (dest, target))
 
 
 class Bundler(object):
@@ -118,8 +131,14 @@ class Bundler(object):
 
       for f in bundle_merge_files:
         dest = os.path.join(bundle_path, f['dest'])
-        self._add_files(f['src'], dest, f.get('executable', False),
-                        f.get('contents_only', False), out_zip, compress)
+        self._add_files(
+            f['src'],
+            dest,
+            f.get('executable', False),
+            f.get('contents_only', False),
+            f.get('normalize_bundle_file_permissions', False),
+            out_zip,
+            compress)
 
       for z in root_merge_zips:
         self._add_zip_contents(z['src'], z['dest'], out_zip, compress)
@@ -129,7 +148,8 @@ class Bundler(object):
       if badfile:
         raise BadZipFileError('Bad CRC-32 for file %s' % (badfile))
 
-  def _add_files(self, src, dest, executable, contents_only, out_zip, compress):
+  def _add_files(self, src, dest, executable, contents_only,
+                 normalize_bundle_file_permissions, out_zip, compress):
     """Adds a file or a directory of files to the ZIP archive.
 
     Args:
@@ -149,22 +169,101 @@ class Bundler(object):
       compress: Whether the files are compressed or just stored in the zip.
     """
     if os.path.isdir(src):
-      for root, _, files in os.walk(src):
-        relpath = os.path.relpath(root, src)
-        if contents_only:
-          relpath = os.path.dirname(relpath)
-        for filename in files:
-          fsrc = os.path.join(root, filename)
-          fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          fexec = executable or os.access(fsrc, os.X_OK)
-          with open(fsrc, 'rb') as f:
-            self._write_entry(
-                dest=fdest, data=f.read(), is_executable=fexec, out_zip=out_zip, compress=compress)
+      self._add_directory(
+          src=src,
+          dest=dest,
+          executable=executable,
+          contents_only=contents_only,
+          normalize_bundle_file_permissions=normalize_bundle_file_permissions,
+          out_zip=out_zip,
+          compress=compress)
     elif os.path.isfile(src):
-      fexec = executable or os.access(src, os.X_OK)
+      fexec = self._entry_is_executable(
+          src=src,
+          dest=dest,
+          executable=executable,
+          normalize_bundle_file_permissions=normalize_bundle_file_permissions)
       with open(src, 'rb') as f:
         self._write_entry(
             dest=dest, data=f.read(), is_executable=fexec, out_zip=out_zip, compress=compress)
+
+  def _add_directory(self, src, dest, executable, contents_only,
+                     normalize_bundle_file_permissions, out_zip, compress):
+    """Adds the contents of a directory to the ZIP archive."""
+    root_path = os.path.abspath(src)
+
+    def is_within_root(path):
+      return os.path.commonpath([root_path, path]) == root_path
+
+    def add_entry(path, entry_dest):
+      if os.path.islink(path):
+        link_target = os.readlink(path)
+        if os.path.isabs(link_target):
+          logical_target = os.path.normpath(link_target)
+        else:
+          logical_target = os.path.normpath(
+              os.path.join(os.path.dirname(os.path.abspath(path)), link_target))
+
+        if is_within_root(logical_target):
+          if os.path.isabs(link_target):
+            link_target = os.path.relpath(
+                logical_target,
+                os.path.dirname(os.path.abspath(path)))
+          self._write_entry(
+              dest=entry_dest,
+              data=link_target,
+              is_symlink=True,
+              out_zip=out_zip,
+              compress=compress)
+          return
+        path = os.path.realpath(path)
+
+      if os.path.isdir(path):
+        for child_name in sorted(os.listdir(path)):
+          add_entry(
+              os.path.join(path, child_name),
+              os.path.normpath(os.path.join(entry_dest, child_name)))
+      elif os.path.isfile(path):
+        is_executable = self._entry_is_executable(
+            src=path,
+            dest=entry_dest,
+            executable=executable,
+            normalize_bundle_file_permissions=normalize_bundle_file_permissions)
+        with open(path, 'rb') as f:
+          self._write_entry(
+              dest=entry_dest,
+              data=f.read(),
+              is_executable=is_executable,
+              out_zip=out_zip,
+              compress=compress)
+
+    if contents_only:
+      for child_name in sorted(os.listdir(src)):
+        add_entry(
+            os.path.join(src, child_name),
+            os.path.normpath(os.path.join(dest, child_name)))
+    else:
+      add_entry(src, dest)
+
+  def _entry_is_executable(self, src, dest, executable,
+                           normalize_bundle_file_permissions):
+    """Determines whether the given entry should be marked executable."""
+    if executable:
+      return True
+
+    if not normalize_bundle_file_permissions:
+      return os.access(src, os.X_OK)
+
+    if dest.endswith('/Info.plist') or '/Resources/' in dest:
+      return False
+    if '/Contents/MacOS/' in dest:
+      return True
+    if dest.endswith('.dylib'):
+      return True
+    if '.framework/' in dest:
+      framework_name = dest.split('.framework/', 1)[0].rsplit('/', 1)[-1]
+      return os.path.basename(dest) == framework_name
+    return os.access(src, os.X_OK)
 
   def _add_zip_contents(self, src, dest, out_zip, compress):
     """Adds the contents of another ZIP file to the output ZIP archive.
@@ -200,14 +299,30 @@ class Bundler(object):
         is_executable = unix_permissions & 0o111 != 0
 
         is_symlink = stat.S_ISLNK(unix_permissions)
+        data = src_zip.read(src_zipinfo)
+        if is_symlink:
+          self._validate_symlink_target(
+              file_dest,
+              data.decode('utf-8'))
 
         self._write_entry(
             dest=file_dest,
-            data=src_zip.read(src_zipinfo),
+            data=data,
             is_executable=is_executable,
             is_symlink=is_symlink,
             out_zip=out_zip,
             compress=compress)
+
+  def _validate_symlink_target(self, dest, target):
+    """Validates that a symlink target does not escape the bundle root."""
+    if os.path.isabs(target):
+      raise BundleSymlinkError(dest, target)
+
+    bundle_root = os.path.normpath('/bundle_root')
+    full_dest = os.path.normpath(os.path.join(bundle_root, dest))
+    target_path = os.path.normpath(os.path.join(os.path.dirname(full_dest), target))
+    if os.path.commonpath([bundle_root, target_path]) != bundle_root:
+      raise BundleSymlinkError(dest, target)
 
   def _write_entry(
       self,
@@ -233,14 +348,22 @@ class Bundler(object):
       BundleConflictError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
-    new_hash = hashlib.md5(data).digest()
-    existing_hash = self._entry_hashes.get(dest)
-    if existing_hash:
-      if existing_hash == new_hash:
+    if isinstance(data, str):
+      data = data.encode('utf-8')
+
+    entry_kind = 'directory' if dest.endswith('/') else 'symlink' if is_symlink else 'file'
+    new_fingerprint = (
+        hashlib.md5(data).digest(),
+        entry_kind,
+        bool(is_executable) if entry_kind == 'file' else False,
+    )
+    existing_fingerprint = self._entry_hashes.get(dest)
+    if existing_fingerprint:
+      if existing_fingerprint == new_fingerprint:
         return
       raise BundleConflictError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
 
-    self._entry_hashes[dest] = new_hash
+    self._entry_hashes[dest] = new_fingerprint
 
     zipinfo = zipfile.ZipInfo(dest)
     if compress:
@@ -260,7 +383,7 @@ class Bundler(object):
         zipinfo.external_attr |= 0o111 << 16
 
     if is_symlink:
-      zipinfo.external_attr |= stat.S_IFLNK << 16
+      zipinfo.external_attr = 0o120755 << 16
 
     out_zip.writestr(zipinfo, data)
 

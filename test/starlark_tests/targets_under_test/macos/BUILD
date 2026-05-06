@@ -2435,6 +2435,12 @@ macos_application(
     ],
 )
 
+apple_archive(
+    name = "app_with_imported_versioned_fmwk_zip",
+    bundle = ":app_with_imported_versioned_fmwk",
+    tags = common.fixture_tags,
+)
+
 macos_application(
     name = "app_with_imported_versioned_fmwk_tree_artifacts",
     bundle_id = "com.google.example",
@@ -2534,6 +2540,12 @@ macos_application(
         ":dynamic_versioned_xcframework_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "app_with_imported_dynamic_versioned_xcframework_zip",
+    bundle = ":app_with_imported_dynamic_versioned_xcframework",
+    tags = common.fixture_tags,
 )
 
 macos_application(
