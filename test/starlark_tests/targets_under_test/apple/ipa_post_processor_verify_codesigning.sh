@@ -17,11 +17,12 @@
 set -eu
 
 WORKDIR="$1"
+SEARCH_ROOT="${TREE_ARTIFACT_OUTPUT:-$WORKDIR}"
 
 # Save all codesigning output for each framework to verify later that they are
 # not being re-signed.
 for app in \
-    $(find "$WORKDIR" -type d \
+    $(find "$SEARCH_ROOT" -type d \
         \( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.qlgenerator" -o -name "*.xpc" \)); do
   CODESIGN_FMWKS_OUTPUT="$app.codesign_v_fmwks_output.txt"
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
