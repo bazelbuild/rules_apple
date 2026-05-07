@@ -161,6 +161,7 @@ def _ios_application_impl(ctx):
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
     extra_requested_features = []
@@ -197,7 +198,7 @@ def _ios_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = xcode_version_config,
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -261,8 +262,11 @@ def _ios_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
     linking_contexts = [output.linking_context for output in link_result.outputs]
 
+    xcode_version_less_than_27 = (
+        xcode_version_config.xcode_version() < apple_common.dotted_version("27.0")
+    )
     default_launch_screen = True
-    if ctx.attr.default_launch_screen == False and ctx.attr.testonly:
+    if ctx.attr.default_launch_screen == False and ctx.attr.testonly and xcode_version_less_than_27:
         # If we're at the current default of "False", set it to "True" unless we're an app declared
         # as `testonly`. This change does require manual migration of iOS UI tests due to the change
         # shifting default rendering from scaled to native when a launch_storyboard isn't set.
