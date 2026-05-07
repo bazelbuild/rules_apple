@@ -3069,7 +3069,7 @@ apple_dynamic_xcframework_import(
     features = [
         "-swift.layering_check",
         "swift.emit_c_module",
-        # "swift.use_c_modules", # TODO: Enable to test explicit modules
+        "swift.use_c_modules",  # TODO: Enable to test explicit modules
     ],
     tags = common.fixture_tags,
     xcframework_imports = [":swiftmodule_xcframework"],
