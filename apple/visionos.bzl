@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating visionOS applications and bundles."""
+"""
+# Bazel rules for creating visionOS applications and bundles.
+"""
 
+load(
+    "//apple/internal:macro_factory.bzl",
+    "macro_factory",
+)
 load(
     "//apple/internal:visionos_rules.bzl",
     _visionos_application = "visionos_application",
@@ -44,27 +50,69 @@ visionos_dynamic_framework = _visionos_dynamic_framework
 visionos_framework = _visionos_framework
 visionos_static_framework = _visionos_static_framework
 
-_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:visionos_default_runner"))
+_DEFAULT_TEST_RUNNER = Label("//apple/testing/default_runner:visionos_default_runner")
 
-def visionos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+def _visionos_unit_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _visionos_internal_unit_test_bundle,
         test_rule = _visionos_unit_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
 
-def visionos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+visionos_unit_test = macro_factory.create_apple_test_macro(
+    implementation = _visionos_unit_test_impl,
+    inherit_attrs = _visionos_unit_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "visionos",
+    doc = """
+Builds and bundles a visionOS Unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+Note: visionOS unit tests are not currently supported in the default test runner.
+
+`visionos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `visionos_application` target, the tests will run
+within that application's context. If no `test_host` is provided, the tests will
+run outside the context of a visionOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about app and library testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+The following is a list of the `visionos_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
+)
+
+def _visionos_ui_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _visionos_internal_ui_test_bundle,
         test_rule = _visionos_ui_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
+
+visionos_ui_test = macro_factory.create_apple_test_macro(
+    implementation = _visionos_ui_test_impl,
+    inherit_attrs = _visionos_ui_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "visionos",
+    doc = """
+Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+Note: visionOS UI tests are not currently supported in the default test runner.
+
+The following is a list of the `visionos_ui_test` specific attributes; for a list of
+the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
+)
 
 visionos_build_test = apple_build_test_rule(
     doc = """\

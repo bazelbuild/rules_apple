@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating tvOS applications and bundles."""
+"""
+# Bazel rules for creating tvOS applications and bundles.
+"""
 
+load(
+    "//apple/internal:macro_factory.bzl",
+    "macro_factory",
+)
 load(
     "//apple/internal:tvos_rules.bzl",
     _tvos_application = "tvos_application",
@@ -45,27 +51,69 @@ tvos_extension = _tvos_extension
 tvos_framework = _tvos_framework
 tvos_static_framework = _tvos_static_framework
 
-_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:tvos_default_runner"))
+_DEFAULT_TEST_RUNNER = Label("//apple/testing/default_runner:tvos_default_runner")
 
-def tvos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+def _tvos_unit_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _tvos_internal_unit_test_bundle,
         test_rule = _tvos_unit_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
 
-def tvos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+tvos_unit_test = macro_factory.create_apple_test_macro(
+    implementation = _tvos_unit_test_impl,
+    inherit_attrs = _tvos_unit_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "tvos",
+    doc = """
+Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+Note: tvOS unit tests are not currently supported in the default test runner.
+
+`tvos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `tvos_application` target, the tests will run
+within that application's context. If no `test_host` is provided, the tests will
+run outside the context of a tvOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about app and library testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+
+The following is a list of the `tvos_unit_test` specific attributes; for a list
+of the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
+)
+
+def _tvos_ui_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _tvos_internal_ui_test_bundle,
         test_rule = _tvos_ui_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
+
+tvos_ui_test = macro_factory.create_apple_test_macro(
+    implementation = _tvos_ui_test_impl,
+    inherit_attrs = _tvos_ui_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "tvos",
+    doc = """
+Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+Note: tvOS UI tests are not currently supported in the default test runner.
+
+The following is a list of the `tvos_ui_test` specific attributes; for a list of
+the attributes inherited by all test rules, please check the
+[Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
+""",
+)
 
 tvos_build_test = apple_build_test_rule(
     doc = """\
