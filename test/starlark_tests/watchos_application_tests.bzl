@@ -248,10 +248,10 @@ def watchos_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
         cpus = {
-            "watchos_cpus": ["arm64", "arm64_32"],
+            "watchos_cpus": ["arm64_32"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        binary_not_contains_architectures = ["arm64e"],
+        binary_not_contains_architectures = ["arm64", "arm64e"],
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
