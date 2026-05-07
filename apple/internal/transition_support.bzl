@@ -138,7 +138,11 @@ def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settin
         ]
     return environment_archs
 
-def _environment_archs(platform_type, minimum_os_version, settings):
+def _environment_archs(
+        platform_type,
+        minimum_os_version,
+        settings,
+        prefer_watchos_cpu = True):
     """Returns a full set of environment archs from the incoming command line options.
 
     Args:
@@ -148,6 +152,9 @@ def _environment_archs(platform_type, minimum_os_version, settings):
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
+        prefer_watchos_cpu: If true, use an incoming watchOS `--cpu` before deriving watchOS archs
+            from iOS archs. Split transitions set this to false so a representative watchOS `--cpu`
+            selected by a prior rule transition does not collapse the full derived arch list.
 
     Returns:
         A list of valid Apple environments with its architecture as a string (for example
@@ -165,20 +172,28 @@ def _environment_archs(platform_type, minimum_os_version, settings):
             if ios_arch:
                 environment_archs = [ios_arch]
         if platform_type == "watchos":
-            # Interpret the --cpu as a watchOS environment arch; often will be set by a transition.
-            watchos_arch = _environment_arch_from_cpu(
-                cpu_value = cpu_value,
-                platform_prefix = "watchos_",
-            )
-            if watchos_arch:
-                environment_archs = [watchos_arch]
-            else:
-                # If not found, generate watchOS archs via incoming iOS environment arch(s).
+            if not prefer_watchos_cpu:
                 environment_archs = _watchos_environment_archs_from_ios(
                     cpu_value = cpu_value,
                     minimum_os_version = minimum_os_version,
                     settings = settings,
                 )
+            if not environment_archs:
+                # Interpret the --cpu as a watchOS environment arch; often will be set by a
+                # transition.
+                watchos_arch = _environment_arch_from_cpu(
+                    cpu_value = cpu_value,
+                    platform_prefix = "watchos_",
+                )
+                if watchos_arch:
+                    environment_archs = [watchos_arch]
+                else:
+                    # If not found, generate watchOS archs via incoming iOS environment arch(s).
+                    environment_archs = _watchos_environment_archs_from_ios(
+                        cpu_value = cpu_value,
+                        minimum_os_version = minimum_os_version,
+                        settings = settings,
+                    )
         if not environment_archs:
             environment_archs = [
                 _cpu_string(
@@ -632,7 +647,12 @@ def _apple_platform_split_transition_impl(settings, attr):
     else:
         minimum_os_version = attr.minimum_os_version
         platform_type = attr.platform_type
-        for environment_arch in _environment_archs(platform_type, minimum_os_version, settings):
+        for environment_arch in _environment_archs(
+            platform_type,
+            minimum_os_version,
+            settings,
+            prefer_watchos_cpu = False,
+        ):
             found_cpu = _cpu_string(
                 environment_arch = environment_arch,
                 platform_type = platform_type,
