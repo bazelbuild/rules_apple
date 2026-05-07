@@ -173,10 +173,12 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       fail "No architecture specified for binary file at \"$path\""
     fi
 
-    # Filter out undefined symbols from the objdump mach-o symbol output and
-    # return the fifth from rightmost values, with the `.hidden` column stripped
-    # where applicable.
-    IFS=$'\n' actual_symbols=($(objdump --syms --macho --arch="$arch" "$path" | grep -v "*UND*" | awk '{print substr($0,index($0,$5))}' | sed 's/.hidden *//'))
+    if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" || -n "${BINARY_NOT_CONTAINS_SYMBOLS-}" ]]; then
+      # Filter out undefined symbols from the objdump mach-o symbol output and
+      # return the fifth from rightmost values, with the `.hidden` column stripped
+      # where applicable.
+      IFS=$'\n' actual_symbols=($(objdump --syms --macho --arch="$arch" "$path" | { grep -v "*UND*" || true; } | awk '{print substr($0,index($0,$5))}' | sed 's/.hidden *//'))
+    fi
     if [[ -n "${BINARY_CONTAINS_SYMBOLS-}" ]]; then
       for test_symbol in "${BINARY_CONTAINS_SYMBOLS[@]}"
       do
