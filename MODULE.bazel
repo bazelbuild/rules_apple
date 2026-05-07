@@ -31,7 +31,7 @@ archive_override(
     ],
 )
 
-system_sdk = use_extension("//swift:extensions.bzl", "system_sdk")
+system_sdk = use_extension("@build_bazel_rules_swift//swift:extensions.bzl", "system_sdk")
 system_sdk.configure_sdks(
     # NOTE: This doesn't apply to downstream repos
     exclude_modules = {
