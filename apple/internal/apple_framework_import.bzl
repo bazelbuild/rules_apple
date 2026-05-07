@@ -256,6 +256,7 @@ def _apple_dynamic_framework_import_impl(ctx):
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
                 ctx = ctx,
+                default_precompiled_modules = ctx.attr._default_precompiled_modules,
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
@@ -406,6 +407,7 @@ def _apple_static_framework_import_impl(ctx):
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
                 ctx = ctx,
+                default_precompiled_modules = ctx.attr._default_precompiled_modules,
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
@@ -479,6 +481,7 @@ to manually dlopen the framework at runtime.
                 doc = "The C++ toolchain to use.",
             ),
         },
+        swift_common.default_precompiled_modules_attrs(),
     ),
     doc = """
 This rule encapsulates an already-built dynamic framework. It is defined by a list of
@@ -585,6 +588,7 @@ not include Swift interface or Swift module files.
                 doc = "The C++ toolchain to use.",
             ),
         },
+        swift_common.default_precompiled_modules_attrs(),
     ),
     doc = """
 This rule encapsulates an already-built static framework. It is defined by a list of
