@@ -31,6 +31,45 @@ archive_override(
     ],
 )
 
+system_sdk = use_extension("//swift:extensions.bzl", "system_sdk")
+system_sdk.configure_sdks(
+    # NOTE: This doesn't apply to downstream repos
+    exclude_modules = {
+        "AppleTVOS": [
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "AppleTVSimulator": [
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "iPhoneSimulator": [
+            "AssetsLibrary",  #  TODO: Remove once CI >= Xcode 26.4
+            "CoreAudio_Private",
+        ],
+        "iPhoneOS": [
+            "AssetsLibrary",  #  TODO: Remove once CI >= Xcode 26.4
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "XROS": [
+            "AccessoryTransportExtension",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "XRSimulator": [
+            "AccessoryTransportExtension",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "WatchOS": [
+            "BrowserEngineKit",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "WatchSimulator": [
+            "BrowserEngineKit",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+    },
+    include_all = True,
+)
+use_repo(system_sdk, "system_sdk")
+
 bazel_dep(
     name = "stardoc",
     version = "0.8.0",
