@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu
+set -euo pipefail
 
 # Assert that the bundle itself is signed with the given codesignopts.
 codesign -dvvv "$BUNDLE_ROOT" 2>&1 | grep '^Hash choices=sha1,sha384$' > /dev/null
