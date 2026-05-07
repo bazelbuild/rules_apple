@@ -62,7 +62,7 @@ _CPU_TO_DEFAULT_PLATFORM_FLAG = {
 _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
-    "arm64": "armv7k",
+    "arm64": "arm64_32",
 }
 
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
@@ -269,30 +269,6 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
     if platform_type == platform:
         return minimum_os_version
     return None
-
-def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version, platform_type):
-    """Indicates if the environment_arch selected is supported for the given platform and min os.
-
-    Args:
-        environment_arch: A valid Apple environment when applicable with its architecture as a
-            string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
-            None to infer a value from command line options passed through settings.
-        minimum_os_version: A string representing the minimum OS version specified for this
-            platform, represented as a dotted version number (for example, `"9.0"`).
-        platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
-            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
-
-    Returns:
-        True if the architecture is supported for the given config, False otherwise.
-    """
-
-    dotted_minimum_os_version = apple_common.dotted_version(minimum_os_version)
-
-    if (environment_arch == "armv7k" and platform_type == "watchos" and
-        dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
-        return False
-
-    return True
 
 def _command_line_options(
         *,
@@ -663,36 +639,6 @@ def _apple_platform_split_transition_impl(settings, attr):
                 settings = settings,
             )
             if found_cpu in output_dictionary:
-                continue
-
-            environment_arch_is_supported = _is_arch_supported_for_target_tuple(
-                environment_arch = environment_arch,
-                minimum_os_version = minimum_os_version,
-                platform_type = platform_type,
-            )
-            if not environment_arch_is_supported:
-                invalid_requested_arch = {
-                    "environment_arch": environment_arch,
-                    "minimum_os_version": minimum_os_version,
-                    "platform_type": platform_type,
-                }
-
-                # NOTE: This logic to filter unsupported Apple CPUs would be good to implement on
-                # the platforms side, but it is presently not possible as constraint resolution
-                # cannot be performed within a transition.
-                #
-                # Propagate a warning to the user so that the dropped arch becomes actionable.
-                # buildifier: disable=print
-                print(
-                    ("Warning: The architecture {environment_arch} is not valid for " +
-                     "{platform_type} with a minimum OS of {minimum_os_version}. This " +
-                     "architecture will be ignored in this build. This will be an error in a " +
-                     "future version of the Apple rules. Please address this in your build " +
-                     "invocation.").format(
-                        **invalid_requested_arch
-                    ),
-                )
-                invalid_requested_archs.append(invalid_requested_arch)
                 continue
 
             output_dictionary[found_cpu] = _command_line_options(
