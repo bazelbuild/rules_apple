@@ -18,21 +18,10 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
-    "linking_support",
-)
+load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebinaryinfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
-    "rule_attrs",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:rule_factory.bzl",
-    "rule_factory",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:transition_support.bzl",
@@ -43,6 +32,20 @@ visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",
 ])
+
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
+    """Creates a universal binary with `lipo` if inputs > 1, symlinks otherwise."""
+    if len(inputs) > 1:
+        lipo.create(
+            actions = actions,
+            inputs = inputs,
+            output = output,
+            apple_fragment = apple_fragment,
+            xcode_config = xcode_config,
+        )
+    else:
+        # Symlink if there was only a single architecture created; it's faster.
+        actions.symlink(target_file = inputs[0], output = output)
 
 def _apple_universal_binary_impl(ctx):
     inputs = [
@@ -56,7 +59,7 @@ def _apple_universal_binary_impl(ctx):
 
     universal_binary = ctx.actions.declare_file(ctx.label.name)
 
-    linking_support.lipo_or_symlink_inputs(
+    _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = inputs,
         output = universal_binary,
@@ -87,30 +90,46 @@ def _apple_universal_binary_impl(ctx):
         ),
     ]
 
-apple_universal_binary = rule_factory.create_apple_rule(
-    avoid_apple_exec_group_toolchain = True,
-    cfg = transition_support.apple_universal_binary_rule_transition,
-    doc = """
-This rule produces a multi-architecture (universal) binary targeting Apple
-platforms. The `lipo` tool is used to combine built binaries of multiple
-architectures.
+_common_attrs = apple_support.action_required_attrs() | {
+}
+
+_platform_attrs = {
+    "minimum_os_version": attr.string(
+        doc = """
+A required string indicating the minimum OS version supported by the target, represented as a
+dotted version number (for example, "9.0").
 """,
+        mandatory = True,
+    ),
+    "platform_type": attr.string(
+        doc = """
+The target Apple platform for which to create a binary. This dictates which SDK
+is used for compilation/linking and which flag is used to determine the
+architectures to target. For example, if `ios` is specified, then the output
+binaries/libraries will be created combining all architectures specified by
+`--ios_multi_cpus`. Options are:
+
+*   `ios`: architectures gathered from `--ios_multi_cpus`.
+*   `macos`: architectures gathered from `--macos_cpus`.
+*   `tvos`: architectures gathered from `--tvos_cpus`.
+*   `watchos`: architectures gathered from `--watchos_cpus`.
+""",
+        mandatory = True,
+    ),
+}
+
+apple_universal_binary = rule(
     implementation = _apple_universal_binary_impl,
-    is_executable = True,
-    attrs = [
-        apple_support.platform_constraint_attrs(),
-        rule_attrs.common_attrs(),
-        rule_attrs.platform_attrs(),
-        {
-            "binary": attr.label(
-                mandatory = True,
-                cfg = transition_support.apple_platform_split_transition,
-                doc = "Target to generate a universal binary from.",
-            ),
-            "forced_cpus": attr.string_list(
-                mandatory = False,
-                allow_empty = True,
-                doc = """
+    attrs = _common_attrs | _platform_attrs | apple_support.platform_constraint_attrs() | {
+        "binary": attr.label(
+            mandatory = True,
+            cfg = transition_support.apple_platform_split_transition,
+            doc = "Target to generate a universal binary from.",
+        ),
+        "forced_cpus": attr.string_list(
+            mandatory = False,
+            allow_empty = True,
+            doc = """
 An optional list of target CPUs for which the universal binary should be built.
 
 If this attribute is present, the value of the platform-specific CPU flag (`--ios_multi_cpus`,
@@ -121,14 +140,21 @@ This is primarily useful to force macOS tools to be built as universal binaries 
 `forced_cpus = ["x86_64", "arm64"]`, without requiring the user to pass additional flags when
 invoking Bazel.
 """,
-            ),
-            "_building_apple_bundle": attr.bool(
-                default = False,
-                doc = """
+        ),
+        "_building_apple_bundle": attr.bool(
+            default = False,
+            doc = """
 Internal attribute read by Apple rule transitions to set the
 `building_apple_bundle` build setting.
 """,
-            ),
-        },
-    ],
+        ),
+    },
+    cfg = transition_support.apple_universal_binary_rule_transition,
+    doc = """
+This rule produces a multi-architecture (universal) binary targeting Apple
+platforms. The `lipo` tool is used to combine built binaries of multiple
+architectures.
+""",
+    executable = True,
+    fragments = ["apple"],
 )

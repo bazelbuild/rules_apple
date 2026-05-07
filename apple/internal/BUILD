@@ -41,12 +41,10 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
-        ":linking_support",
         ":providers",
-        ":rule_attrs",
-        ":rule_factory",
         ":transition_support",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//lib:lipo",
     ],
 )
 
