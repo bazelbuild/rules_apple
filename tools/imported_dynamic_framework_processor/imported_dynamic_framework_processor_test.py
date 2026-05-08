@@ -43,6 +43,11 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       fp.write(content)
     return full_path
 
+  def _scratch_directory(self, path):
+    full_path = os.path.join(self._scratch_dir, path)
+    os.makedirs(full_path, exist_ok=True)
+    return full_path
+
   def _scratch_symlink(self, path, target):
     full_path = os.path.join(self._scratch_dir, path)
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
@@ -296,7 +301,11 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
         temp_path, output_zip)
 
     with zipfile.ZipFile(output_zip) as zip_file:
-      self.assertNotIn("Foo.framework/Resources/", zip_file.namelist())
+      zip_names = zip_file.namelist()
+      self.assertNotIn("Foo.framework/Versions/", zip_names)
+      self.assertNotIn("Foo.framework/Versions/A/", zip_names)
+      self.assertNotIn("Foo.framework/Versions/A/Resources/", zip_names)
+      self.assertNotIn("Foo.framework/Resources/", zip_names)
       self.assertEqual(
           b"Versions/Current/Resources",
           zip_file.read("Foo.framework/Resources"),
@@ -310,6 +319,32 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       self.assertTrue(stat.S_ISLNK(
           zip_file.getinfo(
               "Foo.framework/Versions/Current").external_attr >> 16))
+
+  def test_create_framework_zip_preserves_empty_versioned_directory(self):
+    temp_path = os.path.join(self._scratch_dir, "out", "Foo.framework")
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+    self._scratch_file("out/Foo.framework/Versions/A/Foo", "binary")
+    self._scratch_directory("out/Foo.framework/Versions/A/Headers")
+    self._scratch_symlink("out/Foo.framework/Versions/Current", "A")
+    self._scratch_symlink(
+        "out/Foo.framework/Headers", "Versions/Current/Headers")
+
+    imported_dynamic_framework_processor._create_framework_zip(
+        temp_path, output_zip)
+
+    with zipfile.ZipFile(output_zip) as zip_file:
+      zip_names = zip_file.namelist()
+      self.assertIn("Foo.framework/Versions/A/Headers/", zip_names)
+      self.assertNotIn("Foo.framework/Headers/", zip_names)
+      self.assertEqual(
+          b"Versions/Current/Headers",
+          zip_file.read("Foo.framework/Headers"),
+      )
+      self.assertTrue(stat.S_ISLNK(
+          zip_file.getinfo("Foo.framework/Headers").external_attr >> 16))
+      self.assertTrue(stat.S_ISDIR(
+          zip_file.getinfo(
+              "Foo.framework/Versions/A/Headers/").external_attr >> 16))
 
 if __name__ == "__main__":
   unittest.main()

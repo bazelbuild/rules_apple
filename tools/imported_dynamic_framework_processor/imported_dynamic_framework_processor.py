@@ -157,6 +157,9 @@ def _create_framework_zip(framework_temp_path: str, output_zip: str) -> None:
           zip_info.external_attr = (stat.S_IFLNK | 0o755) << 16
           out_zip.writestr(zip_info, os.readlink(path).encode("utf-8"))
         elif os.path.isdir(path):
+          if os.listdir(path):
+            # File entries create their parent directories when extracted.
+            continue
           zip_info = zipfile.ZipInfo(zip_path + "/", fixed_date_time)
           zip_info.create_system = 3
           zip_info.compress_type = zipfile.ZIP_STORED
