@@ -1749,6 +1749,25 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_min_os_nplus1_with_ext_min_os_baseline",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 xcarchive(
     name = "app_with_ext.xcarchive",
     bundle = ":app_with_ext",
@@ -1899,6 +1918,103 @@ ios_extension(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+ios_extension(
+    name = "ext_missing_version",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-missing-version.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_missing_short_version",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-missing-short-version.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_mismatched_bundle_id",
+    bundle_id = "com.google.other",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_mismatched_short_version",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-short-version-1.1.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_mismatched_version",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-version-1.1.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_library_with_ios_extension_dep",
+    srcs = ["//test/starlark_tests/resources:common.m"],
+    tags = common.fixture_tags,
+    deps = [":ext"],
 )
 
 ios_extension(

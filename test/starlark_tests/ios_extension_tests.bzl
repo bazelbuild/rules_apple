@@ -15,6 +15,10 @@
 """ios_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -40,9 +44,33 @@ load(
     "linkmap_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_APPLICATION_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app",
+    "TARGET_NAME": "app",
+}
+
+_EXTENSION_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "ext.appex",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "ext",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example.ext",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "XPC!",
+    "PRODUCT_NAME": "ext",
+    "TARGET_NAME": "ext",
+}
 
 def ios_extension_test_suite(name):
     """Test suite for ios_extension.
@@ -109,6 +137,19 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
+    analysis_output_group_info_files_test(
+        name = "{}_app_with_ext_dsyms_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_ext.app.dSYM/Contents/Info.plist",
+            "app_with_ext.app.dSYM/Contents/Resources/DWARF/app_with_ext",
+            "ext.appex.dSYM/Contents/Info.plist",
+            "ext.appex.dSYM/Contents/Resources/DWARF/ext",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext",
@@ -140,6 +181,110 @@ def ios_extension_test_suite(name):
             "AnotherKey": "AnotherValue",
             "CFBundleExecutable": "ext_multiple_infoplists",
         },
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/ios:ext_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example.ext",
+        },
+        expected_error = "is missing CFBundleVersion.",
+        variable_substitutions = _EXTENSION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_short_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/ios:ext_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example.ext",
+        },
+        expected_error = "is missing CFBundleShortVersionString.",
+        variable_substitutions = _EXTENSION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_mismatched_bundle_id_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_bundle_id",
+        child_bundles = ["//test/starlark_tests/targets_under_test/ios:ext_mismatched_bundle_id"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleIdentifier " +
+            "of the child target \"{child}\" should have \"com.google.example.\" " +
+            "as its prefix, but found \"com.google.other\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_bundle_id",
+            child = "//test/starlark_tests/targets_under_test/ios:ext_mismatched_bundle_id",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_mismatched_short_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_short_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/ios:ext_mismatched_short_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleShortVersionString " +
+            "of the child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_short_version",
+            child = "//test/starlark_tests/targets_under_test/ios:ext_mismatched_short_version",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_mismatched_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/ios:ext_mismatched_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {"CFBundleIdentifier": "com.google.example"},
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleVersion of the " +
+            "child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/ios:app_with_ext_mismatched_version",
+            child = "//test/starlark_tests/targets_under_test/ios:ext_mismatched_version",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_cannot_be_dependency_of_objc_library_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_library_with_ios_extension_dep",
+        expected_error = "does not have mandatory providers",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_application_and_extension_different_minimum_os_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_min_os_nplus1_with_ext_min_os_baseline",
+        contains = [
+            "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+        ],
         tags = [name],
     )
 

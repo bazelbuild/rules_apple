@@ -87,13 +87,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_extension_test",
-    size = "medium",
-    src = "ios_extension_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "macos_application_test",
     size = "medium",
     src = "macos_application_test.sh",
