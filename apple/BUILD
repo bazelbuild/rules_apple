@@ -45,7 +45,6 @@ exports_files(
         "tvos_arm64",
         "tvos_sim_arm64",
         "watchos_arm64",
-        "watchos_armv7k",
         "watchos_arm64_32",
         "watchos_x86_64",
         "watchos_device_arm64",

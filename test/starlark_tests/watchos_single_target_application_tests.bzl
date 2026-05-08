@@ -261,8 +261,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     )
 
     # Test that the output application binary is identified as watchOS device via the Mach-O
-    # load command LC_BUILD_VERSION for the arm64 binary slice when only iOS cpus are defined, and
-    # that it does not default to the unsupported armv7k architecture.
+    # load command LC_BUILD_VERSION for the arm64 binary slice when only iOS cpus are defined
     binary_contents_test(
         name = "{}_device_ios_cpus_platform_test".format(name),
         build_type = "device",
@@ -273,7 +272,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app_arm64_support.app/app_arm64_support",
         binary_test_architecture = "arm64_32",
-        binary_not_contains_architectures = ["armv7k", "arm64", "arm64e"],
+        binary_not_contains_architectures = ["arm64", "arm64e"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
         tags = [name],
     )
