@@ -6,11 +6,6 @@ x_defaults:
     platform: macos_arm64
     shell_commands:
     - xcodebuild -downloadComponent metalToolchain
-    - xcrun simctl runtime list
-    - xcrun simctl runtime match list
-    - xcrun simctl runtime dyld_shared_cache update --all
-    post_shell_commands:
-    - xcrun simctl runtime match list
     build_targets:
     - "tools/..."
     - "test/..."
