@@ -562,7 +562,6 @@ def _apple_dynamic_xcframework_import_impl(ctx):
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
                 ctx = ctx,
-                default_precompiled_modules = ctx.attr._default_precompiled_modules,
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
@@ -713,7 +712,6 @@ def _apple_static_xcframework_import_impl(ctx):
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
                 ctx = ctx,
-                default_precompiled_modules = ctx.attr._default_precompiled_modules,
                 deps = deps,
                 disabled_features = disabled_features,
                 features = features,
@@ -808,7 +806,6 @@ Unnecssary and ignored, will be removed in the future.
                 doc = "The C++ toolchain to use.",
             ),
         },
-        swift_common.default_precompiled_modules_attrs(),
     ),
     exec_groups = dicts.add(
         {
@@ -952,7 +949,6 @@ Unnecssary and ignored, will be removed in the future.
                 doc = "The C++ toolchain to use.",
             ),
         },
-        swift_common.default_precompiled_modules_attrs(),
     ),
     exec_groups = dicts.add(
         {
