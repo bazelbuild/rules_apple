@@ -28,7 +28,9 @@ load(
     "apple_core_data_model",
     "apple_core_ml_library",
     "apple_metal_library",
+    "objc_intent_library",
     "swift_apple_core_ml_library",
+    "swift_intent_library",
 )
 load(
     "//apple:versioning.bzl",
@@ -1738,6 +1740,99 @@ apple_core_ml_library(
 swift_apple_core_ml_library(
     name = "SampleSwiftPackageCoreML",
     mlmodel = "//test/testdata/resources:sample.mlpackage",
+    tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for Apple intent library tests.
+
+ios_application(
+    name = "app_with_objc_intent_library",
+    bundle_id = "my.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":objc_intent_library_depending_lib"],
+)
+
+objc_library(
+    name = "objc_intent_library_depending_lib",
+    srcs = [":objc_intent_library_depending_lib_src"],
+    tags = common.fixture_tags,
+    deps = [":SampleIntentObjc"],
+)
+
+write_file(
+    name = "objc_intent_library_depending_lib_src",
+    out = "objc_intent_library_depending_lib.m",
+    content = ["""
+#import <Foundation/Foundation.h>
+#import "test/starlark_tests/targets_under_test/apple/SampleIntentObjc.h"
+
+@interface ObjcIntentLib: NSObject
+@end
+
+@implementation ObjcIntentLib
+- (void)test:(SampleIntentIntent *)intent {
+  NSLog(@"%@", intent);
+}
+@end
+
+int main(int argc, char **argv) {
+  return 0;
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+objc_intent_library(
+    name = "SampleIntentObjc",
+    src = "//test/testdata/resources:intent.intentdefinition",
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_swift_intent_library",
+    bundle_id = "my.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":swift_intent_library_depending_lib"],
+)
+
+swift_library(
+    name = "swift_intent_library_depending_lib",
+    srcs = [":swift_intent_library_depending_lib_src"],
+    tags = common.fixture_tags,
+    deps = [":SampleIntentSwift"],
+)
+
+write_file(
+    name = "swift_intent_library_depending_lib_src",
+    out = "swift_intent_library_depending_lib.swift",
+    content = ["""
+import UIKit
+import test_starlark_tests_targets_under_test_apple_SampleIntentSwift
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+  public var mySample = SampleIntentIntent()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_intent_library(
+    name = "SampleIntentSwift",
+    src = "//test/testdata/resources:intent.intentdefinition",
     tags = common.fixture_tags,
 )
 
