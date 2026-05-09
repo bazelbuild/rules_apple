@@ -1008,6 +1008,117 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_indirect_swift_dep",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_indirect_swift_dep",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_indirect_swift_dep",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_swift_dep_and_asan_linkopt",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_swift_dep_and_asan_linkopt",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_swift_dep_and_asan_linkopt",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    linkopts = ["-fsanitize=address"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_swift_dep_and_tsan_linkopt",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_swift_dep_and_tsan_linkopt",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_swift_dep_and_tsan_linkopt",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    linkopts = ["-fsanitize=thread"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_swift_dep_and_ubsan_linkopt",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_swift_dep_and_ubsan_linkopt",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_swift_dep_and_ubsan_linkopt",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    linkopts = ["-fsanitize=undefined"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_main_lib",
+    ],
+)
+
 docc_archive(
     name = "app_with_swift_dep.doccarchive",
     dep = ":app_with_swift_dep",

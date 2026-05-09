@@ -33,6 +33,12 @@ Swift support dylibs.
 """,
         default = False,
     ),
+    "package_swift_support": struct(
+        doc = """
+Packages Swift support dylibs into device application archives.
+""",
+        default = True,
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(

@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//test:configurations.bzl",
-    "IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS",
     "IOS_CONFIGURATIONS",
     "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
@@ -94,13 +93,6 @@ apple_multi_shell_test(
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = True,
-)
-
-apple_multi_shell_test(
-    name = "ios_application_swift_test",
-    size = "large",
-    src = "ios_application_swift_test.sh",
-    configurations = IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS,
 )
 
 apple_multi_shell_test(
