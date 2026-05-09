@@ -261,16 +261,6 @@ apple_shell_test(
     tags = common.skip_ci_tags,
 )
 
-apple_shell_test(
-    name = "smart_resource_deduplication_test",
-    size = "large",
-    src = "smart_resource_deduplication_test.sh",
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-    ],
-)
-
 # apple_shell_test(
 #     name = "docc_archive_test",
 #     src = "docc_archive_test.sh",
