@@ -73,6 +73,14 @@ functionality that is never intended to be production-ready but is required of a
 """,
         default = False,
     ),
+    # Private build setting used by Starlark transitions; the legacy
+    # apple.package_swift_support define remains supported for command-line use.
+    "package_swift_support": struct(
+        doc = """
+Enables bundling SwiftSupport into the root of device application archives.
+""",
+        default = True,
+    ),
 }
 
 _all_build_settings = dicts.add(build_settings, build_flags)
