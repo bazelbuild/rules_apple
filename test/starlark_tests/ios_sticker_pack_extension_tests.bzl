@@ -88,6 +88,16 @@ def ios_sticker_pack_extension_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_extension_support_stub_in_app_test".format(name),
+        build_type = "device",
+        contains = [
+            "$ARCHIVE_ROOT/MessagesApplicationExtensionSupport/MessagesApplicationExtensionSupportStub",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_sticker_ext",
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_capability_set_derived_bundle_id",
@@ -126,6 +136,18 @@ def ios_sticker_pack_extension_test_suite(name):
     analysis_failure_message_test(
         name = "{}_sticker_wrong_icons_in_app_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:sticker_ext_with_wrong_appicons",
+        expected_error = """
+Found in app_icons a file that cannot be used as an app icon:
+test/testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/Contents.json
+
+Valid icon bundles for this target have the following extensions: [".stickersiconset/", ".stickerpack/", ".sticker/", ".stickersequence/"]
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_embedded_sticker_wrong_icons_in_app_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_sticker_ext_with_wrong_appicons",
         expected_error = """
 Found in app_icons a file that cannot be used as an app icon:
 test/testdata/resources/app_icons_ios.xcassets/app_icon.appiconset/Contents.json
