@@ -219,8 +219,3 @@ apple_shell_test(
     ],
     tags = common.skip_ci_tags,
 )
-
-# apple_shell_test(
-#     name = "docc_archive_test",
-#     src = "docc_archive_test.sh",
-# )

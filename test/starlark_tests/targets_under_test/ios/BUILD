@@ -6031,6 +6031,14 @@ docc_archive(
     fallback_display_name = "BasicLib",
 )
 
+docc_archive(
+    name = "basic_swift_library_with_docc_bundle.doccarchive",
+    dep = ":basic_framework_lib_with_docc_bundle",
+    fallback_bundle_identifier = "com.google.example.swift.lib",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "BasicFramework",
+)
+
 ios_dynamic_framework(
     name = "basic_framework_with_docc_bundle",
     bundle_id = "com.google.example.framework",
