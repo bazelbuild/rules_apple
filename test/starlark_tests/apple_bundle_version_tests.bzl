@@ -22,6 +22,11 @@ load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:versiontool_test.bzl",
+    "versiontool_contents_test",
+    "versiontool_error_test",
+)
 
 def apple_bundle_version_test_suite(name):
     """Test suite for apple_bundle_version.
@@ -132,6 +137,59 @@ def apple_bundle_version_test_suite(name):
             "CFBundleVersion": "1.2.3",
             "CFBundleShortVersionString": "1.2",
         },
+        tags = [name],
+    )
+
+    versiontool_contents_test(
+        name = "{}_build_label_substitution".format(name),
+        build_label = "MyApp_1.2_RC03",
+        build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+        build_version = "{version}.{candidate}",
+        capture_groups = {
+            "version": "\\d+\\.\\d+",
+            "candidate": "\\d+",
+        },
+        expected_values = {
+            "build_version": "1.2.3",
+            "short_version_string": "1.2",
+        },
+        short_version_string = "{version}",
+        tags = [name],
+    )
+
+    versiontool_contents_test(
+        name = "{}_build_label_substitution_ignores_fallback_label".format(name),
+        build_label = "MyApp_1.2_RC03",
+        build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+        build_version = "{version}.{candidate}",
+        capture_groups = {
+            "version": "\\d+\\.\\d+",
+            "candidate": "\\d+",
+        },
+        expected_values = {
+            "build_version": "1.2.3",
+            "short_version_string": "1.2",
+        },
+        fallback_build_label = "MyApp_99.99_RC99",
+        not_expected_values = {
+            "build_version": "99.99.99",
+            "short_version_string": "99.99",
+        },
+        short_version_string = "{version}",
+        tags = [name],
+    )
+
+    versiontool_error_test(
+        name = "{}_build_label_that_does_not_match_regex".format(name),
+        build_label = "MyApp_1.2_RC03",
+        build_label_pattern = "MyApp_{version}_RC0*{candidate}",
+        build_version = "{version}.{candidate}",
+        capture_groups = {
+            "version": "\\d+\\.\\d+\\.\\d+",
+            "candidate": "\\d+",
+        },
+        expected_error = 'The build label ("MyApp_1.2_RC03") did not match the pattern ("MyApp_(?P<version>\\d+\\.\\d+\\.\\d+)_RC0*(?P<candidate>\\d+)").',
+        short_version_string = "{version}",
         tags = [name],
     )
 
