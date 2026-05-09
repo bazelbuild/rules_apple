@@ -159,7 +159,7 @@ def _swift_dylibs_partial_impl(
     swift_support_requested = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         define_name = "apple.package_swift_support",
-        default = True,
+        default = platform_prerequisites.build_settings.package_swift_support,
     )
     needs_swift_support = platform_prerequisites.platform.is_device and swift_support_requested
 

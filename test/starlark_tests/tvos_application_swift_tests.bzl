@@ -15,6 +15,10 @@
 """Swift-specific `tvos_application` bundling tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -51,6 +55,25 @@ def tvos_application_swift_test_suite(name):
         contains = [
             "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        tags = [name],
+    )
+
+    # If SwiftSupport packaging is disabled, device builds should still bundle
+    # Swift dylibs in the app's Frameworks directory, but not in the IPA's root
+    # SwiftSupport directory.
+    archive_contents_test(
+        name = "{}_device_build_with_swift_support_disabled_has_swift_libs_in_frameworks_dir_only_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.package_swift_support: "False",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
         tags = [name],
