@@ -59,18 +59,6 @@ filegroup(
 # tools.
 
 apple_shell_test(
-    name = "apple_bundle_version_test",
-    size = "medium",
-    src = "apple_bundle_version_test.sh",
-)
-
-apple_shell_test(
-    name = "apple_core_ml_resource_test",
-    size = "medium",
-    src = "apple_core_ml_resource_test.sh",
-)
-
-apple_shell_test(
     name = "apple_core_ml_library_package_test",
     size = "medium",
     src = "apple_core_ml_library_package_test.sh",
