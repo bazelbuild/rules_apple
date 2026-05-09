@@ -364,6 +364,21 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_core_ml_precompiled_resource_bundle",
+    bundle_id = "my.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate_with_core_ml_precompiled_resource_bundle",
+    ],
+)
+
+ios_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     families = ["iphone"],

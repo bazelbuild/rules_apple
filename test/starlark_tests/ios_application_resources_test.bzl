@@ -526,6 +526,16 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_core_ml_precompiled_resource_bundle_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/App_Resources.bundle/sample.mlmodelc/",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_core_ml_precompiled_resource_bundle",
+        tags = [name],
+    )
+
     # Tests that structured processed generated strings have correct values.
     archive_contents_test(
         name = "{}_generated_strings_test".format(name),
