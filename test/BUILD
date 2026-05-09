@@ -1,7 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//test:configurations.bzl",
-    "IOS_64BIT_SIMULATOR_FAT_DEVICE_CONFIGURATIONS",
     "IOS_CONFIGURATIONS",
     "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
