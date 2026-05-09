@@ -36,6 +36,15 @@ def apple_core_ml_library_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_contains_core_ml_package_model".format(name),
+        build_type = "simulator",
+        compilation_mode = "opt",
+        contains = ["$BUNDLE_ROOT/sample.mlmodelc/"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:app_with_core_ml_package_library",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
