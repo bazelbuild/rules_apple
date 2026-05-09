@@ -18,6 +18,7 @@ load(":generate_dynamic_xcframework_tests.bzl", "generate_dynamic_xcframework_te
 load(":generate_import_framework_tests.bzl", "generate_import_framework_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
 load(":ios_application_resources_test.bzl", "ios_application_resources_test_suite")
+load(":ios_application_swift_tests.bzl", "ios_application_swift_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_build_test_tests.bzl", "ios_build_test_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
@@ -104,6 +105,8 @@ generate_dynamic_xcframework_test_suite(name = "generate_dynamic_xcframework")
 generate_import_framework_test_suite(name = "generate_import_framework")
 
 ios_application_resources_test_suite(name = "ios_application_resources")
+
+ios_application_swift_test_suite(name = "ios_application_swift")
 
 ios_application_test_suite(name = "ios_application")
 
