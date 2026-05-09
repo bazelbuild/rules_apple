@@ -287,8 +287,3 @@ apple_shell_test(
         "//test/testdata/resources:resource_data_deps_platform_independent",
     ],
 )
-
-# apple_shell_test(
-#     name = "docc_archive_test",
-#     src = "docc_archive_test.sh",
-# )
