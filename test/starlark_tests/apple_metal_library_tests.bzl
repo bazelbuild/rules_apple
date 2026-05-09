@@ -29,10 +29,18 @@ def apple_metal_library_test_suite(name):
     """
 
     archive_contents_test(
-        name = "{}_contains_metal_model".format(name),
+        name = "{}_objc_app_contains_metal_library".format(name),
         build_type = "simulator",
         contains = ["$BUNDLE_ROOT/default.metallib"],
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:app_with_metal_library",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:app_with_objc_metal_library",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_swift_app_contains_metal_library".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/default.metallib"],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:app_with_swift_metal_library",
         tags = [name],
     )
 

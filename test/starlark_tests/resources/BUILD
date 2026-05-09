@@ -482,6 +482,24 @@ apple_precompiled_resource_bundle(
     tags = common.fixture_tags,
 )
 
+apple_precompiled_resource_bundle(
+    name = "core_ml_precompiled_resource_bundle",
+    bundle_name = "App_Resources",
+    resources = [
+        "//test/testdata/resources:sample.mlpackage",
+    ],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_uikit_appdelegate_with_core_ml_precompiled_resource_bundle",
+    srcs = ["AppDelegate.swift"],
+    data = [
+        ":core_ml_precompiled_resource_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "resource_bundle_with_structured_resource_group",
     resources = [":structured_resources"],

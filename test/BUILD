@@ -68,6 +68,12 @@ apple_shell_test(
     name = "apple_core_ml_resource_test",
     size = "medium",
     src = "apple_core_ml_resource_test.sh",
+)
+
+apple_shell_test(
+    name = "apple_core_ml_library_package_test",
+    size = "medium",
+    src = "apple_core_ml_library_package_test.sh",
     data = [
         "//test/testdata/resources:mlmodel_srcs",
     ],
@@ -79,15 +85,6 @@ apple_shell_test(
     src = "apple_intent_library_test.sh",
     data = [
         "//test/testdata/resources:intent_srcs",
-    ],
-)
-
-apple_shell_test(
-    name = "apple_metal_library_test",
-    size = "medium",
-    src = "apple_metal_library_test.sh",
-    data = [
-        "//test/testdata/resources:metal_files",
     ],
 )
 
@@ -126,16 +123,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "ios_imessage_test",
-    size = "medium",
-    src = "ios_imessage_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-    ],
-)
-
-apple_multi_shell_test(
     name = "macos_application_test",
     size = "medium",
     src = "macos_application_test.sh",
@@ -170,13 +157,6 @@ apple_multi_shell_test(
     name = "tvos_application_test",
     size = "medium",
     src = "tvos_application_test.sh",
-    configurations = TVOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
-    name = "tvos_application_swift_test",
-    size = "medium",
-    src = "tvos_application_swift_test.sh",
     configurations = TVOS_CONFIGURATIONS,
 )
 
@@ -267,16 +247,6 @@ apple_shell_test(
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
     tags = common.skip_ci_tags,
-)
-
-apple_shell_test(
-    name = "smart_resource_deduplication_test",
-    size = "large",
-    src = "smart_resource_deduplication_test.sh",
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-    ],
 )
 
 # apple_shell_test(

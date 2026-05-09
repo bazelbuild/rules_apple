@@ -1792,22 +1792,31 @@ header_map(
 # Targets for Apple Metal library tests.
 
 ios_application(
-    name = "app_with_metal_library",
+    name = "app_with_objc_metal_library",
     bundle_id = "my.bundle.id",
-    families = ["iphone"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
-    deps = [":metal_library_depending_lib"],
+    deps = [":metal_objc_lib"],
 )
 
-objc_library(
-    name = "metal_library_depending_lib",
-    srcs = ["//test/starlark_tests/resources:main.m"],
+ios_application(
+    name = "app_with_swift_metal_library",
+    bundle_id = "my.bundle.id",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
-        ":metal_objc_lib",
         ":metal_swift_lib",
+        "//test/starlark_tests/resources:swift_main_lib",
     ],
 )
 
@@ -1833,6 +1842,10 @@ write_file(
   NSLog(@"Hello, world");
 }
 @end
+
+int main(int argc, char **argv) {
+  return 0;
+}
 """],
     tags = common.fixture_tags,
 )
@@ -1861,6 +1874,7 @@ apple_metal_library(
     name = "SampleMetal",
     srcs = ["//test/testdata/resources:metal_srcs"],
     hdrs = ["//test/testdata/resources:metal_hdrs"],
+    copts = ["-frecord-sources"],
     tags = common.fixture_tags,
 )
 

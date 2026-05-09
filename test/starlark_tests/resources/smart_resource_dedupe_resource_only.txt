@@ -1,0 +1,1 @@
+I am referenced by a resource only objc_library;
