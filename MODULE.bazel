@@ -24,12 +24,51 @@ bazel_dep(name = "rules_shell", version = "0.6.1")
 # TODO: Remove before the major release after bumping to >=4
 archive_override(
     module_name = "rules_swift",
-    integrity = "sha256-A9PbyySU0twu1+bH88emRvV6fXPiqyqh16IseIPviaY=",
-    strip_prefix = "rules_swift-bf7f4b7759917689c8e6517a9c99c1c47da00c7a",
+    integrity = "sha256-7B5bIDydWD9OV0eMeh5uJpK2EN2wzlPP7DqyTC/XKu8=",
+    strip_prefix = "rules_swift-bc51c2a824f221e4162dc21e049cb99fd81d8152",
     urls = [
-        "https://github.com/bazelbuild/rules_swift/archive/bf7f4b7759917689c8e6517a9c99c1c47da00c7a.tar.gz",
+        "https://github.com/bazelbuild/rules_swift/archive/bc51c2a824f221e4162dc21e049cb99fd81d8152.tar.gz",
     ],
 )
+
+system_sdk = use_extension("@build_bazel_rules_swift//swift:extensions.bzl", "system_sdk")
+system_sdk.configure_sdks(
+    # NOTE: This doesn't apply to downstream repos
+    exclude_modules = {
+        "AppleTVOS": [
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "AppleTVSimulator": [
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "iPhoneSimulator": [
+            "AssetsLibrary",  #  TODO: Remove once CI >= Xcode 26.4
+            "CoreAudio_Private",
+        ],
+        "iPhoneOS": [
+            "AssetsLibrary",  #  TODO: Remove once CI >= Xcode 26.4
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "XROS": [
+            "AccessoryTransportExtension",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "XRSimulator": [
+            "AccessoryTransportExtension",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "WatchOS": [
+            "BrowserEngineKit",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+        "WatchSimulator": [
+            "BrowserEngineKit",
+            "CoreAudio_Private",  # TODO: Remove once CI >= Xcode 26.4
+        ],
+    },
+    include_all = True,
+)
+use_repo(system_sdk, "system_sdk")
 
 bazel_dep(
     name = "stardoc",
