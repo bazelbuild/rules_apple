@@ -4114,6 +4114,162 @@ ios_unit_test(
 )
 
 # ---------------------------------------------------------------------------------------
+# Targets for the smart resource deduplication tests.
+
+genrule(
+    name = "smart_resource_dedupe_gen_file",
+    outs = ["smart_resource_dedupe_gen_file.txt"],
+    cmd = "echo 'this is generated' > \"$@\"",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "smart_resource_dedupe_resource_only_lib",
+    data = ["//test/starlark_tests/resources:smart_resource_dedupe_resource_only.txt"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "smart_resource_dedupe_shared_lib",
+    data = [
+        ":smart_resource_dedupe_gen_file",
+        "//test/starlark_tests/resources:assets",
+        "//test/starlark_tests/resources:basic_bundle",
+        "//test/starlark_tests/resources:nonlocalized.plist",
+        "//test/starlark_tests/resources:nonlocalized.strings",
+        "//test/starlark_tests/resources:sample.png",
+    ],
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_resource_only_lib"],
+)
+
+objc_library(
+    name = "smart_resource_dedupe_shared_lib_with_no_direct_resources",
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_resource_only_lib"],
+)
+
+objc_library(
+    name = "smart_resource_dedupe_app_lib",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    data = [
+        "//test/starlark_tests/resources:assets",
+        "//test/starlark_tests/resources:basic_bundle",
+        "//test/starlark_tests/resources:sample.png",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":smart_resource_dedupe_resource_only_lib",
+        ":smart_resource_dedupe_shared_lib",
+    ],
+)
+
+objc_library(
+    name = "smart_resource_dedupe_app_lib_with_no_direct_resources",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_shared_lib_with_no_direct_resources"],
+)
+
+objc_library(
+    name = "smart_resource_dedupe_only_main_lib",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+)
+
+ios_framework(
+    name = "smart_resource_dedupe_fmwk",
+    bundle_id = "com.framework",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_shared_lib"],
+)
+
+ios_framework(
+    name = "smart_resource_dedupe_no_direct_resources_fmwk",
+    bundle_id = "com.framework",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_shared_lib_with_no_direct_resources"],
+)
+
+ios_application(
+    name = "app_with_smart_resource_dedupe",
+    bundle_id = "com.app",
+    families = [
+        "iphone",
+    ],
+    frameworks = [
+        ":smart_resource_dedupe_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    strings = [
+        "//test/starlark_tests/resources:smart_resource_dedupe_app.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_app_lib"],
+)
+
+ios_application(
+    name = "app_with_smart_resource_dedupe_no_direct_resources",
+    bundle_id = "com.app",
+    families = [
+        "iphone",
+    ],
+    frameworks = [
+        ":smart_resource_dedupe_no_direct_resources_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    strings = [
+        "//test/starlark_tests/resources:smart_resource_dedupe_app.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [":smart_resource_dedupe_app_lib_with_no_direct_resources"],
+)
+
+ios_application(
+    name = "app_with_smart_resource_dedupe_direct_resources",
+    bundle_id = "com.app",
+    families = [
+        "iphone",
+    ],
+    frameworks = [
+        ":smart_resource_dedupe_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":smart_resource_dedupe_only_main_lib",
+        ":smart_resource_dedupe_resource_only_lib",
+        ":smart_resource_dedupe_shared_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
 # Targets for iOS dynamic framework tests.
 
 swift_library(
