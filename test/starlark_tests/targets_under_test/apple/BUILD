@@ -1660,6 +1660,87 @@ swift_apple_core_ml_library(
     tags = common.fixture_tags,
 )
 
+ios_application(
+    name = "app_with_core_ml_package_library",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":core_ml_package_library_depending_lib"],
+)
+
+objc_library(
+    name = "core_ml_package_library_depending_lib",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":core_ml_package_objc_lib",
+        ":core_ml_package_swift_lib",
+    ],
+)
+
+objc_library(
+    name = "core_ml_package_objc_lib",
+    srcs = [":core_ml_package_objc_lib_src"],
+    tags = common.fixture_tags,
+    deps = [":SamplePackageCoreML"],
+)
+
+write_file(
+    name = "core_ml_package_objc_lib_src",
+    out = "core_ml_package_objc_lib.m",
+    content = ["""
+#import <Foundation/Foundation.h>
+#import "test/starlark_tests/targets_under_test/apple/SamplePackageCoreML.h"
+
+@interface ObjcPackageLib: NSObject
+@end
+
+@implementation ObjcPackageLib
+- (void)test:(sample *)sample {
+  NSLog(@"%@", sample);
+}
+@end
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "core_ml_package_swift_lib",
+    srcs = [":core_ml_package_swift_lib_src"],
+    tags = common.fixture_tags,
+    deps = [
+        ":SampleSwiftPackageCoreML",
+    ],
+)
+
+write_file(
+    name = "core_ml_package_swift_lib_src",
+    out = "core_ml_package_swift_lib.swift",
+    content = ["""
+import Foundation
+import test_starlark_tests_targets_under_test_apple_SampleSwiftPackageCoreML
+
+public struct SwiftPackageLib {
+  public var mySample = try! sample(configuration: .init())
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+apple_core_ml_library(
+    name = "SamplePackageCoreML",
+    mlmodel = "//test/testdata/resources:sample.mlpackage",
+    tags = common.fixture_tags,
+)
+
+swift_apple_core_ml_library(
+    name = "SampleSwiftPackageCoreML",
+    mlmodel = "//test/testdata/resources:sample.mlpackage",
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for header map rule tests.
 
