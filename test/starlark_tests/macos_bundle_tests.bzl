@@ -35,9 +35,23 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_BUNDLE_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "bundle.bundle",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "bundle",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "BNDL",
+    "PRODUCT_NAME": "bundle",
+    "TARGET_NAME": "bundle",
+}
 
 def macos_bundle_test_suite(name):
     """Test suite for macos_bundle.
@@ -89,6 +103,44 @@ def macos_bundle_test_suite(name):
         binary_test_file = "$CONTENT_ROOT/MacOS/bundle",
         macho_load_commands_contain = ["path @executable_path/../Frameworks (offset 12)"],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:bundle_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleVersion.",
+        variable_substitutions = _BUNDLE_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:bundle_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleShortVersionString.",
+        variable_substitutions = _BUNDLE_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ipa_post_processor_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_with_ipa_post_processor",
+        text_test_file = "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        text_test_values = ["foo"],
         tags = [name],
     )
 

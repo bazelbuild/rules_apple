@@ -218,6 +218,11 @@ macos_bundle(
 )
 
 sh_binary(
+    name = "ipa_post_processor_insert_file",
+    srcs = ["ipa_post_processor_insert_file.sh"],
+)
+
+sh_binary(
     name = "ipa_post_processor_verify_codesigning",
     srcs = [
         "ipa_post_processor_verify_codesigning.sh",
