@@ -85,16 +85,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "macos_application_resources_test",
-    size = "medium",
-    src = "macos_application_resources_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-    ],
-)
-
-apple_multi_shell_test(
     name = "macos_quick_look_plugin_test",
     size = "medium",
     src = "macos_quick_look_plugin_test.sh",

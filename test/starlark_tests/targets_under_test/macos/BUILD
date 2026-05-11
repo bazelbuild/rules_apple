@@ -983,6 +983,56 @@ macos_application(
 )
 
 macos_application(
+    name = "app_with_localized_unprocessed_resources",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    resources = [
+        "//test/starlark_tests/resources:localized_generic_resources",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_bundle_localization_resources",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    resources = [
+        "//test/starlark_tests/resources:bundle_library_macos",
+        "//test/starlark_tests/resources:fr.lproj/localized.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fr_and_it_localized_strings",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    resources = [
+        "//test/starlark_tests/resources:fr.lproj/localized.strings",
+        "//test/starlark_tests/resources:it.lproj/localized.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
     name = "app_basic_swift",
     bundle_id = "com.google.example",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
