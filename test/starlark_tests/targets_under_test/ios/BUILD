@@ -4399,7 +4399,7 @@ genrule(
 
 objc_library(
     name = "smart_resource_dedupe_resource_only_lib",
-    data = ["//test/starlark_tests/resources:smart_resource_dedupe_resource_only.txt"],
+    data = ["smart_resource_dedupe_resource_only.txt"],
     tags = common.fixture_tags,
 )
 
