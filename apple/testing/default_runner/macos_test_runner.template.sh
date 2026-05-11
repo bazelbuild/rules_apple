@@ -122,7 +122,8 @@ if [[ "${COVERAGE:-}" -eq 1 ]]; then
 fi
 
 XCTESTRUN_ENV=""
-for SINGLE_TEST_ENV in ${TEST_ENV//,/ }; do
+IFS=',' read -ra ENV_PAIRS <<< "$TEST_ENV"
+for SINGLE_TEST_ENV in "${ENV_PAIRS[@]}"; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
   XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
 done
