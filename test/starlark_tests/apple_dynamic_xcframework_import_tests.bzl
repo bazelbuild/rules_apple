@@ -151,6 +151,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_swiftinterface_depending_swift_lib",
         mnemonic = "SwiftCompile",
         expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
         ],
@@ -163,6 +165,8 @@ def apple_dynamic_xcframework_import_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
         mnemonic = "SwiftCompileModuleInterface",
         expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
             "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.private.swiftinterface",
         ],

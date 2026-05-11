@@ -15,6 +15,7 @@
 """Support methods for Apple framework import rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@build_bazel_rules_swift//swift:providers.bzl", "create_clang_module_inputs")
 load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "SwiftInfo",
@@ -530,6 +531,11 @@ def _swift_info_from_module_interface(
         )
         if clang_result:
             clang_module = clang_result.clang_module
+        else:
+            clang_module = create_clang_module_inputs(
+                compilation_context = merged_compilation_context,
+                module_map = module_map,
+            )
 
     compile_result = swift_common.compile_module_interface(
         actions = actions,
