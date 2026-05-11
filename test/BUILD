@@ -57,15 +57,6 @@ filegroup(
 # allows bazel to auto retry them and help minimize the unreliability in those
 # tools.
 
-apple_shell_test(
-    name = "apple_intent_library_test",
-    size = "medium",
-    src = "apple_intent_library_test.sh",
-    data = [
-        "//test/testdata/resources:intent_srcs",
-    ],
-)
-
 apple_multi_shell_test(
     name = "ios_application_test",
     size = "large",

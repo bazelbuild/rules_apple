@@ -4,6 +4,7 @@ load(":apple_capability_tests.bzl", "apple_capability_test_suite")
 load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
 load(":apple_core_ml_library_tests.bzl", "apple_core_ml_library_test_suite")
 load(":apple_dynamic_xcframework_import_tests.bzl", "apple_dynamic_xcframework_import_test_suite")
+load(":apple_intent_library_tests.bzl", "apple_intent_library_test_suite")
 load(":apple_metal_library_tests.bzl", "apple_metal_library_test_suite")
 load(":apple_static_framework_import_tests.bzl", "apple_static_framework_import_test_suite")
 load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
@@ -82,6 +83,8 @@ apple_core_data_model_test_suite(name = "apple_core_data_model")
 apple_core_ml_library_test_suite(name = "apple_core_ml_library")
 
 apple_dynamic_xcframework_import_test_suite(name = "apple_dynamic_xcframework_import")
+
+apple_intent_library_test_suite(name = "apple_intent_library")
 
 apple_metal_library_test_suite(name = "apple_metal_library")
 
