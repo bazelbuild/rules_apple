@@ -766,6 +766,45 @@ ios_framework(
 )
 
 ios_application(
+    name = "app_with_framework_with_spaces",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [
+        ":framework_with_spaces",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_framework(
+    name = "framework_with_spaces",
+    bundle_id = "com.google.example.framework",
+    bundle_name = "framework with spaces",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
+    ],
+)
+
+ios_application(
     name = "app_with_inner_and_outer_static_fmwk",
     bundle_id = "com.google.example",
     families = ["iphone"],
