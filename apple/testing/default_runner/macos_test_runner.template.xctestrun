@@ -10,6 +10,9 @@
 		<string>BAZEL_TEST_BUNDLE_PATH</string>
 		<key>TestHostPath</key>
 		<string>BAZEL_TEST_HOST_PATH</string>
+		BAZEL_COMMAND_LINE_ARGS
+		BAZEL_SKIP_TEST_SECTION
+		BAZEL_ONLY_TEST_SECTION
 		<key>TestingEnvironmentVariables</key>
 		<dict>
 			<key>DYLD_FALLBACK_LIBRARY_PATH</key>

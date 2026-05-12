@@ -31,6 +31,26 @@ if [[ "%(test_type)s" = "XCUITEST" ]]; then
   exit 1
 fi
 
+# Parse command line arguments
+xcodebuild_args=()
+command_line_args=()
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+  case $arg in
+    --xcodebuild_args=*)
+      xcodebuild_args+=("${arg##*=}")
+      ;;
+    --command_line_args=*)
+      command_line_args+=("${arg##*=}")
+      ;;
+    *)
+      echo "error: Unsupported argument '${arg}'" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 # Retrieve the basename of a file or folder with an extension.
 basename_without_extension() {
   local full_path="$1"
@@ -99,6 +119,45 @@ fi
 XCTESTRUN="$TEST_TMP_DIR/tests.xctestrun"
 cp -f "$BAZEL_XCTESTRUN_TEMPLATE" "$XCTESTRUN"
 
+TEST_FILTER="%(test_filter)s"
+xctestrun_skip_test_section=""
+xctestrun_only_test_section=""
+
+# Use the 'TESTBRIDGE_TEST_ONLY' environment variable set by Bazel's
+# '--test_filter' flag to set the xctestrun's skip/only parameters.
+#
+# Any test prefixed with '-' will be passed to 'SkipTestIdentifiers'. Otherwise
+# the tests is passed to 'OnlyTestIdentifiers',
+if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
+  if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" && -n "${TEST_FILTER:-}" ]]; then
+    ALL_TESTS="$TESTBRIDGE_TEST_ONLY,$TEST_FILTER"
+  elif [[ -n "${TESTBRIDGE_TEST_ONLY:-}" ]]; then
+    ALL_TESTS="$TESTBRIDGE_TEST_ONLY"
+  else
+    ALL_TESTS="$TEST_FILTER"
+  fi
+
+  SKIP_TESTS_ARRAY=()
+  ONLY_TESTS_ARRAY=()
+  saved_IFS=$IFS
+  IFS=","; for TEST in $ALL_TESTS; do
+    if [[ $TEST == -* ]]; then
+      SKIP_TESTS_ARRAY+=("${TEST:1}")
+    else
+      ONLY_TESTS_ARRAY+=("$TEST")
+    fi
+  done
+  IFS=$saved_IFS
+
+  if (( ${#SKIP_TESTS_ARRAY[@]} )); then
+    xctestrun_skip_test_section="    <key>SkipTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${SKIP_TESTS_ARRAY[@]}")    </array>"
+  fi
+
+  if (( ${#ONLY_TESTS_ARRAY[@]} )); then
+    xctestrun_only_test_section="    <key>OnlyTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${ONLY_TESTS_ARRAY[@]}")    </array>"
+  fi
+fi
+
 # Basic XML character escaping for environment variable substitution.
 function escape() {
   escaped=${1//&/&amp;}
@@ -110,15 +169,18 @@ function escape() {
 
 # Add the test environment variables into the xctestrun file to propagate them
 # to the test runner
+DEFAULT_ENV="TEST_PREMATURE_EXIT_FILE=$TEST_PREMATURE_EXIT_FILE,TEST_SRCDIR=$TEST_SRCDIR,TEST_UNDECLARED_OUTPUTS_DIR=$TEST_UNDECLARED_OUTPUTS_DIR,XML_OUTPUT_FILE=$XML_OUTPUT_FILE"
 TEST_ENV="%(test_env)s"
+if [[ -n "$TEST_ENV" ]]; then
+  TEST_ENV="$TEST_ENV,$DEFAULT_ENV"
+else
+  TEST_ENV="$DEFAULT_ENV"
+fi
+
 readonly profraw="$TEST_TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"
-  if [[ -n "$TEST_ENV" ]]; then
-    TEST_ENV="$TEST_ENV,$profile_env"
-  else
-    TEST_ENV="$profile_env"
-  fi
+  TEST_ENV="$TEST_ENV,$profile_env"
 fi
 
 XCTESTRUN_ENV=""
@@ -127,6 +189,18 @@ for SINGLE_TEST_ENV in "${ENV_PAIRS[@]}"; do
   IFS== read key value <<< "$SINGLE_TEST_ENV"
   XCTESTRUN_ENV+="<key>$(escape "$key")</key><string>$(escape "$value")</string>"
 done
+
+xctestrun_cmd_line_args_section=""
+if [[ -n "${command_line_args:-}" ]]; then
+  xctestrun_cmd_line_args_section="\n"
+  saved_IFS=$IFS
+  IFS=","
+  for cmd_line_arg in ${command_line_args[@]}; do
+    xctestrun_cmd_line_args_section+="      <string>$cmd_line_arg</string>\n"
+  done
+  IFS=$saved_IFS
+  xctestrun_cmd_line_args_section="    <key>CommandLineArguments</key>\n    <array>$xctestrun_cmd_line_args_section    </array>"
+fi
 
 declare -r sed_delim=$'\001'
 
@@ -137,6 +211,9 @@ declare -r sed_delim=$'\001'
   -e "s${sed_delim}BAZEL_TEST_HOST_BINARY${sed_delim}$XCTESTRUN_TEST_HOST_BINARY${sed_delim}g" \
   -e "s${sed_delim}BAZEL_TEST_HOST_PATH${sed_delim}$XCTESTRUN_TEST_HOST_PATH${sed_delim}g" \
   -e "s${sed_delim}BAZEL_TEST_ENVIRONMENT${sed_delim}$XCTESTRUN_ENV${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_COMMAND_LINE_ARGS${sed_delim}$xctestrun_cmd_line_args_section${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_SKIP_TEST_SECTION${sed_delim}$xctestrun_skip_test_section${sed_delim}g" \
+  -e "s${sed_delim}BAZEL_ONLY_TEST_SECTION${sed_delim}$xctestrun_only_test_section${sed_delim}g" \
   -i "" \
   "$XCTESTRUN"
 
@@ -161,12 +238,45 @@ readonly testlog="$TEST_TMP_DIR/test.log"
 # Run xcodebuild with the xctestrun file just created. If the test failed, this
 # command will return non-zero, which is enough to tell bazel that the test
 # failed.
-xcodebuild test-without-building \
-    -destination "platform=macOS,variant=macos,arch=$(uname -m)" \
-    -resultBundlePath "$result_bundle_path" \
-    -xctestrun "$XCTESTRUN" \
+args=(
+    -destination "platform=macOS,variant=macos,arch=$(uname -m)"
+    -resultBundlePath "$result_bundle_path"
+    -xctestrun "$XCTESTRUN"
+)
+
+if (( ${#xcodebuild_args[@]} )); then
+    args+=("${xcodebuild_args[@]}")
+fi
+
+xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" \
     || test_exit_code=$?
+
+parallel_testing_enabled=false
+if grep -q "-parallel-testing-enabled YES" "$testlog"; then
+  parallel_testing_enabled=true
+fi
+
+no_tests_ran=false
+if [[ $parallel_testing_enabled == true ]]; then
+  echo "Parallel testing is enabled" >&2
+  test_execution_count=$(grep -c -e "Test suite '.*' started.*" "$testlog" || true)
+  if [[ "$test_execution_count" == "0" ]]; then
+    no_tests_ran=true
+  fi
+else
+  echo "Testing is serialized" >&2
+  xctest_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} test.*," "$testlog" | tail -n1 || true)
+  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
+    echo "No tests ran -> count line was 0" >&2
+    no_tests_ran=true
+  fi
+fi
+
+if [[ $no_tests_ran == true ]]; then
+  echo "error: no tests were executed, is the test bundle empty?" >&2
+  exit 1
+fi
 
 # Run a post-action binary, if provided.
 post_action_binary=%(post_action_binary)s
