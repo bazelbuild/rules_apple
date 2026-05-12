@@ -28,10 +28,7 @@ _BUNDLE_ATTRS = {
         "base_bundle_id",
         "bundle_id",
         "bundle_id_suffix",
-        "bundle_name",
         "families",
-        "frameworks",
-        "infoplists",
         "linkopts",
         "provisioning_profile",
         "resources",
@@ -43,7 +40,10 @@ _BUNDLE_ATTRS = {
 _SHARED_TEST_BUNDLE_ATTRS = {
     x: None
     for x in [
+        "bundle_name",
         "features",
+        "frameworks",
+        "infoplists",
         "minimum_os_version",
         "tags",
         "test_host",
