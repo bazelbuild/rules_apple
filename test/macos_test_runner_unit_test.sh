@@ -598,9 +598,6 @@ function test_macos_unit_test_with_env() {
 }
 
 function test_macos_unit_test_with_make_var_empty() {
-  # Skip: bazel_skylib not visible in nested test environment
-  return 0
-
   create_runners
   create_macos_unit_make_var_test ""
   do_macos_test //macos:MakeVarUnitTest || fail "should pass"
@@ -609,9 +606,6 @@ function test_macos_unit_test_with_make_var_empty() {
 }
 
 function test_macos_unit_test_with_make_var_set() {
-  # Skip: bazel_skylib not visible in nested test environment
-  return 0
-
   create_runners
   create_macos_unit_make_var_test MAKE_VAR_VALUE1
   do_macos_test --//macos:my_make_var=MAKE_VAR_VALUE1 //macos:MakeVarUnitTest || fail "should pass"
@@ -655,10 +649,6 @@ function test_macos_unit_test_with_multi_equal_env() {
 }
 
 function test_macos_unit_test_pass_asan() {
-  # Skip: ASan requires DYLD_INSERT_LIBRARIES set before process start,
-  # but xcodebuild spawns tests as subprocesses without this capability.
-  return 0
-
   create_runners
   create_macos_unit_tests
   do_macos_test --features=asan //macos:PassingUnitTest || fail "should pass"
