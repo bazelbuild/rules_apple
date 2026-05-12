@@ -273,13 +273,17 @@ def _bundle_partial_outputs_files(
 
     # Autotrim locales here only if the rule supports it and there weren't requested locales.
     config_vars = platform_prerequisites.config_vars
-    requested_locales_flag = locales_to_include or config_vars.get("apple.locales_to_include")
+    requested_locales = (
+        locales_to_include or
+        config_vars.get("apple.locales_to_include") or
+        platform_prerequisites.build_settings.locales_to_include
+    )
 
     trim_locales = defines.bool_value(
         config_vars = config_vars,
-        default = None,
+        default = platform_prerequisites.build_settings.trim_lproj_locales,
         define_name = "apple.trim_lproj_locales",
-    ) and rule_descriptor.allows_locale_trimming and requested_locales_flag == None
+    ) and rule_descriptor.allows_locale_trimming and not requested_locales
 
     control_files = []
     control_zips = []

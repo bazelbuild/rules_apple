@@ -109,13 +109,15 @@ def _merge_root_infoplists(
 
     return [(processor.location.content, None, depset(direct = files))]
 
-def _locales_requested(*, locales_to_include, config_vars):
+def _locales_requested(*, build_setting_locales_to_include, locales_to_include, config_vars):
     """Determines which locales to include when resource actions.
 
     If the user has specified "apple.locales_to_include" we use those. Otherwise we don't filter.
     'Base' is included by default to any given list of locales to include.
 
     Args:
+        build_setting_locales_to_include: Comma-separated locales to bundle from the Starlark
+            build setting.
         config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
         locales_to_include: A string list of locales to bundle.
 
@@ -126,9 +128,10 @@ def _locales_requested(*, locales_to_include, config_vars):
     requested_locales = None
     if locales_to_include:
         requested_locales = locales_to_include
-    else:
-        config_locals_to_include = config_vars.get("apple.locales_to_include")
-        requested_locales = config_locals_to_include.split(",") if config_locals_to_include else None
+    elif config_locals_to_include:
+        requested_locales = config_locals_to_include.split(",")
+    elif build_setting_locales_to_include:
+        requested_locales = build_setting_locales_to_include.split(",")
 
     if requested_locales != None:
         return sets.make(["Base"] + [x.strip() for x in requested_locales])
@@ -157,19 +160,21 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
                      sets.str(conflicting_locales) + " as they are explicitly excluded but also explicitly included. Please verify " +
                      "apple.locales_to_include and apple.locales_to_exclude are defined properly.")
 
-def _locales_excluded(*, config_vars):
+def _locales_excluded(*, build_setting_locales_to_exclude, config_vars):
     """Determines which locales to exclude when resource actions.
 
     If the user has specified "apple.locales_to_exclude" we use those.
 
     Args:
+        build_setting_locales_to_exclude: Comma-separated locales to exclude from the Starlark
+            build setting.
         config_vars: A dictionary (String to String) of config variables. Typically from `ctx.var`.
 
     Returns:
         A set of locales to exclude or None if no locale exclude is requested.
     """
-    excluded_locales = config_vars.get("apple.locales_to_exclude")
-    if excluded_locales != None:
+    excluded_locales = config_vars.get("apple.locales_to_exclude") or build_setting_locales_to_exclude
+    if excluded_locales:
         return sets.make([x.strip() for x in excluded_locales.split(",")])
     else:
         return None
@@ -249,8 +254,15 @@ def _resources_partial_impl(
 
     infoplists = []
 
-    locales_requested = _locales_requested(locales_to_include = locales_to_include, config_vars = platform_prerequisites.config_vars)
-    locales_excluded = _locales_excluded(config_vars = platform_prerequisites.config_vars)
+    locales_requested = _locales_requested(
+        build_setting_locales_to_include = platform_prerequisites.build_settings.locales_to_include,
+        config_vars = platform_prerequisites.config_vars,
+        locales_to_include = locales_to_include,
+    )
+    locales_excluded = _locales_excluded(
+        build_setting_locales_to_exclude = platform_prerequisites.build_settings.locales_to_exclude,
+        config_vars = platform_prerequisites.config_vars,
+    )
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 

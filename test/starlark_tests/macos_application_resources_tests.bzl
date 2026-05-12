@@ -15,8 +15,13 @@
 """macos_application resources Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -29,6 +34,13 @@ load(
 load(
     ":common.bzl",
     "common",
+)
+
+_locales_excludes_includes_conflict_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.locales_to_exclude: "fr",
+        build_settings_labels.locales_to_include: "fr,it",
+    },
 )
 
 def macos_application_resources_test_suite(name):
@@ -114,6 +126,74 @@ def macos_application_resources_test_suite(name):
             "$RESOURCE_ROOT/it.lproj/localized.plist",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_filter_all_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_include: "sw",
+        },
+        build_type = "device",
+        not_contains = [
+            "$RESOURCE_ROOT/fr.lproj/localized.txt",
+            "$RESOURCE_ROOT/it.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_localized_unprocessed_resources",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_filter_mixed_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_include: "fr,it",
+        },
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/fr.lproj/localized.txt",
+            "$RESOURCE_ROOT/it.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_localized_unprocessed_resources",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_localization_strip_test".format(name),
+        build_settings = {
+            build_settings_labels.trim_lproj_locales: "True",
+        },
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/fr.lproj/localized.strings",
+            "$RESOURCE_ROOT/bundle_library_macos.bundle/fr.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$RESOURCE_ROOT/it.lproj/localized.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_bundle_localization_resources",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_bundle_localization_excludes_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_exclude: "fr",
+        },
+        build_type = "device",
+        contains = [
+            "$RESOURCE_ROOT/it.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$RESOURCE_ROOT/fr.lproj/localized.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fr_and_it_localized_strings",
+        tags = [name],
+    )
+
+    _locales_excludes_includes_conflict_test(
+        name = "{}_bundle_localization_excludes_includes_conflict_test".format(name),
+        expected_error = "dropping [\"fr\"] as they are explicitly excluded but also explicitly included. Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly.",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fr_and_it_localized_strings",
         tags = [name],
     )
 

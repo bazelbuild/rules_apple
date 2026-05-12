@@ -39,6 +39,18 @@ Packages Swift support dylibs into device application archives.
 """,
         default = True,
     ),
+    "locales_to_exclude": struct(
+        doc = """
+Comma-separated locales to exclude from Apple bundle resources.
+""",
+        default = "",
+    ),
+    "locales_to_include": struct(
+        doc = """
+Comma-separated locales to include in Apple bundle resources.
+""",
+        default = "",
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(
@@ -51,6 +63,12 @@ Declare a code signing identity, to be used in all code signing flows related to
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
+""",
+        default = False,
+    ),
+    "trim_lproj_locales": struct(
+        doc = """
+Trims nested .lproj localizations based on the top-level bundle localizations.
 """,
         default = False,
     ),
