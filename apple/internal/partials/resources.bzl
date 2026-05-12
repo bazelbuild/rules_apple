@@ -174,7 +174,7 @@ def _locales_excluded(*, build_setting_locales_to_exclude, config_vars):
         A set of locales to exclude or None if no locale exclude is requested.
     """
     excluded_locales = config_vars.get("apple.locales_to_exclude") or build_setting_locales_to_exclude
-    if excluded_locales != None:
+    if excluded_locales:
         return sets.make([x.strip() for x in excluded_locales.split(",")])
     else:
         return None
