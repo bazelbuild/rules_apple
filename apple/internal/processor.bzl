@@ -373,6 +373,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
             output = output_file.path,
             code_signing_commands = codesigning_command or "",
             post_processor = post_processor_path,
+            invoke_post_processor_as_sh_command = True,
         )
         actions.write(
             output = control_file,
