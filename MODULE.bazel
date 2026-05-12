@@ -87,3 +87,12 @@ apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.
 use_repo(apple_cc_configure, "local_config_apple_cc")
 
 register_toolchains("//apple/internal:apple_xplat_toolchain")
+
+archive_override(
+    module_name = "rules_cc",
+    integrity = "sha256-HkBnRerUfb96OTmALc0hNPH+DELLo3JKuVIWY1mFq/k=",
+    strip_prefix = "rules_cc-7d32823b507e2c8df813de1c4e2fc3100854e124",
+    urls = [
+        "https://github.com/bazelbuild/rules_cc/archive/7d32823b507e2c8df813de1c4e2fc3100854e124.tar.gz",
+    ],
+)
