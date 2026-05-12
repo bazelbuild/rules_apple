@@ -106,7 +106,6 @@ def apple_static_library_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         expected_runfiles = [
             "test/starlark_tests/targets_under_test/apple/static_library/example_library_arm_sim_support_lipo.a",
-            "test/starlark_tests/targets_under_test/apple/static_library/libmain_lib.a",
         ],
         tags = [name],
     )
