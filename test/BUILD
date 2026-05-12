@@ -133,6 +133,7 @@ apple_shell_test(
     name = "macos_test_runner_unit_test",
     size = "large",
     src = "macos_test_runner_unit_test.sh",
+    tags = ["no-sandbox"],
 )
 
 apple_shell_test(
