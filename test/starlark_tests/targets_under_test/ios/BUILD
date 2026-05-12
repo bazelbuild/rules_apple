@@ -3152,6 +3152,64 @@ generate_dynamic_xcframework(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "renamed_bundle_dynamic_xcframework",
+    srcs = [":generated_dynamic_xcframework_with_headers"],
+    outs = ["RenamedDynamicXcframework.xcframework/Info.plist"] + [
+        "{0}/{1}/{2}/{3}".format(
+            "RenamedDynamicXcframework.xcframework",
+            platform_id,
+            "generated_dynamic_xcframework_with_headers.framework",
+            file,
+        )
+        for file in [
+            "Headers/generated_dynamic_xcframework_with_headers.h",
+            "Headers/SharedClass.h",
+            "Modules/module.modulemap",
+            "generated_dynamic_xcframework_with_headers",
+            "Info.plist",
+        ]
+        for platform_id in [
+            "ios-arm64_arm64e",
+            "ios-arm64_x86_64-simulator",
+        ]
+    ],
+    cmd = """
+mkdir -p $(RULEDIR)/RenamedDynamicXcframework.xcframework
+rm -rf $(RULEDIR)/RenamedDynamicXcframework.xcframework/*
+cp -Rp $(RULEDIR)/generated_dynamic_xcframework_with_headers.xcframework/. $(RULEDIR)/RenamedDynamicXcframework.xcframework/
+""",
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_renamed_bundle",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":renamed_bundle_dynamic_xcframework"],
+)
+
+write_file(
+    name = "swift_with_renamed_bundle_objc_xcframework_src",
+    out = "SwiftWithRenamedBundleObjcFramework.swift",
+    content = ["""
+import generated_dynamic_xcframework_with_headers
+
+func renamed_bundle_dynamic_xcframework_function() {
+  let sc = generated_dynamic_xcframework_with_headers.SharedClass()
+  sc.doSomethingShared()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "renamed_bundle_dynamic_xcframework_depending_swift_lib",
+    srcs = [":swift_with_renamed_bundle_objc_xcframework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_renamed_bundle"],
+)
+
 # Objective-C app with imported Swift XCFramework.
 ios_application(
     name = "app_with_imported_swift_xcframework",

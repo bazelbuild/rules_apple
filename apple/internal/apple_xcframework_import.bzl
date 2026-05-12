@@ -81,6 +81,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
             - files: The XCFramework import files.
             - files_by_category: Classified XCFramework import files.
             - info_plist: The XCFramework bundle Info.plist file.
+            - library_name: The inner library/framework name used for module and binary paths.
     """
     info_plist = None
     bundle_name = None
@@ -113,10 +114,12 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
         files = framework_files + dsym_files
         bundle_type = _BUNDLE_TYPE.frameworks
         files_by_category = framework_import_support.classify_framework_imports(config_vars, files)
+        library_name = files_by_category.bundle_name or bundle_name
     else:
         files = xcframework_files
         bundle_type = _BUNDLE_TYPE.libraries
         files_by_category = framework_import_support.classify_file_imports(config_vars, files)
+        library_name = bundle_name
 
     return struct(
         bundle_name = bundle_name,
@@ -124,6 +127,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
         files = files,
         files_by_category = files_by_category,
         info_plist = info_plist,
+        library_name = library_name,
     )
 
 def _get_xcframework_library(
@@ -296,7 +300,7 @@ def _get_xcframework_library_with_xcframework_processor(
     }
 
     library_suffix = ".framework" if xcframework.bundle_type == _BUNDLE_TYPE.frameworks else ""
-    library_path = xcframework.bundle_name + library_suffix
+    library_path = xcframework.library_name + library_suffix
 
     framework_imports_dir = intermediates.directory(
         dir_name = paths.join("framework_imports", library_path),
@@ -308,7 +312,7 @@ def _get_xcframework_library_with_xcframework_processor(
     # not really needed if you add the target directory for the copied .framework bundle.
     binary_extension = ".a" if xcframework.bundle_type == _BUNDLE_TYPE.libraries else ""
     binary = intermediates.file(
-        file_name = paths.join(library_path, xcframework.bundle_name + binary_extension),
+        file_name = paths.join(library_path, xcframework.library_name + binary_extension),
         **intermediates_common
     )
     headers_dir = intermediates.directory(
@@ -322,7 +326,7 @@ def _get_xcframework_library_with_xcframework_processor(
     )
 
     args = actions.args()
-    args.add("--bundle_name", xcframework.bundle_name)
+    args.add("--bundle_name", xcframework.library_name)
     args.add("--info_plist", xcframework.info_plist.path)
 
     args.add("--platform", target_triplet.os)
@@ -355,7 +359,7 @@ def _get_xcframework_library_with_xcframework_processor(
         swiftinterface_path = paths.join(
             modules_dir_path,
             "{module_name}.swiftmodule".format(
-                module_name = xcframework.bundle_name,
+                module_name = xcframework.library_name,
             ),
             "{architecture}.swiftinterface".format(
                 architecture = target_triplet.architecture,
@@ -568,7 +572,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 framework_includes = xcframework_library.framework_includes,
                 hdrs = xcframework_library.headers,
                 module_map = xcframework_library.clang_module_map,
-                module_name = xcframework.bundle_name,
+                module_name = xcframework.library_name,
                 rule_label = label,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_files = xcframework_library.swift_module_interfaces,
@@ -578,7 +582,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         # Create SwiftInteropInfo provider for swift_clang_module_aspect
         swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
             deps = deps,
-            module_name = xcframework.bundle_name,
+            module_name = xcframework.library_name,
             module_map_imports = [xcframework_library.clang_module_map],
         )
         if swift_interop_info:
@@ -719,7 +723,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 hdrs = xcframework_library.headers,
                 includes = xcframework_library.includes,
                 module_map = xcframework_library.clang_module_map,
-                module_name = xcframework.bundle_name,
+                module_name = xcframework.library_name,
                 rule_label = label,
                 swift_toolchain = swift_toolchain,
                 swiftinterface_files = xcframework_library.swift_module_interfaces,
@@ -729,7 +733,7 @@ def _apple_static_xcframework_import_impl(ctx):
         # Create SwiftInteropInfo provider for swift_clang_module_aspect
         swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
             deps = deps,
-            module_name = xcframework.bundle_name,
+            module_name = xcframework.library_name,
             module_map_imports = [xcframework_library.clang_module_map],
         )
         if swift_interop_info:
