@@ -165,7 +165,7 @@ def _apple_test_info_aspect_impl(target, ctx):
         module_swiftmodules = [
             module.swift.swiftmodule
             for module in all_modules
-            if module.swift
+            if module.swift and module.swift.swiftmodule
         ]
         swift_modules.append(depset(module_swiftmodules))
 
