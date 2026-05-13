@@ -875,6 +875,22 @@ generate_import_framework(
     tags = common.fixture_tags,
 )
 
+ios_application(
+    name = "app_with_mismatched_xcframework_import",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_static_xcframework",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 
 ios_application(

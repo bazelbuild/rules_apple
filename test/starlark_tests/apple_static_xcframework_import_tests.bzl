@@ -331,47 +331,10 @@ There must be one root Info.plist in the framework bundle at \
         tags = [name],
     )
 
-    # Verify macos_application links the XCFramework unversioned static framework for device and
-    # simulator architectures.
-    archive_contents_test(
-        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_x86_64_build".format(name),
-        build_type = "device",
+    analysis_failure_message_test(
+        name = "{}_imported_unversioned_static_xcframework_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        binary_test_architecture = "x86_64",
-        contains = [
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64_build".format(name),
-        build_type = "device",
-        cpus = {"macos_cpus": ["arm64"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        binary_test_architecture = "arm64",
-        contains = [
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
-        tags = [name],
-    )
-    archive_contents_test(
-        name = "{}_bundles_imported_macos_unversioned_framework_xcframework_to_application_arm64e_build".format(name),
-        build_type = "device",
-        cpus = {"macos_cpus": ["arm64e"]},
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_unversioned_xcframework",
-        binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        binary_test_architecture = "arm64e",
-        contains = [
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/Resources/Info.plist",
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
-        ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        expected_error = "Error: The contents of macOS frameworks must be defined within a Versions/A directory.",
         tags = [name],
     )
 

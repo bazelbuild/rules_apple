@@ -328,10 +328,10 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Verify importing XCFramework with dynamic libraries (i.e. not Apple frameworks) fails.
+    # Verify importing static library XCFrameworks with the dynamic XCFramework rule fails.
     analysis_failure_message_test(
-        name = "{}_fails_importing_xcframework_with_libraries_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_imported_xcframework_with_libraries",
+        name = "{}_fails_importing_xcframework_with_static_xcframework_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mismatched_xcframework_import",
         expected_error = "Importing XCFrameworks with dynamic libraries is not supported.",
         tags = [name],
     )
@@ -402,6 +402,13 @@ Please contact the owner of this target to supply a precompiled artifact (likely
 - trivial_auto_var_init
 
 Please contact the owner of this target to supply a precompiled artifact (likely a framework or XCFramework) that is built with the required Enhanced Security features enabled, and update the "expected_secure_features" attribute to match.""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_imported_unversioned_xcframework_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
+        expected_error = "Error: The contents of macOS frameworks must be defined within a Versions/A directory.",
         tags = [name],
     )
 

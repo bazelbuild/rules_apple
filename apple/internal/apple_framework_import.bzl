@@ -126,13 +126,18 @@ def _apple_dynamic_framework_import_impl(ctx):
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         framework_imports,
     )
-    if has_versioned_framework_files:
-        features_support.validate_framework_legacy_signing(
-            cc_configured_features = cc_configured_features,
-            label_name = ctx.label.name,
-            target_os = target_triplet.os,
-            tree_artifact_enabled = ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value,
-        )
+    if not has_versioned_framework_files and target_triplet.os == "macos":
+        # There is no other way to issue a warning, so print is the only way to message.
+        # buildifier: disable=print
+        print("""
+Warning: The contents of macOS frameworks should be defined within a Versions/A directory. Target \
+{full_label} is using the formatting of an iOS framework.""".format(full_label = full_label))
+    features_support.validate_framework_legacy_signing(
+        cc_configured_features = cc_configured_features,
+        label_name = ctx.label.name,
+        target_os = target_triplet.os,
+        tree_artifact_enabled = ctx.attr._use_tree_artifacts_outputs[BuildSettingInfo].value,
+    )
 
     providers = []
     framework = framework_import_support.classify_framework_imports(

@@ -2019,6 +2019,7 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+# buildozer: disable=no-hdrs-no-alwayslink
 cc_library(
     name = "StaticFmwkCcLowerLib",
     srcs = ["DummyFmwkDependent.c"],
@@ -2113,7 +2114,7 @@ apple_universal_binary(
 # Targets for Apple dynamic XCFramework import tests.
 
 apple_dynamic_xcframework_import(
-    name = "ios_imported_xcframework_with_libraries",
+    name = "ios_imported_xcframework_with_static_xcframework",
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_xcframework"],
 )

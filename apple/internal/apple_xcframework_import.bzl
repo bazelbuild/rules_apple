@@ -109,20 +109,10 @@ def _anticipated_framework_root_info_plist_path(
         relative_path = example_root_info_plist_relative_path,
     )
 
-def _classify_xcframework_imports(
-        *,
-        apple_xplat_toolchain_info,
-        cc_configured_features,
-        label_name,
-        target_triplet,
-        xcframework_imports):
+def _classify_xcframework_imports(xcframework_imports):
     """Classifies XCFramework files for later processing, with some early validation applied.
 
     Args:
-        apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-        cc_configured_features: A list of configured features.
-        label_name: Name of the target being built.
-        target_triplet: Effective target triplet from CcToolchainInfo provider.
         xcframework_imports: List of File for an imported Apple XCFramework.
     Returns:
         A struct containing xcframework import files information:
@@ -133,19 +123,6 @@ def _classify_xcframework_imports(
             - files_by_category: Classified XCFramework import files.
             - info_plist: The XCFramework bundle Info.plist file.
     """
-    has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
-        xcframework_imports,
-    )
-    if has_versioned_framework_files:
-        features_support.validate_framework_legacy_signing(
-            cc_configured_features = cc_configured_features,
-            label_name = label_name,
-            target_os = target_triplet.os,
-            tree_artifact_enabled = (
-                apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
-            ),
-        )
-
     info_plist = None
     bundle_name = None
 
@@ -206,6 +183,8 @@ def _get_xcframework_library_with_xcframework_processor(
         actions,
         apple_fragment,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        cc_configured_features,
         label,
         mac_exec_group,
         target_triplet,
@@ -220,6 +199,8 @@ def _get_xcframework_library_with_xcframework_processor(
         actions: The actions provider from `ctx.actions`.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: An AppleXplatToolsToolchainInfo provider.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`.
         label: Label of the target being built.
         mac_exec_group: The exec_group associated with apple_mac_toolchain
         target_triplet: Struct referring a Clang target triplet.
@@ -287,6 +268,21 @@ invocation appear to be valid.
     has_versioned_framework_files = framework_import_support.has_versioned_framework_files(
         binary_imports,
     )
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        if not has_versioned_framework_files and target_triplet.os == "macos":
+            # There is no other way to issue a warning, so print is the only way to message.
+            # buildifier: disable=print
+            print("""
+Warning: The contents of macOS frameworks should be defined within a Versions/A directory. Target \
+{full_label} is using the formatting of an iOS framework.""".format(full_label = full_label))
+        features_support.validate_framework_legacy_signing(
+            cc_configured_features = cc_configured_features,
+            label_name = label.name,
+            target_os = target_triplet.os,
+            tree_artifact_enabled = (
+                apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
+            ),
+        )
     if has_versioned_framework_files:
         binary_imports = framework_import_support.get_canonical_versioned_framework_files(
             binary_imports,
@@ -736,13 +732,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-    xcframework = _classify_xcframework_imports(
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        cc_configured_features = cc_configured_features,
-        label_name = label.name,
-        target_triplet = target_triplet,
-        xcframework_imports = xcframework_imports,
-    )
+    xcframework = _classify_xcframework_imports(xcframework_imports)
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
         fail("Importing XCFrameworks with dynamic libraries is not supported.")
 
@@ -750,6 +740,8 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        cc_configured_features = cc_configured_features,
         label = label,
         mac_exec_group = mac_exec_group,
         target_triplet = target_triplet,
@@ -863,18 +855,14 @@ def _apple_static_xcframework_import_impl(ctx):
 
     target_triplet = cc_toolchain_info_support.get_apple_clang_triplet(cc_toolchain)
 
-    xcframework = _classify_xcframework_imports(
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        cc_configured_features = cc_configured_features,
-        label_name = label.name,
-        target_triplet = target_triplet,
-        xcframework_imports = xcframework_imports,
-    )
+    xcframework = _classify_xcframework_imports(xcframework_imports)
 
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        cc_configured_features = cc_configured_features,
         label = label,
         mac_exec_group = mac_exec_group,
         target_triplet = target_triplet,
