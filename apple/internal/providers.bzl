@@ -753,6 +753,20 @@ requirement.
     init = make_banned_init(provider_name = "MacosXPCServiceBundleInfo"),
 )
 
+MacosFrameworkBundleInfo, new_macosframeworkbundleinfo = provider(
+    doc = """
+Denotes that a target is a macOS dynamic framework.
+
+This provider does not contain any fields of its own at this time but is used as
+a "marker" to indicate that a target is specifically a macOS dynamic framework
+bundle (and not some other Apple bundle). Rule authors who wish to require that
+a dependency is a macOS dynamic framework should use this provider to describe
+that requirement.
+""",
+    fields = {},
+    init = make_banned_init(provider_name = "MacosFrameworkBundleInfo"),
+)
+
 MacosXcTestBundleInfo, new_macosxctestbundleinfo = provider(
     doc = """
 Denotes a target that is a macOS .xctest bundle.

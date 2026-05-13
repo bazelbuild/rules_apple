@@ -166,13 +166,21 @@ def _apple_verification_test_impl(ctx):
             archive_relative_bundle = bundle_with_extension
 
         if bundle_info.platform_type == "macos":
-            archive_relative_contents = paths.join(archive_relative_bundle, "Contents")
-            archive_relative_binary = paths.join(
-                archive_relative_contents,
-                "MacOS",
-                bundle_info.bundle_name,
-            )
-            archive_relative_resources = paths.join(archive_relative_contents, "Resources")
+            if bundle_info.product_type == apple_product_type.framework:
+                archive_relative_contents = paths.join(archive_relative_bundle, "Versions", "A")
+                archive_relative_binary = paths.join(
+                    archive_relative_contents,
+                    bundle_info.bundle_name,
+                )
+                archive_relative_resources = paths.join(archive_relative_contents, "Resources")
+            else:
+                archive_relative_contents = paths.join(archive_relative_bundle, "Contents")
+                archive_relative_binary = paths.join(
+                    archive_relative_contents,
+                    "MacOS",
+                    bundle_info.bundle_name,
+                )
+                archive_relative_resources = paths.join(archive_relative_contents, "Resources")
         else:
             archive_relative_contents = archive_relative_bundle
             archive_relative_binary = paths.join(archive_relative_bundle, bundle_info.bundle_name)

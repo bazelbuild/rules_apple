@@ -31,6 +31,10 @@ load(
     "AppleResourceLocalesInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -73,6 +77,7 @@ def _merge_root_infoplists(
         actions,
         out_infoplist,
         output_discriminator,
+        platform_prerequisites,
         rule_descriptor,
         rule_label,
         **kwargs):
@@ -83,6 +88,7 @@ def _merge_root_infoplists(
       out_infoplist: Reference to the output Info plist.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
+      platform_prerequisites: Struct containing information on the platform being targeted.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the target being analyzed.
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
@@ -108,12 +114,17 @@ def _merge_root_infoplists(
         output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
+        platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         **kwargs
     )
 
-    return [(processor.location.content, None, depset(direct = files))]
+    location = processor.location.content
+    if platform_prerequisites.platform_type == "macos" and rule_descriptor.product_type == apple_product_type.framework:
+        location = processor.location.resource
+
+    return [(location, None, depset(direct = files))]
 
 def _expand_owners(*, owners):
     """Converts a depset of (path, owner) to a dict of paths to dict of owners.

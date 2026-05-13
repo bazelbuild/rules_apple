@@ -27,6 +27,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -383,55 +387,83 @@ def _codesigning_command(
     Returns:
         A string containing the codesigning commands.
     """
+    commands = []
+
+    # Generate macOS framework symlinks if needed, supporting legacy code signing.
+    if (platform_prerequisites.platform_type == "macos" and
+        rule_descriptor.product_type == apple_product_type.framework):
+        target_dir = "$WORK_DIR"
+        if bundle_path:
+            target_dir = paths.join("$WORK_DIR", bundle_path)
+
+        # Following the exact parameters required by
+        # https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle#Support-a-single-framework-version-on-macOS
+        commands.extend([
+            # Create a symlink to the framework content at Versions/A from Versions/Current.
+            "ln -sfh A {target_dir}/Versions/Current".format(target_dir = target_dir),
+            # Create symlinks for all contents of the framework root to the corresponding content as
+            # resolved through the Versions/Current symlink. This covers files and folders.
+            "for content_path in {target_dir}/Versions/A/* ; ".format(target_dir = target_dir) +
+            # Use `##*/` to slice off the parent, leaving only the last path component.
+            "do content=\"${content_path##*/}\"; " +
+            "ln -sfh Versions/Current/\"${{content}}\" {target_dir}/\"${{content}}\"; ".format(
+                target_dir = target_dir,
+            ) +
+            "done",
+        ])
+
     should_sign_bundles = _should_sign_bundles(
         cc_configured_features = cc_configured_features,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
     )
-    if not should_sign_bundles:
-        return ""
-
-    _validate_provisioning_profile(
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-        rule_descriptor = rule_descriptor,
-    )
-    paths_to_sign = []
-
-    # The command returned by this function is executed as part of a bundling shell script.
-    # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
-    # script that contains the path to the directory where the bundle is being built.
-    if frameworks_path:
-        framework_root = paths.join("$WORK_DIR", frameworks_path) + "/"
-        full_signed_frameworks = []
-
-        for signed_framework in signed_frameworks.to_list():
-            full_signed_frameworks.append(paths.join(framework_root, signed_framework))
-
-        paths_to_sign.append(
-            _path_to_sign(
-                path = framework_root,
-                is_directory = True,
-                signed_frameworks = full_signed_frameworks,
-                use_entitlements = False,
-            ),
+    if should_sign_bundles:
+        _validate_provisioning_profile(
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
         )
-    should_sign_sim_bundles = _should_sign_simulator_bundles(
-        config_vars = platform_prerequisites.config_vars,
-        rule_descriptor = rule_descriptor,
-    )
-    if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
-        path_to_sign = paths.join("$WORK_DIR", bundle_path)
-        paths_to_sign.append(
-            _path_to_sign(path = path_to_sign),
+        paths_to_sign = []
+
+        # The command returned by this function is executed as part of a bundling shell script.
+        # Each directory to be signed must be prefixed by $WORK_DIR, which is the variable in that
+        # script that contains the path to the directory where the bundle is being built.
+        if frameworks_path:
+            framework_root = paths.join("$WORK_DIR", frameworks_path) + "/"
+            full_signed_frameworks = []
+
+            for signed_framework in signed_frameworks.to_list():
+                full_signed_frameworks.append(paths.join(framework_root, signed_framework))
+
+            paths_to_sign.append(
+                _path_to_sign(
+                    path = framework_root,
+                    is_directory = True,
+                    signed_frameworks = full_signed_frameworks,
+                    use_entitlements = False,
+                ),
+            )
+        should_sign_sim_bundles = _should_sign_simulator_bundles(
+            config_vars = platform_prerequisites.config_vars,
+            rule_descriptor = rule_descriptor,
         )
-    return _signing_command_lines(
-        codesigningtool = codesigningtool,
-        entitlements_file = entitlements,
-        paths_to_sign = paths_to_sign,
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-    )
+        if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
+            path_to_sign = paths.join("$WORK_DIR", bundle_path)
+            paths_to_sign.append(
+                _path_to_sign(path = path_to_sign),
+            )
+
+        signing_commands = _signing_command_lines(
+            codesigningtool = codesigningtool,
+            entitlements_file = entitlements,
+            paths_to_sign = paths_to_sign,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+        )
+        if signing_commands:
+            commands.append(signing_commands)
+
+    return "\n".join(commands)
 
 def _generate_dossier_file(
         *,

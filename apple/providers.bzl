@@ -56,6 +56,7 @@ load(
     _MacosApplicationBundleInfo = "MacosApplicationBundleInfo",
     _MacosBundleBundleInfo = "MacosBundleBundleInfo",
     _MacosExtensionBundleInfo = "MacosExtensionBundleInfo",
+    _MacosFrameworkBundleInfo = "MacosFrameworkBundleInfo",
     _MacosXPCServiceBundleInfo = "MacosXPCServiceBundleInfo",
     _MacosXcTestBundleInfo = "MacosXcTestBundleInfo",
     _TvosApplicationBundleInfo = "TvosApplicationBundleInfo",
@@ -111,6 +112,7 @@ IosXcTestBundleInfo = _IosXcTestBundleInfo
 MacosApplicationBundleInfo = _MacosApplicationBundleInfo
 MacosBundleBundleInfo = _MacosBundleBundleInfo
 MacosExtensionBundleInfo = _MacosExtensionBundleInfo
+MacosFrameworkBundleInfo = _MacosFrameworkBundleInfo
 MacosXPCServiceBundleInfo = _MacosXPCServiceBundleInfo
 MacosXcTestBundleInfo = _MacosXcTestBundleInfo
 TvosApplicationBundleInfo = _TvosApplicationBundleInfo

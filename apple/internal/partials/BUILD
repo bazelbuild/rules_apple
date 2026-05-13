@@ -242,6 +242,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:apple_product_type",
         "//apple/internal:intermediates",
         "//apple/internal:outputs",
         "//apple/internal:processor",

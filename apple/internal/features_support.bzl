@@ -67,6 +67,35 @@ def _validate_feature_usage(*, label, toolchain, requested_features, unsupported
                     target = str(label),
                 ))
 
+def _validate_framework_legacy_signing(
+        *,
+        cc_configured_features,
+        label_name,
+        target_os,
+        tree_artifact_enabled):
+    """Fails if building macOS frameworks with tree artifacts without disabling legacy signing.
+
+    Args:
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`.
+        label_name: Name of the target being built.
+        target_os: Target Apple OS (e.g. "macos", "ios").
+        tree_artifact_enabled: Boolean indicating whether tree artifacts are enabled.
+    """
+    if (target_os == "macos" and
+        tree_artifact_enabled and
+        not "disable_legacy_signing" in cc_configured_features.enabled_features):
+        fail(
+            """
+Error: "{label_name}" does not support versioned frameworks with the bundle outputs feature/build \
+setting without disabling legacy signing.
+""".format(label_name = label_name) +
+            """,
+            Please build with --features=disable_legacy_signing and rely on dossier code signing \
+            to sign your final Bazel-generated bundle instead of relying on Bazel to sign the \
+            framework binaries.
+            """,
+        )
+
 def _cc_configured_features(
         *,
         ctx,
@@ -134,4 +163,5 @@ def _cc_configured_features(
 features_support = struct(
     cc_configured_features = _cc_configured_features,
     validate_feature_usage = _validate_feature_usage,
+    validate_framework_legacy_signing = _validate_framework_legacy_signing,
 )

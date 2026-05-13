@@ -143,6 +143,13 @@ _DEFAULT_MACOS_BUNDLE_LOCATIONS = _describe_bundle_locations(
     contents_relative_resources = "Resources",
 )
 
+_MACOS_FRAMEWORK_BUNDLE_LOCATIONS = _describe_bundle_locations(
+    bundle_relative_contents = "Versions/A",
+    contents_relative_binary = "",
+    contents_relative_frameworks = "Frameworks",
+    contents_relative_resources = "Resources",
+)
+
 # Descriptors for all possible platform/product type combinations.
 # TODO(b/248317958): Migrate rpaths to args on the linking_support methods.
 _RULE_TYPE_DESCRIPTORS = {
@@ -328,9 +335,19 @@ _RULE_TYPE_DESCRIPTORS = {
                 "@executable_path/../../../../Frameworks",
             ],
         ),
-        # TODO: b/65168941 - macos_framework should be added here, making SURE that its own
-        # bundle_relative_contents is set to "Versions/A" instead of the macOS standard of
-        # "Contents". Will need to set that through the bundle_locations correctly.
+        # macos_framework
+        apple_product_type.framework: _describe_rule_type(
+            allowed_device_families = ["mac"],
+            bundle_extension = ".framework",
+            bundle_locations = _MACOS_FRAMEWORK_BUNDLE_LOCATIONS,
+            bundle_package_type = bundle_package_type.framework,
+            product_type = apple_product_type.framework,
+            requires_signing_for_device = False,
+            rpaths = [
+                "@loader_path/Frameworks",
+                "@loader_path/../../..",
+            ],
+        ),
         apple_product_type.bundle: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = ".bundle",

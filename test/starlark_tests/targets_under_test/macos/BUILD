@@ -12,6 +12,7 @@ load(
     "macos_command_line_application",
     "macos_dylib",
     "macos_extension",
+    "macos_framework",
     "macos_ui_test",
     "macos_unit_test",
 )
@@ -1237,5 +1238,18 @@ macos_application(
     tags = common.fixture_tags,
     deps = [
         ":is_building_apple_bundle_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
