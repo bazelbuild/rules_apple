@@ -36,9 +36,33 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_APPLICATION_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app",
+    "TARGET_NAME": "app",
+}
+
+_EXTENSION_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "ext.appex",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "ext",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example.ext",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "XPC!",
+    "PRODUCT_NAME": "ext",
+    "TARGET_NAME": "ext",
+}
 
 def tvos_extension_test_suite(name):
     """Test suite for tvos_extension.
@@ -93,6 +117,99 @@ def tvos_extension_test_suite(name):
             "MinimumOSVersion": common.min_os_tvos.baseline,
             "UIDeviceFamily:0": "3",
         },
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:ext_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example.ext",
+        },
+        expected_error = "is missing CFBundleVersion.",
+        variable_substitutions = _EXTENSION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    plisttool_error_test(
+        name = "{}_missing_short_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:ext_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example.ext",
+        },
+        expected_error = "is missing CFBundleShortVersionString.",
+        variable_substitutions = _EXTENSION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Tests that if an application contains an extension with a bundle ID that is
+    # not the app's ID followed by at least another component, the build fails.
+    plisttool_error_test(
+        name = "{}_mismatched_bundle_id_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_bundle_id",
+        child_bundles = ["//test/starlark_tests/targets_under_test/tvos:ext_mismatched_bundle_id"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleIdentifier " +
+            "of the child target \"{child}\" should have \"com.google.example.\" " +
+            "as its prefix, but found \"com.google.other\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_bundle_id",
+            child = "//test/starlark_tests/targets_under_test/tvos:ext_mismatched_bundle_id",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Tests that if an application contains an extension with different
+    # CFBundleShortVersionString the build fails.
+    plisttool_error_test(
+        name = "{}_mismatched_short_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_short_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/tvos:ext_mismatched_short_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleShortVersionString " +
+            "of the child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_short_version",
+            child = "//test/starlark_tests/targets_under_test/tvos:ext_mismatched_short_version",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Tests that if an application contains an extension with different
+    # CFBundleVersion the build fails.
+    plisttool_error_test(
+        name = "{}_mismatched_version_fail_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/tvos:ext_mismatched_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {"CFBundleIdentifier": "com.google.example"},
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleVersion of the " +
+            "child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_mismatched_version",
+            child = "//test/starlark_tests/targets_under_test/tvos:ext_mismatched_version",
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
         tags = [name],
     )
 
