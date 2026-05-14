@@ -437,6 +437,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "macro_factory",
+    srcs = ["macro_factory.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":bundling_support",
+        ":rule_attrs",
+        ":transition_support",
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
     name = "order_file",
     srcs = ["order_file.bzl"],
     visibility = [

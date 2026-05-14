@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating watchOS applications and bundles."""
+"""
+# Bazel rules for creating watchOS applications and bundles.
+"""
 
+load(
+    "//apple/internal:macro_factory.bzl",
+    "macro_factory",
+)
 load(
     "//apple/internal:watchos_rules.bzl",
     _watchos_application = "watchos_application",
@@ -45,27 +51,47 @@ watchos_framework = _watchos_framework
 watchos_extension = _watchos_extension
 watchos_static_framework = _watchos_static_framework
 
-_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:watchos_default_runner"))
+_DEFAULT_TEST_RUNNER = Label("//apple/testing/default_runner:watchos_default_runner")
 
-def watchos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+def _watchos_unit_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _watchos_internal_unit_test_bundle,
         test_rule = _watchos_unit_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
 
-def watchos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+watchos_unit_test = macro_factory.create_apple_test_macro(
+    implementation = _watchos_unit_test_impl,
+    inherit_attrs = _watchos_unit_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "watchos",
+    doc = """
+watchOS Unit Test rule.
+""",
+)
+
+def _watchos_ui_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _watchos_internal_ui_test_bundle,
         test_rule = _watchos_ui_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
+
+watchos_ui_test = macro_factory.create_apple_test_macro(
+    implementation = _watchos_ui_test_impl,
+    inherit_attrs = _watchos_ui_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "watchos",
+    doc = """
+watchOS UI Test rule.
+""",
+)
 
 watchos_build_test = apple_build_test_rule(
     doc = """\

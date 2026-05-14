@@ -95,8 +95,19 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
 
     test_bundle_name = name + ".__internal__.__test_bundle"
 
-    test_attrs = {k: v for (k, v) in kwargs.items() if k not in _BUNDLE_ATTRS}
-    bundle_attrs = {k: v for (k, v) in kwargs.items() if k in _BUNDLE_ATTRS}
+    # Symbolic macro attrs may arrive as `None` when they were omitted by the
+    # caller. Drop them here so the inner rule sees the same effective surface
+    # as if the attribute had been omitted directly on that rule.
+    test_attrs = {
+        k: v
+        for (k, v) in kwargs.items()
+        if k not in _BUNDLE_ATTRS and v != None
+    }
+    bundle_attrs = {
+        k: v
+        for (k, v) in kwargs.items()
+        if k in _BUNDLE_ATTRS and v != None
+    }
 
     # Args to apply to the test and the bundle.
     for x in _SHARED_TEST_BUNDLE_ATTRS:
@@ -104,7 +115,7 @@ def _assemble(name, bundle_rule, test_rule, runner = None, runners = None, **kwa
             bundle_attrs[x] = test_attrs[x]
 
     # `bundle_name` is either provided or the default is `name`.
-    bundle_name = bundle_attrs.pop("bundle_name", name)
+    bundle_name = bundle_attrs.pop("bundle_name", None) or name
 
     # `//...` shouldn't try to build the bundle rule directly.
     bundle_tags = bundle_attrs.pop("tags", [])

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rules for creating macOS applications and bundles."""
+"""
+# Bazel rules for creating macOS applications and bundles.
+"""
 
 load(
     "//apple/internal:macos_binary_support.bzl",
@@ -35,6 +37,10 @@ load(
     _macos_xpc_service = "macos_xpc_service",
 )
 load(
+    "//apple/internal:macro_factory.bzl",
+    "macro_factory",
+)
+load(
     "//apple/internal/testing:apple_test_assembler.bzl",
     "apple_test_assembler",
 )
@@ -55,63 +61,73 @@ macos_quick_look_plugin = _macos_quick_look_plugin
 macos_spotlight_importer = _macos_spotlight_importer
 macos_xpc_service = _macos_xpc_service
 
-def macos_application(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS application."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+def _macos_application_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_application(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_bundle(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS loadable bundle."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+macos_application = macro(
+    implementation = _macos_application_impl,
+    inherit_attrs = _macos_application,
+    doc = """
+Packages a macOS application.
+""",
+)
+
+def _macos_bundle_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_bundle(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_kernel_extension(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS Kernel Extension."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("kernel_extension")
+macos_bundle = macro(
+    implementation = _macos_bundle_impl,
+    inherit_attrs = _macos_bundle,
+    doc = """
+Packages a macOS loadable bundle.
+""",
+)
+
+def _macos_kernel_extension_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["kernel_extension"]
 
     _macos_kernel_extension(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_command_line_application(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds a macOS command line application."""
+macos_kernel_extension = macro(
+    implementation = _macos_kernel_extension_impl,
+    inherit_attrs = _macos_kernel_extension,
+    doc = """
+Packages a macOS Kernel Extension.
+""",
+)
 
-    binary_args = dict(kwargs)
-
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
+def _macos_command_line_application_impl(name, visibility, **kwargs):
+    deps = (kwargs.pop("deps", None) or [])
+    additional_deps = []
 
     # If any of the Info.plist-affecting attributes is provided, create a merged
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
-    base_bundle_id = binary_args.get("base_bundle_id")
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    launchdplists = binary_args.get("launchdplists")
-    version = binary_args.get("version")
+    base_bundle_id = kwargs.get("base_bundle_id")
+    bundle_id = kwargs.get("bundle_id")
+    infoplists = kwargs.get("infoplists")
+    launchdplists = kwargs.get("launchdplists")
+    version = kwargs.get("version")
 
     if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
@@ -120,12 +136,12 @@ def macos_command_line_application(name, **kwargs):
             name = merged_infoplist_name,
             base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
-            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
+            bundle_id_suffix = kwargs.get("bundle_id_suffix"),
             infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
+            minimum_os_version = kwargs.get("minimum_os_version"),
             version = version,
         )
-        binary_deps.extend([":" + merged_infoplist_name])
+        additional_deps.append(":" + merged_infoplist_name)
 
     if launchdplists:
         merged_launchdplists_name = name + ".merged_launchdplists"
@@ -133,42 +149,46 @@ def macos_command_line_application(name, **kwargs):
         macos_command_line_launchdplist(
             name = merged_launchdplists_name,
             launchdplists = launchdplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
+            minimum_os_version = kwargs.get("minimum_os_version"),
         )
-        binary_deps.extend([":" + merged_launchdplists_name])
+        additional_deps.append(":" + merged_launchdplists_name)
 
     _macos_command_line_application(
         name = name,
-        deps = binary_deps,
-        **binary_args
+        deps = deps + additional_deps,
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_dylib(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Builds a macOS dylib."""
+macos_command_line_application = macro(
+    implementation = _macos_command_line_application_impl,
+    inherit_attrs = _macos_command_line_application,
+    doc = """
+Builds a macOS command line application.
+""",
+)
 
+def _macos_dylib_impl(name, visibility, **kwargs):
     # Xcode will happily apply entitlements during code signing for a dylib even
     # though it doesn't have a Capabilities tab in the project settings.
     # Until there's official support for it, we'll fail if we see those attributes
     # (which are added to the rule because of the code_signing_attributes usage in
     # the rule definition).
-    if "entitlements" in kwargs or "provisioning_profile" in kwargs:
+    if kwargs.get("entitlements") or kwargs.get("provisioning_profile"):
         fail("macos_dylib does not support entitlements or provisioning " +
              "profiles at this time")
 
-    binary_args = dict(kwargs)
-
-    original_deps = binary_args.pop("deps")
-    binary_deps = list(original_deps)
+    deps = (kwargs.pop("deps", None) or [])
+    additional_deps = []
 
     # If any of the Info.plist-affecting attributes is provided, create a merged
     # Info.plist target. This target also propagates an objc provider that
     # contains the linkopts necessary to add the Info.plist to the binary, so it
     # must become a dependency of the binary as well.
-    base_bundle_id = binary_args.get("base_bundle_id")
-    bundle_id = binary_args.get("bundle_id")
-    infoplists = binary_args.get("infoplists")
-    version = binary_args.get("version")
+    base_bundle_id = kwargs.get("base_bundle_id")
+    bundle_id = kwargs.get("bundle_id")
+    infoplists = kwargs.get("infoplists")
+    version = kwargs.get("version")
 
     if base_bundle_id or bundle_id or infoplists or version:
         merged_infoplist_name = name + ".merged_infoplist"
@@ -177,93 +197,153 @@ def macos_dylib(name, **kwargs):
             name = merged_infoplist_name,
             base_bundle_id = base_bundle_id,
             bundle_id = bundle_id,
-            bundle_id_suffix = binary_args.get("bundle_id_suffix"),
+            bundle_id_suffix = kwargs.get("bundle_id_suffix"),
             infoplists = infoplists,
-            minimum_os_version = binary_args.get("minimum_os_version"),
+            minimum_os_version = kwargs.get("minimum_os_version"),
             version = version,
         )
-        binary_deps.extend([":" + merged_infoplist_name])
+        additional_deps.append(":" + merged_infoplist_name)
 
     _macos_dylib(
         name = name,
-        deps = binary_deps,
-        **binary_args
+        deps = deps + additional_deps,
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_extension(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS Extension Bundle."""
-    bundling_args = dict(kwargs)
+macos_dylib = macro(
+    implementation = _macos_dylib_impl,
+    inherit_attrs = _macos_dylib,
+    doc = """
+Builds a macOS dylib.
+""",
+)
 
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+def _macos_extension_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_extension(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS framework."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+macos_extension = macro(
+    implementation = _macos_extension_impl,
+    inherit_attrs = _macos_extension,
+    doc = """
+Packages a macOS Extension Bundle.
+""",
+)
+
+def _macos_framework_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_framework(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_static_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS framework."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+macos_framework = macro(
+    implementation = _macos_framework_impl,
+    inherit_attrs = _macos_framework,
+    doc = """
+Packages a macOS framework.
+""",
+)
+
+def _macos_static_framework_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_static_framework(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-def macos_dynamic_framework(name, **kwargs):
-    # buildifier: disable=function-docstring-args
-    """Packages a macOS framework."""
-    bundling_args = dict(kwargs)
-    features = bundling_args.pop("features", [])
-    features.append("link_cocoa")
+macos_static_framework = macro(
+    implementation = _macos_static_framework_impl,
+    inherit_attrs = _macos_static_framework,
+    doc = """
+Packages a macOS framework.
+""",
+)
+
+def _macos_dynamic_framework_impl(name, visibility, **kwargs):
+    features = (kwargs.pop("features", None) or []) + ["link_cocoa"]
 
     _macos_dynamic_framework(
         name = name,
         features = features,
-        **bundling_args
+        visibility = visibility,
+        **kwargs
     )
 
-_DEFAULT_TEST_RUNNER = str(Label("//apple/testing/default_runner:macos_default_runner"))
+macos_dynamic_framework = macro(
+    implementation = _macos_dynamic_framework_impl,
+    inherit_attrs = _macos_dynamic_framework,
+    doc = """
+Packages a macOS framework.
+""",
+)
 
-def macos_unit_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+_DEFAULT_TEST_RUNNER = Label("//apple/testing/default_runner:macos_default_runner")
+
+def _macos_unit_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _macos_internal_unit_test_bundle,
         test_rule = _macos_unit_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
 
-def macos_ui_test(name, **kwargs):
-    runner = kwargs.pop("runner", _DEFAULT_TEST_RUNNER)
+macos_unit_test = macro_factory.create_apple_test_macro(
+    implementation = _macos_unit_test_impl,
+    inherit_attrs = _macos_unit_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "macos",
+    doc = """
+Builds and bundles a macOS unit `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+`macos_unit_test` targets can work in two modes: as app or library tests. If the
+`test_host` attribute is set to an `macos_application` target, the tests will
+run within that application's context. If no `test_host` is provided, the tests
+will run outside the context of an macOS application. Because of this, certain
+functionalities might not be present (e.g. UI layout, NSUserDefaults). You can
+find more information about testing for Apple platforms
+[here](https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/testing_with_xcode/chapters/03-testing_basics.html).
+""",
+)
+
+def _macos_ui_test_impl(name, visibility, runner, **kwargs):
     apple_test_assembler.assemble(
         name = name,
         bundle_rule = _macos_internal_ui_test_bundle,
         test_rule = _macos_ui_test,
         runner = runner,
+        visibility = visibility,
         **kwargs
     )
+
+macos_ui_test = macro_factory.create_apple_test_macro(
+    implementation = _macos_ui_test_impl,
+    inherit_attrs = _macos_ui_test,
+    default_runner = _DEFAULT_TEST_RUNNER,
+    platform_attrs = "macos",
+    doc = """
+Builds and bundles an iOS UI `.xctest` test bundle. Runs the tests using the
+provided test runner when invoked with `bazel test`.
+
+Note: macOS UI tests are not currently supported in the default test runner.
+""",
+)
 
 macos_build_test = apple_build_test_rule(
     doc = """\
