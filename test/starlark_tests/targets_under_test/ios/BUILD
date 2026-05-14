@@ -27,6 +27,7 @@ load(
     "ios_kernel_extension",
     "ios_static_framework",
     "ios_sticker_pack_extension",
+    "ios_test_runner",
     "ios_ui_test",
     "ios_unit_test",
 )
@@ -4891,6 +4892,75 @@ ios_ui_test(
 )
 
 # ---------------------------------------------------------------------------------------
+
+ios_test_runner(
+    name = "ios_test_runner_ui_test_runner",
+    device_type = "iPhone 12",
+)
+
+ios_application(
+    name = "ios_test_runner_ui_test_app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
+swift_library(
+    name = "ios_test_runner_ui_test_pass_lib",
+    srcs = ["ios_test_runner_ui_test_pass.swift"],
+)
+
+ios_ui_test(
+    name = "ios_test_runner_ui_test_pass",
+    size = "large",
+    env = {
+        "ENV_KEY1": "ENV_VALUE2",
+        "EXPECTED_UI_TEST_NAMES": "testPass;testPass2;testEnv",
+    },
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    runner = ":ios_test_runner_ui_test_runner",
+    tags = [
+        "exclusive",
+        "ios_test_runner_ui_test",
+    ],
+    test_host = ":ios_test_runner_ui_test_app",
+    deps = [
+        ":ios_test_runner_ui_test_pass_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "ios_test_runner_ui_test_with_filter",
+    size = "large",
+    env = {
+        "EXPECTED_UI_TEST_NAMES": "testPass2",
+        "TESTBRIDGE_TEST_ONLY": "PassingUiTest/testPass2",
+    },
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    runner = ":ios_test_runner_ui_test_runner",
+    tags = [
+        "exclusive",
+        "ios_test_runner_ui_test",
+    ],
+    test_host = ":ios_test_runner_ui_test_app",
+    deps = [
+        ":ios_test_runner_ui_test_pass_lib",
+    ],
+)
 
 ios_ui_test(
     name = "ui_test",

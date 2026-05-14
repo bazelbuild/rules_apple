@@ -100,13 +100,3 @@ apple_shell_test(
     ],
     tags = common.skip_ci_tags,
 )
-
-apple_shell_test(
-    name = "ios_test_runner_ui_test",
-    size = "large",
-    src = "ios_test_runner_ui_test.sh",
-    args = [
-        "--ios_multi_cpus=sim_arm64,x86_64",
-    ],
-    tags = common.skip_ci_tags,
-)
