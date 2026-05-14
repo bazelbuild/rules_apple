@@ -24,7 +24,7 @@ if [[ -n "$IOS_APP_DIR" ]]; then
   exit 0
 fi
 
-CONTENT_BUNDLE_DIR="$(find "$WORKDIR" -maxdepth 1 -mindepth 1 -type d \( -name "*.app" -o -name "*.bundle" \) -print -quit)"
+CONTENT_BUNDLE_DIR="$(find "$WORKDIR" -maxdepth 1 -mindepth 1 -type d \( -name "*.app" -o -name "*.bundle" -o -name "*.qlgenerator" \) -print -quit)"
 
 if [[ -n "$CONTENT_BUNDLE_DIR" ]]; then
   mkdir -p "$CONTENT_BUNDLE_DIR/Contents/Resources"

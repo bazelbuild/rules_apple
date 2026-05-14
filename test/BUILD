@@ -2,7 +2,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
-    "MACOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
     "WATCHOS_CONFIGURATIONS",
 )
@@ -68,13 +67,6 @@ apple_multi_shell_test(
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = True,
-)
-
-apple_multi_shell_test(
-    name = "macos_quick_look_plugin_test",
-    size = "medium",
-    src = "macos_quick_look_plugin_test.sh",
-    configurations = MACOS_CONFIGURATIONS,
 )
 
 apple_multi_shell_test(

@@ -27,9 +27,23 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_QUICK_LOOK_PLUGIN_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "ql_plugin.qlgenerator",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "ql_plugin",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "BNDL",
+    "PRODUCT_NAME": "ql_plugin",
+    "TARGET_NAME": "ql_plugin",
+}
 
 def macos_quick_look_plugin_test_suite(name):
     """Test suite for macos_quick_look_plugin.
@@ -72,6 +86,47 @@ def macos_quick_look_plugin_test_suite(name):
             "LSMinimumSystemVersion": common.min_os_macos.baseline,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin",
+        tags = [name],
+    )
+
+    # Test missing the CFBundleVersion fails the build.
+    plisttool_error_test(
+        name = "{}_missing_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:ql_plugin_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleVersion.",
+        variable_substitutions = _QUICK_LOOK_PLUGIN_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test missing the CFBundleShortVersionString fails the build.
+    plisttool_error_test(
+        name = "{}_missing_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:ql_plugin_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleShortVersionString.",
+        variable_substitutions = _QUICK_LOOK_PLUGIN_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Tests that the IPA post-processor is executed and can modify the bundle.
+    archive_contents_test(
+        name = "{}_ipa_post_processor_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ql_plugin_with_ipa_post_processor",
+        text_test_file = "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        text_test_values = ["foo"],
         tags = [name],
     )
 
