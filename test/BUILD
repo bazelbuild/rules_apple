@@ -58,13 +58,6 @@ filegroup(
 # tools.
 
 apple_multi_shell_test(
-    name = "ios_application_test",
-    size = "large",
-    src = "ios_application_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "ios_application_resources_test",
     size = "large",
     src = "ios_application_resources_test.sh",

@@ -82,6 +82,12 @@ physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),
+    "add_debugger_entitlement": struct(
+        doc = """
+Controls whether debug entitlements are added to non-macOS targets.
+""",
+        default = False,
+    ),
 }
 
 # List of all registered build settings without command line flags at

@@ -1023,6 +1023,25 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+apple_resource_bundle(
+    name = "bundle_library_dependency",
+    resources = select({
+        "//apple:ios_arm64": ["bundle_library_dependency_device.txt"],
+        "//apple:ios_arm64e": ["bundle_library_dependency_device.txt"],
+        "//apple:ios_sim_arm64": ["bundle_library_dependency_sim.txt"],
+        "//apple:ios_x86_64": ["bundle_library_dependency_sim.txt"],
+    }),
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "bundle_library_dependency_lib",
+    data = [
+        ":bundle_library_dependency",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "precompiled_bundle_library_ios_lib",
     data = [

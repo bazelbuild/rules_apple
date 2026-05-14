@@ -104,6 +104,11 @@ def _include_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
+
+    build_settings = platform_prerequisites.build_settings
+    if build_settings and build_settings.add_debugger_entitlement:
+        return True
+
     if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
         return False
     return True

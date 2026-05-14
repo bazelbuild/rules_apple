@@ -131,6 +131,9 @@ Type of build for the target under test. Possible values are `simulator` or
 """,
             values = ["simulator", "device"],
         ),
+        "build_settings": attr.string_dict(
+            doc = "Build settings for target under test.",
+        ),
         "compilation_mode": attr.string(
             default = "fastbuild",
             doc = """

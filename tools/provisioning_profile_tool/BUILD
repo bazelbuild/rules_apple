@@ -9,6 +9,7 @@ py_binary(
     srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
+        "//test/starlark_tests:__subpackages__",
     ],
 )
 
