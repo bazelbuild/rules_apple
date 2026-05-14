@@ -5,21 +5,19 @@ x_defaults:
   common: &common
     platform: macos_arm64
     shell_commands:
-    - xcodebuild -downloadComponent metalToolchain
+      - xcodebuild -downloadComponent metalToolchain
     build_targets:
-    - "tools/..."
-    - "test/..."
+      - "examples/..."
+      - "test/..."
+      - "tools/..."
     build_flags:
-    - --modify_execution_info=AssetCatalogCompile=+exclusive
+      - --config=ci
     test_targets:
-    - "tools/..."
-    - "test/..."
-    - "examples/..."
+      - "examples/..."
+      - "test/..."
+      - "tools/..."
     test_flags:
-    - --local_test_jobs=2
-    - --modify_execution_info=AssetCatalogCompile=+exclusive
-    - --test_tag_filters=-skipci
-    - --ios_simulator_device=iPhone 16
+      - --config=ci
     include_json_profile:
       - build
       - test
