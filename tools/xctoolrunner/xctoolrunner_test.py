@@ -54,6 +54,50 @@ class TestIBTOOL(unittest.TestCase):
     self.assertEqual(out, _CHANGE_PROPERTY_MSG)
 
 
+class TestACTOOL(unittest.TestCase):
+
+  def testFilteringHidesSpurious76x76Notice(self):
+    stdout = (
+        "/* com.apple.actool.document.notices */\n"
+        "[][ipad][76x76][][][1x][][][]: notice: (null)\n"
+        "[][ipad][76x76][][][1x][][][]: notice: 76x76@1x "
+        "app icons only apply to iPad apps targeting releases of iOS prior "
+        "to 10.0.\n"
+    )
+
+    (tool_exit_status, out, err) = xctoolrunner.actool_filtering(
+        0, stdout, "")
+
+    self.assertEqual(tool_exit_status, 0)
+    self.assertEqual(out, "")
+    self.assertEqual(err, "")
+
+  def testFilteringPromotesWarningsToErrors(self):
+    stdout = (
+        "/* com.apple.actool.document.warnings */\n"
+        "star.imageset: warning: The image set has an unassigned child.\n"
+    )
+
+    (tool_exit_status, out, err) = xctoolrunner.actool_filtering(
+        0, stdout, "")
+
+    self.assertEqual(tool_exit_status, 1)
+    self.assertEqual(
+        out,
+        "star.imageset: error: The image set has an unassigned child.\n")
+    self.assertEqual(err, "")
+
+  def testFilteringPassesThroughStderrOnFailure(self):
+    stderr = "error: The file \"star.png\" does not exist.\n"
+
+    (tool_exit_status, out, err) = xctoolrunner.actool_filtering(
+        1, "", stderr)
+
+    self.assertEqual(tool_exit_status, 1)
+    self.assertEqual(out, "")
+    self.assertEqual(err, stderr)
+
+
 class TestMomcTool(unittest.TestCase):
 
   def setUp(self):
