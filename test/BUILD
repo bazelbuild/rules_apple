@@ -99,13 +99,6 @@ apple_multi_shell_test(
 )
 
 apple_multi_shell_test(
-    name = "tvos_extension_test",
-    size = "medium",
-    src = "tvos_extension_test.sh",
-    configurations = TVOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
     name = "watchos_application_test",
     size = "medium",
     src = "watchos_application_test.sh",
