@@ -17,12 +17,20 @@
 set -euo pipefail
 
 WORKDIR="$1"
-BUNDLE_DIR="$(find "$WORKDIR" -maxdepth 1 -mindepth 1 -type d -name "*.bundle" -print -quit)"
+IOS_APP_DIR="$(find "$WORKDIR/Payload" -maxdepth 1 -mindepth 1 -type d -name "*.app" -print -quit 2>/dev/null || true)"
 
-if [[ -z "$BUNDLE_DIR" ]]; then
-  echo "No .bundle directory found in $WORKDIR" >&2
-  exit 1
+if [[ -n "$IOS_APP_DIR" ]]; then
+  echo "foo" > "$IOS_APP_DIR/inserted_by_post_processor.txt"
+  exit 0
 fi
 
-mkdir -p "$BUNDLE_DIR/Contents/Resources"
-echo "foo" > "$BUNDLE_DIR/Contents/Resources/inserted_by_post_processor.txt"
+CONTENT_BUNDLE_DIR="$(find "$WORKDIR" -maxdepth 1 -mindepth 1 -type d \( -name "*.app" -o -name "*.bundle" \) -print -quit)"
+
+if [[ -n "$CONTENT_BUNDLE_DIR" ]]; then
+  mkdir -p "$CONTENT_BUNDLE_DIR/Contents/Resources"
+  echo "foo" > "$CONTENT_BUNDLE_DIR/Contents/Resources/inserted_by_post_processor.txt"
+  exit 0
+fi
+
+echo "No supported bundle directory found in $WORKDIR" >&2
+exit 1
