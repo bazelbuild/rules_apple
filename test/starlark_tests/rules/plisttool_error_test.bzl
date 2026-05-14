@@ -27,20 +27,47 @@ load(
     "apple_verification_transition",
 )
 
+def _normalized_label(label):
+    label = str(label)
+    if label.startswith("@"):
+        return "//" + label.split("//", 1)[1]
+    return label
+
 def _plisttool_error_test_impl(ctx):
     input_plists = ctx.files.plists
     child_infoplists = []
     child_plists = {}
+    child_labels = {}
     for child in ctx.attr.child_bundles:
         infoplist = child[AppleBundleInfo].infoplist
+        label = str(child.label)
         child_infoplists.append(infoplist)
-        child_plists[str(child.label)] = infoplist.short_path
+        child_plists[label] = infoplist.short_path
+        child_labels[_normalized_label(child.label)] = label
 
     info_plist_options = {}
     if ctx.attr.version_keys_required:
         info_plist_options["version_keys_required"] = True
     if child_plists:
         info_plist_options["child_plists"] = child_plists
+    if ctx.attr.child_plist_required_values:
+        required_values = {}
+        for child_label, values in ctx.attr.child_plist_required_values.items():
+            canonical_child_label = child_labels.get(child_label)
+            if not canonical_child_label:
+                fail("{} must be listed in child_bundles".format(child_label))
+
+            parsed_values = []
+            for value in values:
+                parts = value.split("=", 1)
+                if len(parts) != 2:
+                    fail(
+                        "child_plist_required_values entries must be in the form " +
+                        "`key:path=value`, got {}".format(value),
+                    )
+                parsed_values.append([parts[0].split(":"), parts[1]])
+            required_values[canonical_child_label] = parsed_values
+        info_plist_options["child_plist_required_values"] = required_values
 
     plists = [plist.short_path for plist in input_plists]
     if ctx.attr.plist_values:
@@ -115,6 +142,12 @@ plisttool_error_test = rule(
         "child_bundles": attr.label_list(
             cfg = apple_verification_transition,
             providers = [[AppleBundleInfo]],
+        ),
+        "child_plist_required_values": attr.string_list_dict(
+            doc = """
+Mapping of child bundle labels to required child plist values. Values are encoded as
+`Key:Path=ExpectedValue`.
+""",
         ),
         "build_type": attr.string(
             default = "simulator",

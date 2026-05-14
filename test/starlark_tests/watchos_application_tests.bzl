@@ -41,8 +41,41 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
+    "//test/starlark_tests/rules:provisioning_profile_tool_error_test.bzl",
+    "provisioning_profile_tool_error_test",
+)
+load(
     ":common.bzl",
     "common",
+)
+
+_WATCH_APP_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app",
+    "TARGET_NAME": "app",
+}
+
+_COMPANION_APP_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app_companion.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app_companion",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app_companion",
+    "TARGET_NAME": "app_companion",
+}
+
+_OTHER_COMPANION_APP_PLIST_SUBSTITUTIONS = dict(
+    _COMPANION_APP_PLIST_SUBSTITUTIONS,
+    PRODUCT_BUNDLE_IDENTIFIER = "com.other",
 )
 
 _analysis_watchos_strip_enabled_opt_test = make_analysis_target_actions_test(
@@ -114,6 +147,249 @@ def watchos_application_test_suite(name):
             "WKWatchKitApp": "true",
         },
         tags = [name],
+    )
+
+    # Test missing the CFBundleVersion fails the build.
+    plisttool_error_test(
+        name = "{}_watch_app_missing_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            'Target "//test/starlark_tests/targets_under_test/watchos:app_missing_version" ' +
+            "is missing CFBundleVersion."
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test missing the CFBundleShortVersionString fails the build.
+    plisttool_error_test(
+        name = "{}_watch_app_missing_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            'Target "//test/starlark_tests/targets_under_test/watchos:app_missing_short_version" ' +
+            "is missing CFBundleShortVersionString."
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS app with a bundle_id that isn't prefixed by the iOS
+    # app fails the build.
+    plisttool_error_test(
+        name = "{}_watch_app_mismatched_bundle_id_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_bundle_id",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:app_mismatched_bundle_id"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleIdentifier " +
+            "of the child target \"{child}\" should have \"com.google.\" " +
+            "as its prefix, but found \"com.other.example\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_bundle_id",
+            child = "//test/starlark_tests/targets_under_test/watchos:app_mismatched_bundle_id",
+        ),
+        variable_substitutions = _COMPANION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS extension with a bundle_id that isn't prefixed by the
+    # watchOS app fails the build.
+    plisttool_error_test(
+        name = "{}_watch_ext_mismatched_bundle_id_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_bundle_id",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:ext_mismatched_bundle_id"],
+        plists = ["//test/starlark_tests/resources:WatchosAppInfo.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleIdentifier " +
+            "of the child target \"{child}\" should have \"com.google.example.\" " +
+            "as its prefix, but found \"com.google.other\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_bundle_id",
+            child = "//test/starlark_tests/targets_under_test/watchos:ext_mismatched_bundle_id",
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS app with a different CFBundleShortVersionString than
+    # the iOS app fails the build.
+    plisttool_error_test(
+        name = "{}_watch_app_mismatched_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_short_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:app_mismatched_short_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleShortVersionString " +
+            "of the child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_short_version",
+            child = "//test/starlark_tests/targets_under_test/watchos:app_mismatched_short_version",
+        ),
+        variable_substitutions = _COMPANION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS extension with a different
+    # CFBundleShortVersionString than the watchOS app fails the build.
+    plisttool_error_test(
+        name = "{}_watch_ext_mismatched_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_short_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:ext_mismatched_short_version"],
+        plists = ["//test/starlark_tests/resources:WatchosAppInfo.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleShortVersionString " +
+            "of the child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_short_version",
+            child = "//test/starlark_tests/targets_under_test/watchos:ext_mismatched_short_version",
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS app with a different CFBundleVersion than the iOS app
+    # fails the build.
+    plisttool_error_test(
+        name = "{}_watch_app_mismatched_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:app_mismatched_version"],
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleVersion of the " +
+            "child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_mismatched_watch_version",
+            child = "//test/starlark_tests/targets_under_test/watchos:app_mismatched_version",
+        ),
+        variable_substitutions = _COMPANION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS extension with a different CFBundleVersion than the
+    # watchOS app fails the build.
+    plisttool_error_test(
+        name = "{}_watch_ext_mismatched_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_version",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:ext_mismatched_version"],
+        plists = ["//test/starlark_tests/resources:WatchosAppInfo.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the CFBundleVersion of the " +
+            "child target \"{child}\" should be the same as its parent's " +
+            "version string \"1.0\", but found \"1.1\"."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_mismatched_version",
+            child = "//test/starlark_tests/targets_under_test/watchos:ext_mismatched_version",
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS app with the wrong bundle_id for its
+    # WKCompanionAppBundleIdentifier fails to build.
+    plisttool_error_test(
+        name = "{}_watch_app_wrong_wk_companion_identifier_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_wrong_wk_companion_identifier",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:app_wrong_wk_companion_identifier"],
+        child_plist_required_values = {
+            "//test/starlark_tests/targets_under_test/watchos:app_wrong_wk_companion_identifier": [
+                "WKCompanionAppBundleIdentifier=com.other",
+            ],
+        },
+        plists = ["//test/starlark_tests/resources:Info.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.other",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the Info.plist for child " +
+            "target \"{child}\" has the wrong value for " +
+            "\"WKCompanionAppBundleIdentifier\"; expected 'com.other', " +
+            "but found 'com.google'."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_companion_with_wrong_wk_companion_identifier",
+            child = "//test/starlark_tests/targets_under_test/watchos:app_wrong_wk_companion_identifier",
+        ),
+        variable_substitutions = _OTHER_COMPANION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test that a watchOS extension with the wrong bundle_id for its
+    # WKAppBundleIdentifier fails to build.
+    plisttool_error_test(
+        name = "{}_watch_ext_wrong_wk_app_identifier_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_wrong_wk_app_identifier",
+        child_bundles = ["//test/starlark_tests/targets_under_test/watchos:ext_wrong_wk_app_identifier"],
+        child_plist_required_values = {
+            "//test/starlark_tests/targets_under_test/watchos:ext_wrong_wk_app_identifier": [
+                "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier=com.google.example",
+            ],
+        },
+        plists = ["//test/starlark_tests/resources:WatchosAppInfo.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            "While processing target \"{parent}\"; the Info.plist for child " +
+            "target \"{child}\" has the wrong value for " +
+            "\"NSExtension:NSExtensionAttributes:WKAppBundleIdentifier\"; " +
+            "expected 'com.google.example', but found " +
+            "'com.bazel.app.example.watchkitapp'."
+        ).format(
+            parent = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_wrong_wk_app_identifier",
+            child = "//test/starlark_tests/targets_under_test/watchos:ext_wrong_wk_app_identifier",
+        ),
+        variable_substitutions = _WATCH_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Tests that failures to extract from a provisioning profile are properly
+    # reported from the watchOS application profile. The fact that multiple
+    # things are tried is left as an implementation detail and only the final
+    # message is looked for.
+    provisioning_profile_tool_error_test(
+        name = "{}_provisioning_profile_extraction_failure_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/watchos:app_with_bogus_provisioning_profile",
+        provisioning_profile = "//test/starlark_tests/resources:bogus.mobileprovision",
+        expected_error = 'While processing target "//test/starlark_tests/targets_under_test/watchos:app_with_bogus_provisioning_profile", failed to extract from the provisioning profile "test/starlark_tests/resources/bogus.mobileprovision".',
+        tags = [name, "requires-darwin"],
     )
 
     # Tests that strip action is registered when building in opt mode with binary stripping enabled.
