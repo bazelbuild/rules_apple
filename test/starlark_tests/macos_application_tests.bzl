@@ -57,9 +57,33 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_MISSING_VERSION_APP_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app_missing_version.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app_missing_version",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app_missing_version",
+    "TARGET_NAME": "app_missing_version",
+}
+
+_MISSING_SHORT_VERSION_APP_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app_missing_short_version.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app_missing_short_version",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app_missing_short_version",
+    "TARGET_NAME": "app_missing_short_version",
+}
 
 _analysis_macos_strip_enabled_opt_test = make_analysis_target_actions_test(
     config_settings = {
@@ -170,6 +194,89 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Tests that the ASAN library is packaged into the app when enabled.
+    archive_contents_test(
+        name = "{}_builds_with_asan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.asan_osx_dynamic.dylib",
+        ],
+        sanitizer = "asan",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    # Tests that the TSAN library is packaged into the app when enabled.
+    archive_contents_test(
+        name = "{}_builds_with_tsan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.tsan_osx_dynamic.dylib",
+        ],
+        sanitizer = "tsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    # Tests that the UBSAN library is packaged into the app when enabled.
+    archive_contents_test(
+        name = "{}_builds_with_ubsan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib",
+        ],
+        sanitizer = "ubsan",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    # The clang_rt resolution implemented in tools/clangrttool.py requires the presence of a
+    # clang_rt*.dylib rpath.
+    archive_contents_test(
+        name = "{}_builds_with_include_clang_rt_asan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.asan_osx_dynamic.dylib",
+        ],
+        target_features = ["include_clang_rt"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_asan_linkopt",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_builds_with_include_clang_rt_tsan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.tsan_osx_dynamic.dylib",
+        ],
+        target_features = ["include_clang_rt"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_tsan_linkopt",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_builds_with_include_clang_rt_ubsan_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libclang_rt.ubsan_osx_dynamic.dylib",
+        ],
+        target_features = ["include_clang_rt"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ubsan_linkopt",
+        tags = [name],
+    )
+
+    # Tests that libMainThreadChecker.dylib is packaged into the app when enabled.
+    archive_contents_test(
+        name = "{}_include_main_thread_checker_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/libMainThreadChecker.dylib",
+        ],
+        target_features = ["apple.include_main_thread_checker"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_additional_contents_test".format(name),
         build_type = "device",
@@ -179,6 +286,48 @@ def macos_application_test_suite(name):
             "$CONTENT_ROOT/Nested/nested/nested.txt",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        tags = [name],
+    )
+
+    # Tests that the IPA post-processor is executed and can modify the bundle.
+    archive_contents_test(
+        name = "{}_ipa_post_processor_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ipa_post_processor",
+        text_test_file = "$CONTENT_ROOT/Resources/inserted_by_post_processor.txt",
+        text_test_values = ["foo"],
+        tags = [name],
+    )
+
+    # Tests that the PkgInfo file exists in the bundle and has the expected content.
+    archive_contents_test(
+        name = "{}_pkginfo_contents_test".format(name),
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/PkgInfo",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        text_test_file = "$CONTENT_ROOT/PkgInfo",
+        text_test_values = ["APPL????"],
+        tags = [name],
+    )
+
+    # Tests that an app bundle can be nested inside of another app when tree artifact outputs
+    # are turned on.
+    archive_contents_test(
+        name = "{}_nested_app_bundles_test".format(name),
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        build_type = "device",
+        contains = [
+            "$CONTENT_ROOT/Library/first.app/Contents/Info.plist",
+            "$CONTENT_ROOT/Library/second.app/Contents/Info.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_nested_app_bundles",
         tags = [name],
     )
 
@@ -553,6 +702,34 @@ def macos_application_test_suite(name):
             "CFBundleVersion": "2.0",
             "CFBundleShortVersionString": "2.0",
         },
+        tags = [name],
+    )
+
+    # Test missing the CFBundleVersion fails the build.
+    plisttool_error_test(
+        name = "{}_missing_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:app_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleVersion.",
+        variable_substitutions = _MISSING_VERSION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test missing the CFBundleShortVersionString fails the build.
+    plisttool_error_test(
+        name = "{}_missing_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/macos:app_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = "is missing CFBundleShortVersionString.",
+        variable_substitutions = _MISSING_SHORT_VERSION_APP_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
         tags = [name],
     )
 
