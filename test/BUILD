@@ -3,7 +3,6 @@ load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
     "TVOS_CONFIGURATIONS",
-    "WATCHOS_CONFIGURATIONS",
 )
 load(
     "//test:test_rules.bzl",
@@ -74,13 +73,6 @@ apple_multi_shell_test(
     size = "medium",
     src = "tvos_application_test.sh",
     configurations = TVOS_CONFIGURATIONS,
-)
-
-apple_multi_shell_test(
-    name = "watchos_application_test",
-    size = "medium",
-    src = "watchos_application_test.sh",
-    configurations = WATCHOS_CONFIGURATIONS,
 )
 
 apple_shell_test(
