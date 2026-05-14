@@ -34,7 +34,6 @@ def _ios_coverage_transition_impl(settings, attr):
     output = {
         "//command_line_option:collect_code_coverage": True,
         "//command_line_option:features": features,
-        "//command_line_option:ios_simulator_device": attr.ios_simulator_device,
         "//command_line_option:instrumentation_filter": attr.instrumentation_filter,
     }
 
@@ -51,7 +50,6 @@ _ios_coverage_transition = transition(
     outputs = [
         "//command_line_option:collect_code_coverage",
         "//command_line_option:features",
-        "//command_line_option:ios_simulator_device",
         "//command_line_option:instrumentation_filter",
     ] + build_settings_labels.all_labels,
 )
@@ -142,10 +140,6 @@ apple_coverage_test = rule(
             default = "//test/starlark_tests/targets_under_test/ios[/:]",
             doc = "Instrumentation filter to apply to the target under test.",
         ),
-        "ios_simulator_device": attr.string(
-            default = "iPhone 16",
-            doc = "Simulator device to bake into the generated iOS test runner.",
-        ),
         "produce_json": attr.bool(
             default = False,
             doc = "Whether to request JSON coverage output from the Apple test runner.",
@@ -155,9 +149,6 @@ apple_coverage_test = rule(
             executable = True,
             mandatory = True,
             doc = "Apple test target to run under coverage settings.",
-        ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
         "_runner_script": attr.label(
             default = ":apple_coverage_test_runner.sh",
