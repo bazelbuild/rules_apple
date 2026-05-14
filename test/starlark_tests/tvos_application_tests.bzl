@@ -52,9 +52,27 @@ load(
     "linkmap_test",
 )
 load(
+    "//test/starlark_tests/rules:plisttool_error_test.bzl",
+    "plisttool_error_test",
+)
+load(
+    "//test/starlark_tests/rules:provisioning_profile_tool_error_test.bzl",
+    "provisioning_profile_tool_error_test",
+)
+load(
     ":common.bzl",
     "common",
 )
+
+_APPLICATION_PLIST_SUBSTITUTIONS = {
+    "BUNDLE_NAME": "app.app",
+    "DEVELOPMENT_LANGUAGE": "en",
+    "EXECUTABLE_NAME": "app",
+    "PRODUCT_BUNDLE_IDENTIFIER": "com.google.example",
+    "PRODUCT_BUNDLE_PACKAGE_TYPE": "APPL",
+    "PRODUCT_NAME": "app",
+    "TARGET_NAME": "app",
+}
 
 _analysis_tvos_strip_enabled_opt_test = make_analysis_target_actions_test(
     config_settings = {
@@ -315,6 +333,39 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    plisttool_error_test(
+        name = "{}_missing_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_missing_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            'Target "//test/starlark_tests/targets_under_test/tvos:app_missing_version" ' +
+            "is missing CFBundleVersion."
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
+    # Test missing the CFBundleShortVersionString fails the build.
+    plisttool_error_test(
+        name = "{}_missing_short_version_fails_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_missing_short_version",
+        plists = ["//test/starlark_tests/resources:Info-extension-missing-short-version.plist"],
+        plist_values = {
+            "CFBundleIdentifier": "com.google.example",
+        },
+        expected_error = (
+            'Target "//test/starlark_tests/targets_under_test/tvos:app_missing_short_version" ' +
+            "is missing CFBundleShortVersionString."
+        ),
+        variable_substitutions = _APPLICATION_PLIST_SUBSTITUTIONS,
+        version_keys_required = True,
+        tags = [name],
+    )
+
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
     # is present.
     linkmap_test(
@@ -341,6 +392,17 @@ def tvos_application_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
+        tags = [name],
+    )
+
+    # Tests that failures to extract from a provisioning profile are properly
+    # reported. The fact that multiple things are tried is left as an impl
+    # detail and only the final message is looked for.
+    provisioning_profile_tool_error_test(
+        name = "{}_provisioning_profile_extraction_failure_test".format(name),
+        target_label = "//test/starlark_tests/targets_under_test/tvos:app_with_bogus_provisioning_profile",
+        provisioning_profile = "//test/starlark_tests/resources:bogus.mobileprovision",
+        expected_error = 'While processing target "//test/starlark_tests/targets_under_test/tvos:app_with_bogus_provisioning_profile", failed to extract from the provisioning profile "test/starlark_tests/resources/bogus.mobileprovision".',
         tags = [name],
     )
 

@@ -76,6 +76,34 @@ tvos_application(
 )
 
 tvos_application(
+    name = "app_missing_version",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-missing-version.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_missing_short_version",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-extension-missing-short-version.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_tvos.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
     name = "app_multiple_infoplists",
     bundle_id = "com.google.example",
     infoplists = [
@@ -83,6 +111,20 @@ tvos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
+    name = "app_with_bogus_provisioning_profile",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_tvos.baseline,
+    provisioning_profile = "//test/starlark_tests/resources:bogus.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",

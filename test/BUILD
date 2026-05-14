@@ -2,7 +2,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//test:configurations.bzl",
     "IOS_CONFIGURATIONS",
-    "TVOS_CONFIGURATIONS",
 )
 load(
     "//test:test_rules.bzl",
@@ -66,13 +65,6 @@ apple_multi_shell_test(
         "//test/testdata/resources:texture_atlas_data_deps",
     ],
     flaky = True,
-)
-
-apple_multi_shell_test(
-    name = "tvos_application_test",
-    size = "medium",
-    src = "tvos_application_test.sh",
-    configurations = TVOS_CONFIGURATIONS,
 )
 
 apple_shell_test(
