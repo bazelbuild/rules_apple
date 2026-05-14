@@ -4402,6 +4402,137 @@ ios_application(
 
 # ---------------------------------------------------------------------------------------
 
+objc_library(
+    name = "coverage_app_lib",
+    srcs = ["CoverageMain.m"],
+    hdrs = ["CoverageMain.h"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "coverage_swift_app_lib",
+    srcs = ["CoverageApp.swift"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "coverage_shared_logic",
+    srcs = ["CoverageSharedLogic.m"],
+    hdrs = ["CoverageSharedLogic.h"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "coverage_hosted_test_lib",
+    srcs = ["CoverageHostedTest.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":coverage_app_lib",
+        ":coverage_shared_logic",
+    ],
+)
+
+objc_library(
+    name = "coverage_standalone_test_lib",
+    srcs = ["CoverageStandaloneTest.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":coverage_shared_logic",
+    ],
+)
+
+swift_library(
+    name = "coverage_ui_test_lib",
+    testonly = True,
+    srcs = ["CoveragePassingUITest.swift"],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "coverage_app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [":coverage_app_lib"],
+)
+
+ios_application(
+    name = "coverage_swift_app",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = "15.0",
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [":coverage_swift_app_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_hosted_test",
+    size = "large",
+    env = {"STARTUP_TIMEOUT_SEC": "300"},
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":coverage_app",
+    deps = [":coverage_hosted_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_standalone_test",
+    size = "large",
+    env = {"STARTUP_TIMEOUT_SEC": "300"},
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":coverage_standalone_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_standalone_test_new_runner",
+    size = "large",
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = "//apple/testing/default_runner:ios_xctestrun_random_runner",
+    tags = common.fixture_tags,
+    deps = [":coverage_standalone_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_manifest_test",
+    size = "large",
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_coverage_manifest = "coverage_manifest.txt",
+    deps = [":coverage_standalone_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_manifest_test_new_runner",
+    size = "large",
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    tags = common.fixture_tags,
+    test_coverage_manifest = "coverage_manifest.txt",
+    deps = [":coverage_standalone_test_lib"],
+)
+
+ios_ui_test(
+    name = "coverage_ui_test_new_runner",
+    size = "large",
+    minimum_os_version = "15.0",
+    runner = "//apple/testing/default_runner:ios_xctestrun_random_runner",
+    tags = common.fixture_tags,
+    test_host = ":coverage_swift_app",
+    deps = [":coverage_ui_test_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+
 ios_ui_test(
     name = "ui_test",
     families = [

@@ -1,6 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
+exports_files(["apple_coverage_test_runner.sh"])
+
 bzl_library(
     name = "test_rules",
     srcs = glob(
