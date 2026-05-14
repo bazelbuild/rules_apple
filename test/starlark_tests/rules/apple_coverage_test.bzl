@@ -64,9 +64,6 @@ def _write_lines(ctx, suffix, values):
     )
     return output
 
-def local_test_1(_os, _input_size):
-    return {"local_test": 1}
-
 def _apple_coverage_test_impl(ctx):
     target_under_test = ctx.attr.target_under_test[0]
     target_default_info = target_under_test[DefaultInfo]
