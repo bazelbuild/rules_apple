@@ -3205,7 +3205,7 @@ that this target depends on.
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
 ios_static_framework = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = """Builds and bundles an iOS static framework for third-party distribution.
 
 A static framework is bundled like a dynamic framework except that the embedded

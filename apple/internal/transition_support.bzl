@@ -71,6 +71,38 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "arm64": "arm64_32",
 }
 
+_MACOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:darwin_x86_64"): "x86_64",
+    Label("@build_bazel_apple_support//platforms:darwin_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:darwin_arm64e"): "arm64e",
+}
+
+_IOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:ios_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:ios_arm64e"): "arm64e",
+    Label("@build_bazel_apple_support//platforms:ios_sim_arm64"): "sim_arm64",
+    Label("@build_bazel_apple_support//platforms:ios_x86_64"): "x86_64",
+}
+
+_TVOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:tvos_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:tvos_sim_arm64"): "sim_arm64",
+    Label("@build_bazel_apple_support//platforms:tvos_x86_64"): "x86_64",
+}
+
+_VISIONOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:visionos_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:visionos_sim_arm64"): "sim_arm64",
+}
+
+_WATCHOS_PLATFORM_TO_ENV_ARCH = {
+    Label("@build_bazel_apple_support//platforms:watchos_arm64"): "arm64",
+    Label("@build_bazel_apple_support//platforms:watchos_arm64_32"): "arm64_32",
+    Label("@build_bazel_apple_support//platforms:watchos_device_arm64"): "device_arm64",
+    Label("@build_bazel_apple_support//platforms:watchos_device_arm64e"): "device_arm64e",
+    Label("@build_bazel_apple_support//platforms:watchos_x86_64"): "x86_64",
+}
+
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
 
@@ -103,12 +135,13 @@ def _environment_arch_from_cpu(*, cpu_value, platform_prefix):
         return cpu_value[len(platform_prefix):]
     return None
 
-def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settings):
+def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, platform, settings):
     """Returns a set of watchOS environment archs based on incoming iOS archs.
 
     Args:
         cpu_value: String found from an incoming `--cpu` value.
         minimum_os_version: A string coming directly from a rule's `minimum_os_version` attribute.
+        platform: Value of the `--platforms` flag.
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
             the settings argument found on the implementation function of the current Starlark
             transition.
@@ -119,6 +152,15 @@ def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, settin
     """
     environment_archs = []
     ios_archs = settings[_platform_specific_cpu_setting_name("ios")]
+    if not ios_archs:
+        ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+        if ios_arch:
+            ios_archs = [ios_arch]
+        elif platform in [
+            Label("@build_bazel_apple_support//platforms:darwin_arm64"),
+            Label("@build_bazel_apple_support//platforms:darwin_arm64e"),
+        ]:
+            ios_archs = ["sim_arm64"]
     if not ios_archs:
         ios_arch = _environment_arch_from_cpu(
             cpu_value = cpu_value,
@@ -163,8 +205,29 @@ def _environment_archs(
     environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
     if not environment_archs:
         cpu_value = settings["//command_line_option:cpu"]
+        platform = settings["//command_line_option:platforms"][0]
+        if platform_type == "macos":
+            macos_arch = _MACOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+            if macos_arch:
+                environment_archs = [macos_arch]
         if platform_type == "ios":
-            # Legacy handling to interpret the --cpu as an iOS environment arch.
+            ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+            if ios_arch:
+                environment_archs = [ios_arch]
+            elif platform in [
+                Label("@build_bazel_apple_support//platforms:darwin_arm64"),
+                Label("@build_bazel_apple_support//platforms:darwin_arm64e"),
+            ]:
+                environment_archs = ["sim_arm64"]
+        if platform_type == "tvos":
+            tvos_arch = _TVOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+            if tvos_arch:
+                environment_archs = [tvos_arch]
+        if platform_type == "visionos":
+            visionos_arch = _VISIONOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+            if visionos_arch:
+                environment_archs = [visionos_arch]
+        if platform_type == "ios" and not environment_archs:
             ios_arch = _environment_arch_from_cpu(
                 cpu_value = cpu_value,
                 platform_prefix = "ios_",
@@ -176,8 +239,13 @@ def _environment_archs(
                 environment_archs = _watchos_environment_archs_from_ios(
                     cpu_value = cpu_value,
                     minimum_os_version = minimum_os_version,
+                    platform = platform,
                     settings = settings,
                 )
+            if not environment_archs:
+                watchos_arch = _WATCHOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
+                if watchos_arch:
+                    environment_archs = [watchos_arch]
             if not environment_archs:
                 # Interpret the --cpu as a watchOS environment arch; often will be set by a
                 # transition.
@@ -192,6 +260,7 @@ def _environment_archs(
                     environment_archs = _watchos_environment_archs_from_ios(
                         cpu_value = cpu_value,
                         minimum_os_version = minimum_os_version,
+                        platform = platform,
                         settings = settings,
                     )
         if not environment_archs:
@@ -227,6 +296,9 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         ios_cpus = settings["//command_line_option:ios_multi_cpus"]
         if ios_cpus:
             return "ios_{}".format(ios_cpus[0])
+        platform_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(settings["//command_line_option:platforms"][0], None)
+        if platform_arch:
+            return "ios_{}".format(platform_arch)
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("ios_"):
             return cpu_value
@@ -239,6 +311,9 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         visionos_cpus = settings["//command_line_option:visionos_cpus"]
         if visionos_cpus:
             return "visionos_{}".format(visionos_cpus[0])
+        platform_arch = _VISIONOS_PLATFORM_TO_ENV_ARCH.get(settings["//command_line_option:platforms"][0], None)
+        if platform_arch:
+            return "visionos_{}".format(platform_arch)
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("visionos_"):
             return cpu_value
@@ -249,6 +324,9 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         macos_cpus = settings["//command_line_option:macos_cpus"]
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
+        platform_arch = _MACOS_PLATFORM_TO_ENV_ARCH.get(settings["//command_line_option:platforms"][0], None)
+        if platform_arch:
+            return "darwin_{}".format(platform_arch)
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("darwin_"):
             return cpu_value
@@ -259,6 +337,9 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
+        platform_arch = _TVOS_PLATFORM_TO_ENV_ARCH.get(settings["//command_line_option:platforms"][0], None)
+        if platform_arch:
+            return "tvos_{}".format(platform_arch)
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("tvos_"):
             return cpu_value
@@ -271,6 +352,9 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
+        platform_arch = _WATCHOS_PLATFORM_TO_ENV_ARCH.get(settings["//command_line_option:platforms"][0], None)
+        if platform_arch:
+            return "watchos_{}".format(platform_arch)
         cpu_value = settings["//command_line_option:cpu"]
         if cpu_value.startswith("watchos_"):
             return cpu_value
@@ -287,7 +371,6 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
 
 def _command_line_options(
         *,
-        apple_platforms = [],
         environment_arch = None,
         force_bundle_outputs = False,
         minimum_os_version,
@@ -296,12 +379,6 @@ def _command_line_options(
     """Generates a dictionary of command line options suitable for the current target.
 
     Args:
-        apple_platforms: A list of labels referencing platforms if any should be set by the current
-            rule. This will be applied directly to `apple_platforms` to allow for forwarding
-            multiple platforms to rules evaluated after the transition is applied, and only the
-            first element will be applied to `platforms` as that will be what is resolved by the
-            underlying rule. Defaults to an empty list, which will signal to Bazel that platform
-            mapping can take place as a fallback measure.
         environment_arch: A valid Apple environment when applicable with its architecture as a
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
@@ -329,7 +406,6 @@ def _command_line_options(
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple_platform_type": platform_type,
-        "//command_line_option:apple_platforms": apple_platforms,
         # apple_split_cpu is still needed for Bazel built-in objc_library transition logic and Apple
         # fragment APIs, and it's also required to keep Bazel from optimizing away splits when deps
         # are identical between platforms.
@@ -338,7 +414,7 @@ def _command_line_options(
         "//command_line_option:cpu": cpu,
         "//command_line_option:fission": [],
         "//command_line_option:grte_top": None,
-        "//command_line_option:platforms": [apple_platforms[0]] if apple_platforms else default_platforms,
+        "//command_line_option:platforms": default_platforms,
         "//command_line_option:ios_minimum_os": _min_os_version_or_none(
             minimum_os_version = minimum_os_version,
             platform = "ios",
@@ -468,20 +544,13 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:cpu",
     "//command_line_option:ios_multi_cpus",
     "//command_line_option:macos_cpus",
+    "//command_line_option:platforms",
     "//command_line_option:tvos_cpus",
     "//command_line_option:watchos_cpus",
 ] + (["//command_line_option:visionos_cpus"] if _supports_visionos else [])
-_apple_platforms_rule_base_transition_inputs = _apple_rule_base_transition_inputs + [
-    "//command_line_option:apple_platforms",
-    "//command_line_option:incompatible_enable_apple_toolchain_resolution",
-]
-_apple_platform_transition_inputs = _apple_platforms_rule_base_transition_inputs + [
-    "//command_line_option:platforms",
-]
 _apple_rule_base_transition_outputs = [
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_platform_type",
-    "//command_line_option:apple_platforms",
     "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:cpu",
@@ -507,43 +576,17 @@ _apple_rule_base_transition = transition(
     outputs = _apple_rule_base_transition_outputs,
 )
 
-def _apple_platforms_rule_base_transition_impl(settings, attr):
-    """Rule transition for Apple rules using Bazel platforms and the Starlark split transition."""
-    minimum_os_version = attr.minimum_os_version
-    platform_type = attr.platform_type
-    environment_arch = None
-    if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
-        # Add fallback to match an anticipated split of Apple cpu-based resolution
-        environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0]
-    return _command_line_options(
-        apple_platforms = settings["//command_line_option:apple_platforms"],
-        environment_arch = environment_arch,
-        minimum_os_version = minimum_os_version,
-        platform_type = platform_type,
-        settings = settings,
-    )
-
-_apple_platforms_rule_base_transition = transition(
-    implementation = _apple_platforms_rule_base_transition_impl,
-    inputs = _apple_platforms_rule_base_transition_inputs,
-    outputs = _apple_rule_base_transition_outputs,
-)
-
 def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel platforms which force bundle outputs."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
-    environment_arch = None
-    if not settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
-        # Add fallback to match an anticipated split of Apple cpu-based resolution
-        environment_arch = _environment_archs(
-            platform_type = platform_type,
-            settings = settings,
-            minimum_os_version = minimum_os_version,
-        )
+    environment_archs = _environment_archs(
+        platform_type = platform_type,
+        settings = settings,
+        minimum_os_version = minimum_os_version,
+    )
     return _command_line_options(
-        apple_platforms = settings["//command_line_option:apple_platforms"],
-        environment_arch = environment_arch[0],
+        environment_arch = environment_archs[0],
         force_bundle_outputs = True,
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
@@ -552,7 +595,7 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
 
 _apple_platforms_rule_bundle_output_base_transition = transition(
     implementation = _apple_platforms_rule_bundle_output_base_transition_impl,
-    inputs = _apple_platforms_rule_base_transition_inputs,
+    inputs = _apple_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
 
@@ -619,54 +662,28 @@ def _apple_platform_split_transition_impl(settings, attr):
     output_dictionary = {}
     invalid_requested_archs = []
 
-    if settings["//command_line_option:incompatible_enable_apple_toolchain_resolution"]:
-        platforms = (
-            settings["//command_line_option:apple_platforms"] or
-            settings["//command_line_option:platforms"]
+    minimum_os_version = attr.minimum_os_version
+    platform_type = attr.platform_type
+    for environment_arch in _environment_archs(
+        platform_type,
+        minimum_os_version,
+        settings,
+        prefer_watchos_cpu = False,
+    ):
+        found_cpu = _cpu_string(
+            environment_arch = environment_arch,
+            platform_type = platform_type,
+            settings = settings,
         )
-        # Currently there is no "default" platform for Apple-based platforms. If necessary, a
-        # default platform could be generated for the rule's underlying platform_type, but for now
-        # we work with the assumption that all users of the rules should set an appropriate set of
-        # platforms when building Apple targets with `apple_platforms`.
+        if found_cpu in output_dictionary:
+            continue
 
-        for index, platform in enumerate(platforms):
-            # Create a new, reordered list so that the platform we need to resolve is always first,
-            # and the other platforms will follow.
-            apple_platforms = list(platforms)
-            platform_to_resolve = apple_platforms.pop(index)
-            apple_platforms.insert(0, platform_to_resolve)
-
-            if str(platform) not in output_dictionary:
-                output_dictionary[str(platform)] = _command_line_options(
-                    apple_platforms = apple_platforms,
-                    minimum_os_version = attr.minimum_os_version,
-                    platform_type = attr.platform_type,
-                    settings = settings,
-                )
-
-    else:
-        minimum_os_version = attr.minimum_os_version
-        platform_type = attr.platform_type
-        for environment_arch in _environment_archs(
-            platform_type,
-            minimum_os_version,
-            settings,
-            prefer_watchos_cpu = False,
-        ):
-            found_cpu = _cpu_string(
-                environment_arch = environment_arch,
-                platform_type = platform_type,
-                settings = settings,
-            )
-            if found_cpu in output_dictionary:
-                continue
-
-            output_dictionary[found_cpu] = _command_line_options(
-                environment_arch = environment_arch,
-                minimum_os_version = minimum_os_version,
-                platform_type = platform_type,
-                settings = settings,
-            )
+        output_dictionary[found_cpu] = _command_line_options(
+            environment_arch = environment_arch,
+            minimum_os_version = minimum_os_version,
+            platform_type = platform_type,
+            settings = settings,
+        )
 
     if not bool(output_dictionary):
         error_msg = "Could not find any valid architectures to build for the current target.\n\n"
@@ -688,7 +705,7 @@ def _apple_platform_split_transition_impl(settings, attr):
 
 _apple_platform_split_transition = transition(
     implementation = _apple_platform_split_transition_impl,
-    inputs = _apple_platform_transition_inputs,
+    inputs = _apple_rule_base_transition_inputs,
     outputs = _apple_rule_base_transition_outputs,
 )
 
@@ -734,7 +751,6 @@ _xcframework_transition = transition(
 
 transition_support = struct(
     apple_platform_split_transition = _apple_platform_split_transition,
-    apple_platforms_rule_base_transition = _apple_platforms_rule_base_transition,
     apple_platforms_rule_bundle_output_base_transition = _apple_platforms_rule_bundle_output_base_transition,
     apple_rule_arm64_as_arm64e_transition = _apple_rule_arm64_as_arm64e_transition,
     apple_rule_transition = _apple_rule_base_transition,

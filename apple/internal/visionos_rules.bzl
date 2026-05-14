@@ -1723,7 +1723,7 @@ that this target depends on.
 _STATIC_FRAMEWORK_DEPS_CFG = transition_support.apple_platform_split_transition
 
 visionos_static_framework = rule_factory.create_apple_rule(
-    cfg = transition_support.apple_platforms_rule_base_transition,
+    cfg = transition_support.apple_rule_transition,
     doc = """
 Builds and bundles an visionos static framework for third-party distribution.
 
