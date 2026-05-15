@@ -1,0 +1,13 @@
+diff --git a/features.bzl b/features.bzl
+index a28387c..2d16914 100644
+--- a/features.bzl
++++ b/features.bzl
+@@ -179,7 +179,7 @@ _rules = struct(
+ 
+     # Whether ctx.configuration.is_tool_configuration is public API
+     # https://github.com/bazelbuild/bazel/commit/84c0253add3784b75ff08b6d049a7f152c7b7532
+-    is_tool_configuration_public = ge_same_major("8.7.0") or ge_same_major("9.1.0") or ge("10.0.0-pre.20260329.2"),
++    is_tool_configuration_public = ge_same_major("8.7.0") or ge_same_major("9.1.0") or ge_same_major("10.0.0-pre.20260329.2"),
+ 
+     # Internal only, don't use outside rules_java, rules_python & rules_shell.
+     # TODO: Use a larger version range after cherry-picking
