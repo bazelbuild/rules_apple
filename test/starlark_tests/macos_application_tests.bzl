@@ -528,6 +528,32 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_with_fmwk_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fmwk",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/fmwk.framework/Versions/A/fmwk",
+            "$CONTENT_ROOT/Frameworks/fmwk.framework/Versions/A/Resources/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_ext_with_fmwk_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_with_fmwk",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/fmwk.framework/Versions/A/fmwk",
+            "$CONTENT_ROOT/Frameworks/fmwk.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/PlugIns/ext_with_fmwk.appex/Contents/MacOS/ext_with_fmwk",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/PlugIns/ext_with_fmwk.appex/Contents/Frameworks/fmwk.framework/Versions/A/fmwk",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

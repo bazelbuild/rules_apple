@@ -156,7 +156,7 @@ def _macos_application_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    embedded_targets = ctx.attr.extensions + ctx.attr.xpc_services
+    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.xpc_services
     extra_requested_features = []
     if ctx.attr.testonly:
         extra_requested_features.append("exported_symbols")
@@ -178,7 +178,10 @@ def _macos_application_impl(ctx):
         suffix_default = ctx.attr._bundle_id_suffix_default,
         shared_capabilities = ctx.attr.shared_capabilities,
     )
-    bundle_verification_targets = [struct(target = ext) for ext in embedded_targets]
+    bundle_verification_targets = [
+        struct(target = ext)
+        for ext in ctx.attr.extensions + ctx.attr.xpc_services
+    ]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
         extra_requested_features = extra_requested_features,
@@ -235,6 +238,7 @@ def _macos_application_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -255,7 +259,8 @@ def _macos_application_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = embedded_targets,
+            embedded_bundles = embeddable_targets,
+            frameworks = ctx.attr.frameworks,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -296,7 +301,7 @@ def _macos_application_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_location = processor.location.bundle,
             bundle_name = bundle_name,
-            embedded_targets = embedded_targets,
+            embedded_targets = embeddable_targets,
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -306,18 +311,25 @@ def _macos_application_impl(ctx):
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = embedded_targets + ctx.attr.additional_contents.keys(),
+            debug_dependencies = embeddable_targets + ctx.attr.additional_contents.keys(),
             dsym_outputs = debug_outputs.dsym_outputs,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
-            embeddable_targets = embedded_targets,
+            embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.framework_import_partial(
@@ -329,7 +341,7 @@ def _macos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + embedded_targets,
+            targets = ctx.attr.deps + embeddable_targets,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -349,6 +361,7 @@ def _macos_application_impl(ctx):
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -361,7 +374,7 @@ def _macos_application_impl(ctx):
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
-            dependency_targets = embedded_targets,
+            dependency_targets = embeddable_targets,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
@@ -840,6 +853,11 @@ def _macos_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             signed_frameworks = depset(signed_frameworks),
         ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = ctx.attr.extension_safe,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
+        ),
         partials.framework_provider_partial(
             actions = actions,
             binary_artifact = binary_artifact,
@@ -1003,6 +1021,7 @@ def _macos_extension_impl(ctx):
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
+        avoid_deps = ctx.attr.frameworks,
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
@@ -1042,7 +1061,8 @@ def _macos_extension_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
-            embedded_bundles = [],
+            embedded_bundles = ctx.attr.frameworks,
+            frameworks = ctx.attr.frameworks,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1065,6 +1085,13 @@ def _macos_extension_impl(ctx):
             bundle_name = bundle_name,
             label_name = label.name,
         ),
+        partials.child_bundle_info_validation_partial(
+            frameworks = ctx.attr.frameworks,
+            platform_prerequisites = platform_prerequisites,
+            product_type = rule_descriptor.product_type,
+            resource_validation_infos = ctx.attr.deps,
+            rule_label = label,
+        ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1083,6 +1110,7 @@ def _macos_extension_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_location = bundle_location,
             bundle_name = bundle_name,
+            embedded_targets = ctx.attr.frameworks,
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1096,14 +1124,20 @@ def _macos_extension_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.additional_contents.keys(),
+            debug_dependencies = ctx.attr.additional_contents.keys() + ctx.attr.frameworks,
             dsym_outputs = debug_outputs.dsym_outputs,
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         partials.embedded_bundles_partial(
+            embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
+        ),
+        partials.extension_safe_validation_partial(
+            is_extension_safe = True,
+            rule_label = label,
+            targets_to_validate = ctx.attr.frameworks,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -1123,6 +1157,7 @@ def _macos_extension_impl(ctx):
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            targets_to_avoid = ctx.attr.frameworks,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -1134,6 +1169,7 @@ def _macos_extension_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
+            dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
@@ -1916,6 +1952,13 @@ desired Contents subdirectory.
                 ],
                 doc = "A list of macOS XPC Services to include in the final application bundle.",
             ),
+            "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                ],
+                doc = "A list of macOS framework bundles to include in the final application bundle.",
+            ),
             "_runner_template": attr.label(
                 cfg = "exec",
                 allow_single_file = True,
@@ -2027,6 +2070,13 @@ macos_framework = rule_factory.create_apple_rule(
                 ],
                 doc = "A list of macOS framework bundles to include in the final framework bundle.",
             ),
+            "extension_safe": attr.bool(
+                default = False,
+                doc = """
+If true, compiles and links this framework with `-application-extension`, restricting the binary to
+use only extension-safe APIs.
+""",
+            ),
         },
     ],
 )
@@ -2075,6 +2125,12 @@ corresponding value is the name of the subdirectory of Contents where they shoul
 The relative directory structure of filegroup contents is preserved when they are copied into the
 desired Contents subdirectory.
 """,
+            ),
+            "frameworks": attr.label_list(
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                ],
+                doc = "A list of macOS framework bundles that this target depends on.",
             ),
         },
     ],

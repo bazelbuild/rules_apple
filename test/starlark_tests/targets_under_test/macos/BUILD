@@ -1244,6 +1244,7 @@ macos_application(
 macos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
+    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1251,5 +1252,47 @@ macos_framework(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "ext_with_fmwk",
+    bundle_id = "com.google.example.ext",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_ext_with_fmwk",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
