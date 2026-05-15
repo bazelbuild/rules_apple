@@ -86,7 +86,8 @@ def _preferred_codesigning_identity(platform_prerequisites):
             # TODO(b/252873771): Remove this fallback when the native Bazel flag
             # ios_signing_cert_name is removed.
             return (build_settings.signing_certificate_name or
-                    objc_fragment.signing_certificate_name)
+                    # TODO: Remove when we drop bazel 9.x support
+                    getattr(objc_fragment, "signing_certificate_name", None))
         else:
             return build_settings.signing_certificate_name
     return None
