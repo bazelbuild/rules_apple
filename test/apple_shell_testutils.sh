@@ -470,7 +470,7 @@ function do_action() {
       # directory gets mapped into the bazel-bin symlink.
       "--use_top_level_targets_for_symlinks"
       "--enable_bzlmod"
-      "--ios_simulator_device=iPhone 16"
+      "--@build_bazel_rules_apple//apple/build_settings:ios_simulator_device=iPhone 16"
   )
 
   if [[ -n "${XCODE_VERSION_FOR_TESTS-}" ]]; then

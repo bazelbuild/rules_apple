@@ -18,8 +18,8 @@
 
 # This script works in one of two modes.
 #
-# If either --ios_simulator_version or --ios_simulator_device were not
-# passed to bazel:
+# If either the ios_simulator_version or ios_simulator_device build setting was
+# not passed to bazel:
 #
 # 1. Discovers a simulator compatible with the minimum_os of the
 #    *_application target, preferring already-booted simulators
@@ -31,8 +31,8 @@
 # This mode does not kill running simulators or shutdown or delete the simulator
 # after it completes.
 #
-# If --ios_simulator_version and --ios_simulator_device were both passed
-# to bazel:
+# If the ios_simulator_version and ios_simulator_device build settings were both
+# passed to bazel:
 #
 # 1. Creates a new temporary simulator by running "simctl create ..."
 # 2. Boots the new temporary simulator
