@@ -596,6 +596,122 @@ ios_application(
     ],
 )
 
+objc_library(
+    name = "localized_unprocessed_resources_lib",
+    data = [
+        "//test/starlark_tests/resources:localized_generic_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "localized_unprocessed_resources_without_fr_lib",
+    data = [
+        "//test/starlark_tests/resources:localized_generic_resources_without_fr",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_localized_unprocessed_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":localized_unprocessed_resources_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_localized_unprocessed_resources_without_fr",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":localized_unprocessed_resources_without_fr_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_localized_unprocessed_resources_filtered_by_attribute",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    locales_to_include = ["it"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":localized_unprocessed_resources_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_fr_and_it_localized_strings",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:fr.lproj/localized.strings",
+        "//test/starlark_tests/resources:it.lproj/localized.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_settings_bundle_only",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    settings_bundle = "//test/starlark_tests/resources:settings_bundle_ios",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_texture_atlas",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:ios_texture_atlas_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_application(
     name = "app_launch_storyboard_as_xib",
     bundle_id = "com.google.example",
@@ -1019,6 +1135,65 @@ ios_application(
     ],
 )
 
+objc_library(
+    name = "nested_private_resource_dep_1",
+    data = [
+        "//test/starlark_tests/resources:sample.png",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "nested_private_resource_dep_2",
+    data = [
+        "//test/starlark_tests/resources:view_ios.xib",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":nested_private_resource_dep_1",
+    ],
+)
+
+write_file(
+    name = "nested_private_swift_src",
+    out = "NestedPrivate.swift",
+    content = ["public struct NestedPrivate {}"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "nested_private_swift_lib",
+    srcs = [":nested_private_swift_src"],
+    private_deps = [
+        ":nested_private_resource_dep_2",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_implementation_dep_resources",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    implementation_deps = [
+        ":nested_private_swift_lib",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_nested_private_and_implementation_dep_resources",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_implementation_dep_resources",
+    ],
+)
+
 ios_application(
     name = "app_with_transitive_swift_libraries_with_storyboards",
     bundle_id = "com.google.example",
@@ -1061,6 +1236,43 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_lib_with_storyboard_copy",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+objc_library(
+    name = "duplicate_resource_shared_lib",
+    data = [
+        "duplicate_shared_res/foo.txt",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "duplicate_resource_app_lib",
+    data = [
+        "duplicate_app_res/foo.txt",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":duplicate_resource_shared_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_resources_mapped_to_same_path",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":duplicate_resource_app_lib",
     ],
 )
 

@@ -15,8 +15,13 @@
 """apple_bundle_version Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -29,6 +34,13 @@ load(
 load(
     ":common.bzl",
     "common",
+)
+
+_locales_excludes_includes_conflict_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.locales_to_exclude: "fr",
+        build_settings_labels.locales_to_include: "fr,it",
+    },
 )
 
 def ios_application_resources_test_suite(name):
@@ -140,6 +152,28 @@ def ios_application_resources_test_suite(name):
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_different_files_mapped_to_the_same_target_path_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resources_mapped_to_same_path",
+        expected_error = "foo.txt\" in the bundle, which is not allowed",
+        tags = [name],
+    )
+
+    # Tests that the bundled application contains the compiled texture atlas.
+    archive_contents_test(
+        name = "{}_texture_atlas_bundled_with_app_test".format(name),
+        assert_directory_file_count = {
+            "$BUNDLE_ROOT/star.atlasc": 2,
+        },
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/star.atlasc/star.1.png",
+            "$BUNDLE_ROOT/star.atlasc/star.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_texture_atlas",
+        tags = [name],
+    )
+
     # Tests that various localized resource types are bundled correctly with the
     # application (preserving their parent .lproj directory).
     archive_contents_test(
@@ -172,6 +206,88 @@ def ios_application_resources_test_suite(name):
             "$BUNDLE_ROOT/it.lproj/greetings.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_xcstrings",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localization_excludes_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_exclude: "fr",
+        },
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/it.lproj/localized.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/fr.lproj/localized.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fr_and_it_localized_strings",
+        tags = [name],
+    )
+
+    _locales_excludes_includes_conflict_test(
+        name = "{}_localization_excludes_includes_conflict_test".format(name),
+        expected_error = "dropping [\"fr\"] as they are explicitly excluded but also explicitly included. Please verify apple.locales_to_include and apple.locales_to_exclude are defined properly.",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fr_and_it_localized_strings",
+        tags = [name],
+    )
+
+    # Tests that generic flattened but unprocessed resources are bundled correctly
+    # (preserving their .lproj directory). Structured resources do not apply here,
+    # because they are never treated as localizable.
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_localized_unprocessed_resources",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_filter_all_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_include: "sw",
+        },
+        build_type = "device",
+        not_contains = [
+            "$BUNDLE_ROOT/fr.lproj/localized.txt",
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_localized_unprocessed_resources",
+        tags = [name],
+    )
+
+    # Should not generate a warning because although 'fr' doesn't match
+    # anything nothing was filtered away (i.e. - no harm if it was a typo).
+    # Warning isn't validated but at least it doesn't fail to build.
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_filter_mixed_test".format(name),
+        build_settings = {
+            build_settings_labels.locales_to_include: "fr,it",
+        },
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/fr.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_localized_unprocessed_resources_without_fr",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_localized_unprocessed_resources_filter_with_attribute_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/it.lproj/localized.txt",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/fr.lproj/localized.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_localized_unprocessed_resources_filtered_by_attribute",
         tags = [name],
     )
 
@@ -585,6 +701,25 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
             "$BUNDLE_ROOT/Settings.bundle/it.lproj/Root.strings",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        tags = [name],
+    )
+
+    # Tests that the localizations in the Settings.bundle that are not in the base
+    # of the app are not included in the output when apple.trim_lproj_locales=1.
+    archive_contents_test(
+        name = "{}_settings_bundle_localization_strip_test".format(name),
+        build_settings = {
+            build_settings_labels.trim_lproj_locales: "True",
+        },
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/Settings.bundle/Base.lproj/Root.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Settings.bundle/fr.lproj/Root.strings",
+            "$BUNDLE_ROOT/Settings.bundle/it.lproj/Root.strings",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_settings_bundle_only",
         tags = [name],
     )
 
@@ -1098,6 +1233,17 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
             "$BUNDLE_ROOT/it.lproj/localized.txt",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_swift_library_scoped_resources",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_nested_private_and_implementation_deps_bundled_with_app_test".format(name),
+        build_type = "device",
+        contains = [
+            "$BUNDLE_ROOT/sample.png",
+            "$BUNDLE_ROOT/view_ios.nib",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nested_private_and_implementation_dep_resources",
         tags = [name],
     )
 

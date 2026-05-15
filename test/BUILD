@@ -1,17 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load(
-    "//test:configurations.bzl",
-    "IOS_CONFIGURATIONS",
-)
-load(
-    "//test:test_rules.bzl",
-    "apple_multi_shell_test",
-    "apple_shell_test",
-)
-load(
-    "//test/starlark_tests:common.bzl",
-    "common",
-)
+load("//test:test_rules.bzl", "apple_shell_test")
+load("//test/starlark_tests:common.bzl", "common")
 
 licenses(["notice"])
 
@@ -53,19 +42,6 @@ filegroup(
 # the build and flake/fail. So by grouping them and marking them as flaky, it
 # allows bazel to auto retry them and help minimize the unreliability in those
 # tools.
-
-apple_multi_shell_test(
-    name = "ios_application_resources_test",
-    size = "large",
-    src = "ios_application_resources_test.sh",
-    configurations = IOS_CONFIGURATIONS,
-    data = [
-        "//test/testdata/resources:resource_data_deps_ios",
-        "//test/testdata/resources:resource_data_deps_platform_independent",
-        "//test/testdata/resources:texture_atlas_data_deps",
-    ],
-    flaky = True,
-)
 
 apple_shell_test(
     name = "ios_coverage_test",

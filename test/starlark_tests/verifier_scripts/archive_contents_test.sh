@@ -85,6 +85,9 @@ newline=$'\n'
 #      not be present.
 #
 #  Archive file permissions tests:
+#  - ASSERT_DIRECTORY_FILE_COUNT: Array of "KEY:VALUE" formatted strings where key
+#      specifies a bundle directory path, and value is the expected number of
+#      regular files recursively contained in that directory.
 #  - ASSERT_FILE_PERMISSIONS: Array of "KEY VALUE" formatted strings where key
 #      specifies a bundle file path, and value is the expected numerical file
 #      permissions bits. See apple_shell_testutils' assert_permissions_equal
@@ -429,6 +432,27 @@ if [[ -n "${ASSERT_FILE_PERMISSIONS-}" ]]; then
 
     expanded_path=$(eval echo "$path")
     assert_permissions_equal "$expanded_path" "$expected_permissions"
+  done
+fi
+
+if [[ -n "${ASSERT_DIRECTORY_FILE_COUNT-}" ]]; then
+  for test_values in "${ASSERT_DIRECTORY_FILE_COUNT[@]}"
+  do
+    something_tested=true
+    IFS=':' read -r path expected_file_count <<< "$test_values"
+
+    expanded_path=$(eval echo "$path")
+    if [[ ! -d $expanded_path ]]; then
+      fail "Archive did not contain directory \"$expanded_path\"" \
+        "contents were:$newline$(find $ARCHIVE_ROOT)"
+    fi
+
+    actual_file_count=$(find "$expanded_path" -type f | wc -l | tr -d ' ')
+    if [[ "$actual_file_count" != "$expected_file_count" ]]; then
+      fail "Expected directory \"$expanded_path\" to contain \"$expected_file_count\" files," \
+        "but it contained \"$actual_file_count\" files. Directory contents were:" \
+        "$newline$(find "$expanded_path")"
+    fi
   done
 fi
 

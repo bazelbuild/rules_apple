@@ -746,8 +746,18 @@ filegroup(
 )
 
 filegroup(
+    name = "star_atlas_files",
+    srcs = ["//test/testdata/resources:star_atlas_files"],
+)
+
+filegroup(
     name = "localized_generic_resources",
     srcs = glob(["*.lproj/*.txt"]),
+)
+
+filegroup(
+    name = "localized_generic_resources_without_fr",
+    srcs = ["it.lproj/localized.txt"],
 )
 
 filegroup(
@@ -865,6 +875,14 @@ objc_library(
     name = "ios_localized_xcstrings_lib",
     data = [
         ":localized_xcstrings",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ios_texture_atlas_lib",
+    data = [
+        ":star_atlas_files",
     ],
     tags = common.fixture_tags,
 )
