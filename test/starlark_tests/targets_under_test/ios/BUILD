@@ -7198,6 +7198,12 @@ apple_archive(
 )
 
 apple_archive(
+    name = "ipa_with_app_with_indirect_swift_dep",
+    bundle = ":app_with_indirect_swift_dep",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
     name = "ipa_with_swift_app_using_span_pre_26",
     bundle = ":swift_app_using_span_pre_26",
     tags = common.fixture_tags,
@@ -7237,6 +7243,12 @@ apple_archive(
 apple_archive(
     name = "ipa_with_imessage_app",
     bundle = ":imessage_app",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_sticker_ext",
+    bundle = ":app_with_sticker_ext",
     tags = common.fixture_tags,
 )
 

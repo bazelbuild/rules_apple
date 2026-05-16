@@ -52,7 +52,7 @@ def ios_application_swift_test_suite(name):
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_swift_dep",
         tags = [name],
     )
 
@@ -92,7 +92,7 @@ def ios_application_swift_test_suite(name):
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_indirect_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_indirect_swift_dep",
         tags = [name],
     )
 

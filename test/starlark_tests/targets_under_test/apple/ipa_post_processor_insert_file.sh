@@ -17,14 +17,27 @@
 set -euo pipefail
 
 WORKDIR="$1"
-IOS_APP_DIR="$(find "$WORKDIR/Payload" -maxdepth 1 -mindepth 1 -type d -name "*.app" -print -quit 2>/dev/null || true)"
+SEARCH_ROOT="${TREE_ARTIFACT_OUTPUT:-$WORKDIR}"
+
+if [[ -d "$SEARCH_ROOT" ]] &&
+    [[ "$SEARCH_ROOT" == *.app || "$SEARCH_ROOT" == *.bundle || "$SEARCH_ROOT" == *.qlgenerator ]]; then
+  if [[ -d "$SEARCH_ROOT/Contents" ]]; then
+    mkdir -p "$SEARCH_ROOT/Contents/Resources"
+    echo "foo" > "$SEARCH_ROOT/Contents/Resources/inserted_by_post_processor.txt"
+  else
+    echo "foo" > "$SEARCH_ROOT/inserted_by_post_processor.txt"
+  fi
+  exit 0
+fi
+
+IOS_APP_DIR="$(find "$SEARCH_ROOT/Payload" -maxdepth 1 -mindepth 1 -type d -name "*.app" -print -quit 2>/dev/null || true)"
 
 if [[ -n "$IOS_APP_DIR" ]]; then
   echo "foo" > "$IOS_APP_DIR/inserted_by_post_processor.txt"
   exit 0
 fi
 
-CONTENT_BUNDLE_DIR="$(find "$WORKDIR" -maxdepth 1 -mindepth 1 -type d \( -name "*.app" -o -name "*.bundle" -o -name "*.qlgenerator" \) -print -quit)"
+CONTENT_BUNDLE_DIR="$(find "$SEARCH_ROOT" -maxdepth 1 -mindepth 1 -type d \( -name "*.app" -o -name "*.bundle" -o -name "*.qlgenerator" \) -print -quit)"
 
 if [[ -n "$CONTENT_BUNDLE_DIR" ]]; then
   mkdir -p "$CONTENT_BUNDLE_DIR/Contents/Resources"
@@ -32,5 +45,5 @@ if [[ -n "$CONTENT_BUNDLE_DIR" ]]; then
   exit 0
 fi
 
-echo "No supported bundle directory found in $WORKDIR" >&2
+echo "No supported bundle directory found in $SEARCH_ROOT" >&2
 exit 1
