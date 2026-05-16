@@ -3017,7 +3017,7 @@ macos_ui_test(
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
-    test_host = ":app_zip",
+    test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
@@ -3083,7 +3083,7 @@ macos_unit_test(
     ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
-    test_host = ":app_zip",
+    test_host = ":app",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],

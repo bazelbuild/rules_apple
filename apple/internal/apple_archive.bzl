@@ -7,15 +7,6 @@ load(
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
     "AppleDsymBundleInfo",
-    "AppleExecutableBinaryInfo",
-    "AppleFrameworkImportInfo",
-    "AppleResourceInfo",
-    "IosApplicationBundleInfo",
-    "IosImessageApplicationBundleInfo",
-    "MacosApplicationBundleInfo",
-    "TvosApplicationBundleInfo",
-    "VisionosApplicationBundleInfo",
-    "WatchosApplicationBundleInfo",
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
@@ -24,14 +15,6 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "new_applebundleinfo",
-)
-load(
-    "//apple/internal/aspects:framework_provider_aspect.bzl",
-    "framework_provider_aspect",
-)
-load(
-    "//apple/internal/partials:codesigning_dossier.bzl",
-    "AppleEmbeddedCodesigningDossierInfo",
 )
 load(
     "//apple/internal/providers:apple_debug_info.bzl",
@@ -54,10 +37,6 @@ load(
     "AppleWatchosStubInfo",
 )
 load(
-    "//apple/internal/providers:embeddable_info.bzl",
-    "AppleEmbeddableInfo",
-)
-load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -78,28 +57,10 @@ def _output_groups_for_archive(bundle_target, combined_zip = None):
 
     return output_groups
 
-_APPLICATION_BUNDLE_PROVIDERS = [
-    IosApplicationBundleInfo,
-    IosImessageApplicationBundleInfo,
-    MacosApplicationBundleInfo,
-    TvosApplicationBundleInfo,
-    VisionosApplicationBundleInfo,
-    WatchosApplicationBundleInfo,
-]
-
-_PASSTHROUGH_PROVIDERS = _APPLICATION_BUNDLE_PROVIDERS + [
+_PASSTHROUGH_PROVIDERS = [
     AppleCodesigningDossierInfo,
     AppleDebugInfo,
     AppleDsymBundleInfo,
-    AppleEmbeddedCodesigningDossierInfo,
-    AppleEmbeddableInfo,
-    AppleExecutableBinaryInfo,
-    AppleFrameworkImportInfo,
-    AppleMessagesStubInfo,
-    AppleResourceInfo,
-    AppleSwiftDylibsInfo,
-    AppleSymbolsFileInfo,
-    AppleWatchosStubInfo,
 ]
 
 def _is_macos_bundle(bundle_info):
@@ -403,7 +364,6 @@ apple_archive = rule(
     implementation = _apple_archive_impl,
     attrs = {
         "bundle": attr.label(
-            aspects = [framework_provider_aspect],
             providers = [
                 AppleBundleInfo,
             ],

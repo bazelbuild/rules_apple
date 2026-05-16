@@ -15,10 +15,6 @@
 """Starlark test rule to validate the zip file referenced from an output group."""
 
 load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
-load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
 )
@@ -61,25 +57,6 @@ def _output_group_zip_contents_test_impl(ctx):
             "  exit 1",
             "fi",
         ])
-
-    for zip_path, expected_values in ctx.attr.contains_text.items():
-        for expected_value in expected_values:
-            test_lines.extend([
-                "if ! unzip -p {zip_file} {zip_path} 2>/dev/null | grep -F -- {expected_value} >/dev/null; then".format(
-                    expected_value = shell.quote(expected_value),
-                    zip_file = shell.quote(output_group_file_path),
-                    zip_path = shell.quote(zip_path),
-                ),
-                "  echo \"Expected text was not found in {}.\"".format(zip_path),
-                "  echo {}".format(shell.quote(expected_value)),
-                "  echo \"Actual file contents were:\"",
-                "  unzip -p {zip_file} {zip_path} || true".format(
-                    zip_file = shell.quote(output_group_file_path),
-                    zip_path = shell.quote(zip_path),
-                ),
-                "  exit 1",
-                "fi",
-            ])
 
     test_script = ctx.actions.declare_file("{}_output_group_zip_test_script".format(ctx.label.name))
     ctx.actions.write(test_script, "\n".join(test_lines), is_executable = True)
@@ -125,10 +102,6 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
         "contains": attr.string_list(
             doc = "A list of paths expected to be found in the referenced archive.",
             mandatory = True,
-        ),
-        "contains_text": attr.string_list_dict(
-            default = {},
-            doc = "A map of archive paths to text values expected in those files.",
         ),
         "output_group_name": attr.string(
             doc = "The name of the output group that has the archive file to verify.",

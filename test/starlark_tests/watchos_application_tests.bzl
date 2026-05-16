@@ -41,10 +41,6 @@ load(
     "infoplist_contents_test",
 )
 load(
-    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
-    "output_group_zip_contents_test",
-)
-load(
     "//test/starlark_tests/rules:plisttool_error_test.bzl",
     "plisttool_error_test",
 )
@@ -447,24 +443,6 @@ def watchos_application_test_suite(name):
             "$ARCHIVE_ROOT/WatchKitSupport2/WK",
             "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
         ],
-        tags = [name],
-    )
-
-    output_group_zip_contents_test(
-        name = "{}_archive_watch_application_dossier_embeds_watch_dossier".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
-        output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/watchos/ipa_app_companion_dossier_with_bundle.zip",
-        contains = [
-            "dossier/manifest.json",
-        ],
-        contains_text = {
-            "dossier/manifest.json": [
-                "PlugIns/ext.appex",
-                "Watch/app.app",
-            ],
-        },
         tags = [name],
     )
 
