@@ -3094,6 +3094,12 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_app_with_imported_fmwk",
+    bundle = ":app_with_imported_fmwk",
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = [":dynamic_fmwk_depending_lib_file"],
@@ -5155,7 +5161,7 @@ ios_unit_test(
     ],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
-    test_host = ":app_with_imported_fmwk",
+    test_host = ":ipa_app_with_imported_fmwk",
     deps = [
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:objc_test_lib",
@@ -5281,11 +5287,17 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_dedupe_test_app",
+    bundle = ":dedupe_test_app",
+    tags = common.fixture_tags,
+)
+
 ios_unit_test(
     name = "dedupe_test_test",
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
-    test_host = ":dedupe_test_app",
+    test_host = ":ipa_dedupe_test_app",
     deps = [
         ":test_lib",
     ],

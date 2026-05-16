@@ -7,6 +7,15 @@ load(
     "AppleBundleInfo",
     "AppleCodesigningDossierInfo",
     "AppleDsymBundleInfo",
+    "AppleExecutableBinaryInfo",
+    "AppleFrameworkImportInfo",
+    "AppleResourceInfo",
+    "IosApplicationBundleInfo",
+    "IosImessageApplicationBundleInfo",
+    "MacosApplicationBundleInfo",
+    "TvosApplicationBundleInfo",
+    "VisionosApplicationBundleInfo",
+    "WatchosApplicationBundleInfo",
 )
 load(
     "//apple/internal:apple_toolchains.bzl",
@@ -15,6 +24,14 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "new_applebundleinfo",
+)
+load(
+    "//apple/internal/aspects:framework_provider_aspect.bzl",
+    "framework_provider_aspect",
+)
+load(
+    "//apple/internal/partials:codesigning_dossier.bzl",
+    "AppleEmbeddedCodesigningDossierInfo",
 )
 load(
     "//apple/internal/providers:apple_debug_info.bzl",
@@ -37,6 +54,10 @@ load(
     "AppleWatchosStubInfo",
 )
 load(
+    "//apple/internal/providers:embeddable_info.bzl",
+    "AppleEmbeddableInfo",
+)
+load(
     "//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -56,6 +77,30 @@ def _output_groups_for_archive(bundle_target, combined_zip = None):
         output_groups["combined_dossier_zip"] = depset([combined_zip])
 
     return output_groups
+
+_APPLICATION_BUNDLE_PROVIDERS = [
+    IosApplicationBundleInfo,
+    IosImessageApplicationBundleInfo,
+    MacosApplicationBundleInfo,
+    TvosApplicationBundleInfo,
+    VisionosApplicationBundleInfo,
+    WatchosApplicationBundleInfo,
+]
+
+_PASSTHROUGH_PROVIDERS = _APPLICATION_BUNDLE_PROVIDERS + [
+    AppleCodesigningDossierInfo,
+    AppleDebugInfo,
+    AppleDsymBundleInfo,
+    AppleEmbeddedCodesigningDossierInfo,
+    AppleEmbeddableInfo,
+    AppleExecutableBinaryInfo,
+    AppleFrameworkImportInfo,
+    AppleMessagesStubInfo,
+    AppleResourceInfo,
+    AppleSwiftDylibsInfo,
+    AppleSymbolsFileInfo,
+    AppleWatchosStubInfo,
+]
 
 def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
@@ -348,11 +393,9 @@ def _apple_archive_impl(ctx):
         )),
     ]
 
-    if AppleDsymBundleInfo in ctx.attr.bundle:
-        providers.append(ctx.attr.bundle[AppleDsymBundleInfo])
-
-    if AppleDebugInfo in ctx.attr.bundle:
-        providers.append(ctx.attr.bundle[AppleDebugInfo])
+    for provider in _PASSTHROUGH_PROVIDERS:
+        if provider in ctx.attr.bundle:
+            providers.append(ctx.attr.bundle[provider])
 
     return providers
 
@@ -360,6 +403,7 @@ apple_archive = rule(
     implementation = _apple_archive_impl,
     attrs = {
         "bundle": attr.label(
+            aspects = [framework_provider_aspect],
             providers = [
                 AppleBundleInfo,
             ],

@@ -85,9 +85,13 @@ if [[ -n "$TEST_HOST_PATH" ]]; then
     runner_flags+=("--app_under_test_path=${TMP_DIR}/$(basename "$TEST_HOST_PATH")")
   else
     TEST_HOST_NAME=$(basename_without_extension "${TEST_HOST_PATH}")
+    TEST_HOST_BUNDLE_NAME="%(test_host_bundle_name)s"
+    if [[ -z "$TEST_HOST_BUNDLE_NAME" ]]; then
+      TEST_HOST_BUNDLE_NAME="$TEST_HOST_NAME"
+    fi
     TEST_HOST_TMP_DIR="${TMP_DIR}/${TEST_HOST_NAME}"
     unzip -qq -d "${TEST_HOST_TMP_DIR}" "${TEST_HOST_PATH}"
-    runner_flags+=("--app_under_test_path=${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_NAME}.app")
+    runner_flags+=("--app_under_test_path=${TEST_HOST_TMP_DIR}/Payload/${TEST_HOST_BUNDLE_NAME}.app")
   fi
 fi
 

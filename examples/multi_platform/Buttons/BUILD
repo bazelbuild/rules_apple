@@ -5,6 +5,10 @@ load(
     "swift_library",
 )
 load(
+    "//apple:apple_archive.bzl",
+    "apple_archive",
+)
+load(
     "//apple:ios.bzl",
     "ios_application",
     "ios_extension",
@@ -142,6 +146,11 @@ ios_application(
     deps = [":ButtonsLib"],
 )
 
+apple_archive(
+    name = "ButtonsIpa",
+    bundle = ":Buttons",
+)
+
 ios_extension(
     name = "ButtonsExtension",
     bundle_id = "com.google.Buttons.ButtonsExtension",
@@ -167,7 +176,7 @@ ios_static_framework(
 ios_unit_test(
     name = "ButtonsTests",
     minimum_os_version = "11.0",
-    test_host = ":Buttons",
+    test_host = ":ButtonsIpa",
     deps = [":ButtonsTestsLib"],
 )
 
@@ -180,7 +189,7 @@ ios_unit_test(
 ios_ui_test(
     name = "ButtonsUITests",
     minimum_os_version = "11.0",
-    test_host = ":Buttons",
+    test_host = ":ButtonsIpa",
     deps = [":ButtonsUITestsLib"],
 )
 

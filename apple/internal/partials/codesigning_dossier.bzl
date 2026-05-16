@@ -64,6 +64,8 @@ Depset of structs with codesigning dossier information to be embedded in another
     },
 )
 
+AppleEmbeddedCodesigningDossierInfo = _AppleCodesigningDossierInfo
+
 _VALID_LOCATIONS = sets.make([
     processor.location.app_clip,
     processor.location.framework,
