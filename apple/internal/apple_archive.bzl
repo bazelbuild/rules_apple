@@ -9,6 +9,10 @@ load(
     "AppleDsymBundleInfo",
 )
 load(
+    "//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "//apple/internal:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -66,6 +70,35 @@ _PASSTHROUGH_PROVIDERS = [
 def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
     return bundle_info.platform_type == apple_common.platform_type.macos
+
+_SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
+    (apple_common.platform_type.ios, apple_product_type.application),
+    (apple_common.platform_type.ios, apple_product_type.messages_application),
+    (apple_common.platform_type.macos, apple_product_type.application),
+    (apple_common.platform_type.tvos, apple_product_type.application),
+    (apple_common.platform_type.visionos, apple_product_type.application),
+    (apple_common.platform_type.watchos, apple_product_type.application),
+    (apple_common.platform_type.watchos, apple_product_type.watch2_application),
+]
+
+def _validate_bundle_is_supported(ctx, bundle_info):
+    """Fails if the wrapped bundle cannot be packaged by apple_archive."""
+    if not bundle_info.archive.is_directory:
+        fail("""\
+apple_archive requires the wrapped bundle target {label} to provide a directory archive, but its AppleBundleInfo archive is a file.
+""".format(
+            label = ctx.attr.bundle.label,
+        ))
+
+    platform_product_type = (bundle_info.platform_type, bundle_info.product_type)
+    if platform_product_type not in _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES:
+        fail("""\
+apple_archive only supports application bundles for iOS, macOS, tvOS, visionOS, and watchOS, but found platform type "{platform_type}" and product type "{product_type}" on target {label}.
+""".format(
+            label = ctx.attr.bundle.label,
+            platform_type = bundle_info.platform_type,
+            product_type = bundle_info.product_type,
+        ))
 
 def _archive_extension(bundle_info):
     """Returns the archive file extension for the bundle."""
@@ -313,6 +346,8 @@ def _apple_archive_impl(ctx):
     files for macOS.
     """
     bundle_info = ctx.attr.bundle[AppleBundleInfo]
+    _validate_bundle_is_supported(ctx, bundle_info)
+
     xplat_tools = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundletool = xplat_tools.bundletool
 

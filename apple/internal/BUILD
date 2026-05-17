@@ -90,6 +90,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_product_type",
         ":apple_toolchains",
         ":providers",
         "//apple:providers",

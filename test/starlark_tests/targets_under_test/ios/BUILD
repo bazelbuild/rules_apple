@@ -7192,6 +7192,12 @@ apple_archive(
 )
 
 apple_archive(
+    name = "ipa_with_extension",
+    bundle = ":ext",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
     name = "ipa_with_app_with_swift_dep",
     bundle = ":app_with_swift_dep",
     tags = common.fixture_tags,
