@@ -219,11 +219,10 @@ def _create_combined_zip_artifact(
         actions.run_shell(
             command = "echo '{error_message}' 1>&2 && exit 1".format(
                 error_message = (
-                    "ERROR: The combined dossier zip output group does not yet support the " +
-                    "experimental tree artifact. Please ensure that the " +
-                    "`apple.experimental.tree_artifact_outputs` variable is not set to 1 on " +
-                    "the command line or in your active build " +
-                    "configuration."
+                    "ERROR: The combined dossier zip output group is not supported directly " +
+                    "on application rule targets that use tree artifact outputs. Wrap this " +
+                    "application target in apple_archive and build the apple_archive target " +
+                    "with --output_groups=combined_dossier_zip instead."
                 ),
             ),
             **common_combined_dossier_zip_args

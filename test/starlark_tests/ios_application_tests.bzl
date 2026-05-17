@@ -31,10 +31,6 @@ load(
     "analysis_failure_message_test",
 )
 load(
-    "//test/starlark_tests/rules:analysis_output_group_info_files_exact_test.bzl",
-    "analysis_output_group_info_files_exact_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -76,10 +72,6 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
-)
-load(
-    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
-    "output_group_zip_contents_test",
 )
 load(
     "//test/starlark_tests/rules:plisttool_error_test.bzl",
@@ -168,12 +160,13 @@ def ios_application_test_suite(name):
         expected_outputs = ["ipa_with_app.ipa"],
         tags = [name],
     )
-    analysis_output_group_info_files_exact_test(
-        name = "{}_ipa_has_only_archive_combined_dossier_zip_output_group_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
-        output_group_name = "combined_dossier_zip",
-        expected_outputs = [
-            "ipa_with_app_dossier_with_bundle.zip",
+    action_command_line_test(
+        name = "{}_combined_dossier_zip_error_directs_to_apple_archive_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        mnemonic = "CreateCombinedDossierZip",
+        expected_argv = [
+            "Wrap this application target in apple_archive",
+            "--output_groups=combined_dossier_zip",
         ],
         tags = [name],
     )
@@ -1164,20 +1157,6 @@ def ios_application_test_suite(name):
             framework = Label("//test/starlark_tests/targets_under_test/ios:fmwk_not_extension_safe"),
             target = Label("//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_not_extension_safe"),
         ),
-        tags = [name],
-    )
-
-    output_group_zip_contents_test(
-        name = "{}_has_combined_zip_output_group".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
-        output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/ipa_with_app_dossier_with_bundle.zip",
-        contains = [
-            "bundle/Payload/app.app/Info.plist",
-            "bundle/Payload/app.app/app",
-            "dossier/manifest.json",
-        ],
         tags = [name],
     )
 

@@ -16,9 +16,10 @@ r"""A tool to sign bundles with code signing dossiers.
 
 Provides functionality to sign bundles using codesigning dossiers.
 
-To use this script with a combined dossier and bundle zip:
+To use this script with a combined dossier and bundle zip from an
+apple_archive target wrapping the application:
 
-% bazel build //path/to/ios_app \
+% bazel build //path/to:ios_app_archive \
     --output_groups=combined_dossier_zip \
     --features=disable_legacy_signing \
     --ios_multi_cpus=arm64
@@ -26,7 +27,7 @@ To use this script with a combined dossier and bundle zip:
 % ./dossier_codesigning_reader.py sign \
     --codesign /usr/bin/codesign \
     --output_artifact=~/Desktop/ios_app.ipa \
-    bazel-bin/path/to/ios_app_dossier_with_bundle.zip
+    bazel-bin/path/to/ios_app_archive_dossier_with_bundle.zip
 
 To use this script with a dossier and ipa:
 
