@@ -16,7 +16,7 @@
 
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_with_tree_artifact_outputs_test",
+    "analysis_failure_message_test",
 )
 
 def apple_archive_test_suite(name):
@@ -25,7 +25,7 @@ def apple_archive_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
-    analysis_failure_message_with_tree_artifact_outputs_test(
+    analysis_failure_message_test(
         name = "{}_rejects_unsupported_bundle_product_type_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_extension",
         expected_error = (

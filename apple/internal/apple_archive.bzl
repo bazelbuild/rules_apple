@@ -83,13 +83,6 @@ _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
 
 def _validate_bundle_is_supported(ctx, bundle_info):
     """Fails if the wrapped bundle cannot be packaged by apple_archive."""
-    if not bundle_info.archive.is_directory:
-        fail("""\
-apple_archive requires the wrapped bundle target {label} to provide a directory archive, but its AppleBundleInfo archive is a file.
-""".format(
-            label = ctx.attr.bundle.label,
-        ))
-
     platform_product_type = (bundle_info.platform_type, bundle_info.product_type)
     if platform_product_type not in _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES:
         fail("""\
@@ -98,6 +91,13 @@ apple_archive only supports application bundles for iOS, macOS, tvOS, visionOS, 
             label = ctx.attr.bundle.label,
             platform_type = bundle_info.platform_type,
             product_type = bundle_info.product_type,
+        ))
+
+    if not bundle_info.archive.is_directory:
+        fail("""\
+apple_archive requires the wrapped bundle target {label} to provide a directory archive, but its AppleBundleInfo archive is a file.
+""".format(
+            label = ctx.attr.bundle.label,
         ))
 
 def _archive_extension(bundle_info):
@@ -399,6 +399,7 @@ apple_archive = rule(
     implementation = _apple_archive_impl,
     attrs = {
         "bundle": attr.label(
+            mandatory = True,
             providers = [
                 AppleBundleInfo,
             ],
