@@ -396,7 +396,7 @@ def _main(control_path):
   bundler = Bundler(control)
   try:
     bundler.run()
-  except BundleConflictError as e:
+  except (BundleConflictError, BundleSymlinkError) as e:
     # Log tools errors cleanly for build output.
     sys.stderr.write('ERROR: %s\n' % e)
     sys.exit(1)

@@ -1146,7 +1146,7 @@ watchos_application(
 ios_application(
     name = "ios_with_swift_watchos_no_swift",
     bundle_id = "com.google",
-    bundle_name = "ios_with_swift_watchos_no_swift",
+    bundle_name = "companion",
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -1169,7 +1169,7 @@ apple_archive(
 ios_application(
     name = "ios_no_swift_watchos_with_swift",
     bundle_id = "com.google",
-    bundle_name = "ios_no_swift_watchos_with_swift",
+    bundle_name = "companion",
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",

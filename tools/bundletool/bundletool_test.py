@@ -14,7 +14,9 @@
 
 """Tests for Bundler."""
 
+import contextlib
 import io
+import json
 import os
 import re
 import shutil
@@ -442,6 +444,24 @@ class BundlerTest(unittest.TestCase):
           'bundle_path': 'Payload/foo.app',
           'bundle_merge_zips': [{'src': support_zip, 'dest': '.'}],
       })
+
+  def test_main_reports_symlink_errors(self):
+    support_zip = self._scratch_symlink_zip(
+        'support.zip', 'some.dylib', '../outside')
+    expected_error = bundletool.INVALID_SYMLINK_TARGET_MSG_TEMPLATE % (
+        'some.dylib', '../outside')
+    control_path = self._scratch_file('control.json', json.dumps({
+        'output': os.path.join(self._scratch_dir, 'out.zip'),
+        'bundle_merge_zips': [{'src': support_zip, 'dest': '.'}],
+    }))
+
+    stderr = io.StringIO()
+    with contextlib.redirect_stderr(stderr):
+      with self.assertRaises(SystemExit) as context:
+        bundletool._main(control_path)
+
+    self.assertEqual(1, context.exception.code)
+    self.assertEqual('ERROR: %s\n' % expected_error, stderr.getvalue())
 
   def test_zip_file_and_symlink_with_same_content_raise_error(self):
     one_zip = self._scratch_zip('one.zip', 'some.dylib:foo')
