@@ -124,6 +124,10 @@ def watchos_application_test_suite(name):
             "$BUNDLE_ROOT/Info.plist",
             "$BUNDLE_ROOT/app",
             "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+            "$BUNDLE_ROOT/_WatchKitStub/WK",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
         ],
         tags = [name],
     )

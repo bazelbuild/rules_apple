@@ -95,6 +95,11 @@ def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
     return bundle_info.platform_type == apple_common.platform_type.macos
 
+def _is_ios_application_bundle(bundle_info):
+    """Returns whether the bundle is an iOS application."""
+    return (bundle_info.platform_type == apple_common.platform_type.ios and
+            bundle_info.product_type == apple_product_type.application)
+
 def _validate_bundle_is_supported(ctx, bundle_info):
     """Fails if the wrapped bundle cannot be packaged by apple_archive."""
     platform_product_type = (bundle_info.platform_type, bundle_info.product_type)
@@ -179,18 +184,19 @@ def _collect_swift_support_files(ctx, bundle_merge_files):
             )
     return swift_support_inputs
 
-def _collect_watchos_stub_files(ctx, bundle_merge_files):
+def _collect_watchos_stub_files(ctx, bundle_info, bundle_merge_files):
     """Collects WatchOS stub files and adds them to bundle_merge_files.
 
     Args:
         ctx: The rule context.
+        bundle_info: The AppleBundleInfo provider.
         bundle_merge_files: List to append WatchOS stub merge structs to.
 
     Returns:
         List of WatchOS stub input files.
     """
     watchos_stub_inputs = []
-    if AppleWatchosStubInfo in ctx.attr.bundle:
+    if _is_ios_application_bundle(bundle_info) and AppleWatchosStubInfo in ctx.attr.bundle:
         watchos_stub_info = ctx.attr.bundle[AppleWatchosStubInfo]
         watchos_stub_inputs.append(watchos_stub_info.binary)
         bundle_merge_files.append(
@@ -383,7 +389,7 @@ def _apple_archive_impl(ctx):
 
     symbols_inputs = _collect_symbols_files(ctx, bundle_merge_files)
     swift_support_inputs = _collect_swift_support_files(ctx, bundle_merge_files)
-    watchos_stub_inputs = _collect_watchos_stub_files(ctx, bundle_merge_files)
+    watchos_stub_inputs = _collect_watchos_stub_files(ctx, bundle_info, bundle_merge_files)
     messages_stub_inputs = _collect_messages_stub_files(ctx, bundle_merge_files)
 
     all_inputs = (bundle_merge_files, symbols_inputs, swift_support_inputs, watchos_stub_inputs, messages_stub_inputs)
