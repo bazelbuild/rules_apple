@@ -32,8 +32,18 @@ load(
     "analysis_output_group_info_files_exact_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "make_analysis_output_group_info_files_test",
+)
+load(
     "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
     "output_group_zip_contents_test",
+)
+
+_validation_output_group_info_files_test = make_analysis_output_group_info_files_test(
+    config_settings = {
+        "//command_line_option:process_headers_in_dependencies": "true",
+    },
 )
 
 def _apple_archive_preserves_bundle_archive_root_test_impl(ctx):
@@ -93,6 +103,16 @@ def apple_archive_test_suite(name):
         output_group_name = "combined_dossier_zip",
         expected_outputs = [
             "ipa_with_app_dossier_with_bundle.zip",
+        ],
+        tags = [name],
+    )
+
+    _validation_output_group_info_files_test(
+        name = "{}_forwards_validation_output_group_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_validation_artifact_dep",
+        output_group_name = "_validation",
+        expected_outputs = [
+            "_objs/validation_artifact_dep/validation_artifact_dep.h.processed",
         ],
         tags = [name],
     )

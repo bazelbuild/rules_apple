@@ -72,6 +72,10 @@ load(
     "generate_static_framework_xcframework",
     "generate_static_xcframework",
 )
+load(
+    "//test/starlark_tests/rules:validation_artifact_dep.bzl",
+    "validation_artifact_dep",
+)
 load("//test/testdata/rules:substitution.bzl", "substitution")
 
 licenses(["notice"])
@@ -128,6 +132,27 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+validation_artifact_dep(
+    name = "validation_artifact_dep",
+    features = ["parse_headers"],
+)
+
+ios_application(
+    name = "app_with_validation_artifact_dep",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":validation_artifact_dep",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -7201,6 +7226,12 @@ ios_kernel_extension(
 apple_archive(
     name = "ipa_with_app_minimal",
     bundle = ":app_minimal",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app_with_validation_artifact_dep",
+    bundle = ":app_with_validation_artifact_dep",
     tags = common.fixture_tags,
 )
 

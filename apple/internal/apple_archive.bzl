@@ -59,26 +59,17 @@ load(
     "defines",
 )
 
-def _output_groups_for_archive(bundle_target, combined_zip = None):
-    """Returns the output groups that should be exposed by apple_archive."""
-    output_groups = {}
-
-    if OutputGroupInfo in bundle_target:
-        bundle_output_groups = bundle_target[OutputGroupInfo]
-        for output_group_name in ["dsyms", "linkmaps", "dossier"]:
-            output_group = getattr(bundle_output_groups, output_group_name, None)
-            if output_group != None:
-                output_groups[output_group_name] = output_group
-
-    if combined_zip:
-        output_groups["combined_dossier_zip"] = depset([combined_zip])
-
-    return output_groups
-
 _PASSTHROUGH_PROVIDERS = [
     AppleCodesigningDossierInfo,
     AppleDebugInfo,
     AppleDsymBundleInfo,
+]
+
+_PASSTHROUGH_OUTPUT_GROUPS = [
+    "_validation",
+    "dossier",
+    "dsyms",
+    "linkmaps",
 ]
 
 _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
@@ -90,6 +81,22 @@ _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
     (apple_common.platform_type.watchos, apple_product_type.application),
     (apple_common.platform_type.watchos, apple_product_type.watch2_application),
 ]
+
+def _output_groups_for_archive(bundle_target, combined_zip = None):
+    """Returns the output groups that should be exposed by apple_archive."""
+    output_groups = {}
+
+    if OutputGroupInfo in bundle_target:
+        bundle_output_groups = bundle_target[OutputGroupInfo]
+        for output_group_name in _PASSTHROUGH_OUTPUT_GROUPS:
+            output_group = getattr(bundle_output_groups, output_group_name, None)
+            if output_group != None:
+                output_groups[output_group_name] = output_group
+
+    if combined_zip:
+        output_groups["combined_dossier_zip"] = depset([combined_zip])
+
+    return output_groups
 
 def _is_macos_bundle(bundle_info):
     """Returns whether the bundle targets macOS."""
