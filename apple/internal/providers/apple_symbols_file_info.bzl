@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""AppleSymbolsFileInfo implementation.."""
+"""AppleSymbolsFileInfo implementation."""
 
 visibility("//apple/internal/...")
 

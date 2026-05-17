@@ -437,7 +437,7 @@ def macos_application_test_suite(name):
     archive_contents_test(
         name = "{}_prebuilt_dynamic_framework_dependency_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk_zip",
         contains = [
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist",
@@ -446,6 +446,11 @@ def macos_application_test_suite(name):
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Headers/SharedClass.h",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Modules/module.modulemap",
         ],
+        assert_file_permissions = {
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources": "755",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk": "755",
+        },
         tags = [name],
     )
 

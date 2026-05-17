@@ -383,6 +383,8 @@ class Bundler(object):
         zipinfo.external_attr |= 0o111 << 16
 
     if is_symlink:
+      # Symlink entries carry their own file type and stable permissions; assign
+      # instead of OR-ing so regular-file bits do not leak into the entry.
       zipinfo.external_attr = 0o120755 << 16
 
     out_zip.writestr(zipinfo, data)
