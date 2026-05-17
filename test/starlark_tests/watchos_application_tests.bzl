@@ -128,6 +128,17 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_apple_archive_embeds_watch_application_forced_tree_artifact_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/Info.plist",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/ext",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",

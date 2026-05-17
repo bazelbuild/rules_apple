@@ -330,6 +330,7 @@ def _macos_application_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = embedded_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.cc_info_dylibs_partial(
             embedded_targets = embedded_targets,
@@ -636,6 +637,7 @@ def _macos_bundle_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             plugins = [archive],
         ),
         partials.macos_additional_contents_partial(
@@ -903,6 +905,7 @@ def _macos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             **embedded_bundles_args
         ),
         partials.macos_additional_contents_partial(
@@ -1166,6 +1169,7 @@ def _macos_quick_look_plugin_impl(ctx):
         partials.embedded_bundles_partial(
             frameworks = [archive],
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -1419,6 +1423,7 @@ def _macos_kernel_extension_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             plugins = [archive],
         ),
         partials.macos_additional_contents_partial(
@@ -1663,6 +1668,7 @@ def _macos_spotlight_importer_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             plugins = [archive],
         ),
         partials.macos_additional_contents_partial(
@@ -1906,6 +1912,7 @@ def _macos_xpc_service_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             xpc_services = [archive],
         ),
         partials.macos_additional_contents_partial(
@@ -2970,6 +2977,7 @@ def _macos_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -3253,6 +3261,7 @@ def _macos_dynamic_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(

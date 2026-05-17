@@ -143,7 +143,8 @@ def _apple_verification_test_impl(ctx):
 
         bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
 
-        if bundle_info.platform_type != "macos" and bundle_info.product_type in [
+        product_type = getattr(bundle_info, "product_type", None)
+        if bundle_info.platform_type != "macos" and product_type in [
             apple_product_type.application,
             apple_product_type.app_clip,
             apple_product_type.messages_application,

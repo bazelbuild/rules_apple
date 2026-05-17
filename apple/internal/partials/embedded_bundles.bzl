@@ -36,6 +36,7 @@ def _embedded_bundles_partial_impl(
         bundle_embedded_bundles,
         embeddable_targets,
         platform_prerequisites,
+        rule_descriptor,
         signed_frameworks,
         **input_bundles_by_type):
     """Implementation for the embedded bundles processing partial."""
@@ -58,11 +59,13 @@ def _embedded_bundles_partial_impl(
     }
 
     transitive_bundles = dict()
-    bundles_to_embed = []
+    bundle_files_to_embed = []
+    bundle_zips_to_embed = []
     embeddedable_info_fields = {}
 
     tree_artifact_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
 
     for bundle_type, bundle_location in bundle_type_to_location.items():
@@ -79,16 +82,19 @@ def _embedded_bundles_partial_impl(
             if bundle_type in transitive_bundles:
                 transitive_depset = depset(transitive = transitive_bundles.get(bundle_type, []))
 
-                # With tree artifacts, we need to set the parent_dir of the file to be the basename
-                # of the file. Expanding these depsets shouldn't be too much work as there shouldn't
-                # be too many embedded targets per top-level bundle.
+                # With tree artifact bundle inputs, we need to set the parent_dir of the file to be
+                # the basename of the file. Some embedded bundle inputs can still be zip archives,
+                # so keep those in bundle_zips and let bundletool extract them.
                 if tree_artifact_enabled:
                     for bundle in transitive_depset.to_list():
-                        bundles_to_embed.append(
-                            (bundle_location, bundle.basename, depset([bundle])),
-                        )
+                        if bundle.is_directory:
+                            bundle_files_to_embed.append(
+                                (bundle_location, bundle.basename, depset([bundle])),
+                            )
+                        else:
+                            bundle_zips_to_embed.append((bundle_location, None, depset([bundle])))
                 else:
-                    bundles_to_embed.append((bundle_location, None, transitive_depset))
+                    bundle_zips_to_embed.append((bundle_location, None, transitive_depset))
 
             # Clear the transitive list of bundles for this bundle type since they will be packaged
             # in the bundle processing this partial and do not need to be propagated.
@@ -103,14 +109,13 @@ def _embedded_bundles_partial_impl(
                 transitive = transitive_bundles.get(bundle_type, []),
             )
 
-    # Construct the output files fields. If tree artifacts is enabled, propagate the bundles to
-    # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
-    # extracted.
+    # Construct the output files fields. Directory bundles are propagated through bundle_files, and
+    # zipped bundles are propagated through bundle_zips so they can be extracted.
     partial_output_fields = {}
-    if tree_artifact_enabled:
-        partial_output_fields["bundle_files"] = bundles_to_embed
-    else:
-        partial_output_fields["bundle_zips"] = bundles_to_embed
+    if bundle_files_to_embed:
+        partial_output_fields["bundle_files"] = bundle_files_to_embed
+    if bundle_zips_to_embed:
+        partial_output_fields["bundle_zips"] = bundle_zips_to_embed
 
     # Construct a transitive depset of signed paths, indicating files that we expect to have
     # already been code signed by past targets.
@@ -153,6 +158,7 @@ def embedded_bundles_partial(
         frameworks = [],
         platform_prerequisites,
         plugins = [],
+        rule_descriptor,
         signed_frameworks = depset(),
         watch_bundles = [],
         xpc_services = []):
@@ -178,6 +184,7 @@ def embedded_bundles_partial(
         platform_prerequisites: Struct containing information on the platform being targeted.
         plugins: List of plugin bundles that should be propagated downstream for a top level
             target to bundle inside `PlugIns`.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
         signed_frameworks: A depset of strings referencing frameworks that have already been
             codesigned.
         watch_bundles: List of watchOS application bundles that should be propagated downstream for
@@ -197,6 +204,7 @@ def embedded_bundles_partial(
         frameworks = frameworks,
         platform_prerequisites = platform_prerequisites,
         plugins = plugins,
+        rule_descriptor = rule_descriptor,
         signed_frameworks = signed_frameworks,
         watch_bundles = watch_bundles,
         xpc_services = xpc_services,

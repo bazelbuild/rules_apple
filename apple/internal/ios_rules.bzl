@@ -367,6 +367,7 @@ def _ios_application_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -741,6 +742,7 @@ def _ios_app_clip_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -1079,6 +1081,7 @@ def _ios_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -1384,6 +1387,7 @@ def _ios_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             **embedded_bundles_args
         ),
         partials.extension_safe_validation_partial(
@@ -1673,6 +1677,7 @@ def _ios_dynamic_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -2052,6 +2057,7 @@ def _ios_imessage_application_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -2328,6 +2334,7 @@ def _ios_imessage_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             plugins = [archive_for_embedding],
         ),
         partials.extension_safe_validation_partial(
@@ -2545,6 +2552,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         ),
         partials.embedded_bundles_partial(
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             plugins = [archive_for_embedding],
         ),
         partials.resources_partial(
