@@ -603,12 +603,12 @@ def macos_application_test_suite(name):
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
         binary_paths = [
-            "app_with_ext_and_symbols_in_bundle.app/Contents/MacOS/app_with_ext_and_symbols_in_bundle",
-            "app_with_ext_and_symbols_in_bundle.app/Contents/PlugIns/ext.appex/Contents/MacOS/ext",
+            "app_with_ext_and_symbols.app/Contents/MacOS/app_with_ext_and_symbols",
+            "app_with_ext_and_symbols.app/Contents/PlugIns/ext.appex/Contents/MacOS/ext",
         ],
         build_type = "device",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_in_bundle_zip",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_ext_and_symbols_zip",
     )
 
     apple_symbols_file_test(

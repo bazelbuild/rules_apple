@@ -2273,7 +2273,7 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_ext_and_fmwk_and_symbols_in_bundle",
+    name = "app_with_ext_and_fmwk_and_symbols",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
     families = [
@@ -7246,7 +7246,7 @@ apple_archive(
 
 apple_archive(
     name = "ipa_with_app_with_ext_and_fmwk_and_symbols",
-    bundle = ":app_with_ext_and_fmwk_and_symbols_in_bundle",
+    bundle = ":app_with_ext_and_fmwk_and_symbols",
     include_symbols = True,
     tags = common.fixture_tags,
 )
@@ -7359,8 +7359,8 @@ apple_archive(
 )
 
 apple_archive(
-    name = "ipa_app_with_ext_and_fmwk_and_symbols_in_bundle",
-    bundle = ":app_with_ext_and_fmwk_and_symbols_in_bundle",
+    name = "ipa_app_with_ext_and_fmwk_and_symbols",
+    bundle = ":app_with_ext_and_fmwk_and_symbols",
     include_symbols = True,
     tags = common.fixture_tags,
 )

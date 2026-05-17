@@ -1007,13 +1007,13 @@ def ios_application_test_suite(name):
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
         binary_paths = [
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/app_with_ext_and_fmwk_and_symbols_in_bundle",
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/PlugIns/ext_with_fmwk_provisioned.appex/ext_with_fmwk_provisioned",
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/app_with_ext_and_fmwk_and_symbols",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/PlugIns/ext_with_fmwk_provisioned.appex/ext_with_fmwk_provisioned",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_ext_and_fmwk_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_ext_and_fmwk_and_symbols",
     )
 
     # Tests that app clips also contribute .symbols package files when

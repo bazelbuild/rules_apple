@@ -365,8 +365,8 @@ def _apple_archive_impl(ctx):
     Implementation for apple_archive.
 
     This rule uses the providers from the bundle target to re-package it into an archive.
-    Apple application bundles are packaged as `.ipa` files for iOS/tvOS/watchOS and `.zip`
-    files for macOS.
+    Apple application bundles are packaged as `.ipa` files for iOS/tvOS/visionOS/watchOS
+    and `.zip` files for macOS.
     """
     bundle_info = ctx.attr.bundle[AppleBundleInfo]
     _validate_bundle_is_supported(ctx, bundle_info)
@@ -446,10 +446,10 @@ The label to a target to re-package into an Apple archive. For example, an
 Re-packages an Apple bundle into an Apple archive.
 
 This rule uses the providers from the bundle target to construct the required
-metadata for the archive. iOS/tvOS/watchOS applications produce an `.ipa`;
-macOS applications produce a `.zip`. The archive target preserves the wrapped
-bundle target's debug providers and output groups so follow-on artifacts such
-as dSYMs and linkmaps remain available from the archive target. In the
+metadata for the archive. iOS/tvOS/visionOS/watchOS applications produce an
+`.ipa`; macOS applications produce a `.zip`. The archive target preserves the
+wrapped bundle target's debug providers and output groups so follow-on artifacts
+such as dSYMs and linkmaps remain available from the archive target. In the
 `AppleBundleInfo` propagated by this rule, `archive` points to the `.ipa` or
 `.zip` file, while `archive_root` intentionally remains the wrapped bundle
 target's unarchived bundle root for IDE consumers.

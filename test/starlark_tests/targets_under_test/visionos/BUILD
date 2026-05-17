@@ -1,6 +1,10 @@
 # TODO(nglevin): describe this package.
 
 load(
+    "//apple:apple_archive.bzl",
+    "apple_archive",
+)
+load(
     "//apple:visionos.bzl",
     "visionos_application",
 )
@@ -63,6 +67,12 @@ visionos_application(
         "//test/starlark_tests/resources:nested_bundle_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_with_app",
+    bundle = ":app",
+    tags = common.fixture_tags,
 )
 
 visionos_application(

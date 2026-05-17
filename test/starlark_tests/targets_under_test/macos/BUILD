@@ -1213,8 +1213,8 @@ apple_archive(
 )
 
 apple_archive(
-    name = "app_with_ext_and_symbols_in_bundle_zip",
-    bundle = ":app_with_ext_and_symbols_in_bundle",
+    name = "app_with_ext_and_symbols_zip",
+    bundle = ":app_with_ext_and_symbols",
     include_symbols = True,
     tags = common.fixture_tags,
 )
@@ -1531,10 +1531,9 @@ macos_extension(
 )
 
 macos_application(
-    name = "app_with_ext_and_symbols_in_bundle",
+    name = "app_with_ext_and_symbols",
     bundle_id = "com.google.example",
     extensions = [":ext"],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1602,13 +1601,12 @@ macos_application(
 )
 
 macos_application(
-    name = "app_with_ext_and_fmwk_and_symbols_in_bundle",
+    name = "app_with_ext_and_fmwk_and_symbols",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
     frameworks = [
         ":fmwk_with_provisioning",
     ],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2336,7 +2334,6 @@ macos_application(
 macos_application(
     name = "app_with_imported_dynamic_fmwk_with_dsym",
     bundle_id = "com.google.example",
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
