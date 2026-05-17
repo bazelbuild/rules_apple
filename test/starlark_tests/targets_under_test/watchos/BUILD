@@ -80,6 +80,12 @@ watchos_application(
     tags = common.fixture_tags,
 )
 
+apple_archive(
+    name = "ipa_with_app",
+    bundle = ":app",
+    tags = common.fixture_tags,
+)
+
 watchos_application(
     name = "app_mismatched_bundle_id",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
@@ -274,6 +280,12 @@ watchos_application(
     deps = [
         "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_with_single_target_app",
+    bundle = ":single_target_app",
+    tags = common.fixture_tags,
 )
 
 watchos_application(

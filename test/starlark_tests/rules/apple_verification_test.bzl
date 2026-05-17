@@ -143,13 +143,11 @@ def _apple_verification_test_impl(ctx):
 
         bundle_with_extension = bundle_info.bundle_name + bundle_info.bundle_extension
 
-        if bundle_info.platform_type in [
-            "ios",
-            "tvos",
-        ] and bundle_info.product_type in [
+        if bundle_info.platform_type != "macos" and bundle_info.product_type in [
             apple_product_type.application,
             apple_product_type.app_clip,
             apple_product_type.messages_application,
+            apple_product_type.watch2_application,
         ] and not archive.is_directory:
             archive_relative_bundle = paths.join("Payload", bundle_with_extension)
         else:

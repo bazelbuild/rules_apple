@@ -54,6 +54,8 @@ def is_experimental_tree_artifact_enabled(
             (apple_common.platform_type.macos, apple_product_type.application),
             (apple_common.platform_type.tvos, apple_product_type.application),
             (apple_common.platform_type.visionos, apple_product_type.application),
+            (apple_common.platform_type.watchos, apple_product_type.application),
+            (apple_common.platform_type.watchos, apple_product_type.watch2_application),
         ]:
             return True
 

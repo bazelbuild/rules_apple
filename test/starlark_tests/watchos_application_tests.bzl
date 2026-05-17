@@ -25,6 +25,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
@@ -108,6 +109,25 @@ def watchos_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    analysis_target_outputs_test(
+        name = "{}_default_tree_artifact_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        expected_outputs = ["app.app"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ipa_archive_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_app",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/app",
+            "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
