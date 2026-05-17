@@ -441,10 +441,10 @@ The label to a target to re-package into an Apple archive. For example, an
         "include_symbols": attr.bool(
             default = False,
             doc = """
-    If true, collects `$UUID.symbols`
-    files from all `{binary: .dSYM, ...}` pairs for the application and its
-    dependencies, then packages them under the `Symbols/` directory in the
-    final archive.
+If true, collects generated `$UUID.symbols` files from all `{binary: .dSYM, ...}`
+pairs for the application and its dependencies, then packages them under the
+`Symbols/` directory in the final archive. Symbol files are only available when
+dSYM generation is enabled, such as by passing `--apple_generate_dsym`.
     """,
         ),
     },
@@ -464,7 +464,7 @@ target's unarchived bundle root for IDE consumers.
 Example:
 
 ````starlark
-load("//apple:apple_archive.bzl", "apple_archive")
+load("@rules_apple//apple:apple_archive.bzl", "apple_archive")
 
 ios_application(
     name = "App",

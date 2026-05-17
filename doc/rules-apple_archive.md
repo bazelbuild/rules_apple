@@ -26,7 +26,7 @@ target's unarchived bundle root for IDE consumers.
 Example:
 
 ````starlark
-load("//apple:apple_archive.bzl", "apple_archive")
+load("@rules_apple//apple:apple_archive.bzl", "apple_archive")
 
 ios_application(
     name = "App",
@@ -47,6 +47,6 @@ apple_archive(
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_archive-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_archive-bundle"></a>bundle |  The label to a target to re-package into an Apple archive. For example, an `ios_application` or `macos_application` target.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="apple_archive-include_symbols"></a>include_symbols |  If true, collects `$UUID.symbols` files from all `{binary: .dSYM, ...}` pairs for the application and its dependencies, then packages them under the `Symbols/` directory in the final archive.   | Boolean | optional |  `False`  |
+| <a id="apple_archive-include_symbols"></a>include_symbols |  If true, collects generated `$UUID.symbols` files from all `{binary: .dSYM, ...}` pairs for the application and its dependencies, then packages them under the `Symbols/` directory in the final archive. Symbol files are only available when dSYM generation is enabled, such as by passing `--apple_generate_dsym`.   | Boolean | optional |  `False`  |
 
 
