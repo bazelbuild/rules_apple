@@ -1229,6 +1229,12 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_ios_with_swift_watchos_with_swift_stable_abi",
+    bundle = ":ios_with_swift_watchos_with_swift_stable_abi",
+    tags = common.fixture_tags,
+)
+
 ios_application(
     name = "ios_with_swift_single_target_watchos_with_swift_stable_abi",
     bundle_id = "com.google",

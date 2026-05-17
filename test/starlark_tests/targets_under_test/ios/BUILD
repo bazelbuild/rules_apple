@@ -7276,13 +7276,6 @@ apple_archive(
 )
 
 apple_archive(
-    name = "ipa_with_app_with_ext_and_fmwk_and_symbols",
-    bundle = ":app_with_ext_and_fmwk_and_symbols",
-    include_symbols = True,
-    tags = common.fixture_tags,
-)
-
-apple_archive(
     name = "ipa_with_app_with_ext_and_fmwk_provisioned",
     bundle = ":app_with_ext_and_fmwk_provisioned",
     tags = common.fixture_tags,
@@ -7297,12 +7290,6 @@ apple_archive(
 apple_archive(
     name = "ipa_with_app_with_imported_fmwk",
     bundle = ":app_with_imported_fmwk",
-    tags = common.fixture_tags,
-)
-
-apple_archive(
-    name = "ipa_with_imessage_app",
-    bundle = ":imessage_app",
     tags = common.fixture_tags,
 )
 

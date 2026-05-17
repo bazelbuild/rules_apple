@@ -100,7 +100,7 @@ def watchos_application_swift_test_suite(name):
             "$BUNDLE_ROOT/Watch/app.app/Frameworks/libswiftCore.dylib",
             "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift_stable_abi",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_ios_with_swift_watchos_with_swift_stable_abi",
         tags = [name],
     )
 

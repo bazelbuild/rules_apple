@@ -1251,6 +1251,12 @@ tvos_application(
     deps = [":swift_lib"],
 )
 
+apple_archive(
+    name = "ipa_app_with_direct_swift_dep_stable_abi",
+    bundle = ":app_with_direct_swift_dep_stable_abi",
+    tags = common.fixture_tags,
+)
+
 swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],

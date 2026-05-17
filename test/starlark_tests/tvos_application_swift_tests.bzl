@@ -42,7 +42,7 @@ def tvos_application_swift_test_suite(name):
         not_contains = [
             "$ARCHIVE_ROOT/SwiftSupport/appletvsimulator/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_direct_swift_dep",
         tags = [name],
     )
 
@@ -75,7 +75,7 @@ def tvos_application_swift_test_suite(name):
         not_contains = [
             "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_direct_swift_dep",
         tags = [name],
     )
 
@@ -85,10 +85,10 @@ def tvos_application_swift_test_suite(name):
         name = "{}_build_for_stable_abi_does_not_have_swift_libs_test".format(name),
         build_type = "device",
         not_contains = [
-            "$ARCHIVE_ROOT/SwiftSupport/appletvsimulator/libswiftCore.dylib",
+            "$ARCHIVE_ROOT/SwiftSupport/appletvos/libswiftCore.dylib",
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_direct_swift_dep_stable_abi",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ipa_app_with_direct_swift_dep_stable_abi",
         tags = [name],
     )
 
