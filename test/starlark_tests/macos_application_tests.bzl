@@ -598,8 +598,8 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
-    # is enabled.
+    # Tests that the archive contains .symbols package files when `include_symbols`
+    # is enabled on the wrapping archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
         binary_paths = [

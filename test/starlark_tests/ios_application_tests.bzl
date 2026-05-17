@@ -987,8 +987,9 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
-    # is enabled for both the iOS application and the watchOS extensions.
+    # Tests that the archive contains .symbols package files when `include_symbols`
+    # is enabled on the wrapping archive target for both the iOS application and
+    # the watchOS extensions.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_watchos_test".format(name),
         binary_paths = [
@@ -1001,8 +1002,8 @@ def ios_application_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_ios_watchos_with_watchos_extension_and_symbols",
     )
 
-    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
-    # is enabled.
+    # Tests that the archive contains .symbols package files when `include_symbols`
+    # is enabled on the wrapping archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
         binary_paths = [
@@ -1029,7 +1030,8 @@ def ios_application_test_suite(name):
     )
 
     # Tests that the archive contains .symbols package files generated from
-    # imported frameworks when `include_symbols_in_bundle` is enabled.
+    # imported frameworks when `include_symbols` is enabled on the wrapping
+    # archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_from_external_fmwk_test".format(name),
         binary_paths = [

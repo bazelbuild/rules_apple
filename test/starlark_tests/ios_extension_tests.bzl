@@ -95,6 +95,17 @@ def ios_extension_test_suite(name):
     )
 
     apple_verification_test(
+        name = "{}_fmwk_provisioned_post_processor_codesign_test".format(name),
+        build_type = "simulator",
+        env = {
+            "EXPECT_CODESIGN_FMWKS_OUTPUT": ["1"],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned_and_post_processor",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
         name = "{}_fmwk_provisioned_codesign_asan_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned",

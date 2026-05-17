@@ -1,3 +1,17 @@
+# Copyright 2026 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Rule for packaging a bundle into an Apple archive.
 """
@@ -67,10 +81,6 @@ _PASSTHROUGH_PROVIDERS = [
     AppleDsymBundleInfo,
 ]
 
-def _is_macos_bundle(bundle_info):
-    """Returns whether the bundle targets macOS."""
-    return bundle_info.platform_type == apple_common.platform_type.macos
-
 _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
     (apple_common.platform_type.ios, apple_product_type.application),
     (apple_common.platform_type.ios, apple_product_type.messages_application),
@@ -80,6 +90,10 @@ _SUPPORTED_ARCHIVE_PLATFORM_PRODUCT_TYPES = [
     (apple_common.platform_type.watchos, apple_product_type.application),
     (apple_common.platform_type.watchos, apple_product_type.watch2_application),
 ]
+
+def _is_macos_bundle(bundle_info):
+    """Returns whether the bundle targets macOS."""
+    return bundle_info.platform_type == apple_common.platform_type.macos
 
 def _validate_bundle_is_supported(ctx, bundle_info):
     """Fails if the wrapped bundle cannot be packaged by apple_archive."""
