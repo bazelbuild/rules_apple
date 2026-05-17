@@ -438,8 +438,21 @@ def ios_application_test_suite(name):
     apple_verification_test(
         name = "{}_ext_and_fmwk_provisioned_codesign_test".format(name),
         build_type = "simulator",
+        env = {
+            "EXPECT_CODESIGN_FMWKS_OUTPUT": ["1"],
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_codesigning_post_processor_marker_in_archive_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_ext_and_fmwk_provisioned",
+        contains = [
+            "$BUNDLE_ROOT/codesign_v_fmwks_output.txt",
+        ],
         tags = [name],
     )
 

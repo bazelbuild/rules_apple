@@ -18,26 +18,29 @@ set -eu
 
 WORKDIR="$1"
 SEARCH_ROOT="${TREE_ARTIFACT_OUTPUT:-$WORKDIR}"
+readonly CODESIGN_FMWKS_OUTPUT_FILE="codesign_v_fmwks_output.txt"
 
 # Save all codesigning output for each framework to verify later that they are
 # not being re-signed.
 for app in \
     $(find "$SEARCH_ROOT" -type d \
         \( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.qlgenerator" -o -name "*.xpc" \)); do
-  CODESIGN_FMWKS_OUTPUT="$app.codesign_v_fmwks_output.txt"
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
     FRAMEWORK_DIR="$app/Frameworks"
+    CODESIGN_FMWKS_OUTPUT="$app/$CODESIGN_FMWKS_OUTPUT_FILE"
   else
     # macOS has a different bundle structure, and will fail codesigning if files
     # such as text files are not placed in the Resources directory. Create a
     # Resources directory in Contents if one does not exist.
     FRAMEWORK_DIR="$app/Contents/Frameworks"
+    CODESIGN_FMWKS_OUTPUT="$app/Contents/Resources/$CODESIGN_FMWKS_OUTPUT_FILE"
   fi
 
   if [ ! -d "$FRAMEWORK_DIR" ]; then
     continue
   fi
 
+  mkdir -p "$(dirname "$CODESIGN_FMWKS_OUTPUT")"
   : > "$CODESIGN_FMWKS_OUTPUT"
 
   for fmwk in \
