@@ -321,6 +321,9 @@ def _create_apple_bundle_info(bundle_info, archive):
     """
     return new_applebundleinfo(
         archive = archive,
+        # AppleBundleInfo.archive_root is the unarchived, signed bundle root.
+        # apple_archive does not materialize an unarchived archive directory, so
+        # preserve the wrapped bundle's root for IDE consumers.
         archive_root = bundle_info.archive_root,
         binary = bundle_info.binary,
         bundle_extension = bundle_info.bundle_extension,
@@ -426,7 +429,10 @@ This rule uses the providers from the bundle target to construct the required
 metadata for the archive. iOS/tvOS/watchOS applications produce an `.ipa`;
 macOS applications produce a `.zip`. The archive target preserves the wrapped
 bundle target's debug providers and output groups so follow-on artifacts such
-as dSYMs and linkmaps remain available from the archive target.
+as dSYMs and linkmaps remain available from the archive target. In the
+`AppleBundleInfo` propagated by this rule, `archive` points to the `.ipa` or
+`.zip` file, while `archive_root` intentionally remains the wrapped bundle
+target's unarchived bundle root for IDE consumers.
 
 Example:
 

@@ -15,6 +15,15 @@
 """apple_archive Starlark tests."""
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
+    "asserts",
+)
+load(
+    "//apple:providers.bzl",
+    "AppleBundleInfo",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -25,6 +34,40 @@ load(
 load(
     "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
     "output_group_zip_contents_test",
+)
+
+def _apple_archive_preserves_bundle_archive_root_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target_under_test = analysistest.target_under_test(env)
+
+    archive_bundle_info = target_under_test[AppleBundleInfo]
+    wrapped_bundle_info = ctx.attr.bundle[AppleBundleInfo]
+
+    asserts.equals(
+        env,
+        wrapped_bundle_info.archive_root,
+        archive_bundle_info.archive_root,
+        "apple_archive should preserve the wrapped bundle AppleBundleInfo.archive_root",
+    )
+    asserts.equals(
+        env,
+        ctx.attr.expected_archive_basename,
+        archive_bundle_info.archive.basename,
+    )
+
+    return analysistest.end(env)
+
+apple_archive_preserves_bundle_archive_root_test = analysistest.make(
+    _apple_archive_preserves_bundle_archive_root_test_impl,
+    attrs = {
+        "bundle": attr.label(
+            mandatory = True,
+            providers = [AppleBundleInfo],
+        ),
+        "expected_archive_basename": attr.string(
+            mandatory = True,
+        ),
+    },
 )
 
 def apple_archive_test_suite(name):
@@ -51,6 +94,14 @@ def apple_archive_test_suite(name):
         expected_outputs = [
             "ipa_with_app_dossier_with_bundle.zip",
         ],
+        tags = [name],
+    )
+
+    apple_archive_preserves_bundle_archive_root_test(
+        name = "{}_preserves_bundle_archive_root_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        bundle = "//test/starlark_tests/targets_under_test/ios:app",
+        expected_archive_basename = "ipa_with_app.ipa",
         tags = [name],
     )
 
