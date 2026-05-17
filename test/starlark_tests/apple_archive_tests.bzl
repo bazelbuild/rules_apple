@@ -36,6 +36,10 @@ load(
     "make_analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:common_verification_tests.bzl",
+    "archive_contents_test",
+)
+load(
     "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
     "output_group_zip_contents_test",
 )
@@ -136,6 +140,59 @@ def apple_archive_test_suite(name):
             "bundle/Payload/app.app/app",
             "dossier/manifest.json",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_packages_swift_support_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_swift_dep",
+        contains = [
+            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
+            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_packages_watchkit_support_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
+        contains = [
+            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
+            "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_packages_messages_support_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_imessage_app",
+        contains = [
+            "$ARCHIVE_ROOT/MessagesApplicationSupport/MessagesApplicationSupportStub",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_macos_zip_preserves_symlinks_and_permissions_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework_zip",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
+        assert_file_permissions = {
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework": "755",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current": "120755",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework": "120755",
+        },
         tags = [name],
     )
 

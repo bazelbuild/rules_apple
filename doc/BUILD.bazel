@@ -27,16 +27,6 @@ _RULES_DOC_SRCS = [
 
 _DOC_SRCS = _PLAIN_DOC_SRCS + _RULES_DOC_SRCS
 
-_STRIP_TRAILING_BLANK_LINES_DOC_SRCS = [
-    "apple_archive",
-]
-
-_DIRECT_STARDOC_SRCS = [
-    file
-    for file in _DOC_SRCS
-    if file not in _STRIP_TRAILING_BLANK_LINES_DOC_SRCS
-]
-
 [
     stardoc(
         name = file + "_doc",
@@ -48,31 +38,7 @@ _DIRECT_STARDOC_SRCS = [
         ],
         deps = ["//apple:" + file],
     )
-    for file in _DIRECT_STARDOC_SRCS
-]
-
-[
-    stardoc(
-        name = file + "_raw_doc",
-        out = file + ".raw.md",
-        input = "//apple:%s.bzl" % file,
-        tags = [
-            "no-cache",
-            "no-sandbox",  # https://github.com/bazelbuild/stardoc/issues/112
-        ],
-        deps = ["//apple:" + file],
-    )
-    for file in _STRIP_TRAILING_BLANK_LINES_DOC_SRCS
-]
-
-[
-    genrule(
-        name = file + "_doc",
-        srcs = [file + ".raw.md"],
-        outs = [file + ".gen.md"],
-        cmd = "awk 'NF { while (blank > 0) { print \"\"; blank-- }; print; next } { blank++ }' $< > $@",
-    )
-    for file in _STRIP_TRAILING_BLANK_LINES_DOC_SRCS
+    for file in _DOC_SRCS
 ]
 
 # Help developers who get a red CI result by telling them how to fix it

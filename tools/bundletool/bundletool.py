@@ -165,6 +165,9 @@ class Bundler(object):
       contents_only: A Boolean value indicating whether only the files in `src`
           or `src` itself should be added to the bundle (if `src` is a
           directory).
+      normalize_bundle_file_permissions: A Boolean value indicating whether
+          bundle entries should receive normalized executable permissions
+          based on their destination paths.
       out_zip: The `ZipFile` into which the files should be added.
       compress: Whether the files are compressed or just stored in the zip.
     """

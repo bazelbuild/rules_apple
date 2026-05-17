@@ -97,7 +97,7 @@ def _messages_stub_partial_impl(
                 ),
             )
 
-        # We propagate the public provider for ipa rule access
+        # Propagate archive-root support files to apple_archive.
         if app_support_file or extension_support_file:
             providers.append(AppleMessagesStubInfo(
                 messages_application_support = app_support_file,
