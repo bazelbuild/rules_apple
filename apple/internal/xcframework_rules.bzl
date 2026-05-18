@@ -17,6 +17,10 @@
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -64,7 +68,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
-    "ApplePlatformInfo",
     "new_applebundleinfo",
     "new_applecodesigningdossierinfo",
     "new_applestaticxcframeworkbundleinfo",

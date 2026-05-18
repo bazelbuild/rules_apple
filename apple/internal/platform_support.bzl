@@ -19,10 +19,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "new_appleplatforminfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:platform_defaults.bzl",
     "platform_defaults",
 )
@@ -77,50 +73,6 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
         return family_ids
     return None
 
-def _apple_common_platform_from_platform_info(*, apple_platform_info):
-    """Returns an apple_common.platform given the contents of an ApplePlatformInfo provider"""
-    if apple_platform_info.target_os == "ios":
-        if apple_platform_info.target_environment == "device":
-            return apple_common.platform.ios_device
-        elif apple_platform_info.target_environment == "simulator":
-            return apple_common.platform.ios_simulator
-    elif apple_platform_info.target_os == "macos":
-        return apple_common.platform.macos
-    elif apple_platform_info.target_os == "tvos":
-        if apple_platform_info.target_environment == "device":
-            return apple_common.platform.tvos_device
-        elif apple_platform_info.target_environment == "simulator":
-            return apple_common.platform.tvos_simulator
-    elif apple_platform_info.target_os == "visionos":
-        if apple_platform_info.target_environment == "device":
-            return apple_common.platform.visionos_device
-        elif apple_platform_info.target_environment == "simulator":
-            return apple_common.platform.visionos_simulator
-    elif apple_platform_info.target_os == "watchos":
-        if apple_platform_info.target_environment == "device":
-            return apple_common.platform.watchos_device
-        elif apple_platform_info.target_environment == "simulator":
-            return apple_common.platform.watchos_simulator
-    else:
-        fail("Internal Error: Found unrecognized target os of " + apple_platform_info.target_os)
-    fail(
-        """
-Internal Error: Found unrecognized target environment of {target_environment} for os {target_os}
-""".format(
-            target_environment = apple_platform_info.target_environment,
-            target_os = apple_platform_info.target_os,
-        ),
-    )
-
-def _apple_platform_info_from_rule_ctx(ctx):
-    """Returns an ApplePlatformInfo provider from a rule context, needed to resolve constraints."""
-    return new_appleplatforminfo(
-        target_arch = apple_support.target_arch_from_rule_ctx(ctx),
-        target_build_config = ctx.configuration,
-        target_environment = apple_support.target_environment_from_rule_ctx(ctx),
-        target_os = apple_support.target_os_from_rule_ctx(ctx),
-    )
-
 def _platform_prerequisites(
         *,
         apple_fragment,
@@ -151,7 +103,7 @@ def _platform_prerequisites(
     Returns:
       A struct representing the collected platform information.
     """
-    platform = _apple_common_platform_from_platform_info(apple_platform_info = apple_platform_info)
+    platform = apple_platform_info.platform
     sdk_version = xcode_version_config.sdk_version_for_platform(platform)
     target_os = apple_platform_info.target_os
 
@@ -176,8 +128,8 @@ def _platform_prerequisites(
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
-    apple_common_platform_from_platform_info = _apple_common_platform_from_platform_info,
-    apple_platform_info_from_rule_ctx = _apple_platform_info_from_rule_ctx,
+    apple_common_platform_from_platform_info = (lambda info: info.platform),
+    apple_platform_info_from_rule_ctx = apple_support.platform_info_from_rule_ctx,
     platform_prerequisites = _platform_prerequisites,
     ui_device_family_plist_value = _ui_device_family_plist_value,
 )

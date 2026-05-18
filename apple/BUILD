@@ -68,6 +68,7 @@ bzl_library(
         "//apple/internal:rule_factory",
         "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
+        "@build_bazel_apple_support//lib:providers",
         "@rules_cc//cc/common",
     ],
 )
@@ -93,10 +94,10 @@ bzl_library(
     name = "cc_toolchain_forwarder",
     srcs = ["cc_toolchain_forwarder.bzl"],
     deps = [
-        ":providers",
         "//apple/internal:platform_support",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//lib:providers",
         "@rules_cc//cc/common",
     ],
 )

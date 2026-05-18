@@ -19,12 +19,15 @@ load(
     "partial",
 )
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "ApplePlatformInfo",
     "new_applebundleinfo",
 )
 

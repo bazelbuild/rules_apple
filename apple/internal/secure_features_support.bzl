@@ -15,7 +15,7 @@
 """Enhanced security feature support methods."""
 
 load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")

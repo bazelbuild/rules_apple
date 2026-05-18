@@ -16,6 +16,10 @@
 
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:compilation_support.bzl",
     "compilation_support",
 )
@@ -34,7 +38,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleExecutableBinaryInfo",
-    "ApplePlatformInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",

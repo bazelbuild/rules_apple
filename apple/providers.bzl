@@ -37,7 +37,6 @@ load(
     _AppleFrameworkBundleInfo = "AppleFrameworkBundleInfo",
     _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
     _AppleLinkmapInfo = "AppleLinkmapInfo",
-    _ApplePlatformInfo = "ApplePlatformInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
     _AppleResourceInfo = "AppleResourceInfo",
     _AppleResourceLocalesInfo = "AppleResourceLocalesInfo",
@@ -93,7 +92,6 @@ AppleExtraOutputsInfo = _AppleExtraOutputsInfo
 AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
 AppleLinkmapInfo = _AppleLinkmapInfo
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
-ApplePlatformInfo = _ApplePlatformInfo
 AppleResourceBundleInfo = _AppleResourceBundleInfo
 AppleResourceInfo = _AppleResourceInfo
 AppleResourceLocalesInfo = _AppleResourceLocalesInfo

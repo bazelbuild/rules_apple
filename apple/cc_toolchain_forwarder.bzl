@@ -26,7 +26,7 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
+    "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
 load(

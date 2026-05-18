@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:common.bzl",
     "entitlements_validation_mode",
 )
@@ -30,7 +34,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBaseBundleIdInfo",
     "AppleBundleVersionInfo",
-    "ApplePlatformInfo",
     "AppleResourceBundleInfo",
     "AppleResourceLocalesInfo",
     "AppleSharedCapabilityInfo",

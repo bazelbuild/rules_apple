@@ -380,25 +380,6 @@ dependencies of the given target if any were generated.
     init = make_banned_init(provider_name = "AppleLinkmapInfo"),
 )
 
-ApplePlatformInfo, new_appleplatforminfo = provider(
-    doc = "Provides information for the currently selected Apple platforms.",
-    fields = {
-        "target_arch": """
-`String` representing the selected target architecture or cpu type.
-""",
-        "target_build_config": """
-'configuration' representing the selected target's build configuration.
-""",
-        "target_environment": """
-`String` representing the selected target environment (e.g. "device", "simulator").
-""",
-        "target_os": """
-`String` representing the selected Apple OS.
-""",
-    },
-    init = make_banned_init(provider_name = "ApplePlatformInfo"),
-)
-
 AppleResourceBundleInfo, new_appleresourcebundleinfo = provider(
     doc = """
 Denotes that a target is an Apple resource bundle.

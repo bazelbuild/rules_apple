@@ -15,6 +15,10 @@
 """apple_static_library Starlark implementation"""
 
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
     "features_support",
 )
@@ -24,7 +28,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "ApplePlatformInfo",
     "new_applebinaryinfo",
 )
 load(

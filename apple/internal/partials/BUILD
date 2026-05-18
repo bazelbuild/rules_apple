@@ -44,6 +44,7 @@ bzl_library(
         "//apple/internal:outputs",
         "//apple/internal:providers",
         "@bazel_skylib//lib:partial",
+        "@build_bazel_apple_support//lib:providers",
     ],
 )
 

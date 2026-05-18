@@ -20,6 +20,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -69,7 +73,6 @@ load(
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "AppleExecutableBinaryInfo",
-    "ApplePlatformInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
