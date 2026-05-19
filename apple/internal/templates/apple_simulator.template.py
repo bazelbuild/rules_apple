@@ -62,6 +62,16 @@ import tempfile
 from typing import IO, Dict, Optional, Sequence
 import zipfile
 
+_RUN_MODE_ENV_VAR = "BAZEL_APPLE_RUN_MODE"
+_RUN_MODE_INSTALL_AND_RUN = "install_and_run"
+_RUN_MODE_INSTALL_WITHOUT_RUNNING = "install_without_running"
+_RUN_MODE_RUN_WITHOUT_INSTALLING = "run_without_installing"
+_VALID_RUN_MODES = frozenset((
+    _RUN_MODE_INSTALL_AND_RUN,
+    _RUN_MODE_INSTALL_WITHOUT_RUNNING,
+    _RUN_MODE_RUN_WITHOUT_INSTALLING,
+))
+
 
 # Custom type for methods yielding an Apple simulator UDID.
 AppleSimulatorUDID = collections.abc.Generator[str, None, None]
@@ -662,6 +672,47 @@ def simctl_launch_environ() -> Dict[str, str]:
   return result
 
 
+def app_run_mode() -> str:
+  """Returns the configured app run mode."""
+  run_mode = os.environ.get(_RUN_MODE_ENV_VAR, _RUN_MODE_INSTALL_AND_RUN)
+  if run_mode not in _VALID_RUN_MODES:
+    valid_modes = ", ".join(sorted(_VALID_RUN_MODES))
+    raise ValueError(
+        f"Invalid {_RUN_MODE_ENV_VAR} value {run_mode!r}; "
+        f"expected one of: {valid_modes}"
+    )
+  return run_mode
+
+
+def clear_launch_info_path() -> None:
+  """Deletes any stale launch info file written by a prior run."""
+  launch_info_path = os.environ.get("BAZEL_APPLE_LAUNCH_INFO_PATH")
+  if not launch_info_path:
+    return
+
+  try:
+    os.remove(launch_info_path)
+  except FileNotFoundError:
+    pass
+
+
+def terminate_existing_app(
+    *,
+    simctl_path: str,
+    simulator_udid: str,
+    app_bundle_id: str,
+) -> None:
+  """Best-effort terminate of any running app instance."""
+  logger.debug(
+      "Terminating existing instances of %s in %s", app_bundle_id, simulator_udid
+  )
+  subprocess.run(
+      [simctl_path, "terminate", simulator_udid, app_bundle_id],
+      stdout=subprocess.DEVNULL,
+      stderr=subprocess.DEVNULL,
+  )
+
+
 @contextlib.contextmanager
 def apple_simulator(
     *,
@@ -714,7 +765,7 @@ def run_app_in_simulator(
     application_output_path: str,
     app_name: str,
 ) -> None:
-  """Installs and runs an app in the specified simulator.
+  """Installs and/or runs an app in the specified simulator.
 
   Args:
     simulator_udid: The UDID of the simulator in which to run the app.
@@ -730,25 +781,27 @@ def run_app_in_simulator(
   )
   root_dir = os.path.dirname(application_output_path)
   register_dsyms(root_dir)
+  run_mode = app_run_mode()
   with extracted_app(application_output_path, app_name) as app_path:
     app_bundle_id = bundle_id(app_path)
-    logger.info("Will install app %s to simulator %s", app_path, simulator_udid)
-    # First, quietly kill any existing instances of the app to match Xcode's behavior.
-    # Otherwise we've observed that the simulator gets confused when trying to re-install the app.
-    logger.debug(
-        "Terminating existing instances of %s in %s", app_bundle_id, simulator_udid
+    terminate_existing_app(
+        simctl_path=simctl_path,
+        simulator_udid=simulator_udid,
+        app_bundle_id=app_bundle_id,
     )
-    subprocess.run(
-        [simctl_path, "terminate", simulator_udid, app_bundle_id],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    # We should now be able to install and run it.
-    logger.debug("Installing...")
-    subprocess.run(
-        [simctl_path, "install", simulator_udid, app_path],
-        check=True,
-    )
+
+    if run_mode != _RUN_MODE_RUN_WITHOUT_INSTALLING:
+      # We should now be able to install and run it.
+      logger.debug("Installing...")
+      subprocess.run(
+          [simctl_path, "install", simulator_udid, app_path],
+          check=True,
+      )
+
+    if run_mode == _RUN_MODE_INSTALL_WITHOUT_RUNNING:
+      clear_launch_info_path()
+      return
+
     launch_args = shlex.split(
       os.environ.get(
         "BAZEL_SIMCTL_LAUNCH_FLAGS",
