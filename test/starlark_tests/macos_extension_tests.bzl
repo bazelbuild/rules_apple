@@ -15,6 +15,14 @@
 """macos_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "entry_point_test",
@@ -77,6 +85,74 @@ def macos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_fmwk",
         not_contains = [
             "$BUNDLE_ROOT/Contents/Frameworks/fmwk.framework",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_imported_static_fmwk_contains_symbols_and_bundles_resources".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_fmwk_and_ext",
+        cpus = {"macos_cpus": ["arm64"]},
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = [
+            "-[SharedClass doSomethingShared]",
+            "_OBJC_CLASS_$_SharedClass",
+        ],
+        is_not_binary_plist = ["$BUNDLE_ROOT/Contents/Resources/macOSStaticFramework.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/Contents/Resources/macOSStaticFramework.bundle/Info.plist"],
+        not_contains = ["$BUNDLE_ROOT/Contents/Frameworks/macOSStaticFramework.framework"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_with_imported_dynamic_fmwk_bundles_files".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_fmwk_and_ext",
+        cpus = {"macos_cpus": ["arm64"]},
+        contains = [
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Resources/Info.plist",
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/macOSDynamicFramework",
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Resources/macOSDynamicFramework.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Headers/macOSDynamicFramework.h",
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Modules/module.modulemap",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_dsyms_output_group_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data_arm64.linkmap",
+            "ext_with_fmwks_from_objc_swift_libraries_using_data_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    apple_dsym_bundle_info_test(
+        name = "{}_with_runtime_framework_dsym_bundle_info_dsymutil_bundle_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_fmwks_from_objc_swift_libraries_using_data",
+        expected_direct_dsyms = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "ext_with_fmwks_from_objc_swift_libraries_using_data.appex.dSYM",
         ],
         tags = [name],
     )

@@ -1,8 +1,13 @@
+load(
+    "@build_bazel_rules_swift//swift:swift_library.bzl",
+    "swift_library",
+)
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple_imports.bzl",
     "apple_dynamic_framework_import",
     "apple_dynamic_xcframework_import",
+    "apple_static_framework_import",
     "apple_static_xcframework_import",
 )
 load(
@@ -15,6 +20,10 @@ load(
     "macos_framework",
     "macos_ui_test",
     "macos_unit_test",
+)
+load(
+    "//apple:resources.bzl",
+    "apple_resource_group",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -1251,6 +1260,7 @@ macos_framework(
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:framework_resources_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
@@ -1259,6 +1269,85 @@ macos_application(
     name = "app_with_fmwk",
     bundle_id = "com.google.example",
     frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk_and_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:apple_non_localized_assets_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_generated_resources",
+    data = [
+        "//test/starlark_tests/resources:generate_strings",
+    ],
+    tags = common.fixture_tags,
+)
+
+macos_framework(
+    name = "fmwk_with_generated_resources",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_generated_resources",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk_with_generated_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_generated_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_with_apple_resource_bundle",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:bundle_library_apple_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk_with_apple_resource_bundle",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_apple_resource_bundle"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1294,5 +1383,480 @@ macos_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# Helper libraries
+objc_library(
+    name = "fmwk_structured_resources_lib",
+    data = ["//test/starlark_tests/resources:structured_resources"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "app_structured_resources_lib",
+    data = ["//test/starlark_tests/resources:structured_resources_duplicate"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "lib_with_structured_resources",
+    data = [
+        "//test/starlark_tests/resources:structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+macos_framework(
+    name = "fmwk_no_version",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-noversion.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_ext_and_fmwk",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_fmwk"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_with_duplicate_resource_names",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":fmwk_structured_resources_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_same_resource_names_as_framework",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_duplicate_resource_names"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":app_structured_resources_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_min_os_baseline_with_bundle",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:basic_bundle_lib",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk_with_bundle_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_min_os_baseline_with_bundle"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_with_resources",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
+    ],
+)
+
+macos_application(
+    name = "app_with_framework_and_shared_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":lib_with_structured_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_framework_and_resources",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_resources"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_with_fmwk",
+    bundle_id = "com.google.example.framework",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_fmwk_with_fmwk",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_multiple_infoplists",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_stripped",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-x"],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_dead_stripped",
+    bundle_id = "com.google.example.framework",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-dead_strip"],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_with_imported_fmwk",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":imported_dynamic_versioned_fmwk",
+        "//test/starlark_tests/resources:objc_shared_lib_with_resources",
+    ],
+)
+
+macos_application(
+    name = "app_with_inner_and_outer_fmwk",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_with_imported_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_framework(
+    name = "fmwk_min_os_nplus1",
+    bundle_id = "com.google.example.framework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.arm64_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_baseline_min_os_and_nplus1_fmwk",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk_min_os_nplus1"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# Targets for macOS extension framework tests:
+generate_import_framework(
+    name = "macOSStaticFramework",
+    archs = ["arm64"],
+    include_resource_bundle = True,
+    include_versioned_frameworks = False,
+    libtype = "static",
+    minimum_os_version = common.min_os_macos.baseline,
+    sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
+generate_import_framework(
+    name = "macOSDynamicFramework",
+    archs = ["arm64"],
+    include_resource_bundle = True,
+    libtype = "dynamic",
+    minimum_os_version = common.min_os_macos.baseline,
+    sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
+apple_static_framework_import(
+    name = "macOSImportedStaticFramework",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [":macOSStaticFramework"],
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+apple_dynamic_framework_import(
+    name = "macOSImportedDynamicFramework",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [":macOSDynamicFramework"],
+    tags = common.fixture_tags,
+    deps = [
+    ],
+)
+
+macos_application(
+    name = "app_with_imported_static_fmwk_and_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":macOSImportedStaticFramework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_imported_dynamic_fmwk_and_ext",
+    bundle_id = "com.google.example",
+    extensions = [":ext"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":macOSImportedDynamicFramework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "objc_lib_with_macos_framework",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [
+        ":fmwk_with_resources",
+        ":mac_resource_group_with_framework",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "mac_resource_group_with_framework",
+    resources = [":fmwk_no_version"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_lib_with_macos_framework",
+    srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
+    data = [":fmwk_min_os_baseline_with_bundle"],
+    tags = common.fixture_tags,
+)
+
+macos_extension(
+    name = "ext_with_fmwks_from_objc_swift_libraries_using_data",
+    bundle_id = "com.google.example.ext",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_macos_framework",
+        ":swift_lib_with_macos_framework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for App Intents testing in macOS frameworks.
+
+macos_framework(
+    name = "framework_with_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_framework_app_intents",
+    bundle_id = "com.google.example",
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
+    ],
+)
+
+macos_framework(
+    name = "framework_with_multi_module_app_intents",
+    bundle_id = "com.google.example.framework",
+    extension_safe = 1,
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_package_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_application(
+    name = "app_with_multi_module_framework_app_intents",
+    bundle_id = "com.google.example",
+    frameworks = [":framework_with_multi_module_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_package_support,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main_with_dependency",
+        "//test/starlark_tests/resources:framework_defined_app_intent_with_dependency",
+    ],
+)
+
+objc_library(
+    name = "load_deferred_framework_app_intents",
+    data = [":framework_with_app_intents"],
+)
+
+macos_application(
+    name = "app_with_load_deferred_framework_app_intents",
+    bundle_id = "com.google.example",
+    frameworks = [":framework_with_app_intents"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.app_intents_support,
+    tags = common.fixture_tags,
+    deps = [
+        ":load_deferred_framework_app_intents",
+        "//test/starlark_tests/resources:framework_app_intent_dependent_main",
+        "//test/starlark_tests/resources:framework_defined_app_intent",
     ],
 )

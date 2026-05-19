@@ -46,6 +46,7 @@ _min_os_ios = struct(
 # especially as Apple builds backport compatibility libraries with a minimum OS version of 11.0.
 _min_os_macos = struct(
     app_intents_support = "13.0",
+    app_intents_package_support = "14.0",
     arm64_support = "11.0",
     concurrency_sleep_support = "10.15",
     baseline = "10.13",
