@@ -344,8 +344,12 @@ _RULE_TYPE_DESCRIPTORS = {
             product_type = apple_product_type.framework,
             requires_signing_for_device = False,
             rpaths = [
+                # Framework binaries are loaded from the executable location and application
+                # binaries live in Application.app/Contents/MacOS/Application
+                # Frameworks are packaged in Application.app/Contents/Frameworks
+                "@executable_path/../Frameworks",
+                # Xcode also adds this path when building frameworks.
                 "@loader_path/Frameworks",
-                "@loader_path/../../..",
             ],
         ),
         apple_product_type.bundle: _describe_rule_type(

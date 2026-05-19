@@ -69,8 +69,8 @@ def macos_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/Versions/A/fmwk",
         macho_load_commands_contain = [
             "name @rpath/fmwk.framework/Versions/A/fmwk (offset 24)",
+            "path @executable_path/../Frameworks (offset 12)",
             "path @loader_path/Frameworks (offset 12)",
-            "path @loader_path/../../.. (offset 12)",
         ],
         contains = [
             "$BUNDLE_ROOT/Versions/A/fmwk",
