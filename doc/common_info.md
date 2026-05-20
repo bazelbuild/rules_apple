@@ -34,8 +34,9 @@ which files are requested:
 *   `linkmaps`: This output group contains all linkmap files generated during
     the build, for the top level target **and** its embedded dependencies. To
     request this output group to be built, use the `--output_groups=+linkmaps`
-    flag. In order to generate the linkmap files you still need to pass the
-    `--objc_generate_linkmap` flag.
+    flag. Linkmap generation can be requested either per-target with the
+    `generate_linkmap` attribute or globally with the `--objc_generate_linkmap`
+    flag.
 
 ### dSYMs Generation {#apple_generate_dsym}
 
@@ -116,10 +117,21 @@ flags yourself.
 
 Linkmaps can be useful for figuring out how the `deps` going into a target are
 contributing to the final size of the binary. Bazel will generate a link map
-when linking by adding `--objc_generate_linkmap` to a `bazel build`.
+when linking if either the rule's `generate_linkmap` attribute is `True` or
+`--objc_generate_linkmap` is added to a `bazel build`.
 
 ```shell
 bazel build --objc_generate_linkmap //your/target
+```
+
+Or:
+
+```bzl
+ios_application(
+    name = "app",
+    generate_linkmap = True,
+    # ...
+)
 ```
 
 By default, only the top level linkmap file is built when this flag is
@@ -259,6 +271,25 @@ ios_application(
     }),
 )
 ```
+
+### Running applications
+
+When using `bazel run` with Apple application targets, the generated simulator
+and device runners support additional control via the
+`BAZEL_APPLE_RUN_MODE` environment variable.
+
+Supported values are:
+
+*   `install_and_run` (default): Terminates any existing instance, installs the
+    app, and launches it.
+*   `install_without_running`: Terminates any existing instance, installs the
+    app, and exits without launching it.
+*   `run_without_installing`: Terminates any existing instance and launches the
+    existing installed app without reinstalling it.
+
+If `BAZEL_APPLE_RUN_MODE=install_without_running` is used together with
+`BAZEL_APPLE_LAUNCH_INFO_PATH`, the runner removes any stale launch info file
+and does not write a new one, since no process is launched.
 
 ### Localization Handling
 

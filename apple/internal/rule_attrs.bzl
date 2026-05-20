@@ -215,6 +215,15 @@ file.
 See the man page documentation for `ld(1)` on macOS for more details.
 """,
             ),
+            "generate_linkmap": attr.bool(
+                default = False,
+                doc = """
+Whether to generate a linkmap file for this target's linked binary.
+
+This attribute augments `--objc_generate_linkmap`; if the command-line flag is set, a linkmap is
+still generated even when this attribute is `False`.
+""",
+            ),
             "linkopts": attr.string_list(
                 doc = """
 A list of strings representing extra flags that should be passed to the linker.
