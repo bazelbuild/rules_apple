@@ -727,6 +727,26 @@ def ios_application_test_suite(name):
         },
     )
 
+    _debugger_entitlements_contents_tests(
+        suite_name = name,
+        test_name = "{}_debugger_entitlements_forced_false_lowercase".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_debugger_entitlements",
+        expected_get_task_allow = False,
+        build_settings = {
+            build_settings_labels.add_debugger_entitlement: "false",
+        },
+    )
+
+    _debugger_entitlements_contents_tests(
+        suite_name = name,
+        test_name = "{}_debugger_entitlements_forced_true_lowercase".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_debugger_entitlements_without_get_task_allow",
+        expected_get_task_allow = True,
+        build_settings = {
+            build_settings_labels.add_debugger_entitlement: "true",
+        },
+    )
+
     archive_contents_test(
         name = "{}_custom_executable_name_test".format(name),
         build_type = "simulator",
