@@ -97,6 +97,15 @@ def _include_debug_entitlements(*, platform_prerequisites):
     """
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         return False
+    build_setting = platform_prerequisites.build_settings.add_debugger_entitlement
+    if build_setting != "":
+        if build_setting == "true":
+            return True
+        if build_setting == "false":
+            return False
+        fail(
+            "Expected add_debugger_entitlement build setting to be one of '', 'true', or 'false', got '{}'".format(build_setting),
+        )
     add_debugger_entitlement = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         default = None,
@@ -104,10 +113,6 @@ def _include_debug_entitlements(*, platform_prerequisites):
     )
     if add_debugger_entitlement != None:
         return add_debugger_entitlement
-
-    build_settings = platform_prerequisites.build_settings
-    if build_settings and build_settings.add_debugger_entitlement:
-        return True
 
     if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
         return False

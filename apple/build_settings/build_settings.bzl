@@ -84,9 +84,13 @@ physical devices) or `xcrun simctl list devices` (for simulators).
     ),
     "add_debugger_entitlement": struct(
         doc = """
-Controls whether debug entitlements are added to non-macOS targets.
+Overrides whether rules_apple should include debugger entitlements in bundled
+entitlements.
+
+Use the empty string to defer to the built-in --[no]device_debug_entitlements
+behavior. Use "true" or "false" to force a specific value.
 """,
-        default = False,
+        default = "",
     ),
 }
 
