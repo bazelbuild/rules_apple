@@ -260,6 +260,25 @@ ios_application(
 )
 ```
 
+### Running applications
+
+When using `bazel run` with Apple application targets, the generated simulator
+and device runners support additional control via the
+`BAZEL_APPLE_RUN_MODE` environment variable.
+
+Supported values are:
+
+*   `install_and_run` (default): Terminates any existing instance, installs the
+    app, and launches it.
+*   `install_without_running`: Terminates any existing instance, installs the
+    app, and exits without launching it.
+*   `run_without_installing`: Terminates any existing instance and launches the
+    existing installed app without reinstalling it.
+
+If `BAZEL_APPLE_RUN_MODE=install_without_running` is used together with
+`BAZEL_APPLE_LAUNCH_INFO_PATH`, the runner removes any stale launch info file
+and does not write a new one, since no process is launched.
+
 ### Localization Handling
 
 The Apple bundling rules have two flags for limiting which \*.lproj directories
