@@ -99,9 +99,10 @@ def _include_debug_entitlements(*, platform_prerequisites):
         return False
     build_setting = platform_prerequisites.build_settings.add_debugger_entitlement
     if build_setting != "":
-        if build_setting == "true":
+        normalized_build_setting = build_setting.lower()
+        if normalized_build_setting == "true":
             return True
-        if build_setting == "false":
+        if normalized_build_setting == "false":
             return False
         fail(
             "Expected add_debugger_entitlement build setting to be one of '', 'true', or 'false', got '{}'".format(build_setting),
