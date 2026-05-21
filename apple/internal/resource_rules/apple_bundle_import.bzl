@@ -15,35 +15,21 @@
 """Implementation of apple_bundle_import rule."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:resources.bzl",
-    "resources",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _apple_bundle_import_impl(ctx):
+def _apple_bundle_import_impl(_ctx):
     """Implementation of the apple_bundle_import rule."""
-    parent_dir_param = partial.make(
-        resources.bundle_relative_parent_dir,
-        extension = "bundle",
-    )
-    resource_provider = resources.bucketize_typed(
-        bucket_type = "unprocessed",
-        expect_files = True,
-        parent_dir_param = parent_dir_param,
-        resources = ctx.files.bundle_imports,
-    )
+
+    # All of the resource processing logic for this rule exists in the apple_resource_aspect.
+    #
+    # To transform the attributes referenced by this rule into resource providers, that aspect must
+    # be used to iterate through all relevant instances of this rule in the build graph.
     return [
         new_appleresourcebundleinfo(),
-        resource_provider,
     ]
 
 apple_bundle_import = rule(

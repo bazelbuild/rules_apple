@@ -141,12 +141,10 @@ def _apple_resource_aspect_impl(target, ctx):
         "xplat_exec_group": apple_toolchain_utils.get_xplat_exec_group(ctx),
     }
 
-    common_collect_args = {
-        "rule_label": ctx.label,
-    }
-    collect_infoplists_args = dict(common_collect_args)
-    collect_args = dict(common_collect_args)
-    collect_structured_args = dict(common_collect_args)
+    collect_infoplists_args = dict()
+    collect_args = dict()
+    collect_structured_args = dict()
+    collect_bundle_imports_args = dict()
 
     # Owner to attach to the resources as they're being bucketed.
     owner = None
@@ -195,6 +193,9 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_structured_args["res_attrs"] = ["structured_resources"]
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
 
+    elif ctx.rule.kind == "apple_bundle_import":
+        collect_bundle_imports_args["res_attrs"] = ["bundle_imports"]
+
     # Assign the provider deps once we have the resource attributes sorted out.
     provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
 
@@ -212,6 +213,7 @@ def _apple_resource_aspect_impl(target, ctx):
     if collect_infoplists_args:
         infoplists = resources.collect(
             attr = ctx.rule.attr,
+            rule_label = ctx.label,
             **collect_infoplists_args
         )
         if infoplists:
@@ -238,6 +240,7 @@ def _apple_resource_aspect_impl(target, ctx):
     if collect_args:
         resource_files = resources.collect(
             attr = ctx.rule.attr,
+            rule_label = ctx.label,
             **collect_args
         )
         if resource_files:
@@ -277,6 +280,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
         structured_files = resources.collect(
             attr = ctx.rule.attr,
+            rule_label = ctx.label,
             **collect_structured_args
         )
         if structured_files:
@@ -309,6 +313,27 @@ def _apple_resource_aspect_impl(target, ctx):
                     transitive_swift_srcs = transitive_swift_srcs,
                     unowned_resources = unowned_resources,
                     **process_args
+                ),
+            )
+
+    if collect_bundle_imports_args:
+        bundle_imports_files = resources.collect(
+            attr = ctx.rule.attr,
+            rule_label = ctx.label,
+            **collect_bundle_imports_args
+        )
+        if bundle_imports_files:
+            bundle_imports_parent_dir_param = partial.make(
+                resources.bundle_relative_parent_dir,
+                extension = "bundle",
+            )
+
+            apple_resource_infos.append(
+                resources.bucketize_typed(
+                    bucket_type = "unprocessed",
+                    parent_dir_param = bundle_imports_parent_dir_param,
+                    resources = bundle_imports_files,
+                    **bucketize_args
                 ),
             )
 
@@ -457,7 +482,14 @@ App Intents are not supported within frameworks that aren't directly loaded by a
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = ["data", "deps", "private_deps", "resources", "structured_resources"],
+    attr_aspects = [
+        # keep sorted
+        "data",
+        "deps",
+        "private_deps",
+        "resources",
+        "structured_resources",
+    ],
     attrs = apple_support.action_required_attrs() |
             apple_support.platform_constraint_attrs(),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
@@ -470,6 +502,7 @@ Supported resource-providing rules are:
 
 *   `objc_library`
 *   `swift_library`
+*   `apple_bundle_import`
 *   `apple_resource_group`
 *   `apple_resource_bundle`
 """,
