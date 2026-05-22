@@ -20,7 +20,9 @@ load(
     "apple_provider",
 )
 
-visibility("@build_bazel_rules_apple//apple/...")
+visibility([
+    "@build_bazel_rules_apple//apple/...",
+])
 
 # List of attributes through which the aspect propagates.
 _FRAMEWORK_PROVIDERS_ASPECT_ATTRS = ["deps", "frameworks"]
