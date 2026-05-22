@@ -19,12 +19,12 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -49,7 +49,7 @@ def _binary_partial_impl(
 
     return struct(
         bundle_files = [
-            (processor.location.binary, None, depset([output_binary])),
+            (location_enum.binary, None, depset([output_binary])),
         ],
     )
 

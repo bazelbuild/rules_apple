@@ -19,8 +19,8 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
@@ -47,12 +47,12 @@ def _embedded_bundles_partial_impl(
 
     # Map of embedded bundle type to their final location in the top-level bundle.
     bundle_type_to_location = {
-        "app_clips": processor.location.app_clip,
-        "extensions": processor.location.extension,
-        "frameworks": processor.location.framework,
-        "plugins": processor.location.plugin,
-        "watch_bundles": processor.location.watch,
-        "xpc_services": processor.location.xpc_service,
+        "app_clips": location_enum.app_clip,
+        "extensions": location_enum.extension,
+        "frameworks": location_enum.framework,
+        "plugins": location_enum.plugin,
+        "watch_bundles": location_enum.watch,
+        "xpc_services": location_enum.xpc_service,
     }
 
     transitive_bundles = dict()

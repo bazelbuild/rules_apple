@@ -19,8 +19,8 @@ load(
     "partial",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -29,7 +29,7 @@ def _framework_headers_partial_impl(*, hdrs):
     """Implementation for the framework headers partial."""
     return struct(
         bundle_files = [
-            (processor.location.bundle, "Headers", depset(hdrs)),
+            (location_enum.bundle, "Headers", depset(hdrs)),
         ],
     )
 

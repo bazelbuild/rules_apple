@@ -53,6 +53,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -302,7 +306,7 @@ def _macos_application_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.bundle,
+            bundle_location = location_enum.bundle,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
@@ -389,7 +393,7 @@ def _macos_application_impl(ctx):
             partials.provisioning_profile_partial(
                 actions = actions,
                 extension = "provisionprofile",
-                location = processor.location.content,
+                location = location_enum.content,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
@@ -600,7 +604,7 @@ def _macos_bundle_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.plugin,
+            bundle_location = location_enum.plugin,
             bundle_name = bundle_name,
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
@@ -663,7 +667,7 @@ def _macos_bundle_impl(ctx):
             partials.provisioning_profile_partial(
                 actions = actions,
                 extension = "provisionprofile",
-                location = processor.location.content,
+                location = location_enum.content,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
@@ -1049,10 +1053,10 @@ def _macos_extension_impl(ctx):
     bundle_location = ""
     embedded_bundles_args = {}
     if rule_descriptor.product_type == apple_product_type.app_extension:
-        bundle_location = processor.location.plugin
+        bundle_location = location_enum.plugin
         embedded_bundles_args["plugins"] = [archive]
     elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
-        bundle_location = processor.location.extension
+        bundle_location = location_enum.extension
         embedded_bundles_args["extensions"] = [archive]
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
@@ -1184,7 +1188,7 @@ def _macos_extension_impl(ctx):
             partials.provisioning_profile_partial(
                 actions = actions,
                 extension = "provisionprofile",
-                location = processor.location.content,
+                location = location_enum.content,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
@@ -1348,7 +1352,7 @@ def _macos_xpc_service_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.xpc_service,
+            bundle_location = location_enum.xpc_service,
             bundle_name = bundle_name,
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
@@ -1410,7 +1414,7 @@ def _macos_xpc_service_impl(ctx):
             partials.provisioning_profile_partial(
                 actions = actions,
                 extension = "provisionprofile",
-                location = processor.location.content,
+                location = location_enum.content,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
@@ -1623,7 +1627,7 @@ def _macos_command_line_application_impl(ctx):
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
-        bundle_location = processor.location.binary,
+        bundle_location = location_enum.binary,
         bundle_name = bundle_name,
         entitlements = entitlements,
         mac_exec_group = mac_exec_group,

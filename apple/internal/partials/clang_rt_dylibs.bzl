@@ -27,8 +27,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
@@ -84,7 +84,7 @@ def _clang_rt_dylibs_partial_impl(
         )
 
         bundle_zips.append(
-            (processor.location.framework, None, depset([clang_rt_zip])),
+            (location_enum.framework, None, depset([clang_rt_zip])),
         )
 
     return struct(

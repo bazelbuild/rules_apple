@@ -39,12 +39,12 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -120,9 +120,9 @@ def _merge_root_infoplists(
         **kwargs
     )
 
-    location = processor.location.content
+    location = location_enum.content
     if platform_prerequisites.platform_type == "macos" and rule_descriptor.product_type == apple_product_type.framework:
-        location = processor.location.resource
+        location = location_enum.resource
 
     return [(location, None, depset(direct = files))]
 
@@ -429,7 +429,7 @@ def _merge_mergeable_strings(
                 else:
                     parent_dir = lproj_dir_name
 
-                merged.append((processor.location.resource, parent_dir, depset([merged_strings_file])))
+                merged.append((location_enum.resource, parent_dir, depset([merged_strings_file])))
 
         # This verifies that all of the merged string files have the same top-level keys per locale
         # per table.
@@ -545,7 +545,7 @@ def _resources_partial_impl(
     provider_field_to_action = {
         "asset_catalogs": (resources_support.asset_catalogs, False),
         "datamodels": (resources_support.datamodels, True),
-        "framework": (resources_support.apple_bundle(processor.location.framework), False),
+        "framework": (resources_support.apple_bundle(location_enum.framework), False),
         "infoplists": (resources_support.infoplists, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),

@@ -31,8 +31,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:swift_info_support.bzl",
@@ -98,7 +98,7 @@ issue with a reproducible error case.
             output_discriminator = output_discriminator,
             swiftinterface = swift_module.swift.swiftinterface,
         )
-        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_interface])))
+        bundle_files.append((location_enum.bundle, modules_parent, depset([bundle_interface])))
 
         bundle_doc = swift_info_support.declare_swiftdoc(
             actions = actions,
@@ -107,7 +107,7 @@ issue with a reproducible error case.
             output_discriminator = output_discriminator,
             swiftdoc = swift_module.swift.swiftdoc,
         )
-        bundle_files.append((processor.location.bundle, modules_parent, depset([bundle_doc])))
+        bundle_files.append((location_enum.bundle, modules_parent, depset([bundle_doc])))
 
     # Deduplicate the headers found via a depset that we create and then throw away.
     public_hdrs = depset(public_hdrs_found).to_list()
@@ -144,11 +144,11 @@ issue with a reproducible error case.
         )
         if header_files:
             bundle_files.append(
-                (processor.location.bundle, "Headers", depset(header_files)),
+                (location_enum.bundle, "Headers", depset(header_files)),
             )
     elif swift_generated_header:
         bundle_files.append(
-            (processor.location.bundle, "Headers", depset([swift_generated_header])),
+            (location_enum.bundle, "Headers", depset([swift_generated_header])),
         )
 
     if public_hdrs or swift_generated_header:
@@ -193,7 +193,7 @@ issue with a reproducible error case.
             content = modulemap_content,
         )
 
-        bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
+        bundle_files.append((location_enum.bundle, "Modules", depset([modulemap_file])))
 
     return struct(bundle_files = bundle_files)
 

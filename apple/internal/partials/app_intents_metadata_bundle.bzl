@@ -15,7 +15,10 @@
 """Partial implementation for processing AppIntents metadata bundle."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
-load("@build_bazel_rules_apple//apple/internal:processor.bzl", "processor")
+load(
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
+)
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsBundleInfo",
@@ -305,9 +308,9 @@ def _app_intents_metadata_bundle_partial_impl(
         target_triples = target_triples,
     )
 
-    bundle_location = processor.location.bundle
+    bundle_location = location_enum.bundle
     if platform_prerequisites.platform_type == "macos":
-        bundle_location = processor.location.resource
+        bundle_location = location_enum.resource
 
     providers = [AppIntentsBundleInfo(
         owned_metadata_bundles = depset(

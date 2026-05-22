@@ -28,8 +28,8 @@ load(
     "AppleBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
@@ -54,7 +54,7 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
                 # Zipped archive case.
                 bundle_zips.append(
                     (
-                        processor.location.content,
+                        location_enum.content,
                         subdirectory,
                         depset([target_archive]),
                     ),
@@ -66,7 +66,7 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
                 # of the file, as that basename is the full name of the bundle (app.framework, etc).
                 bundle_files.append(
                     (
-                        processor.location.content,
+                        location_enum.content,
                         paths.join(subdirectory, target_archive.basename),
                         depset([target_archive]),
                     ),
@@ -74,7 +74,7 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
         elif AppleBinaryInfo in target:
             bundle_files.append(
                 (
-                    processor.location.content,
+                    location_enum.content,
                     subdirectory,
                     depset([target[AppleBinaryInfo].binary]),
                 ),
@@ -85,7 +85,7 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
                 nested_path = paths.dirname(package_relative).rstrip("/")
                 bundle_files.append(
                     (
-                        processor.location.content,
+                        location_enum.content,
                         paths.join(subdirectory, nested_path),
                         depset([file]),
                     ),

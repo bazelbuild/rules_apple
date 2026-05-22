@@ -23,8 +23,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -69,7 +69,7 @@ def provisioning_profile_partial(
         *,
         actions,
         extension = "mobileprovision",
-        location = processor.location.resource,
+        location = location_enum.resource,
         output_discriminator = None,
         profile_artifact,
         rule_label):

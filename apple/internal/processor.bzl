@@ -84,6 +84,10 @@ load(
     "intermediates",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -96,22 +100,6 @@ visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",
 ])
-
-# Location enum that can be used to tag files into their appropriate location
-# in the final archive.
-_LOCATION_ENUM = struct(
-    app_clip = "app_clip",
-    archive = "archive",
-    binary = "binary",
-    bundle = "bundle",
-    content = "content",
-    extension = "extension",
-    framework = "framework",
-    plugin = "plugin",
-    resource = "resource",
-    watch = "watch",
-    xpc_service = "xpc_service",
-)
 
 def _invalid_top_level_directories_for_platform(*, platform_type):
     """List of invalid top level directories for the given platform."""
@@ -178,38 +166,38 @@ def _archive_paths(
 
     # Map of location types to relative paths in the archive.
     return {
-        _LOCATION_ENUM.app_clip: paths.join(
+        location_enum.app_clip: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_app_clips,
         ),
-        _LOCATION_ENUM.archive: "",
-        _LOCATION_ENUM.binary: paths.join(
+        location_enum.archive: "",
+        location_enum.binary: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_binary,
         ),
-        _LOCATION_ENUM.bundle: bundle_path,
-        _LOCATION_ENUM.content: contents_path,
-        _LOCATION_ENUM.extension: paths.join(
+        location_enum.bundle: bundle_path,
+        location_enum.content: contents_path,
+        location_enum.extension: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_extensions,
         ),
-        _LOCATION_ENUM.framework: paths.join(
+        location_enum.framework: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_frameworks,
         ),
-        _LOCATION_ENUM.plugin: paths.join(
+        location_enum.plugin: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_plugins,
         ),
-        _LOCATION_ENUM.resource: paths.join(
+        location_enum.resource: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_resources,
         ),
-        _LOCATION_ENUM.watch: paths.join(
+        location_enum.watch: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_watch,
         ),
-        _LOCATION_ENUM.xpc_service: paths.join(
+        location_enum.xpc_service: paths.join(
             contents_path,
             rule_descriptor.bundle_locations.contents_relative_xpc_service,
         ),
@@ -283,7 +271,7 @@ def _bundle_partial_outputs_files(
     processed_file_target_paths = {}
     for partial_output in partial_outputs:
         for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
-            if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
+            if tree_artifact_is_enabled and location == location_enum.archive:
                 # These files get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
 
@@ -315,7 +303,7 @@ def _bundle_partial_outputs_files(
                 control_files.append(struct(src = source.path, dest = target_path))
 
         for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
-            if tree_artifact_is_enabled and location == _LOCATION_ENUM.archive:
+            if tree_artifact_is_enabled and location == location_enum.archive:
                 # These zips get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
 
@@ -488,11 +476,11 @@ def _bundle_post_process_and_sign(
 
         for partial_output in partial_outputs:
             for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
-                if location == _LOCATION_ENUM.archive:
+                if location == location_enum.archive:
                     bundle_files_for_xcarchive.append((parent_dir, files))
 
             for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
-                if location == _LOCATION_ENUM.archive:
+                if location == location_enum.archive:
                     bundle_zips_for_xcarchive.append((parent_dir, zip_files))
 
         bundling_providers.append(
@@ -514,7 +502,7 @@ def _bundle_post_process_and_sign(
             cc_configured_features = cc_configured_features,
             codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
-            frameworks_path = archive_paths[_LOCATION_ENUM.framework],
+            frameworks_path = archive_paths[location_enum.framework],
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
@@ -570,8 +558,8 @@ def _bundle_post_process_and_sign(
             rule_descriptor = rule_descriptor,
         )
 
-        archive_codesigning_path = archive_paths[_LOCATION_ENUM.bundle]
-        frameworks_path = archive_paths[_LOCATION_ENUM.framework]
+        archive_codesigning_path = archive_paths[location_enum.bundle]
+        frameworks_path = archive_paths[location_enum.framework]
 
         output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
 
@@ -618,8 +606,8 @@ def _bundle_post_process_and_sign(
                 rule_descriptor = rule_descriptor,
                 tree_artifact_is_enabled = tree_artifact_is_enabled,
             )
-            embedding_archive_codesigning_path = embedding_archive_paths[_LOCATION_ENUM.bundle]
-            embedding_frameworks_path = embedding_archive_paths[_LOCATION_ENUM.framework]
+            embedding_archive_codesigning_path = embedding_archive_paths[location_enum.bundle]
+            embedding_frameworks_path = embedding_archive_paths[location_enum.framework]
             embedding_archive_root_path = outputs.root_path_from_archive(
                 archive = embedding_archive,
             )
@@ -780,5 +768,4 @@ def _process(
 
 processor = struct(
     process = _process,
-    location = _LOCATION_ENUM,
 )

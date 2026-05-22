@@ -53,6 +53,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -815,10 +819,10 @@ def _tvos_extension_impl(ctx):
     bundle_location = ""
     embedded_bundles_args = {}
     if rule_descriptor.product_type == apple_product_type.app_extension:
-        bundle_location = processor.location.plugin
+        bundle_location = location_enum.plugin
         embedded_bundles_args["plugins"] = [archive]
     elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
-        bundle_location = processor.location.extension
+        bundle_location = location_enum.extension
         embedded_bundles_args["extensions"] = [archive]
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)

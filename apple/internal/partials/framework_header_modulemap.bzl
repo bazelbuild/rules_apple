@@ -27,8 +27,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -58,7 +58,7 @@ def _framework_header_modulemap_partial_impl(
     )
     if header_files:
         bundle_files.append(
-            (processor.location.bundle, "Headers", depset(header_files)),
+            (location_enum.bundle, "Headers", depset(header_files)),
         )
 
     # Create a module map if there is a need for one (that is, if there are headers or if there are
@@ -83,7 +83,7 @@ def _framework_header_modulemap_partial_impl(
             content = modulemap_content,
         )
 
-        bundle_files.append((processor.location.bundle, "Modules", depset([modulemap_file])))
+        bundle_files.append((location_enum.bundle, "Modules", depset([modulemap_file])))
 
     return struct(
         bundle_files = bundle_files,

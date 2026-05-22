@@ -39,8 +39,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
@@ -210,7 +210,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             )
             framework_bundle_path = framework_output.path
             bundle_files.append(
-                (processor.location.framework, framework_basename, depset([framework_output])),
+                (location_enum.framework, framework_basename, depset([framework_output])),
             )
         else:
             framework_output = intermediates.file(
@@ -221,7 +221,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             )
             framework_bundle_path = paths.split_extension(framework_output.path)[0]
             bundle_zips.append(
-                (processor.location.framework, None, depset([framework_output])),
+                (location_enum.framework, None, depset([framework_output])),
             )
         args.add("--output-path", framework_output.path)
 
@@ -275,7 +275,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
     # Process signature files separately; we can bundle them as is thanks to earlier deduplication.
     if signature_files_to_bundle:
         bundle_files.append(
-            (processor.location.archive, "Signatures", depset(signature_files_to_bundle)),
+            (location_enum.archive, "Signatures", depset(signature_files_to_bundle)),
         )
 
     return struct(

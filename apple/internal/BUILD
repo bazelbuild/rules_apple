@@ -272,6 +272,7 @@ bzl_library(
         ":features_support",
         ":infoplist_support",
         ":linking_support",
+        ":location_enum",
         ":outputs",
         ":partials",
         ":platform_support",
@@ -324,6 +325,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "location_enum",
+    srcs = ["location_enum.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "macos_rules",
     srcs = ["macos_rules.bzl"],
     visibility = [
@@ -337,6 +346,7 @@ bzl_library(
         ":features_support",
         ":intermediates",
         ":linking_support",
+        ":location_enum",
         ":outputs",
         ":partials",
         ":platform_support",
@@ -441,6 +451,7 @@ bzl_library(
         ":bundling_support",
         ":codesigning_support",
         ":intermediates",
+        ":location_enum",
         ":outputs",
         ":providers",
         "@bazel_skylib//lib:partial",
@@ -641,6 +652,7 @@ bzl_library(
         ":features_support",
         ":infoplist_support",
         ":linking_support",
+        ":location_enum",
         ":outputs",
         ":partials",
         ":platform_support",
@@ -713,6 +725,7 @@ bzl_library(
         ":entitlements_support",
         ":features_support",
         ":linking_support",
+        ":location_enum",
         ":outputs",
         ":partials",
         ":platform_support",

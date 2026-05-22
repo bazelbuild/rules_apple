@@ -16,7 +16,7 @@ bzl_library(
     deps = [
         "//apple:utils",
         "//apple/internal:intermediates",
-        "//apple/internal:processor",
+        "//apple/internal:location_enum",
         "//apple/internal:resource_actions",
         "@bazel_skylib//lib:paths",
     ],

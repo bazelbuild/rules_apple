@@ -48,6 +48,10 @@ load(
     "linking_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -355,7 +359,7 @@ reproducible error case.".format(
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.watch,
+            bundle_location = location_enum.watch,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
             entitlements = entitlements,
@@ -637,10 +641,10 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     embedded_bundles_args = {}
     if (rule_descriptor.product_type == apple_product_type.app_extension or
         rule_descriptor.product_type == apple_product_type.watch2_extension):
-        bundle_location = processor.location.plugin
+        bundle_location = location_enum.plugin
         embedded_bundles_args["plugins"] = [archive]
     elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
-        bundle_location = processor.location.extension
+        bundle_location = location_enum.extension
         embedded_bundles_args["extensions"] = [archive]
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
@@ -998,7 +1002,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_location = processor.location.watch,
+            bundle_location = location_enum.watch,
             bundle_name = bundle_name,
             embedded_targets = embeddable_targets,
             entitlements = entitlements,

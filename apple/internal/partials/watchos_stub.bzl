@@ -23,8 +23,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -65,14 +65,14 @@ def _watchos_stub_partial_impl(
             output = intermediate_file,
         )
         bundle_files.append(
-            (processor.location.bundle, "_WatchKitStub", depset([intermediate_file])),
+            (location_enum.bundle, "_WatchKitStub", depset([intermediate_file])),
         )
         providers.append(_AppleWatchosStubInfo(binary = intermediate_file))
 
     if watch_application:
         binary_artifact = watch_application[_AppleWatchosStubInfo].binary
         bundle_files.append(
-            (processor.location.archive, "WatchKitSupport2", depset([binary_artifact])),
+            (location_enum.archive, "WatchKitSupport2", depset([binary_artifact])),
         )
 
     return struct(

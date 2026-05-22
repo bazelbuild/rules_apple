@@ -23,8 +23,8 @@ load(
     "AppleResourceInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -52,7 +52,7 @@ def _settings_bundle_partial_impl(
         for parent_dir, _, files in getattr(provider, field):
             bundle_name = bundle_paths.farthest_parent(parent_dir, "bundle")
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
-            bundle_files.append((processor.location.resource, parent_dir, files))
+            bundle_files.append((location_enum.resource, parent_dir, files))
 
     return struct(bundle_files = bundle_files)
 

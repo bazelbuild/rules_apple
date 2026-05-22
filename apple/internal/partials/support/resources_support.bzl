@@ -44,8 +44,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
@@ -103,7 +103,7 @@ def _compile_datamodels(
             xctoolrunner = xctoolrunner,
         )
         output_files.append(
-            (processor.location.resource, datamodel_parent, depset(direct = [output_file])),
+            (location_enum.resource, datamodel_parent, depset(direct = [output_file])),
         )
 
     return struct(
@@ -146,7 +146,7 @@ def _compile_mappingmodels(
         )
 
         output_files.append(
-            (processor.location.resource, parent_dir, depset(direct = [output_file])),
+            (location_enum.resource, parent_dir, depset(direct = [output_file])),
         )
 
     return struct(
@@ -233,7 +233,7 @@ was declared. Skipping asset catalog compilation.
     )
 
     return struct(
-        files = [(processor.location.resource, parent_dir, depset(direct = [assets_dir]))],
+        files = [(location_enum.resource, parent_dir, depset(direct = [assets_dir]))],
         infoplists = infoplists,
     )
 
@@ -380,7 +380,7 @@ def _infoplists(
         )
         return struct(
             files = [
-                (processor.location.resource, parent_dir, depset(direct = [out_plist])),
+                (location_enum.resource, parent_dir, depset(direct = [out_plist])),
             ],
             processed_origins = processed_origins,
         )
@@ -430,7 +430,7 @@ def _mlmodels(
 
         mlmodel_bundles.append(
             (
-                processor.location.resource,
+                location_enum.resource,
                 paths.join(parent_dir or "", output_bundle.basename),
                 depset(direct = [output_bundle]),
             ),
@@ -497,7 +497,7 @@ def _plists_and_strings(
 
     return struct(
         files = [
-            (processor.location.resource, parent_dir, depset(direct = plist_files)),
+            (location_enum.resource, parent_dir, depset(direct = plist_files)),
         ],
         processed_origins = processed_origins,
     )
@@ -549,7 +549,7 @@ def _pngs(
 
     return struct(
         files = [
-            (processor.location.resource, parent_dir, depset(direct = png_files)),
+            (location_enum.resource, parent_dir, depset(direct = png_files)),
         ],
         processed_origins = processed_origins,
     )
@@ -638,7 +638,7 @@ def _rkassets(
         processed_origins[reality_file.short_path] = [f.short_path for f in files.to_list()]
 
     return struct(
-        files = [(processor.location.resource, parent_dir, depset(direct = reality_files))],
+        files = [(location_enum.resource, parent_dir, depset(direct = reality_files))],
         processed_origins = processed_origins,
     )
 
@@ -704,7 +704,7 @@ def _storyboards(
     )
     return struct(
         files = [
-            (processor.location.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
+            (location_enum.resource, parent_dir, depset(direct = [linked_storyboard_dir])),
         ],
     )
 
@@ -747,7 +747,7 @@ def _texture_atlases(
 
     return struct(
         files = [
-            (processor.location.resource, parent_dir, depset(direct = atlasc_files)),
+            (location_enum.resource, parent_dir, depset(direct = atlasc_files)),
         ],
     )
 
@@ -786,7 +786,7 @@ def _xibs(
         )
         nib_files.append(out_dir)
 
-    return struct(files = [(processor.location.resource, parent_dir, depset(direct = nib_files))])
+    return struct(files = [(location_enum.resource, parent_dir, depset(direct = nib_files))])
 
 def _noop(
         *,
@@ -798,7 +798,7 @@ def _noop(
     for file in files.to_list():
         processed_origins[file.short_path] = [file.short_path]
     return struct(
-        files = [(processor.location.resource, parent_dir, files)],
+        files = [(location_enum.resource, parent_dir, files)],
         processed_origins = processed_origins,
     )
 
@@ -810,11 +810,11 @@ def _apple_bundle(bundle_type):
     Returns:
         A function to register bundling of an Apple bundle.
     """
-    if not hasattr(processor.location, bundle_type):
+    if not hasattr(location_enum, bundle_type):
         fail("Bundle type location not supported: ", bundle_type)
 
     def _bundle_at_location(*, files, platform_prerequisites, **_kwargs):
-        location = getattr(processor.location, bundle_type)
+        location = getattr(location_enum, bundle_type)
 
         # If tree artifacts are enabled, iterate each bundle and set the bundle name
         # as the parent directory. Otherwise, let bundletool unzip the bundle as is.

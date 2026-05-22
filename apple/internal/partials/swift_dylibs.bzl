@@ -31,8 +31,8 @@ load(
     "intermediates",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
@@ -246,7 +246,7 @@ def _swift_dylibs_partial_impl(
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
             )
-            bundle_files.append((processor.location.framework, None, depset([output_dir])))
+            bundle_files.append((location_enum.framework, None, depset([output_dir])))
             swift_support_file = (platform_name, output_dir)
             transitive_swift_support_files.append(swift_support_file)
 
@@ -254,7 +254,7 @@ def _swift_dylibs_partial_impl(
             # Package all the transitive SwiftSupport dylibs into the archive for this target.
             bundle_files.extend([
                 (
-                    processor.location.archive,
+                    location_enum.archive,
                     paths.join("SwiftSupport", platform),
                     depset([directory]),
                 )

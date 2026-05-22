@@ -31,12 +31,12 @@ load(
     "codesigning_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
-    "outputs",
+    "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
+    "location_enum",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
+    "@build_bazel_rules_apple//apple/internal:outputs.bzl",
+    "outputs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -54,7 +54,7 @@ Private provider to propagate codesigning dossier information.
 A struct with codesigning dossier information to be embedded in another target, with the following
 fields:
   * bundle_location: The location within the bundle to sign this artifact. This is typically based
-      on processor.location values, and in that case will be resolved to the relative path of the
+      on location_enum values, and in that case will be resolved to the relative path of the
       bundle root when writing out the JSON for the dossier.
   * bundle_filename: The file name of the artifact to be signed.
   * dossier_file: The dossier zip file that provides context and inputs for signing.
@@ -71,14 +71,14 @@ fields:
 # derived platforms. If this assumption does not hold, then this set and "_location_map" below must
 # be updated to take the full bundle location into account, like processor.bzl does.
 _VALID_LOCATIONS_RELATIVE_CONTENTS = set([
-    processor.location.app_clip,
-    processor.location.binary,
-    processor.location.bundle,
-    processor.location.extension,
-    processor.location.framework,
-    processor.location.plugin,
-    processor.location.watch,
-    processor.location.xpc_service,
+    location_enum.app_clip,
+    location_enum.binary,
+    location_enum.bundle,
+    location_enum.extension,
+    location_enum.framework,
+    location_enum.plugin,
+    location_enum.watch,
+    location_enum.xpc_service,
 ])
 
 def _location_map(rule_descriptor):
@@ -92,14 +92,14 @@ def _location_map(rule_descriptor):
     """
     resolved = rule_descriptor.bundle_locations
     return {
-        processor.location.app_clip: resolved.contents_relative_app_clips,
-        processor.location.binary: resolved.contents_relative_binary,
-        processor.location.bundle: "",
-        processor.location.extension: resolved.contents_relative_extensions,
-        processor.location.framework: resolved.contents_relative_frameworks,
-        processor.location.plugin: resolved.contents_relative_plugins,
-        processor.location.watch: resolved.contents_relative_watch,
-        processor.location.xpc_service: resolved.contents_relative_xpc_service,
+        location_enum.app_clip: resolved.contents_relative_app_clips,
+        location_enum.binary: resolved.contents_relative_binary,
+        location_enum.bundle: "",
+        location_enum.extension: resolved.contents_relative_extensions,
+        location_enum.framework: resolved.contents_relative_frameworks,
+        location_enum.plugin: resolved.contents_relative_plugins,
+        location_enum.watch: resolved.contents_relative_watch,
+        location_enum.xpc_service: resolved.contents_relative_xpc_service,
     }
 
 def _embedded_codesign_dossiers_from_dossier_infos(
