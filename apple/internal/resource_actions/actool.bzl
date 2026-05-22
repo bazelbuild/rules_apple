@@ -124,8 +124,7 @@ def _validate_standard_app_icon_sets(
         *,
         icon_bundle_files,
         icon_files,
-        minimum_os_version,
-        xcode_config):
+        minimum_os_version):
     """Validates that the asset files contain only standard app icon sets."""
 
     min_os_version_26_or_later = (
@@ -149,13 +148,6 @@ Found the following legacy .appiconset files: {xcasset_appicon_files}
     )
 
     if icon_bundle_files:
-        is_xcode_26_or_later = xcode_config.xcode_version() >= apple_common.dotted_version("26.0")
-        if not is_xcode_26_or_later:
-            fail("""
-            Found Icon Composer .icon bundles among the assigned app_icons. These are only \
-            supported on Xcode 26 or later.
-            """)
-
         if icon_files:
             fail("""
             Found .appiconset files among the assigned app_icons, which are ignored when Icon \
@@ -172,8 +164,7 @@ def _icon_info_from_asset_files(
         asset_files,
         minimum_os_version,
         platform_type,
-        product_type,
-        xcode_config):
+        product_type):
     """Returns information about the icon files in the asset files."""
 
     # Check for legacy asset catalog .appiconset files, which used to serve as generic icons for
@@ -212,7 +203,6 @@ def _icon_info_from_asset_files(
             icon_bundle_files = icon_bundle_files,
             icon_files = icon_files,
             minimum_os_version = minimum_os_version,
-            xcode_config = xcode_config,
         )
     return struct(
         appicon_extension = appicon_extension,
@@ -356,8 +346,7 @@ def _validate_asset_files_and_generate_args(
         minimum_os_version,
         platform_type,
         primary_icon_name,
-        product_type,
-        xcode_config):
+        product_type):
     """Validates asset files and returns extra command line arguments needed to compile assets.
 
     This function is called by `actool` to scan for specially recognized asset
@@ -374,7 +363,6 @@ def _validate_asset_files_and_generate_args(
       primary_icon_name: An optional String to identify the name of the primary app icon when
         alternate app icons have been provided for the app.
       product_type: The product type identifier used to describe the current bundle type.
-      xcode_config: The Xcode version config for the current build.
 
     Returns:
       An array of extra arguments to pass to `actool`, which may be empty.
@@ -386,7 +374,6 @@ def _validate_asset_files_and_generate_args(
         minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         product_type = product_type,
-        xcode_config = xcode_config,
     )
 
     args.extend(_args_for_app_icons(
@@ -455,12 +442,6 @@ def compile_asset_catalog(
     """
     platform = platform_prerequisites.platform
     actool_platform = platform.name_in_plist.lower()
-    xcode_config = platform_prerequisites.xcode_version_config
-
-    xcode_before_26 = (
-        xcode_config.xcode_version() <
-        apple_common.dotted_version("26.0")
-    )
 
     args = actions.args()
     args.add("actool")
@@ -481,21 +462,16 @@ def compile_asset_catalog(
         # Downgrade errors for the use of launch images in iOS and tvOS apps.
         "--downgrade-error=substring=Launch images are deprecated in iOS 13.0",
         "--downgrade-error=substring=Launch images are deprecated in tvOS 13.0",
+        # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26. This is
+        # called out in the release notes as an error that can be "safely ignored" in
+        # https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes.
+        # In our experience, these are sometimes actionable, but appear to be impossible to
+        # resolve on watchOS given certain inputs.
+        "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
+        # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld
+        # when executing the actool command to build new icons on Sequoia instead of Tahoe.
+        "--mute-error=substring= is being set to 0xBAD4007.",
     ])
-
-    if not xcode_before_26:
-        # Handle the nonsense warnings and errors for Xcode 26.
-        args.add_all([
-            # Downgrade "Failed to generate flattened icon stack" warnings for Xcode 26. This is
-            # called out in the release notes as an error that can be "safely ignored" in
-            # https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes.
-            # In our experience, these are sometimes actionable, but appear to be impossible to
-            # resolve on watchOS given certain inputs.
-            "--downgrade-error=substring=Failed to generate flattened icon stack for icon named ",
-            # Mute spammy "Use of that symbol [...] is being set to 0xBAD4007." warnings from dyld
-            # when executing the actool command to build new icons on Sequoia instead of Tahoe.
-            "--mute-error=substring= is being set to 0xBAD4007.",
-        ])
 
     # Standard actool options.
     args.add("--compile", xctoolrunner_support.prefixed_path(output_dir.path))
@@ -515,7 +491,6 @@ def compile_asset_catalog(
         platform_type = platform_type,
         primary_icon_name = primary_icon_name,
         product_type = product_type,
-        xcode_config = xcode_config,
     )
     args.add_all(extra_actool_args)
 
@@ -552,5 +527,5 @@ def compile_asset_catalog(
         inputs = asset_files,
         mnemonic = "AssetCatalogCompile",
         outputs = outputs,
-        xcode_config = xcode_config,
+        xcode_config = platform_prerequisites.xcode_version_config,
     )

@@ -204,20 +204,9 @@ Either remove the secure feature from the "secure_features" attribute to disable
 def _entitlements_from_secure_features(
         *,
         rule_label,
-        secure_features,
-        xcode_version):
+        secure_features):
     if not secure_features:
         return {}
-
-    # Check that we're building with Xcode 26.0 or later. If not, raise an error.
-    if not xcode_version >= apple_common.dotted_version("26.0"):
-        fail("""
-ERROR: secure_features were requested by {rule_label}, but secure_features requires Xcode 26.0 or \
-later, as the underlying Enhanced Security capabilities do not exist prior to 26.0.
-
-Check that you are not building with an `--xcode_version` older than 26.0, such as \
-`--xcode_version=16.4.0`.
-""".format(rule_label = str(rule_label)))
 
     # Build a set of all of the entitlements that are required by the requested secure features.
     required_entitlements = dict()

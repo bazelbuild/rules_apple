@@ -31,8 +31,6 @@ def macos_application_resources_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
-
-    # Tests the new icon composer bundles for Xcode 26.
     archive_contents_test(
         name = "{}_icon_composer_app_icons_plist_test".format(name),
         build_type = "device",
@@ -49,8 +47,6 @@ def macos_application_resources_test_suite(name):
         ],
     )
 
-    # Tests that icon bundles alone will generate legacy assets when the minimum_os_version is lower
-    # than 26.0.
     archive_contents_test(
         name = "{}_icon_bundles_for_minimum_os_version_below_26_test".format(name),
         build_type = "device",

@@ -341,7 +341,6 @@ def _process_entitlements(
             secure_features_support.entitlements_from_secure_features(
                 rule_label = rule_label,
                 secure_features = secure_features,
-                xcode_version = platform_prerequisites.xcode_version_config.xcode_version(),
             )
         )
         if secure_features_entitlements:
