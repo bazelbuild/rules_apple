@@ -44,13 +44,6 @@ filegroup(
 # tools.
 
 apple_shell_test(
-    name = "ios_coverage_test",
-    size = "large",
-    src = "ios_coverage_test.sh",
-    tags = ["exclusive"],
-)
-
-apple_shell_test(
     name = "macos_test_runner_unit_test",
     size = "large",
     src = "macos_test_runner_unit_test.sh",

@@ -22,6 +22,7 @@ load(":ios_application_resources_test.bzl", "ios_application_resources_test_suit
 load(":ios_application_swift_tests.bzl", "ios_application_swift_test_suite")
 load(":ios_application_tests.bzl", "ios_application_test_suite")
 load(":ios_build_test_tests.bzl", "ios_build_test_test_suite")
+load(":ios_coverage_tests.bzl", "ios_coverage_test_suite")
 load(":ios_dynamic_framework_tests.bzl", "ios_dynamic_framework_test_suite")
 load(":ios_extension_tests.bzl", "ios_extension_test_suite")
 load(":ios_framework_tests.bzl", "ios_framework_test_suite")
@@ -117,6 +118,8 @@ ios_application_test_suite(name = "ios_application")
 ios_app_clip_test_suite(name = "ios_app_clip")
 
 ios_build_test_test_suite(name = "ios_build_test")
+
+ios_coverage_test_suite(name = "ios_coverage")
 
 ios_extension_test_suite(name = "ios_extension")
 

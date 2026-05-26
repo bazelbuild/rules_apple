@@ -1,0 +1,1 @@
+int coverageFoo(void);
