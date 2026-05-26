@@ -74,15 +74,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "aspects",
-    srcs = ["aspects.bzl"],
-    deps = [
-        "//apple/internal/aspects:framework_provider_aspect",
-        "//apple/internal/aspects:resource_aspect",
-    ],
-)
-
-bzl_library(
     name = "capabilities",
     srcs = ["capabilities.bzl"],
     deps = [
