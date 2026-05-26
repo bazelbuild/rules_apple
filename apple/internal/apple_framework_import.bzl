@@ -261,7 +261,7 @@ def _apple_dynamic_framework_import_impl(ctx):
                 features = features,
                 framework_includes = framework_includes,
                 hdrs = framework.header_imports,
-                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
+                module_maps = framework.module_map_imports,
                 module_name = framework.bundle_name,
                 rule_label = label,
                 swift_toolchains = swift_toolchains,
@@ -269,14 +269,32 @@ def _apple_dynamic_framework_import_impl(ctx):
             ),
         )
     else:
-        # Create _SwiftInteropInfo provider.
-        swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-            deps = deps,
-            module_name = framework.bundle_name,
-            module_map_imports = framework.module_map_imports,
-        )
-        if swift_interop_info:
-            providers.append(swift_interop_info)
+        swift_info = None
+        if framework_import_support.has_private_module_map(framework.module_map_imports):
+            swift_toolchains = swift_common.find_all_toolchains(ctx)
+            swift_info = framework_import_support.swift_info_from_module_maps(
+                actions = actions,
+                cc_info = cc_info,
+                ctx = ctx,
+                deps = deps,
+                disabled_features = disabled_features,
+                features = features,
+                framework_includes = framework_includes,
+                module_name = framework.bundle_name,
+                module_maps = framework.module_map_imports,
+                swift_toolchains = swift_toolchains,
+            )
+        if swift_info:
+            providers.append(swift_info)
+        else:
+            # Create _SwiftInteropInfo provider.
+            swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
+                deps = deps,
+                module_name = framework.bundle_name,
+                module_map_imports = framework.module_map_imports,
+            )
+            if swift_interop_info:
+                providers.append(swift_interop_info)
 
     return providers
 
@@ -368,26 +386,25 @@ def _apple_static_framework_import_impl(ctx):
     )
 
     # Create CcInfo provider
-    providers.append(
-        framework_import_support.cc_info_with_dependencies(
-            actions = actions,
-            additional_cc_infos = additional_cc_infos,
-            alwayslink = alwayslink,
-            cc_toolchain = cc_toolchain,
-            ctx = ctx,
-            deps = deps,
-            disabled_features = disabled_features,
-            features = features,
-            framework_includes = framework_includes,
-            header_imports = framework.header_imports,
-            kind = "static",
-            label = label,
-            libraries = framework.binary_imports,
-            linkopts = linkopts,
-            swiftinterface_imports = framework.swift_interface_imports,
-            swiftmodule_imports = framework.swift_module_imports,
-        ),
+    cc_info = framework_import_support.cc_info_with_dependencies(
+        actions = actions,
+        additional_cc_infos = additional_cc_infos,
+        alwayslink = alwayslink,
+        cc_toolchain = cc_toolchain,
+        ctx = ctx,
+        deps = deps,
+        disabled_features = disabled_features,
+        features = features,
+        framework_includes = framework_includes,
+        header_imports = framework.header_imports,
+        kind = "static",
+        label = label,
+        libraries = framework.binary_imports,
+        linkopts = linkopts,
+        swiftinterface_imports = framework.swift_interface_imports,
+        swiftmodule_imports = framework.swift_module_imports,
     )
+    providers.append(cc_info)
 
     swiftinterface_files = []
     if (
@@ -411,7 +428,7 @@ def _apple_static_framework_import_impl(ctx):
                 features = features,
                 framework_includes = framework_includes,
                 hdrs = framework.header_imports,
-                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
+                module_maps = framework.module_map_imports,
                 module_name = framework.bundle_name,
                 rule_label = label,
                 swift_toolchains = swift_toolchains,
@@ -419,14 +436,32 @@ def _apple_static_framework_import_impl(ctx):
             ),
         )
     else:
-        # Create SwiftInteropInfo provider for swift_clang_module_aspect
-        swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-            deps = deps,
-            module_name = framework.bundle_name,
-            module_map_imports = framework.module_map_imports,
-        )
-        if swift_interop_info:
-            providers.append(swift_interop_info)
+        swift_info = None
+        if framework_import_support.has_private_module_map(framework.module_map_imports):
+            swift_toolchains = swift_common.find_all_toolchains(ctx)
+            swift_info = framework_import_support.swift_info_from_module_maps(
+                actions = actions,
+                cc_info = cc_info,
+                ctx = ctx,
+                deps = deps,
+                disabled_features = disabled_features,
+                features = features,
+                framework_includes = framework_includes,
+                module_name = framework.bundle_name,
+                module_maps = framework.module_map_imports,
+                swift_toolchains = swift_toolchains,
+            )
+        if swift_info:
+            providers.append(swift_info)
+        else:
+            # Create SwiftInteropInfo provider for swift_clang_module_aspect
+            swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
+                deps = deps,
+                module_name = framework.bundle_name,
+                module_map_imports = framework.module_map_imports,
+            )
+            if swift_interop_info:
+                providers.append(swift_interop_info)
 
     # Create AppleFrameworkImportBundleInfo provider.
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
