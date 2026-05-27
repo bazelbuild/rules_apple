@@ -63,12 +63,14 @@ _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
     "arm64": "arm64_32",
+    "arm64e": "arm64_32",
 }
 
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
     "arm64": "arm64_32",
+    "arm64e": "arm64_32",
 }
 
 def _platform_specific_cpu_setting_name(platform_type):
