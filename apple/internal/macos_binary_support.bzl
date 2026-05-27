@@ -15,12 +15,12 @@
 """Internal helper definitions used by macOS command line rules."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "//apple:providers.bzl",

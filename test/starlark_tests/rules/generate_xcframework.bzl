@@ -14,12 +14,12 @@
 
 """Rules to generate import-ready XCFrameworks for testing."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",

@@ -15,14 +15,14 @@
 """Partial implementation for Apple .symbols file processing."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load("@bazel_skylib//lib:shell.bzl", "shell")
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
 load(
     "//apple:providers.bzl",
     "AppleFrameworkImportInfo",

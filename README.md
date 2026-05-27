@@ -28,8 +28,8 @@ Copy the latest `MODULE.bazel` snippet from [the releases page](https://github.c
 Minimal example:
 
 ```python
-load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:ios.bzl", "ios_application")
+load("@rules_swift//swift:swift.bzl", "swift_library")
 
 swift_library(
     name = "MyLibrary",

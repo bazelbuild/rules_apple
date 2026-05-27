@@ -14,10 +14,10 @@
 
 """Rule for creating header_maps."""
 
-load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
-load("@build_bazel_rules_swift//swift:swift.bzl", "swift_common")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_swift//swift:providers.bzl", "SwiftInfo")
+load("@rules_swift//swift:swift.bzl", "swift_common")
 
 HeaderMapInfo = provider(
     doc = "Provides information about created `.hmap` (header map) files",

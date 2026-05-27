@@ -15,7 +15,7 @@
 """Actions that manipulate entitlements and provisioning profiles."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(

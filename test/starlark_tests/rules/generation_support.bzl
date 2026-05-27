@@ -14,8 +14,8 @@
 
 """Apple frameworks and XCFramework generation support methods for testing."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "//apple/internal:intermediates.bzl",  # buildifier: disable=bzl-visibility
     "intermediates",

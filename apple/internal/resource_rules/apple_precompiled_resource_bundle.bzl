@@ -15,16 +15,16 @@
 """Implementation of apple_precompiled_resource_bundle rule."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
 )
 load(
     "//apple:providers.bzl",

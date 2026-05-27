@@ -15,7 +15,7 @@
 """Sample Apple test runner rule."""
 
 load(
-    "@build_bazel_apple_support//lib:xcode_support.bzl",
+    "@apple_support//lib:xcode_support.bzl",
     "xcode_support",
 )
 load(

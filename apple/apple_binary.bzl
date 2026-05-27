@@ -15,7 +15,7 @@
 """Starlark implementation of `apple_binary` to transition from native Bazel."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(

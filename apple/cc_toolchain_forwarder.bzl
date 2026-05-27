@@ -17,12 +17,12 @@ A rule for handling the cc_toolchains and their constraints for a potential "fat
 """
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@rules_cc//cc:find_cc_toolchain.bzl",

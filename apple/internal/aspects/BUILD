@@ -16,10 +16,10 @@ bzl_library(
     deps = [
         "//apple/internal:cc_info_support",
         "//apple/internal/providers:app_intents_info",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:collections",
-        "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
-        "@build_bazel_rules_swift//swift:module_name",
+        "@rules_swift//swift",
+        "@rules_swift//swift:module_name",
     ],
 )
 
@@ -51,10 +51,10 @@ bzl_library(
         "//apple/internal:swift_support",
         "//apple/internal/providers:apple_debug_info",
         "//apple/internal/providers:framework_import_bundle_info",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 
@@ -66,7 +66,7 @@ bzl_library(
         "//apple/internal/testing:__pkg__",
     ],
     deps = [
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 
@@ -77,7 +77,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 
@@ -88,7 +88,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 
@@ -100,7 +100,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 

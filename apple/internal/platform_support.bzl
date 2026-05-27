@@ -15,7 +15,7 @@
 """Support functions for working with Apple platforms and device families."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(

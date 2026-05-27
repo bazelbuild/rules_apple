@@ -15,12 +15,12 @@
 """Defines rules for building Apple DocC targets."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "//apple:providers.bzl",
@@ -219,7 +219,7 @@ NOTE: At this time Swift is the only supported language for this rule.
 Example:
 
 ```starlark
-load("@build_bazel_rules_apple//apple:docc.bzl", "docc_archive")
+load("@rules_apple//apple:docc.bzl", "docc_archive")
 
 docc_archive(
     name = "Lib.doccarchive",

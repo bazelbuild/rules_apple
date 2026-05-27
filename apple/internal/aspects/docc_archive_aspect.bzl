@@ -15,11 +15,11 @@
 """Defines aspects for collecting information required to build .docc and .doccarchive files."""
 
 load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
+    "@rules_swift//swift:providers.bzl",
     "SwiftSymbolGraphInfo",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift_symbol_graph_aspect.bzl",
+    "@rules_swift//swift:swift_symbol_graph_aspect.bzl",
     "swift_symbol_graph_aspect",
 )
 load(

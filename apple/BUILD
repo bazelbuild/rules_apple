@@ -26,7 +26,7 @@ exports_files(
 [
     alias(
         name = arch,
-        actual = "@build_bazel_apple_support//configs:{}".format(arch),
+        actual = "@apple_support//configs:{}".format(arch),
     )
     for arch in [
         "darwin_x86_64",
@@ -71,7 +71,7 @@ bzl_library(
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",
-        "@build_bazel_apple_support//lib:apple_support",
+        "@apple_support//lib:apple_support",
     ],
 )
 
@@ -111,8 +111,8 @@ bzl_library(
         ":providers",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
-        "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc:find_cc_toolchain_bzl",
     ],
 )
@@ -127,9 +127,9 @@ bzl_library(
     srcs = ["dtrace.bzl"],
     deps = [
         "//apple/internal/utils:bundle_paths",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
         "@rules_cc//cc/common",
     ],
 )

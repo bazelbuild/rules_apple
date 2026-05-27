@@ -44,8 +44,8 @@ bzl_library(
     visibility = ["//apple:__pkg__"],
     deps = [
         "//apple:providers",
+        "@apple_support//xcode:providers",
         "@bazel_skylib//rules:common_settings",
-        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -54,7 +54,7 @@ bzl_library(
     srcs = ["macos_test_runner.bzl"],
     deps = [
         "//apple:providers",
-        "@build_bazel_apple_support//lib:xcode_support",
+        "@apple_support//lib:xcode_support",
     ],
 )
 

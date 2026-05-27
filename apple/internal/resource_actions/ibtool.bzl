@@ -15,12 +15,12 @@
 """IBTool related actions."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "//apple/internal:shared_environment.bzl",

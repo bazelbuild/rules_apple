@@ -15,16 +15,16 @@
 """Actions related to codesigning."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 load(
     "@bazel_skylib//lib:shell.bzl",
     "shell",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
 )
 load(
     "//apple/internal:intermediates.bzl",

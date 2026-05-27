@@ -15,7 +15,7 @@
 """An aspect that collects information about Swift usage among dependencies."""
 
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
 

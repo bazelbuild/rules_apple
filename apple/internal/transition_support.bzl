@@ -32,11 +32,11 @@ part on the language used for XCFramework library identifiers:
     getting the right Apple toolchain to build outputs with from the Apple Crosstool.
 """
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
-    "@build_bazel_apple_support//configs:platforms.bzl",
+    "@apple_support//configs:platforms.bzl",
     "CPU_TO_DEFAULT_PLATFORM_NAME",
 )
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
@@ -53,7 +53,7 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
 }
 
 _CPU_TO_DEFAULT_PLATFORM_FLAG = {
-    cpu: "@build_bazel_apple_support//platforms:{}_platform".format(
+    cpu: "@apple_support//platforms:{}_platform".format(
         platform_name,
     )
     for cpu, platform_name in CPU_TO_DEFAULT_PLATFORM_NAME.items()

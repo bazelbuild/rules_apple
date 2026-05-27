@@ -39,7 +39,7 @@ bzl_library(
         "//apple/internal:swift_support",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
-        "@build_bazel_rules_swift//swift",
+        "@rules_swift//swift",
     ],
 )
 
@@ -106,7 +106,7 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "@build_bazel_apple_support//lib:apple_support",
+        "@apple_support//lib:apple_support",
     ],
 )
 
@@ -128,7 +128,7 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "@build_bazel_apple_support//lib:apple_support",
+        "@apple_support//lib:apple_support",
     ],
 )
 
@@ -150,7 +150,7 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "@build_bazel_apple_support//lib:apple_support",
+        "@apple_support//lib:apple_support",
     ],
 )
 
@@ -172,7 +172,7 @@ bzl_library(
         "//apple/internal:transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
-        "@build_bazel_apple_support//lib:apple_support",
+        "@apple_support//lib:apple_support",
     ],
 )
 

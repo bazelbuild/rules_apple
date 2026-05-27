@@ -15,12 +15,12 @@
 """Metal related actions."""
 
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 def _metal_apple_target_triple(platform_prerequisites):

@@ -27,14 +27,14 @@ function tear_down() {
 function create_runners() {
   cat > macos/BUILD <<EOF
 load(
-    "@build_bazel_rules_apple//apple:macos.bzl",
+    "@rules_apple//apple:macos.bzl",
     "macos_unit_test"
 )
-load("@build_bazel_rules_swift//swift:swift.bzl",
+load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@build_bazel_rules_apple//apple/testing/default_runner:macos_test_runner.bzl",
+    "@rules_apple//apple/testing/default_runner:macos_test_runner.bzl",
     "macos_test_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")

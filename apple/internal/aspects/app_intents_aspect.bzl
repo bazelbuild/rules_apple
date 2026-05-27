@@ -15,19 +15,19 @@
 """Implementation of the aspect that propagates AppIntentsInfo providers."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:collections.bzl",
     "collections",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_swift//swift:module_name.bzl",
+    "@rules_swift//swift:module_name.bzl",
     "derive_swift_module_name",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
 load("//apple/internal:cc_info_support.bzl", "cc_info_support")

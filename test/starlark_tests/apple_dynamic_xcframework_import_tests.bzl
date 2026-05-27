@@ -63,7 +63,7 @@ analysis_output_group_info_files_with_xcframework_processor_test = make_analysis
 })
 
 action_inputs_with_ios_x86_64_platform_test = make_action_inputs_test_rule({
-    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_x86_64")),
 })
 
 action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_action_inputs_test_rule({
