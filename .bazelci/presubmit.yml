@@ -42,8 +42,8 @@ tasks:
 
   macos_last_green:
     name: "Last Green Bazel"
-    # TODO: Switch back to last_green when possible
-    bazel: cb541be1eea5aafcce370ef8078b2e03537c0233
+    # TODO: use last_green when we fix issues, this is the removal of incompatible_enable_apple_toolchain_resolution
+    bazel: 49f430d594662938d1a04e2c2a29f215d74f7f61
     <<: *common
 
   doc_tests:
