@@ -64,7 +64,7 @@ cases you can use the `--ios_signing_cert_name` flag to force the signing
 identity to be used when codesigning your app.
 
 ```shell
-bazel build //your/target --ios_signing_cert_name="iPhone Developer: [CERT OWNER NAME]"
+bazel build //your/target --@rules_apple//apple/build_settings:signing_certificate_name="iPhone Developer: [CERT OWNER NAME]"
 ```
 
 To make this easier to use, we recommend adding the following to the
@@ -72,7 +72,17 @@ To make this easier to use, we recommend adding the following to the
 invocations:
 
 ```text
-build --ios_signing_cert_name="iPhone Developer: [CERT OWNER NAME]"
+build --@rules_apple//apple/build_settings:signing_certificate_name="iPhone Developer: [CERT OWNER NAME]"
+```
+
+Note this was previously builtin to bazel with `--ios_signing_cert_name`
+but has been removed for the 10.x release cycle.
+
+If you would like to maintain the shorter command line argument name,
+you can put this in your `.bazelrc`:
+
+```
+build --flag_alias=ios_signing_cert_name=@rules_apple//apple/build_settings:signing_certificate_name
 ```
 
 <!-- End-External -->

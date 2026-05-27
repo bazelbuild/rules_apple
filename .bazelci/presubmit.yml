@@ -40,11 +40,11 @@ tasks:
     bazel: 9.x
     <<: *common
 
-  # TODO: Enable ASAP when we remove usage of `//command_line_option:incompatible_enable_apple_toolchain_resolution`
-  # macos_last_green:
-  #   name: "Last Green Bazel"
-  #   bazel: last_green
-  #   <<: *common
+  macos_last_green:
+    name: "Last Green Bazel"
+    # TODO: Switch back to last_green when possible
+    bazel: cb541be1eea5aafcce370ef8078b2e03537c0233
+    <<: *common
 
   doc_tests:
     name: "Doc tests"
