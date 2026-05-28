@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""AppleDebugInfo provider implementation for resource aspect and debug symbols partial support."""
+"""AppleSymbolsFileInfo provider implementation for transitive .symbols `File`s propagation."""
 
-AppleDebugInfo = provider(
-    doc = """
-Private provider to propagate transitive dSYM and link maps information used by the debug symbols
-partial and the resource aspect.
-""",
+AppleSymbolsFileInfo = provider(
+    doc = "Private provider to propagate the transitive .symbols `File`s.",
     fields = {
-        "dsyms": """
-Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
-""",
-        "linkmaps": """
-Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
-""",
+        "symbols_output_dirs": "Depset of `File`s containing directories of $UUID.symbols files for transitive dependencies.",
     },
 )
