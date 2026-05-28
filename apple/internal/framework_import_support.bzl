@@ -474,7 +474,7 @@ def _swift_info_from_module_interface(
         module_map = None,
         module_name,
         rule_label,  # @unused
-        swift_toolchain,
+        swift_toolchains,
         swiftinterface_files):
     """Returns SwiftInfo provider for a pre-compiled Swift module compiling it's interface file.
 
@@ -490,7 +490,7 @@ def _swift_info_from_module_interface(
         module_map: Module map file for the underlying C module, if it has one.
         module_name: Swift module name.
         rule_label: The label of the rule being built.
-        swift_toolchain: SwiftToolchainInfo provider for current target.
+        swift_toolchains: The Swift and C++ toolchains for the current target.
         swiftinterface_files: List of `.swiftinterface` Files for the module. The first entry is
             compiled; any remaining entries (e.g. `.private.swiftinterface`) are declared as action
             inputs so the compiler can resolve sibling references in the sandbox.
@@ -499,7 +499,7 @@ def _swift_info_from_module_interface(
     """
     feature_configuration = swift_common.configure_features(
         ctx = ctx,
-        swift_toolchain = swift_toolchain,
+        toolchains = swift_toolchains,
         requested_features = features,
         unsupported_features = disabled_features,
     )
@@ -526,8 +526,8 @@ def _swift_info_from_module_interface(
             module_map_file = module_map,
             module_name = module_name,
             swift_infos = swift_infos,
-            swift_toolchain = swift_toolchain,
             target_name = ctx.label.name,
+            toolchains = swift_toolchains,
         )
         if clang_result:
             clang_module = clang_result.clang_module
@@ -546,8 +546,8 @@ def _swift_info_from_module_interface(
         module_name = module_name,
         swiftinterface_file = swiftinterface_files[0],
         swift_infos = swift_infos,
-        swift_toolchain = swift_toolchain,
         target_name = ctx.label.name,
+        toolchains = swift_toolchains,
     )
     module_context = compile_result.module_context
 
