@@ -43,7 +43,7 @@ def ios_coverage_test_suite(name):
         coverage_manifest = [_COVERAGE_SHARED_LOGIC],
         expected_coverage = [_COVERAGE_SHARED_SYMBOL],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_standalone_test_new_runner",
-        tags = [name],
+        tags = [name, "exclusive"],
     )
 
     apple_coverage_test(
@@ -87,7 +87,7 @@ def ios_coverage_test_suite(name):
             ",coverageFoo",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_hosted_test",
-        tags = [name],
+        tags = [name, "exclusive"],
     )
 
     apple_coverage_test(
@@ -98,7 +98,7 @@ def ios_coverage_test_suite(name):
             "DA:5,1",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_ui_test_new_runner",
-        tags = [name],
+        tags = [name, "exclusive"],
     )
 
     native.test_suite(
