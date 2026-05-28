@@ -19,7 +19,7 @@ build --check_direct_dependencies=off
 build --spawn_strategy=sandboxed,local
 build --worker_sandboxing=true
 
-build:ci --ios_simulator_device="iPhone 16"
+build:ci --//apple/build_settings:ios_simulator_device="iPhone 16"
 build:ci --local_test_jobs=2
 build:ci --modify_execution_info=AssetCatalogCompile=+exclusive
 build:ci --test_tag_filters=-skipci

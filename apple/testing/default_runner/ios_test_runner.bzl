@@ -14,6 +14,7 @@
 
 """iOS test runner rule."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionPropertiesInfo")
 load(
     "//apple:providers.bzl",
@@ -53,13 +54,23 @@ def _get_execution_environment(*, xcode_config):
 
     return execution_environment
 
+def _ios_simulator_device(ctx):
+    return (ctx.attr._ios_simulator_device[BuildSettingInfo].value or
+            # TODO: Remove when we drop Bazel 9.x support.
+            getattr(ctx.fragments.objc, "ios_simulator_device", None))
+
+def _ios_simulator_version(ctx):
+    return (ctx.attr._ios_simulator_version[BuildSettingInfo].value or
+            # TODO: Remove when we drop Bazel 9.x support.
+            getattr(ctx.fragments.objc, "ios_simulator_version", None))
+
 def _ios_test_runner_impl(ctx):
     """Implementation for the ios_test_runner rule."""
 
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
     sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
-    os_version = str(ctx.attr.os_version or ctx.fragments.objc.ios_simulator_version or "")
-    device_type = ctx.attr.device_type or ctx.fragments.objc.ios_simulator_device or ""
+    os_version = str(ctx.attr.os_version or _ios_simulator_version(ctx) or "")
+    device_type = ctx.attr.device_type or _ios_simulator_device(ctx) or ""
 
     runfiles = ctx.attr.create_simulator_action[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
@@ -122,8 +133,8 @@ A binary that produces a UDID for a simulator that matches the given device type
 When executed, the binary will have the following environment variables available to it:
 
 <ul>
-<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `--ios_simulator_device` command-line flag, or an empty string that should imply a default device.</li>
-<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `--ios_simulator_version` command-line flag, or an empty string that should imply a default OS version for the selected simulator runtime.</li>
+<li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, the `ios_simulator_device` build setting, or an empty string that should imply a default device.</li>
+<li>`SIMULATOR_OS_VERSION`: The os version of the simulator to create. The supported os versions correspond to the output of `xcrun simctl list runtimes`. ' 'E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, the `ios_simulator_version` build setting, or an empty string that should imply a default OS version for the selected simulator runtime.</li>
 <li>`SIMULATOR_SDK_VERSION`: The SDK version of the simulator to create. The supported SDK builds correspond to the output of `xcrun simctl runtime match list`. E.g., 11.2, 9.3. The value will be derived from the `default_ios_sdk_version` for the current Xcode version.</li>
 </ul>
 """,
@@ -181,6 +192,14 @@ into the XCTest invocation.
         "_test_template": attr.label(
             default = Label("//apple/testing/default_runner:ios_test_runner.template.sh"),
             allow_single_file = True,
+        ),
+        "_ios_simulator_device": attr.label(
+            default = Label("//apple/build_settings:ios_simulator_device"),
+            providers = [BuildSettingInfo],
+        ),
+        "_ios_simulator_version": attr.label(
+            default = Label("//apple/build_settings:ios_simulator_version"),
+            providers = [BuildSettingInfo],
         ),
         "_testrunner": attr.label(
             cfg = "exec",

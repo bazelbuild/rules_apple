@@ -149,7 +149,7 @@ bazel run //:iOSApp
 ```
 
 > [!TIP]
-> Use [`--ios_simulator_device`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_device) and [`--ios_simulator_version`](https://bazel.build/reference/command-line-reference#flag--ios_simulator_version) to control the run destination used to launch the app.
+> Use `--@rules_apple//apple/build_settings:ios_simulator_device` and `--@rules_apple//apple/build_settings:ios_simulator_version` to control the run destination used to launch the app.
 
 ## Generate an Xcode project
 

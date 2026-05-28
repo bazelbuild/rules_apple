@@ -82,6 +82,18 @@ physical devices) or `xcrun simctl list devices` (for simulators).
 """,
         default = "",
     ),
+    "ios_simulator_device": struct(
+        doc = """
+The device type to use when running an iOS application or test in the simulator.
+""",
+        default = "",
+    ),
+    "ios_simulator_version": struct(
+        doc = """
+The version of iOS to run on the simulator when running or testing.
+""",
+        default = "",
+    ),
     "add_debugger_entitlement": struct(
         doc = """
 Controls whether debug entitlements are added to non-macOS targets.

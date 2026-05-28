@@ -156,6 +156,16 @@ load(
     "main_thread_checker_dylibs",
 )
 
+def _ios_simulator_device(*, apple_xplat_toolchain_info, objc_fragment):
+    return (apple_xplat_toolchain_info.build_settings.ios_simulator_device or
+            # TODO: Remove when we drop Bazel 9.x support.
+            getattr(objc_fragment, "ios_simulator_device", None))
+
+def _ios_simulator_version(*, apple_xplat_toolchain_info, objc_fragment):
+    return (apple_xplat_toolchain_info.build_settings.ios_simulator_version or
+            # TODO: Remove when we drop Bazel 9.x support.
+            getattr(objc_fragment, "ios_simulator_version", None))
+
 def _ios_application_impl(ctx):
     """Implementation of ios_application."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -499,11 +509,17 @@ def _ios_application_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
-            simulator_device = ctx.fragments.objc.ios_simulator_device,
+            simulator_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            ),
             simulator_identifier = (
                 apple_xplat_toolchain_info.build_settings.ios_device
             ),
-            simulator_version = ctx.fragments.objc.ios_simulator_version,
+            simulator_version = _ios_simulator_version(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            ),
         )
 
     archive = outputs.archive(
@@ -836,8 +852,14 @@ def _ios_app_clip_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
-            simulator_device = ctx.fragments.objc.ios_simulator_device,
-            simulator_version = ctx.fragments.objc.ios_simulator_version,
+            simulator_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            ),
+            simulator_version = _ios_simulator_version(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            ),
         )
 
     archive = outputs.archive(
