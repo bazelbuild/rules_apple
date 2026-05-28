@@ -64,7 +64,7 @@ def ios_static_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         cpus = {
-            "platforms": ["@build_bazel_apple_support//platforms:ios_sim_arm64"],
+            "platforms": ["@apple_support//platforms:ios_sim_arm64"],
             "ios_multi_cpus": [],
         },
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
@@ -79,7 +79,7 @@ def ios_static_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/SwiftFmwk",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_ios_static_framework",
         cpus = {
-            "platforms": ["@build_bazel_apple_support//platforms:ios_x86_64"],
+            "platforms": ["@apple_support//platforms:ios_x86_64"],
             "ios_multi_cpus": [],
         },
         binary_test_architecture = "x86_64",

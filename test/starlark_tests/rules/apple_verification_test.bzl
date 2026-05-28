@@ -49,7 +49,7 @@ def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
     output_dictionary = {
-        "//command_line_option:platforms": ["@build_bazel_apple_support//platforms:darwin_x86_64"],
+        "//command_line_option:platforms": ["@apple_support//platforms:darwin_x86_64"],
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:objc_enable_binary_stripping": getattr(attr, "objc_enable_binary_stripping") if hasattr(attr, "objc_enable_binary_stripping") else False,
