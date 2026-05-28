@@ -172,12 +172,97 @@ def apple_dynamic_xcframework_import_test_suite(name):
         ],
         tags = [name],
     )
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_compiles_private_modulemap_from_swiftinterface_implicit_modules".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_modulemap",
+        mnemonic = "SwiftCompileModuleInterface",
+        expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+            "Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+            "Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        ],
+        tags = [name],
+    )
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_precompiles_private_modulemap_from_swiftinterface_explicit_modules".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_modulemap_explicit_modules",
+        mnemonic = "SwiftPrecompileCModule",
+        expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+        ],
+        tags = [name],
+    )
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_precompiles_private_modulemap_without_swiftmodule_explicit_modules".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_dynamic_xcframework_with_private_modulemap_no_swiftmodule_explicit_modules",
+        mnemonic = "SwiftPrecompileCModule",
+        expected_inputs = [
+            "Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+            "Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+        ],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_swiftinterface_implicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_modulemap_depending_swift_lib"],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_swiftinterface_explicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_modulemap_explicit_modules_depending_swift_lib"],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_direct_private_import_implicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_modulemap_direct_private_import_depending_swift_lib"],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_direct_private_import_explicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_swift_xcframework_with_private_modulemap_direct_private_import_explicit_modules_depending_swift_lib"],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_without_swiftmodule_direct_private_import_implicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_xcframework_with_private_modulemap_no_swiftmodule_direct_private_import_depending_swift_lib"],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_private_modulemap_without_swiftmodule_direct_private_import_explicit_modules_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:dynamic_xcframework_with_private_modulemap_no_swiftmodule_direct_private_import_explicit_modules_depending_swift_lib"],
+        tags = [name],
+    )
 
     # Framework with swiftmodule and generated modulemap
     ios_build_test(
         name = "{}_swiftmodule_xcframework_build_test".format(name),
         minimum_os_version = common.min_os_ios.baseline,
         targets = ["//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_consumer"],
+        tags = [name],
+    )
+    action_inputs_with_ios_x86_64_platform_test(
+        name = "{}_swiftmodule_xcframework_with_modulemap_precompiles_modulemap".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_xcframework_swiftmodule_with_modulemap",
+        mnemonic = "SwiftPrecompileCModule",
+        expected_inputs = [
+            "Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules/module.modulemap",
+        ],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_swiftmodule_xcframework_with_modulemap_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_with_modulemap_consumer"],
         tags = [name],
     )
     ios_build_test(

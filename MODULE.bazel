@@ -24,10 +24,10 @@ bazel_dep(name = "rules_shell", version = "0.6.1")
 # TODO: Remove before the major release after bumping to >=4
 archive_override(
     module_name = "rules_swift",
-    integrity = "sha256-7B5bIDydWD9OV0eMeh5uJpK2EN2wzlPP7DqyTC/XKu8=",
-    strip_prefix = "rules_swift-bc51c2a824f221e4162dc21e049cb99fd81d8152",
+    integrity = "sha256-DVKVdue0x3jsbTZhdp8vk6XgUeosWTLCl4Mh4w14nlw=",
+    strip_prefix = "rules_swift-f9f6fc9e308a18bfb2ea4797fea6c52fe134b980",
     urls = [
-        "https://github.com/bazelbuild/rules_swift/archive/bc51c2a824f221e4162dc21e049cb99fd81d8152.tar.gz",
+        "https://github.com/bazelbuild/rules_swift/archive/f9f6fc9e308a18bfb2ea4797fea6c52fe134b980.tar.gz",
     ],
 )
 

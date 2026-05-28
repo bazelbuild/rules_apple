@@ -3750,11 +3750,239 @@ genrule(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "ios_swift_dynamic_xcframework_with_private_modulemap",
+    srcs = [":ios_swift_dynamic_xcframework"],
+    outs = [
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/Info.plist",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftdoc",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.swiftinterface",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftdoc",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+    ],
+    cmd = """
+set -eu
+
+for src in $(SRCS); do
+  rel_path="$${src#*Swift3PFmwkWithGenHeader.xcframework/}"
+  output_path="$(RULEDIR)/private_modulemap/Swift3PFmwkWithGenHeader.xcframework/$$rel_path"
+  mkdir -p "$$(dirname "$$output_path")"
+  cp "$$src" "$$output_path"
+done
+
+for framework in \
+  "$(RULEDIR)/private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework" \
+  "$(RULEDIR)/private_modulemap/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework"; do
+  mkdir -p "$$framework/PrivateHeaders"
+  cat > "$$framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h" <<'EOF'
+#pragma once
+
+int Swift3PFmwkWithGenHeaderPrivateValue(void);
+EOF
+  cat > "$$framework/Modules/module.private.modulemap" <<'EOF'
+framework module Swift3PFmwkWithGenHeader_Private {
+  header "Swift3PFmwkWithGenHeader_Private.h"
+  export *
+}
+EOF
+  for swiftinterface in "$$framework"/Modules/Swift3PFmwkWithGenHeader.swiftmodule/*.swiftinterface; do
+    perl -0pi -e 's/import Foundation\\n/import Swift3PFmwkWithGenHeader_Private\\nimport Foundation\\n/' "$$swiftinterface"
+  done
+done
+""",
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "ios_dynamic_xcframework_with_private_modulemap_no_swiftmodule",
+    srcs = [":ios_swift_dynamic_xcframework"],
+    outs = [
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/Info.plist",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Headers/Swift3PFmwkWithGenHeader.h",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Info.plist",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
+        "private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.private.modulemap",
+    ],
+    cmd = """
+set -eu
+
+for src in $(SRCS); do
+  rel_path="$${src#*Swift3PFmwkWithGenHeader.xcframework/}"
+  case "$$rel_path" in
+    */Modules/Swift3PFmwkWithGenHeader.swiftmodule/*) continue ;;
+  esac
+
+  output_path="$(RULEDIR)/private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/$$rel_path"
+  mkdir -p "$$(dirname "$$output_path")"
+  cp "$$src" "$$output_path"
+done
+
+for framework in \
+  "$(RULEDIR)/private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64/Swift3PFmwkWithGenHeader.framework" \
+  "$(RULEDIR)/private_modulemap_no_swiftmodule/Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework"; do
+  mkdir -p "$$framework/PrivateHeaders"
+  cat > "$$framework/PrivateHeaders/Swift3PFmwkWithGenHeader_Private.h" <<'EOF'
+#pragma once
+
+int Swift3PFmwkWithGenHeaderPrivateValue(void);
+EOF
+  cat > "$$framework/Modules/module.private.modulemap" <<'EOF'
+framework module Swift3PFmwkWithGenHeader_Private {
+  header "Swift3PFmwkWithGenHeader_Private.h"
+  export *
+}
+EOF
+done
+""",
+    tags = common.fixture_tags,
+)
+
 swift_library(
     name = "dynamic_swift_xcframework_with_private_swiftinterface_depending_swift_lib",
     srcs = [":swift_with_dynamic_swift_framework_src"],
     tags = common.fixture_tags,
     deps = [":ios_imported_swift_dynamic_xcframework_with_private_swiftinterface"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_swift_dynamic_xcframework_with_private_modulemap",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":ios_swift_dynamic_xcframework_with_private_modulemap"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_swift_dynamic_xcframework_with_private_modulemap_explicit_modules",
+    features = [
+        "-swift.layering_check",
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    xcframework_imports = [":ios_swift_dynamic_xcframework_with_private_modulemap"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_private_modulemap_no_swiftmodule",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":ios_dynamic_xcframework_with_private_modulemap_no_swiftmodule"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_private_modulemap_no_swiftmodule_explicit_modules",
+    features = [
+        "-swift.layering_check",
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    xcframework_imports = [":ios_dynamic_xcframework_with_private_modulemap_no_swiftmodule"],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_with_private_modulemap_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_with_private_modulemap"],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_with_private_modulemap_explicit_modules_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_src"],
+    features = [
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_with_private_modulemap_explicit_modules"],
+)
+
+write_file(
+    name = "swift_with_dynamic_swift_framework_private_module_src",
+    out = "SwiftWithDynamicSwiftFrameworkPrivateModule.swift",
+    content = ["""
+import Swift3PFmwkWithGenHeader
+@_implementationOnly import Swift3PFmwkWithGenHeader_Private
+
+func swift_with_dynamic_swift_framework_private_module_function() {
+  let sc = Swift3PFmwkWithGenHeader.SharedClass()
+  sc.doSomethingShared()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "swift_with_dynamic_framework_private_clang_module_src",
+    out = "SwiftWithDynamicFrameworkPrivateClangModule.swift",
+    content = ["""
+import Swift3PFmwkWithGenHeader
+@_implementationOnly import Swift3PFmwkWithGenHeader_Private
+
+func swift_with_dynamic_framework_private_clang_module_function() {
+  _ = Swift3PFmwkWithGenHeaderPrivateValue()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_with_private_modulemap_direct_private_import_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_private_module_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_with_private_modulemap"],
+)
+
+swift_library(
+    name = "dynamic_swift_xcframework_with_private_modulemap_direct_private_import_explicit_modules_depending_swift_lib",
+    srcs = [":swift_with_dynamic_swift_framework_private_module_src"],
+    features = [
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_swift_dynamic_xcframework_with_private_modulemap_explicit_modules"],
+)
+
+swift_library(
+    name = "dynamic_xcframework_with_private_modulemap_no_swiftmodule_direct_private_import_depending_swift_lib",
+    srcs = [":swift_with_dynamic_framework_private_clang_module_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_private_modulemap_no_swiftmodule"],
+)
+
+swift_library(
+    name = "dynamic_xcframework_with_private_modulemap_no_swiftmodule_direct_private_import_explicit_modules_depending_swift_lib",
+    srcs = [":swift_with_dynamic_framework_private_clang_module_src"],
+    features = [
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_private_modulemap_no_swiftmodule_explicit_modules"],
 )
 
 genrule(
@@ -3779,6 +4007,30 @@ genrule(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "swiftmodule_xcframework_with_modulemap",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule"],
+    outs = [
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/Info.plist",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Info.plist",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Swift3PFmwkBinarySwiftmodule",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftdoc",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64/Swift3PFmwkBinarySwiftmodule.framework/Modules/module.modulemap",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Swift3PFmwkBinarySwiftmodule",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Info.plist",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftdoc",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftdoc",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftmodule",
+        "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework/Modules/module.modulemap",
+    ],
+    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule) -d $(RULEDIR)/with_modulemap",
+    tags = common.fixture_tags,
+)
+
 apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_swiftmodule_no_modulemap",
     features = [
@@ -3788,6 +4040,17 @@ apple_dynamic_xcframework_import(
     ],
     tags = common.fixture_tags,
     xcframework_imports = [":swiftmodule_xcframework"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_xcframework_swiftmodule_with_modulemap",
+    features = [
+        "-swift.layering_check",
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    xcframework_imports = [":swiftmodule_xcframework_with_modulemap"],
 )
 
 write_file(
@@ -3806,6 +4069,31 @@ swift_library(
     ],
     tags = common.fixture_tags,
     deps = [":ios_imported_xcframework_swiftmodule_no_modulemap"],
+)
+
+write_file(
+    name = "use_swiftmodule_framework_with_modulemap",
+    out = "SwiftWithBinarySwiftmoduleAndModulemapFramework.swift",
+    content = ["""
+import Swift3PFmwkBinarySwiftmodule
+
+func swift_with_binary_swiftmodule_and_modulemap_framework_function() {
+  let sc = Swift3PFmwkBinarySwiftmodule.SharedClass()
+  sc.doSomethingShared()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swiftmodule_xcframework_with_modulemap_consumer",
+    srcs = [":use_swiftmodule_framework_with_modulemap"],
+    features = [
+        "swift.emit_c_module",
+        "swift.use_c_modules",
+    ],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_xcframework_swiftmodule_with_modulemap"],
 )
 
 # Swift app with imported Objective-C static framework.
