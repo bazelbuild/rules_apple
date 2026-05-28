@@ -338,27 +338,25 @@ def visionos_application_test_suite(name):
         ],
     )
 
-    # TODO(b/488398546): Decide whether to re-enable these tests or remove the tests and infra.
-    # archive_contents_test(
-    #     name = "{}_with_codeless_rkassets_content_contains_compiled_reality_file_test".format(name),
-    #     build_type = "simulator",
-    #     contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-    #     target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
-    #     tags = [
-    #         name,
-    #     ],
-    # )
+    archive_contents_test(
+        name = "{}_with_codeless_rkassets_content_contains_compiled_reality_file_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
+        tags = [
+            name,
+        ],
+    )
 
-    # TODO(b/488398546): Decide whether to re-enable these tests or remove the tests and infra.
-    # archive_contents_test(
-    #     name = "{}_with_standalone_rkassets_contains_compiled_reality_file_test".format(name),
-    #     build_type = "simulator",
-    #     contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-    #     target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_standalone_realitykit_content",
-    #     tags = [
-    #         name,
-    #     ],
-    # )
+    archive_contents_test(
+        name = "{}_with_standalone_rkassets_contains_compiled_reality_file_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_standalone_realitykit_content",
+        tags = [
+            name,
+        ],
+    )
 
     analysis_failure_message_test(
         name = "{}_two_apple_resource_hints_fail_test".format(name),
@@ -369,16 +367,15 @@ def visionos_application_test_suite(name):
         ],
     )
 
-    # TODO(b/488398546): Decide whether to re-enable these tests or remove the tests and infra.
-    # archive_contents_test(
-    #     name = "{}_with_dependent_rkassets_contains_compiled_reality_file_test".format(name),
-    #     build_type = "simulator",
-    #     contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-    #     target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_dependent_realitykit_content",
-    #     tags = [
-    #         name,
-    #     ],
-    # )
+    archive_contents_test(
+        name = "{}_with_dependent_rkassets_contains_compiled_reality_file_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_dependent_realitykit_content",
+        tags = [
+            name,
+        ],
+    )
 
     output_group_zip_contents_test(
         name = "{}_has_dossier_output_group".format(name),
