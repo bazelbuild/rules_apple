@@ -239,15 +239,11 @@ def _apple_dynamic_framework_import_impl(ctx):
         framework_files = depset(framework_imports),
     ))
 
-    swiftinterface_files = []
-    if (
-        "apple.import_framework_via_swiftinterface" not in disabled_features and
-        framework.swift_interface_imports
-    ):
-        swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
-            swift_module_files = framework.swift_interface_imports,
-            target_triplet = target_triplet,
-        )
+    swiftinterface_files = framework_import_support.get_swiftinterface_files_with_target_triplet_if_enabled(
+        swift_interface_imports = framework.swift_interface_imports,
+        target_triplet = target_triplet,
+        features = features,
+    )
 
     if swiftinterface_files:
         # Create SwiftInfo provider
@@ -406,15 +402,11 @@ def _apple_static_framework_import_impl(ctx):
     )
     providers.append(cc_info)
 
-    swiftinterface_files = []
-    if (
-        "apple.import_framework_via_swiftinterface" not in disabled_features and
-        framework.swift_interface_imports
-    ):
-        swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
-            swift_module_files = framework.swift_interface_imports,
-            target_triplet = target_triplet,
-        )
+    swiftinterface_files = framework_import_support.get_swiftinterface_files_with_target_triplet_if_enabled(
+        swift_interface_imports = framework.swift_interface_imports,
+        target_triplet = target_triplet,
+        features = features,
+    )
 
     if swiftinterface_files:
         # Create SwiftInfo provider

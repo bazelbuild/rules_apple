@@ -369,6 +369,25 @@ def _framework_import_info_with_dependencies(
         ),
     )
 
+def _get_swiftinterface_files_with_target_triplet_if_enabled(
+        *,
+        target_triplet,
+        swift_interface_imports,
+        features):
+    swiftinterface_files = []
+    if (
+        (
+            "apple._import_framework_via_swiftinterface" in features or
+            "swift.use_c_modules" in features
+        ) and
+        swift_interface_imports
+    ):
+        swiftinterface_files = _get_swift_module_files_with_target_triplet(
+            swift_module_files = swift_interface_imports,
+            target_triplet = target_triplet,
+        )
+    return swiftinterface_files
+
 def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_files):
     """Filters Swift module files for a target triplet.
 
@@ -795,6 +814,7 @@ framework_import_support = struct(
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     get_dsym_binaries = _get_dsym_binaries,
     get_debug_info_binaries = _get_debug_info_binaries,
+    get_swiftinterface_files_with_target_triplet_if_enabled = _get_swiftinterface_files_with_target_triplet_if_enabled,
     has_private_module_map = _has_private_module_map,
     has_versioned_framework_files = _has_versioned_framework_files,
     swift_info_from_module_interface = _swift_info_from_module_interface,

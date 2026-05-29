@@ -555,10 +555,13 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     )
     providers.append(apple_dynamic_framework_info)
 
-    if (
-        "apple.import_framework_via_swiftinterface" not in disabled_features and
-        xcframework_library.swift_module_interfaces
-    ):
+    swiftinterface_files = framework_import_support.get_swiftinterface_files_with_target_triplet_if_enabled(
+        swift_interface_imports = xcframework_library.swift_module_interfaces,
+        target_triplet = target_triplet,
+        features = features,
+    )
+
+    if swiftinterface_files:
         # Create SwiftInfo provider
         swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
@@ -574,7 +577,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
                 module_name = xcframework.library_name,
                 rule_label = label,
                 swift_toolchains = swift_toolchains,
-                swiftinterface_files = xcframework_library.swift_module_interfaces,
+                swiftinterface_files = swiftinterface_files,
             ),
         )
     elif xcframework_library.swiftmodule:
@@ -740,10 +743,12 @@ def _apple_static_xcframework_import_impl(ctx):
     )
     providers.append(cc_info)
 
-    if (
-        "apple.import_framework_via_swiftinterface" not in disabled_features and
-        xcframework_library.swift_module_interfaces
-    ):
+    swiftinterface_files = framework_import_support.get_swiftinterface_files_with_target_triplet_if_enabled(
+        swift_interface_imports = xcframework_library.swift_module_interfaces,
+        target_triplet = target_triplet,
+        features = features,
+    )
+    if swiftinterface_files:
         # Create SwiftInfo provider
         swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
@@ -760,7 +765,7 @@ def _apple_static_xcframework_import_impl(ctx):
                 module_name = xcframework.library_name,
                 rule_label = label,
                 swift_toolchains = swift_toolchains,
-                swiftinterface_files = xcframework_library.swift_module_interfaces,
+                swiftinterface_files = swiftinterface_files,
             ),
         )
     elif xcframework_library.swiftmodule:
