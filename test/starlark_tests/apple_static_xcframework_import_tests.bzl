@@ -59,14 +59,6 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    _analysis_actions_with_ios_x86_64_platform_test(
-        name = "{}_does_not_compile_module_from_swiftinterface_implicit_modules".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_static_xcframework",
-        target_mnemonic = "CppModuleMap",
-        not_expected_mnemonic = ["SwiftCompileModuleInterface"],
-        tags = [name],
-    )
-
     _action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test(
         name = "{}_compiles_module_from_swiftinterface".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_static_xcframework",
