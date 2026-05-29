@@ -38,6 +38,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
@@ -62,6 +63,17 @@ analysis_output_group_info_files_with_xcframework_processor_test = make_analysis
 })
 
 action_inputs_with_ios_x86_64_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
+})
+
+action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:features": [
+        "apple._import_framework_via_swiftinterface",
+    ],
+    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
+})
+
+analysis_actions_with_ios_x86_64_platform_test = make_analysis_target_actions_test({
     "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
 })
 
@@ -159,8 +171,15 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
-    # Make sure the SwiftCompileModuleInterface action codepath is used
-    action_inputs_with_ios_x86_64_platform_test(
+    analysis_actions_with_ios_x86_64_platform_test(
+        name = "{}_does_not_compile_module_from_swiftinterface_implicit_modules".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
+        target_mnemonic = "CppModuleMap",
+        not_expected_mnemonic = ["SwiftCompileModuleInterface"],
+        tags = [name],
+    )
+
+    action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test(
         name = "{}_compiles_module_from_swiftinterface".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_swiftinterface",
         mnemonic = "SwiftCompileModuleInterface",
@@ -172,8 +191,9 @@ def apple_dynamic_xcframework_import_test_suite(name):
         ],
         tags = [name],
     )
-    action_inputs_with_ios_x86_64_platform_test(
-        name = "{}_compiles_private_modulemap_from_swiftinterface_implicit_modules".format(name),
+
+    action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test(
+        name = "{}_compiles_private_modulemap_from_swiftinterface".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_dynamic_xcframework_with_private_modulemap",
         mnemonic = "SwiftCompileModuleInterface",
         expected_inputs = [
