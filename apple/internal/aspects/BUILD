@@ -30,6 +30,7 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "//apple/internal:providers",
     ],
 )
 

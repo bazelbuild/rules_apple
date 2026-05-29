@@ -17,7 +17,10 @@
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleFrameworkImportInfo",
-    "apple_provider",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "merge_apple_framework_import_info",
 )
 
 visibility([
@@ -40,7 +43,7 @@ def _framework_provider_aspect_impl(target, ctx):
             if AppleFrameworkImportInfo in dep_target:
                 apple_framework_infos.append(dep_target[AppleFrameworkImportInfo])
 
-    apple_framework_info = apple_provider.merge_apple_framework_import_info(apple_framework_infos)
+    apple_framework_info = merge_apple_framework_import_info(apple_framework_infos)
 
     if (apple_framework_info.binary_imports or
         apple_framework_info.bundling_imports or
