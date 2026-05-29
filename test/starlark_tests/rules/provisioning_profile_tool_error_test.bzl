@@ -32,6 +32,7 @@ def _provisioning_profile_tool_error_test_impl(ctx):
     ))
     ctx.actions.write(
         output = output_script,
+        # buildifier: disable=canonical-repository
         content = """#!/usr/bin/env bash
 set -euo pipefail
 
