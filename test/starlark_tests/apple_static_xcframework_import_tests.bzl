@@ -25,7 +25,6 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_contains_xcframework_processor_action_test",
-    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -36,10 +35,6 @@ _action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_ac
     "//command_line_option:features": [
         "apple._import_framework_via_swiftinterface",
     ],
-    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
-})
-
-_analysis_actions_with_ios_x86_64_platform_test = make_analysis_target_actions_test({
     "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
 })
 
