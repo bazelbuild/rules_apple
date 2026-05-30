@@ -382,9 +382,10 @@ class Bundler(object):
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
     try:
-      env = os.environ.copy()
-      env["TREE_ARTIFACT_OUTPUT"] = bundle_root
-      subprocess.check_call((post_processor, work_dir), env=env)
+      # We do not inherit this process's Bazel runfiles environment. Launcher-based
+      # post-processors need to resolve against their own runfiles manifests.
+      subprocess.check_call(
+          (post_processor, work_dir), env={"TREE_ARTIFACT_OUTPUT": bundle_root})
     except subprocess.CalledProcessError as e:
       raise PostProcessorError(e.returncode) from e
 
