@@ -260,11 +260,11 @@ ios_application(
         "//conditions:default": [],
     }),
     codesign_inputs = select({
-        ":dbg": ["@build_bazel_rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
+        ":dbg": ["@rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
         "//conditions:default": [],
     }),
     toolchains = select({
-        "//:dbg": ["@build_bazel_rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
+        "//:dbg": ["@rules_apple//tools/codesigningtool:disable_signing_resource_rules"],
         "//conditions:default": [],
     }),
 )

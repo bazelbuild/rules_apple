@@ -73,19 +73,19 @@ function create_new_workspace() {
 
   touch MODULE.bazel
   cat > MODULE.bazel <<EOF
-module(name = "build_bazel_rules_apple_integration_tests", version = "0")
+module(name = "rules_apple_integration_tests", version = "0")
 
 # Specify oldest possible bzlmod versions and let rules_apple versions take precedence
-bazel_dep(name = "apple_support", version = "0.11.0", repo_name = "build_bazel_apple_support")
-bazel_dep(name = "rules_swift", version = "2.0.0", max_compatibility_level = 3, repo_name = "build_bazel_rules_swift")
-bazel_dep(name = "rules_apple", version = "0", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "apple_support", version = "0.11.0")
+bazel_dep(name = "rules_swift", version = "2.0.0", max_compatibility_level = 3)
+bazel_dep(name = "rules_apple", version = "0")
 bazel_dep(name = "rules_cc", version = "0.0.1")
 bazel_dep(name = "rules_shell", version = "0.3.0")
 
 xcode_configure = use_extension("@bazel_tools//tools/osx:xcode_configure.bzl", "xcode_configure_extension")
 use_repo(xcode_configure, "local_config_xcode")
 
-apple_cc_configure = use_extension("@build_bazel_apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
+apple_cc_configure = use_extension("@apple_support//crosstool:setup.bzl", "apple_cc_configure_extension")
 use_repo(apple_cc_configure, "local_config_apple_cc")
 
 local_path_override(

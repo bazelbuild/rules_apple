@@ -14,17 +14,17 @@
 
 """Implementation of the resource propagation aspect."""
 
+load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "@bazel_skylib//lib:partial.bzl",
     "partial",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
 load(

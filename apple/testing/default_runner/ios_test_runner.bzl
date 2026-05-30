@@ -14,8 +14,8 @@
 
 """iOS test runner rule."""
 
+load("@apple_support//xcode:providers.bzl", "XcodeVersionPropertiesInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionPropertiesInfo")
 load(
     "//apple:providers.bzl",
     "AppleDeviceTestRunnerInfo",

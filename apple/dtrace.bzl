@@ -15,16 +15,16 @@
 """# Bazel rules for working with dtrace."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:dicts.bzl",
     "dicts",
 )
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")

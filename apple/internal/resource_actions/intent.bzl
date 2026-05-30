@@ -15,12 +15,12 @@
 """Intent definitions related actions."""
 
 load(
-    "@bazel_skylib//lib:versions.bzl",
-    "versions",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:versions.bzl",
+    "versions",
 )
 load(
     "//apple/internal/utils:xctoolrunner.bzl",

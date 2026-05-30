@@ -18,11 +18,11 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleInfo",

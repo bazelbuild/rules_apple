@@ -15,12 +15,12 @@
 """Partial implementation for Clang runtime libraries processing."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
+    "@bazel_skylib//lib:partial.bzl",
+    "partial",
 )
 load(
     "//apple/internal:intermediates.bzl",

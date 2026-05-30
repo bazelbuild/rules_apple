@@ -14,6 +14,6 @@ This release is compatible with: TODO
 ## MODULE.bazel Snippet
 
 \`\`\`bzl
-bazel_dep(name = "rules_apple", version = "$new_version", repo_name = "build_bazel_rules_apple")
+bazel_dep(name = "rules_apple", version = "$new_version")
 \`\`\`
 EOF

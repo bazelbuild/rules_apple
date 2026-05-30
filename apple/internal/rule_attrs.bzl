@@ -15,18 +15,18 @@
 """Common sets of attributes to be shared between the Apple rules."""
 
 load(
-    "@bazel_skylib//lib:dicts.bzl",
-    "dicts",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
-    "SwiftInfo",
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load(
+    "@rules_swift//swift:swift.bzl",
+    "SwiftInfo",
+)
 load(
     "//apple:common.bzl",
     "entitlements_validation_mode",
@@ -332,7 +332,7 @@ def _test_bundle_attrs():
         "test_bundle_output": attr.output(mandatory = True),
         "_swizzle_absolute_xcttestsourcelocation": attr.label(
             default = Label(
-                "@build_bazel_apple_support//lib:swizzle_absolute_xcttestsourcelocation",
+                "@apple_support//lib:swizzle_absolute_xcttestsourcelocation",
             ),
         ),
     }

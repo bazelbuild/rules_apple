@@ -23,7 +23,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
   <tbody>
     <tr>
       <th align="left" valign="top">iOS</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:ios.bzl</code></td>
+      <td valign="top"><code>@rules_apple//apple:ios.bzl</code></td>
       <td valign="top">
         <code><a href="rules-ios.md#ios_app_clip">ios_app_clip</a></code><br/>
         <code><a href="rules-ios.md#ios_application">ios_application</a></code><br/>
@@ -46,7 +46,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
     </tr>
     <tr>
       <th align="left" valign="top">macOS</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:macos.bzl</code></td>
+      <td valign="top"><code>@rules_apple//apple:macos.bzl</code></td>
       <td valign="top">
         <code><a href="rules-macos.md#macos_application">macos_application</a></code><br/>
         <code><a href="rules-macos.md#macos_bundle">macos_bundle</a></code><br/>
@@ -59,7 +59,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
       </td>
     <tr>
       <th align="left" valign="top">tvOS</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:tvos.bzl</code></td>
+      <td valign="top"><code>@rules_apple//apple:tvos.bzl</code></td>
       <td valign="top">
         <code><a href="rules-tvos.md#tvos_application">tvos_application</a></code><br/>
         <code><a href="rules-tvos.md#tvos_dynamic_framework">tvos_dynamic_framework</a></code><br/>
@@ -75,7 +75,7 @@ extensions, and frameworks) and for running unit tests and UI tests.
     </tr>
     <tr>
       <th align="left" valign="top">watchOS</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:watchos.bzl</code></td>
+      <td valign="top"><code>@rules_apple//apple:watchos.bzl</code></td>
       <td valign="top">
         <code><a href="rules-watchos.md#watchos_application">watchos_application</a></code><br/>
         <code><a href="rules-watchos.md#watchos_dynamic_framework">watchos_dynamic_framework</a></code><br/>
@@ -109,7 +109,7 @@ below.
     <tr>
       <th align="left" valign="top" rowspan="6">General</th>
       <tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:apple.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:apple.bzl</code></td>
         <td valign="top">
           <code><a href="rules-apple.md#apple_dynamic_framework_import">apple_dynamic_framework_import</a></code><br/>
           <code><a href="rules-apple.md#apple_dynamic_xcframework_import">apple_dynamic_xcframework_import</a></code><br/>
@@ -125,33 +125,33 @@ below.
         </td>
       </tr>
       <tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:docc.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:docc.bzl</code></td>
         <td valign="top">
           <code><a href="rules-docc.md#docc_archive">docc_archive</a></code>
         </td>
       </tr>
       <tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:header_map.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:header_map.bzl</code></td>
         <td valign="top">
           <code><a href="rules-header_map.md#header_map">header_map</a></code>
         </td>
       </tr>
       <tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:xcarchive.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:xcarchive.bzl</code></td>
         <td valign="top"><code><a href="rules-xcarchive.md#xcarchive">xcarchive</a></code></td>
       </tr>
       </tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:versioning.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:versioning.bzl</code></td>
         <td valign="top"><code><a href="rules-versioning.md#apple_bundle_version">apple_bundle_version</a></code><br/></td>
       </tr>
       <tr>
-        <td valign="top"><code>@build_bazel_rules_apple//apple:xctrunner.bzl</code></td>
+        <td valign="top"><code>@rules_apple//apple:xctrunner.bzl</code></td>
         <td valign="top"><code><a href="rules-xctrunner.md#xctrunner">xctrunner</a></code></td>
       </tr>
     </tr>
     <tr>
       <th align="left" valign="top" rowspan="1">Resources</th>
-      <td valign="top"><code>@build_bazel_rules_apple//apple:resources.bzl</code></td>
+      <td valign="top"><code>@rules_apple//apple:resources.bzl</code></td>
       <td valign="top">
         <code><a href="rules-resources.md#apple_bundle_import">apple_bundle_import</a></code><br/>
         <code><a href="rules-resources.md#apple_core_data_model">apple_core_data_model</a></code><br/>

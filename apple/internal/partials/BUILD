@@ -55,9 +55,9 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -83,8 +83,8 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:processor",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -99,8 +99,8 @@ bzl_library(
         "//apple/internal:processor",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -114,8 +114,8 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:processor",
         "//apple/internal/utils:main_thread_checker_dylibs",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -152,9 +152,9 @@ bzl_library(
         "//apple/internal:shared_environment",
         "//apple/internal/providers:apple_debug_info",
         "//apple/internal/utils:defines",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:shell",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -221,9 +221,9 @@ bzl_library(
         "//apple/internal:processor",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:bundle_paths",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -328,9 +328,9 @@ bzl_library(
         "//apple/internal:processor",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:defines",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

@@ -70,11 +70,11 @@ Example usage:
 
 ```python
 load(
-    "@build_bazel_rules_apple//apple:common.bzl",
+    "@rules_apple//apple:common.bzl",
     "entitlements_validation_mode",
 )
 load(
-    "@build_bazel_rules_apple//apple:ios.bzl",
+    "@rules_apple//apple:ios.bzl",
     "ios_application",
 )
 

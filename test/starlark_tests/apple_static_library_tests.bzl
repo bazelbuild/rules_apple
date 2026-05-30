@@ -172,7 +172,7 @@ def apple_static_library_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         cpus = {
-            "platforms": ["@build_bazel_apple_support//platforms:ios_arm64"],
+            "platforms": ["@apple_support//platforms:ios_arm64"],
             "ios_multi_cpus": [],
         },
         binary_test_file = "$BINARY",

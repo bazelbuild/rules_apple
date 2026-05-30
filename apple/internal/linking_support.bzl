@@ -14,7 +14,7 @@
 
 """Support for linking related actions."""
 
-load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
+load("@apple_support//lib:lipo.bzl", "lipo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(

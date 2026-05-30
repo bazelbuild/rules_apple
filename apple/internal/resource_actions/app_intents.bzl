@@ -14,7 +14,7 @@
 
 """AppIntents intents related actions."""
 
-load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load("//apple/internal:intermediates.bzl", "intermediates")
 load("//apple/internal:shared_environment.bzl", "shared_environment")
 

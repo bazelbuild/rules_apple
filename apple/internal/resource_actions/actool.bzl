@@ -15,6 +15,10 @@
 """ACTool related actions."""
 
 load(
+    "@apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@bazel_skylib//lib:collections.bzl",
     "collections",
 )
@@ -25,10 +29,6 @@ load(
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
-)
-load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
 )
 load(
     "//apple:utils.bzl",

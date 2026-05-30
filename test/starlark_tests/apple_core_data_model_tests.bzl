@@ -29,7 +29,7 @@ visibility("private")
 analysis_macos_arm64_platform_target_actions_test = make_analysis_target_actions_test(
     config_settings = {
         "//command_line_option:platforms": [
-            str(Label("@build_bazel_apple_support//platforms:darwin_arm64")),
+            str(Label("@apple_support//platforms:darwin_arm64")),
         ],
     },
 )
@@ -37,7 +37,7 @@ analysis_macos_arm64_platform_target_actions_test = make_analysis_target_actions
 analysis_macos_arm64_platform_target_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
         "//command_line_option:platforms": [
-            str(Label("@build_bazel_apple_support//platforms:darwin_arm64")),
+            str(Label("@apple_support//platforms:darwin_arm64")),
         ],
     },
 )

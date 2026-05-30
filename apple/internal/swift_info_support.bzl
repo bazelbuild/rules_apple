@@ -16,7 +16,7 @@
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
-    "@build_bazel_rules_swift//swift:swift.bzl",
+    "@rules_swift//swift:swift.bzl",
     "SwiftInfo",
 )
 load(

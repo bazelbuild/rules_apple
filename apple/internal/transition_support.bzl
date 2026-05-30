@@ -32,11 +32,11 @@ part on the language used for XCFramework library identifiers:
     getting the right Apple toolchain to build outputs with from the Apple Crosstool.
 """
 
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
-    "@build_bazel_apple_support//configs:platforms.bzl",
+    "@apple_support//configs:platforms.bzl",
     "CPU_TO_DEFAULT_PLATFORM_NAME",
 )
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
@@ -53,7 +53,7 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
 }
 
 _CPU_TO_DEFAULT_PLATFORM_FLAG = {
-    cpu: "@build_bazel_apple_support//platforms:{}_platform".format(
+    cpu: "@apple_support//platforms:{}_platform".format(
         platform_name,
     )
     for cpu, platform_name in CPU_TO_DEFAULT_PLATFORM_NAME.items()
@@ -74,35 +74,35 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
 }
 
 _MACOS_PLATFORM_TO_ENV_ARCH = {
-    Label("@build_bazel_apple_support//platforms:darwin_x86_64"): "x86_64",
-    Label("@build_bazel_apple_support//platforms:darwin_arm64"): "arm64",
-    Label("@build_bazel_apple_support//platforms:darwin_arm64e"): "arm64e",
+    Label("@apple_support//platforms:darwin_x86_64"): "x86_64",
+    Label("@apple_support//platforms:darwin_arm64"): "arm64",
+    Label("@apple_support//platforms:darwin_arm64e"): "arm64e",
 }
 
 _IOS_PLATFORM_TO_ENV_ARCH = {
-    Label("@build_bazel_apple_support//platforms:ios_arm64"): "arm64",
-    Label("@build_bazel_apple_support//platforms:ios_arm64e"): "arm64e",
-    Label("@build_bazel_apple_support//platforms:ios_sim_arm64"): "sim_arm64",
-    Label("@build_bazel_apple_support//platforms:ios_x86_64"): "x86_64",
+    Label("@apple_support//platforms:ios_arm64"): "arm64",
+    Label("@apple_support//platforms:ios_arm64e"): "arm64e",
+    Label("@apple_support//platforms:ios_sim_arm64"): "sim_arm64",
+    Label("@apple_support//platforms:ios_x86_64"): "x86_64",
 }
 
 _TVOS_PLATFORM_TO_ENV_ARCH = {
-    Label("@build_bazel_apple_support//platforms:tvos_arm64"): "arm64",
-    Label("@build_bazel_apple_support//platforms:tvos_sim_arm64"): "sim_arm64",
-    Label("@build_bazel_apple_support//platforms:tvos_x86_64"): "x86_64",
+    Label("@apple_support//platforms:tvos_arm64"): "arm64",
+    Label("@apple_support//platforms:tvos_sim_arm64"): "sim_arm64",
+    Label("@apple_support//platforms:tvos_x86_64"): "x86_64",
 }
 
 _VISIONOS_PLATFORM_TO_ENV_ARCH = {
-    Label("@build_bazel_apple_support//platforms:visionos_arm64"): "arm64",
-    Label("@build_bazel_apple_support//platforms:visionos_sim_arm64"): "sim_arm64",
+    Label("@apple_support//platforms:visionos_arm64"): "arm64",
+    Label("@apple_support//platforms:visionos_sim_arm64"): "sim_arm64",
 }
 
 _WATCHOS_PLATFORM_TO_ENV_ARCH = {
-    Label("@build_bazel_apple_support//platforms:watchos_arm64"): "arm64",
-    Label("@build_bazel_apple_support//platforms:watchos_arm64_32"): "arm64_32",
-    Label("@build_bazel_apple_support//platforms:watchos_device_arm64"): "device_arm64",
-    Label("@build_bazel_apple_support//platforms:watchos_device_arm64e"): "device_arm64e",
-    Label("@build_bazel_apple_support//platforms:watchos_x86_64"): "x86_64",
+    Label("@apple_support//platforms:watchos_arm64"): "arm64",
+    Label("@apple_support//platforms:watchos_arm64_32"): "arm64_32",
+    Label("@apple_support//platforms:watchos_device_arm64"): "device_arm64",
+    Label("@apple_support//platforms:watchos_device_arm64e"): "device_arm64e",
+    Label("@apple_support//platforms:watchos_x86_64"): "x86_64",
 }
 
 def _platform_specific_cpu_setting_name(platform_type):
@@ -159,8 +159,8 @@ def _watchos_environment_archs_from_ios(*, cpu_value, minimum_os_version, platfo
         if ios_arch:
             ios_archs = [ios_arch]
         elif platform in [
-            Label("@build_bazel_apple_support//platforms:darwin_arm64"),
-            Label("@build_bazel_apple_support//platforms:darwin_arm64e"),
+            Label("@apple_support//platforms:darwin_arm64"),
+            Label("@apple_support//platforms:darwin_arm64e"),
         ]:
             ios_archs = ["sim_arm64"]
     if not ios_archs:
@@ -217,8 +217,8 @@ def _environment_archs(
             if ios_arch:
                 environment_archs = [ios_arch]
             elif platform in [
-                Label("@build_bazel_apple_support//platforms:darwin_arm64"),
-                Label("@build_bazel_apple_support//platforms:darwin_arm64e"),
+                Label("@apple_support//platforms:darwin_arm64"),
+                Label("@apple_support//platforms:darwin_arm64e"),
             ]:
                 environment_archs = ["sim_arm64"]
         if platform_type == "tvos":

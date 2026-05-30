@@ -15,7 +15,7 @@
 """Implementation of visionOS test rules."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(

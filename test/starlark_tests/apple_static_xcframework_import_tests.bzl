@@ -35,7 +35,7 @@ _action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_ac
     "//command_line_option:features": [
         "apple._import_framework_via_swiftinterface",
     ],
-    "//command_line_option:platforms": str(Label("@build_bazel_apple_support//platforms:ios_x86_64")),
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_x86_64")),
 })
 
 def apple_static_xcframework_import_test_suite(name):

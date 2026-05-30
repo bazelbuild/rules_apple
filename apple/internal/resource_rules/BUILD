@@ -30,9 +30,9 @@ bzl_library(
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
         "//apple/internal:swift_support",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -47,9 +47,9 @@ bzl_library(
         "//apple/internal:features_support",
         "//apple/internal:platform_support",
         "//apple/internal:resources",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -65,9 +65,9 @@ bzl_library(
         "//apple/internal:resource_actions",
         "//apple/internal:rule_attrs",
         "//apple/internal:swift_support",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 
@@ -83,9 +83,9 @@ bzl_library(
         "//apple/internal:platform_support",
         "//apple/internal:resource_actions",
         "//apple/internal:rule_attrs",
+        "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:paths",
-        "@build_bazel_apple_support//lib:apple_support",
     ],
 )
 

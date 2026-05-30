@@ -14,13 +14,13 @@
 
 """Implementation of the xcframework rules."""
 
-load("@bazel_skylib//lib:partial.bzl", "partial")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
+load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//apple:providers.bzl",
     "AppleBundleVersionInfo",

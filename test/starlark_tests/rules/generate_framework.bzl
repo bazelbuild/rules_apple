@@ -14,9 +14,9 @@
 
 """Rules to generate import-ready frameworks for testing."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
-load("@build_bazel_rules_swift//swift:swift.bzl", "SwiftInfo")
+load("@rules_swift//swift:swift.bzl", "SwiftInfo")
 load(
     "//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",

@@ -15,11 +15,11 @@
 """Stub binary creation support methods."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "@apple_support//lib:apple_support.bzl",
     "apple_support",
 )
 load(
-    "@build_bazel_apple_support//lib:lipo.bzl",
+    "@apple_support//lib:lipo.bzl",
     "lipo",
 )
 load(
