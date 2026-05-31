@@ -140,6 +140,7 @@ def _create_apple_macro_rule(
         attrs = attrs | {
             "runner": attr.label(
                 default = default_runner,
+                mandatory = bool(default_runner == None),
                 doc = "A single runner target to use for the test target.",
             ),
         },
@@ -160,6 +161,7 @@ def _create_apple_macro_suite_rule(
         implementation = implementation,
         inherit_attrs = inherit_attrs,
         attrs = attrs | {
+            "runner": None,
             "runners": attr.label_list(
                 mandatory = True,
                 doc = "A list of runner targets to use for the test targets.",
