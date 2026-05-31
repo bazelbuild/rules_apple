@@ -329,6 +329,39 @@ class BundlerTest(unittest.TestCase):
           'app.app/Contents/Frameworks/Foo.framework/Versions/A/Foo',
           True)
 
+  def test_bundle_merge_files_normalizes_nested_bundle_permissions_in_resources(self):
+    os.makedirs(os.path.join(
+        self._scratch_dir,
+        'app.app',
+        'Contents',
+        'Resources',
+        'Helper.app',
+        'Contents',
+        'MacOS'))
+    self._scratch_file(
+        'app.app/Contents/Resources/Helper.app/Contents/Info.plist',
+        executable=True)
+    self._scratch_file(
+        'app.app/Contents/Resources/Helper.app/Contents/MacOS/Helper',
+        executable=True)
+
+    out_zip = _run_bundler({
+        'bundle_merge_files': [{
+            'src': os.path.join(self._scratch_dir, 'app.app'),
+            'dest': 'app.app',
+            'normalize_bundle_file_permissions': True,
+        }],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(
+          z,
+          'app.app/Contents/Resources/Helper.app/Contents/Info.plist',
+          False)
+      self._assert_zip_contains(
+          z,
+          'app.app/Contents/Resources/Helper.app/Contents/MacOS/Helper',
+          True)
+
   def test_bundle_merge_zips(self):
     foo_zip = self._scratch_zip('foo.zip',
                                 'foo.bundle/img.png', 'foo.bundle/strings.txt')

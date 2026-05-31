@@ -257,8 +257,6 @@ class Bundler(object):
     if not normalize_bundle_file_permissions:
       return os.access(src, os.X_OK)
 
-    if dest.endswith('/Info.plist') or '/Resources/' in dest:
-      return False
     if '/Contents/MacOS/' in dest:
       return True
     if dest.endswith('.dylib'):
@@ -266,6 +264,8 @@ class Bundler(object):
     if '.framework/' in dest:
       framework_name = dest.split('.framework/', 1)[0].rsplit('/', 1)[-1]
       return os.path.basename(dest) == framework_name
+    if dest.endswith('/Info.plist') or '/Resources/' in dest:
+      return False
     return os.access(src, os.X_OK)
 
   def _add_zip_contents(self, src, dest, out_zip, compress):
