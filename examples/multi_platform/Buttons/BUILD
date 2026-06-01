@@ -167,6 +167,7 @@ ios_static_framework(
 ios_unit_test(
     name = "ButtonsTests",
     minimum_os_version = "11.0",
+    tags = ["exclusive"],
     test_host = ":Buttons",
     deps = [":ButtonsTestsLib"],
 )
@@ -180,6 +181,7 @@ ios_unit_test(
 ios_ui_test(
     name = "ButtonsUITests",
     minimum_os_version = "11.0",
+    tags = ["exclusive"],
     test_host = ":Buttons",
     deps = [":ButtonsUITestsLib"],
 )
