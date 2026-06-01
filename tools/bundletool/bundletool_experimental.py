@@ -60,6 +60,13 @@ from ctypes import CDLL, c_char_p, c_int, get_errno
 
 _CLONEFILE = None
 _USE_CLONEFILE = sys.platform == "darwin"
+_RUNFILES_ENV_VARS = (
+    "JAVA_RUNFILES",
+    "PYTHON_RUNFILES",
+    "RUNFILES_DIR",
+    "RUNFILES_MANIFEST_FILE",
+    "RUNFILES_MANIFEST_ONLY",
+)
 def _load_clonefile():
   global _CLONEFILE
   if _CLONEFILE:
@@ -382,10 +389,9 @@ class Bundler(object):
     # bundle, but keep the work_dir for compatibility with the bundletool post
     # processing.
     try:
-      # We do not inherit this process's Bazel runfiles environment. Launcher-based
-      # post-processors need to resolve against their own runfiles manifests.
       subprocess.check_call(
-          (post_processor, work_dir), env={"TREE_ARTIFACT_OUTPUT": bundle_root})
+          (post_processor, work_dir),
+          env=self._subprocess_env(TREE_ARTIFACT_OUTPUT=bundle_root))
     except subprocess.CalledProcessError as e:
       raise PostProcessorError(e.returncode) from e
 
@@ -400,9 +406,17 @@ class Bundler(object):
     for command in command_lines.splitlines():
       argv = [arg.replace('$WORK_DIR', bundle_root) for arg in shlex.split(command)]
       try:
-        subprocess.check_call(argv, env={})
+        subprocess.check_call(argv, env=self._subprocess_env())
       except subprocess.CalledProcessError as e:
         raise CodeSignError(e.returncode) from e
+
+  def _subprocess_env(self, **extra_env):
+    """Returns an environment for child tools without Bazel runfiles hints."""
+    env = os.environ.copy()
+    for key in _RUNFILES_ENV_VARS:
+      env.pop(key, None)
+    env.update(extra_env)
+    return env
 
 
 def _main(control_path):
