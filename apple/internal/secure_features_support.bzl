@@ -235,9 +235,8 @@ def _environment_archs_from_secure_features(
         environment_archs,
         require_pointer_authentication_attribute,
         secure_features):
-    # TODO: b/466363339 - Migrate users to secure_features behind an allowlist when it's ready for
-    # onboarding. Remove this "require_pointer_authentication_attribute" check once
-    # pointer_authentication is onboarded.
+    # TODO(b/501040710, b/315525043) - Remove this "require_pointer_authentication_attribute" check
+    # once pointer_authentication is fully onboarded.
     if not require_pointer_authentication_attribute:
         return environment_archs
 
@@ -263,9 +262,6 @@ def _validate_expected_secure_features(
     requested_secure_features = cc_configured_features.enabled_features & _SUPPORTED_SECURE_FEATURES
     if not requested_secure_features:
         return
-
-    if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-        fail("secure_features are still a work in progress and not yet supported in the rules.")
 
     # Check for any requesteed secure features that require precompiled artifacts to be provided by
     # the vendor of the framework or SDK, and fail if they've not been called out by the
@@ -299,9 +295,6 @@ def _validate_secure_features_support(
         secure_features):
     if not secure_features:
         return
-
-    if not apple_xplat_toolchain_info.build_settings.enable_wip_features:
-        fail("secure_features are still a work in progress and not yet supported in the rules.")
 
     for cc_toolchain in cc_toolchain_forwarder.values():
         cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
