@@ -379,7 +379,7 @@ readonly profraw="$test_tmp_dir/coverage.profraw"
 if [[ "%(reuse_simulator)s" == true ]]; then
   reuse_simulator=1
 else
-  reuse_simulator=0
+  reuse_simulator=
 fi
 
 simulator_id="unused"
