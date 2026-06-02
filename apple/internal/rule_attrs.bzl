@@ -63,10 +63,6 @@ load(
     "//apple/internal/aspects:swift_usage_aspect.bzl",
     "swift_usage_aspect",
 )
-load(
-    "//apple/internal/testing:apple_test_bundle_support.bzl",
-    "apple_test_info_aspect",
-)
 
 def _common_attrs():
     """Private attributes on all rules; these should be included in all rule attributes."""
@@ -174,7 +170,6 @@ def _binary_linking_attrs(
 
     default_stamp = -1
     if is_test_supporting_rule:
-        deps_aspects.append(apple_test_info_aspect)
         default_stamp = 0
 
     if requires_legacy_cc_toolchain:
