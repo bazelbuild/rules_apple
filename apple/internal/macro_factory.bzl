@@ -163,6 +163,7 @@ def _create_apple_macro_suite_rule(
         attrs = attrs | {
             "runner": None,
             "runners": attr.label_list(
+                configurable = False,
                 mandatory = True,
                 doc = "A list of runner targets to use for the test targets.",
             ),
