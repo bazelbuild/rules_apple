@@ -211,7 +211,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--reuse-simulator",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=None,
         help="Toggle simulator reuse; default is True",
     )
     return parser
@@ -230,8 +230,10 @@ def _main() -> None:
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     sdk_version = args.sdk_version or os.getenv("SIMULATOR_SDK_VERSION")
+
+    reuse_simulator_env = os.getenv("SIMULATOR_REUSE_SIMULATOR")
     reuse_simulator: bool = args.reuse_simulator or (
-        os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
+        reuse_simulator_env.lower() not in ("0", "false") if reuse_simulator_env else True
     )
 
     selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
