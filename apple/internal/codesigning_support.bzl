@@ -391,7 +391,8 @@ def _codesigning_command(
 
     # Generate macOS framework symlinks if needed, supporting legacy code signing.
     if (platform_prerequisites.platform_type == "macos" and
-        rule_descriptor.product_type == apple_product_type.framework):
+        rule_descriptor.product_type == apple_product_type.framework and
+        "disable_legacy_signing" not in cc_configured_features.enabled_features):
         target_dir = "$WORK_DIR"
         if bundle_path:
             target_dir = paths.join("$WORK_DIR", bundle_path)
