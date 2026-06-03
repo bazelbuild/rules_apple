@@ -14,21 +14,11 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(
     name = "rules_swift",
-    version = "3.5.0",
+    version = "4.0.0-rc1",
     max_compatibility_level = 3,
 )
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
-
-# TODO: Remove before the major release after bumping to >=4
-archive_override(
-    module_name = "rules_swift",
-    integrity = "sha256-DVKVdue0x3jsbTZhdp8vk6XgUeosWTLCl4Mh4w14nlw=",
-    strip_prefix = "rules_swift-f9f6fc9e308a18bfb2ea4797fea6c52fe134b980",
-    urls = [
-        "https://github.com/bazelbuild/rules_swift/archive/f9f6fc9e308a18bfb2ea4797fea6c52fe134b980.tar.gz",
-    ],
-)
 
 system_sdk = use_extension("@rules_swift//swift:extensions.bzl", "system_sdk")
 system_sdk.configure_sdks(
