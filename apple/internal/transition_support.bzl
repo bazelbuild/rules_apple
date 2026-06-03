@@ -459,11 +459,12 @@ def _command_line_options_for_xcframework_platform(
         sorted_target_archs = sorted(platform_attr[target_environment])
         for arch in sorted_target_archs:
             arch_features = list(features)
-            if require_pointer_authentication_attribute and arch == "arm64e":
-                # This is the one place where we explicitly error if pointer_authentication isn't
-                # requested alongside arm64e, as other instances (i.e. from an ios_release config)
-                # should be silently dropped and only escalated as an error in single arch builds.
-                if "pointer_authentication" not in arch_features:
+            if arch == "arm64e" and "pointer_authentication" not in arch_features:
+                if require_pointer_authentication_attribute:
+                    # This is the one place where we explicitly error if pointer_authentication
+                    # isn't requested alongside arm64e, as other instances (i.e. from an ios_release
+                    # config) should be silently dropped and only escalated as an error in single
+                    # arch builds.
                     fail("""
 ERROR: Target "{target}" is configured to build for arm64e, but the target does not declare \
 "pointer_authentication" in its `secure_features` attribute. This is required to use arm64e for \
@@ -472,6 +473,11 @@ apps shipping with Xcode 26 and later.
 Please add "pointer_authentication" to the `secure_features` attribute of target "{target}" to \
 allow it to build for arm64e with the required Apple capabilities for pointer authentication.
 """.format(target = str(name)))
+
+                # In the meantime, help onboard XCFramework rule users to pointer_authentication by
+                # adding the feature if it is missing and they have not yet explicitly enabled
+                # pointer_authentication.
+                arch_features.append("pointer_authentication")
 
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
@@ -487,7 +493,7 @@ allow it to build for arm64e with the required Apple capabilities for pointer au
                 ): _command_line_options(
                     building_apple_bundle = building_apple_bundle,
                     environment_arch = resolved_environment_arch,
-                    features = features,
+                    features = arch_features,
                     force_bundle_outputs = force_bundle_outputs,
                     minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
