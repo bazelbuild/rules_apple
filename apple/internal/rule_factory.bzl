@@ -140,10 +140,7 @@ def _create_apple_rule(
 
     return rule(
         implementation = implementation,
-        attrs = dicts.add(
-            rule_attrs.custom_transition_allowlist_attr(),
-            *attrs
-        ),
+        attrs = dicts.add(*attrs),
         cfg = cfg,
         doc = doc,
         exec_compatible_with = [
