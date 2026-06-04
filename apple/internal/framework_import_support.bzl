@@ -783,10 +783,15 @@ def _primary_module_map(module_maps):
     return module_maps[0] if module_maps else None
 
 def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports):
-    """Return a Swift interop provider for the framework if it has a module map."""
+    """Return a Swift interop provider for the framework.
+
+    When a framework import doesn't ship a module map, rules_swift can still
+    synthesize one from the propagated headers as long as SwiftInteropInfo is
+    present. Prefer the public module map when one exists, but continue
+    returning the provider when it doesn't so imported Objective-C frameworks
+    and XCFrameworks remain visible to Swift.
+    """
     module_map = _primary_module_map(module_map_imports)
-    if not module_map:
-        return None
 
     # Assume that there is only a single module map file (the legacy
     # implementation that read from the Objc provider made the same
