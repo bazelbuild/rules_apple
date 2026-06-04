@@ -15,6 +15,10 @@
 """ios_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
+    "analysis_failure_message_test",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -39,6 +43,7 @@ load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
 )
+load("//tools/build_defs/build_test:build_test.bzl", "build_test")
 load(
     ":common.bzl",
     "common",
@@ -308,6 +313,31 @@ def ios_extension_test_suite(name):
         tags = [
             name,
         ],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_invalid_dep_on_extension_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_invalid_dep_on_extension",
+        expected_error = "does not have mandatory providers",
+        tags = [name],
+    )
+
+    build_test(
+        name = "{}_min_os_lower_than_extension_test".format(name),
+        targets = [
+            "//test/starlark_tests/targets_under_test/ios:app_min_os_lower_than_extension",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_valid_extension_version_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_w_valid_extension",
+        expected_values = {
+            "CFBundleVersion": "1.2.3",
+            "CFBundleShortVersionString": "1.2.3",
+        },
+        tags = [name],
     )
 
     native.test_suite(

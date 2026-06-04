@@ -192,6 +192,35 @@ def watchos_application_test_suite(name):
         tags = [name],
     )
 
+    # Bundle identifier watchOS plist keys tests:
+    archive_contents_test(
+        name = "{}_plist_keys_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/Info.plist",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Info.plist",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/Watch/app.app/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.google.example",
+            "WKCompanionAppBundleIdentifier": "com.google",
+        },
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ext_plist_keys_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        plist_test_file = "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Info.plist",
+        plist_test_values = {
+            "CFBundleIdentifier": "com.google.example.ext",
+            "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
+        },
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

@@ -36,6 +36,10 @@ load(
     "apple_resource_group",
 )
 load(
+    "//apple:versioning.bzl",
+    "apple_bundle_version",
+)
+load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
@@ -5091,5 +5095,293 @@ ios_application(
     deps = [
         ":objc_lib_with_binary_resources",
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing versioning.
+
+apple_bundle_version(
+    name = "rapid_2_or_3_component_version_no_rc_fixture",
+    build_label_pattern = "(.*_)?{version}(_.*)?",
+    build_version = "{version}",
+    capture_groups = {
+        "version": "\\d+\\.\\d+(\\.\\d+)?(\\.\\d+)?",
+    },
+    tags = common.fixture_tags,
+)
+
+apple_bundle_version(
+    name = "default_version_with_fallback",
+    build_label_pattern = "(.*_)?{version}(_.*)?",
+    build_version = "{version}",
+    capture_groups = {
+        "version": "\\d+\\.\\d+(\\.\\d+)?(\\.\\d+)?",
+    },
+    fallback_build_label = "MyApp_1.2.3_some_extra",
+    tags = common.fixture_tags,
+)
+
+apple_bundle_version(
+    name = "rc_version_with_fallback",
+    build_label_pattern = "(.*_)?{version}(_.*)?_RC0*{candidate}",
+    build_version = "{version}.{candidate}",
+    capture_groups = {
+        "candidate": "\\d+",
+        "version": "\\d+\\.\\d+",
+    },
+    fallback_build_label = "MyApp_3.4_RC05",
+    short_version_string = "{version}",
+    tags = common.fixture_tags,
+)
+
+apple_bundle_version(
+    name = "legacy_version_with_fallback",
+    build_label_pattern = "(.*_)?{version}(_.*)?",
+    build_version = "{version}",
+    capture_groups = {
+        "version": "\\d+\\.\\d+(\\.\\d+)?(\\.\\d+)?",
+    },
+    fallback_build_label = "MyApp_3.4_RC05",
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_version_default",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":default_version_with_fallback",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_version_rc",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":rc_version_with_fallback",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_version_legacy_empty",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":rapid_2_or_3_component_version_no_rc_fixture",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_version_legacy_with_embed",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":legacy_version_with_fallback",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing Swift signed binaries.
+
+ios_application(
+    name = "swift_signed_app",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:swift_span_main_lib",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing invalid dependencies on extensions.
+
+objc_library(
+    name = "objc_invalid_dep_on_extension",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    tags = common.fixture_tags,
+    deps = [
+        ":ext",
+    ],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing minimum_os_version.
+
+ios_extension(
+    name = "ext_min_os_16",
+    bundle_id = "my.bundle.id.extension",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_min_os_lower_than_extension",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext_min_os_16"],
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_extension(
+    name = "ext_valid",
+    bundle_id = "my.bundle.id.extvalid",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":default_version_with_fallback",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_w_valid_extension",
+    bundle_id = "my.bundle.id",
+    extensions = [":ext_valid"],
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    version = ":default_version_with_fallback",
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing resource merging.
+
+write_file(
+    name = "app_only_res_file",
+    out = "app_only_res.strings",
+    content = ["\"app_only_res\" = \"1\";"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "framework_only_res_file",
+    out = "framework_only_res.strings",
+    content = ["\"framework_only_res\" = \"1\";"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "shared_res_file",
+    out = "shared_res.strings",
+    content = ["\"shared_res\" = \"1\";"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "ownerless_res_file",
+    out = "ownerless_res.strings",
+    content = ["\"ownerless_res\" = \"1\";"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "ownerless_chain_res_file",
+    out = "ownerless_chain_res.strings",
+    content = ["\"ownerless_chain_res\" = \"1\";"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ownerless_res_lib",
+    data = [":ownerless_res_file"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ownerless_chain_leaf_lib",
+    data = [":ownerless_chain_res_file"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "ownerless_chain_parent_lib",
+    tags = common.fixture_tags,
+    deps = [":ownerless_chain_leaf_lib"],
+)
+
+objc_library(
+    name = "shared_res_lib",
+    srcs = ["//test/starlark_tests/resources:FrameworkDependent.m"],
+    data = [":shared_res_file"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "framework_dedup_lib",
+    srcs = ["//test/starlark_tests/resources:Framework.m"],
+    data = [
+        ":framework_only_res_file",
+    ],
+    tags = common.fixture_tags,
+    deps = [":shared_res_lib"],
+)
+
+ios_framework(
+    name = "framework_dedup",
+    bundle_id = "my.bundle.id.framework",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    tags = common.fixture_tags,
+    deps = [
+        ":framework_dedup_lib",
+        ":ownerless_chain_parent_lib",
+        ":ownerless_res_lib",
+    ],
+)
+
+objc_library(
+    name = "app_w_framework_dedup_lib",
+    srcs = ["//test/starlark_tests/resources:main.m"],
+    data = [
+        ":app_only_res_file",
+    ],
+    tags = common.fixture_tags,
+    deps = [":shared_res_lib"],
+)
+
+ios_application(
+    name = "app_w_framework_dedup",
+    bundle_id = "my.bundle.id",
+    families = ["iphone"],
+    frameworks = [":framework_dedup"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.oldest_supported,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":app_w_framework_dedup_lib",
+        ":ownerless_chain_parent_lib",
+        ":ownerless_res_lib",
     ],
 )

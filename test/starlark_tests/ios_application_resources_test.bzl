@@ -806,6 +806,28 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         tags = [name],
     )
 
+    # Migrated resource deduplication test:
+    archive_contents_test(
+        name = "{}_dedup_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_w_framework_dedup",
+        contains = [
+            "$BUNDLE_ROOT/app_only_res.strings",
+            "$BUNDLE_ROOT/Frameworks/framework_dedup.framework/framework_only_res.strings",
+            "$BUNDLE_ROOT/Frameworks/framework_dedup.framework/shared_res.strings",
+            "$BUNDLE_ROOT/ownerless_res.strings",
+            "$BUNDLE_ROOT/Frameworks/framework_dedup.framework/ownerless_res.strings",
+            "$BUNDLE_ROOT/Frameworks/framework_dedup.framework/ownerless_chain_res.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/framework_dedup.framework/app_only_res.strings",
+            "$BUNDLE_ROOT/framework_only_res.strings",
+            "$BUNDLE_ROOT/shared_res.strings",
+            "$BUNDLE_ROOT/ownerless_chain_res.strings",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

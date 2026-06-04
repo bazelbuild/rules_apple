@@ -1863,3 +1863,34 @@ macos_application(
         "//test/starlark_tests/resources:framework_defined_app_intent",
     ],
 )
+
+# ---------------------------------------------------------------------------------------
+# Targets for testing basic bundling behavior.
+
+macos_application(
+    name = "macos_app_fixture",
+    bundle_id = "my.bundle.id",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+macos_application(
+    name = "macos_app_w_post_processor",
+    bundle_id = "my.bundle.id",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ipa_post_processor = "//test/starlark_tests/resources:post_processor.sh",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+macos_bundle(
+    name = "macos_bundle_fixture",
+    bundle_id = "my.bundle.id",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)

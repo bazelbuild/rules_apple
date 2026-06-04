@@ -181,6 +181,17 @@ def macos_bundle_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_structure_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_bundle_fixture",
+        contains = [
+            "$CONTENT_ROOT/Info.plist",
+            "$CONTENT_ROOT/MacOS/macos_bundle_fixture",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

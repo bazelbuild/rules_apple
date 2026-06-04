@@ -554,6 +554,34 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_pkginfo_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_fixture",
+        contains = [
+            "$CONTENT_ROOT/PkgInfo",
+        ],
+        text_test_file = "$CONTENT_ROOT/PkgInfo",
+        text_test_values = [
+            "^APPL????$",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_post_processor_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_w_post_processor",
+        contains = [
+            "$RESOURCE_ROOT/post_processed.txt",
+        ],
+        text_test_file = "$RESOURCE_ROOT/post_processed.txt",
+        text_test_values = [
+            "^post-processed$",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

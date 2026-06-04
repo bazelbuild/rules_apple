@@ -100,7 +100,7 @@ objc_library(
 objc_library(
     name = "objc_lib_with_no_srcs_and_structured_resources",
     data = [
-        "//test/starlark_tests/resources:structured_resources",
+        ":structured_resources",
     ],
     tags = common.fixture_tags,
 )
@@ -499,8 +499,8 @@ apple_resource_group(
 apple_resource_group(
     name = "resource_group_referencing_resource_deps",
     resources = [
-        "//test/starlark_tests/resources:Another.plist",
-        "//test/starlark_tests/resources:resource_bundle",
+        ":Another.plist",
+        ":resource_bundle",
     ],
     tags = common.fixture_tags,
 )
@@ -1153,6 +1153,16 @@ objc_library(
         "//apple/hints:realitykit_library_hint",
     ],
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "Framework",
+    srcs = ["Framework.m"],
+)
+
+objc_library(
+    name = "FrameworkDependent",
+    srcs = ["FrameworkDependent.m"],
 )
 
 apple_resource_locales(
