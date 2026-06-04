@@ -27,7 +27,8 @@ if [[ -d "$CONTENT_ROOT/Frameworks" ]]; then
   done
 
   # Assert that the frameworks have not been resigned.
-  assert_frameworks_not_resigned_given_output "$BUNDLE_ROOT"
+  assert_frameworks_not_resigned_given_output "$BUNDLE_ROOT" \
+    "${EXPECT_CODESIGN_FMWKS_OUTPUT:-false}"
 fi
 
 # If it has any App Clips, assert that they are signed as well.

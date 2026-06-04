@@ -89,12 +89,20 @@ TEST_HOST_PATH="%(test_host_path)s"
 
 if [[ -n "$TEST_HOST_PATH" ]]; then
   TEST_HOST_NAME=$(basename_without_extension "$TEST_HOST_PATH")
+  TEST_HOST_BUNDLE_NAME="%(test_host_bundle_name)s"
+  if [[ -z "$TEST_HOST_BUNDLE_NAME" ]]; then
+    TEST_HOST_BUNDLE_NAME="$TEST_HOST_NAME"
+  fi
+  TEST_HOST_EXECUTABLE_NAME="%(test_host_executable_name)s"
+  if [[ -z "$TEST_HOST_EXECUTABLE_NAME" ]]; then
+    TEST_HOST_EXECUTABLE_NAME="$TEST_HOST_BUNDLE_NAME"
+  fi
 
   if [[ "$TEST_HOST_PATH" == *.app ]]; then
     cp -R "$TEST_HOST_PATH" "$TEST_TMP_DIR"
     # Need to modify permissions as Bazel will set all files to non-writable,
     # and Xcode's test runner requires the files to be writable.
-    chmod -R 777 "$TEST_TMP_DIR/$TEST_HOST_NAME.app"
+    chmod -R 777 "$TEST_TMP_DIR/$TEST_HOST_BUNDLE_NAME.app"
   else
     unzip -qq -d "${TEST_TMP_DIR}" "${TEST_HOST_PATH}"
   fi
@@ -104,9 +112,9 @@ fi
 # depending on whether the test is running with or without a test host.
 XCTESTRUN_TEST_BUNDLE_PATH="__TESTROOT__/$TEST_BUNDLE_NAME.xctest"
 if [[ -n "$TEST_HOST_PATH" ]]; then
-  XCTESTRUN_TEST_HOST_PATH="__TESTROOT__/$TEST_HOST_NAME.app"
+  XCTESTRUN_TEST_HOST_PATH="__TESTROOT__/$TEST_HOST_BUNDLE_NAME.app"
   XCTESTRUN_TEST_HOST_BASED=true
-  XCTESTRUN_TEST_HOST_BINARY="__TESTHOST__/Contents/MacOS/$TEST_HOST_NAME"
+  XCTESTRUN_TEST_HOST_BINARY="__TESTHOST__/Contents/MacOS/$TEST_HOST_EXECUTABLE_NAME"
 else
   XCTESTRUN_TEST_HOST_PATH="__PLATFORMS__/MacOSX.platform/Developer/Library/Xcode/Agents/xctest"
   XCTESTRUN_TEST_HOST_BASED=false

@@ -867,18 +867,28 @@ def _apple_bundle(bundle_type):
     if not hasattr(processor.location, bundle_type):
         fail("Bundle type location not supported: ", bundle_type)
 
-    def _bundle_at_location(*, files, platform_prerequisites, **_kwargs):
+    def _bundle_at_location(*, files, platform_prerequisites, rule_descriptor, **_kwargs):
         location = getattr(processor.location, bundle_type)
 
         # If tree artifacts are enabled, iterate each bundle and set the bundle name
         # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
-        if is_experimental_tree_artifact_enabled(config_vars = platform_prerequisites.config_vars):
+        if is_experimental_tree_artifact_enabled(
+            platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
+        ):
             bundle_files = []
+            bundle_archives = []
             for bundle in files.to_list():
                 # TODO(b/271899726): Prepend parent_dir if embeddeding frameworks inside a resource bundle is allowed.
                 basename = paths.basename(bundle.short_path)
-                bundle_files.append((location, basename, depset([bundle])))
-            return struct(files = bundle_files)
+                if bundle.is_directory:
+                    bundle_files.append((location, basename, depset([bundle])))
+                else:
+                    bundle_archives.append((location, None, depset([bundle])))
+            return struct(
+                archives = bundle_archives,
+                files = bundle_files,
+            )
         else:
             return struct(archives = [(location, None, files)])
 

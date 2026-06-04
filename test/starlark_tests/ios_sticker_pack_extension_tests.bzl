@@ -94,7 +94,7 @@ def ios_sticker_pack_extension_test_suite(name):
         contains = [
             "$ARCHIVE_ROOT/MessagesApplicationExtensionSupport/MessagesApplicationExtensionSupportStub",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_sticker_ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_sticker_ext",
         tags = [name],
     )
 

@@ -11,6 +11,7 @@ load(
     "apple_static_xcframework",
     "apple_xcframework",
 )
+load("//apple:apple_archive.bzl", "apple_archive")
 load(
     "//apple:macos.bzl",
     "macos_application",
@@ -1205,6 +1206,26 @@ macos_application(
     ],
 )
 
+apple_archive(
+    name = "app_zip",
+    bundle = ":app",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "app_with_ext_and_symbols_zip",
+    bundle = ":app_with_ext_and_symbols",
+    include_symbols = True,
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "app_with_imported_dynamic_fmwk_with_dsym_zip",
+    bundle = ":app_with_imported_dynamic_fmwk_with_dsym",
+    include_symbols = True,
+    tags = common.fixture_tags,
+)
+
 macos_application(
     name = "app_with_icon_bundle_only_for_low_minimum_os_version",
     app_icons = ["//test/starlark_tests/resources:icon_bundle_assets"],
@@ -1510,10 +1531,9 @@ macos_extension(
 )
 
 macos_application(
-    name = "app_with_ext_and_symbols_in_bundle",
+    name = "app_with_ext_and_symbols",
     bundle_id = "com.google.example",
     extensions = [":ext"],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1540,6 +1560,12 @@ macos_application(
         ":dynamic_fmwk_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "app_with_imported_fmwk_zip",
+    bundle = ":app_with_imported_fmwk",
+    tags = common.fixture_tags,
 )
 
 macos_application(
@@ -1575,13 +1601,12 @@ macos_application(
 )
 
 macos_application(
-    name = "app_with_ext_and_fmwk_and_symbols_in_bundle",
+    name = "app_with_ext_and_fmwk_and_symbols",
     bundle_id = "com.google.example",
     extensions = [":ext_with_fmwk_provisioned"],
     frameworks = [
         ":fmwk_with_provisioning",
     ],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2309,7 +2334,6 @@ macos_application(
 macos_application(
     name = "app_with_imported_dynamic_fmwk_with_dsym",
     bundle_id = "com.google.example",
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2414,6 +2438,12 @@ macos_application(
     ],
 )
 
+apple_archive(
+    name = "app_with_imported_versioned_fmwk_zip",
+    bundle = ":app_with_imported_versioned_fmwk",
+    tags = common.fixture_tags,
+)
+
 macos_application(
     name = "app_with_imported_versioned_fmwk_tree_artifacts",
     bundle_id = "com.google.example",
@@ -2513,6 +2543,12 @@ macos_application(
         ":dynamic_versioned_xcframework_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "app_with_imported_dynamic_versioned_xcframework_zip",
+    bundle = ":app_with_imported_dynamic_versioned_xcframework",
+    tags = common.fixture_tags,
 )
 
 macos_application(

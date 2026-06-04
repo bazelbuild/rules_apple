@@ -17,32 +17,59 @@
 set -eu
 
 WORKDIR="$1"
-case "$APPLE_SDK_PLATFORM" in
-  "MacOSX"|"WatchSimulator"|"WatchOS")
-    APPDIR="$WORKDIR"
-    ;;
-  *)
-    APPDIR="$WORKDIR/Payload"
-    ;;
-esac
+readonly CODESIGN_FMWKS_OUTPUT_FILE="codesign_v_fmwks_output.txt"
+
+if [[ -n "${TREE_ARTIFACT_OUTPUT:-}" ]]; then
+  APPDIR="$TREE_ARTIFACT_OUTPUT"
+else
+  case "$APPLE_SDK_PLATFORM" in
+    "MacOSX"|"WatchSimulator"|"WatchOS")
+      APPDIR="$WORKDIR"
+      ;;
+    *)
+      if [[ -d "$WORKDIR/Payload" ]]; then
+        APPDIR="$WORKDIR/Payload"
+      else
+        APPDIR="$WORKDIR"
+      fi
+      ;;
+  esac
+fi
+
+if [[ ! -d "$APPDIR" ]]; then
+  echo "Internal Error: Failed to find bundle root directory at $APPDIR" >&2
+  exit 1
+fi
 
 # Save all codesigning output for each framework to verify later that they are
 # not being re-signed.
-for app in \
-    $(find "$APPDIR" -type d -maxdepth 1 -mindepth 1); do
+if [[ -n "${TREE_ARTIFACT_OUTPUT:-}" ]]; then
+  bundle_roots=("$APPDIR")
+else
+  bundle_roots=()
+  while IFS= read -r -d "" app; do
+    bundle_roots+=("$app")
+  done < <(find "$APPDIR" -type d -maxdepth 1 -mindepth 1 -print0)
+fi
 
-
+for app in "${bundle_roots[@]}"; do
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
-    CODESIGN_FMWKS_OUTPUT="$app/codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$app/Frameworks"
+    CODESIGN_FMWKS_OUTPUT="$app/$CODESIGN_FMWKS_OUTPUT_FILE"
   else
     # macOS has a different bundle structure, and will fail codesigning if files
     # such as text files are not placed in the Resources directory. Create a
     # Resources directory in Contents if one does not exist.
-    mkdir -p "$app/Contents/Resources"
-    CODESIGN_FMWKS_OUTPUT="$app/Contents/Resources/codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$app/Contents/Frameworks"
+    CODESIGN_FMWKS_OUTPUT="$app/Contents/Resources/$CODESIGN_FMWKS_OUTPUT_FILE"
   fi
+
+  if [ ! -d "$FRAMEWORK_DIR" ]; then
+    continue
+  fi
+
+  mkdir -p "$(dirname "$CODESIGN_FMWKS_OUTPUT")"
+  : > "$CODESIGN_FMWKS_OUTPUT"
 
   for fmwk in \
       $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do

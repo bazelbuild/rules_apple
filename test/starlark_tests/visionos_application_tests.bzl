@@ -95,6 +95,28 @@ def visionos_application_test_suite(name):
         ],
     )
 
+    analysis_target_outputs_test(
+        name = "{}_archive_outputs_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:ipa_with_app",
+        expected_outputs = ["ipa_with_app.ipa"],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_archive_payload_layout_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$ARCHIVE_ROOT/Payload/app.app/Info.plist",
+            "$ARCHIVE_ROOT/Payload/app.app/app",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:ipa_with_app",
+        tags = [
+            name,
+        ],
+    )
+
     archive_contents_test(
         name = "{}_bundle_contents_test".format(name),
         build_type = "simulator",

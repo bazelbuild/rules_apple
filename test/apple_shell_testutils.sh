@@ -326,14 +326,15 @@ function assert_is_codesigned() {
 }
 
 
-# Usage assert_frameworks_not_resigned_given_output <path>
+# Usage assert_frameworks_not_resigned_given_output <path> [required]
 #
 # If the output file from ipa_post_processor_verify_codesigning.sh was found,
-# asserts that the frameworks in the bundle have not been resigned.
+# asserts that the frameworks in the bundle have not been resigned. If
+# `required` is true, fails when the post-processor output is missing.
 function assert_frameworks_not_resigned_given_output() {
   local bundle="$1"
+  local required="${2:-false}"
 
-  WORKDIR="$1"
   if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
     CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
     FRAMEWORK_DIR="$bundle/Frameworks"
@@ -342,18 +343,23 @@ function assert_frameworks_not_resigned_given_output() {
     FRAMEWORK_DIR="$bundle/Contents/Frameworks"
   fi
 
-  if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
-    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_fmwks_output.XXXXXX")"
-
-    for fmwk in \
-        $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
-      /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
-    done
-
-    assert_equals "$(cat $CODESIGN_FMWKS_OUTPUT)" "$(cat $CODESIGN_FMWKS_ORIGINAL_OUTPUT)"
-
-    rm -rf "$CODESIGN_FMWKS_OUTPUT"
+  if [[ ! -f "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
+    if [[ "$required" == "1" || "$required" == "true" ]]; then
+      fail "Expected post-processor codesign output file at $CODESIGN_FMWKS_ORIGINAL_OUTPUT"
+    fi
+    return
   fi
+
+  CODESIGN_FMWKS_OUTPUT="$(mktemp "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/codesign_fmwks_output.XXXXXX")"
+
+  for fmwk in \
+      $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
+    /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep -v "^Executable=" >> "$CODESIGN_FMWKS_OUTPUT"
+  done
+
+  assert_equals "$(cat "$CODESIGN_FMWKS_OUTPUT")" "$(cat "$CODESIGN_FMWKS_ORIGINAL_OUTPUT")"
+
+  rm -rf "$CODESIGN_FMWKS_OUTPUT"
 }
 
 

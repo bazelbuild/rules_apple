@@ -15,8 +15,10 @@
 
 import os
 import shutil
+import stat
 import tempfile
 import unittest
+import zipfile
 from unittest import mock
 
 from tools.imported_dynamic_framework_processor import imported_dynamic_framework_processor
@@ -39,6 +41,17 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
     with open(full_path, "w", encoding="utf-8") as fp:
       fp.write(content)
+    return full_path
+
+  def _scratch_directory(self, path):
+    full_path = os.path.join(self._scratch_dir, path)
+    os.makedirs(full_path, exist_ok=True)
+    return full_path
+
+  def _scratch_symlink(self, path, target):
+    full_path = os.path.join(self._scratch_dir, path)
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    os.symlink(target, full_path)
     return full_path
 
   @mock.patch.object(execute, "execute_and_filter_output")
@@ -194,7 +207,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       imported_dynamic_framework_processor.codesigningtool,
       "find_identity_and_sign_bundle_paths")
   @mock.patch.object(
-      imported_dynamic_framework_processor.execute, "execute_and_filter_output")
+      imported_dynamic_framework_processor, "_create_framework_zip")
   @mock.patch.object(
       imported_dynamic_framework_processor, "_update_modified_timestamps")
   @mock.patch.object(
@@ -206,7 +219,7 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       mock_parse_args,
       mock_try_get_framework_version_from_structure,
       mock_update_modified_timestamps,
-      mock_execute,
+      mock_create_framework_zip,
       mock_sign):
     framework_binary = self._scratch_file(
         "Foo.framework/Versions/A/Foo", "framework-binary")
@@ -270,7 +283,68 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     )
     mock_sign.assert_called_once()
     mock_update_modified_timestamps.assert_called_once_with(temp_path)
-    mock_execute.assert_called_once()
+    mock_create_framework_zip.assert_called_once_with(temp_path, output_zip)
+
+  def test_create_framework_zip_preserves_versioned_framework_symlinks(self):
+    temp_path = os.path.join(self._scratch_dir, "out", "Foo.framework")
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+    self._scratch_file("out/Foo.framework/Versions/A/Foo", "binary")
+    self._scratch_file(
+        "out/Foo.framework/Versions/A/Resources/Info.plist", "plist")
+    self._scratch_symlink("out/Foo.framework/Versions/Current", "A")
+    self._scratch_symlink(
+        "out/Foo.framework/Foo", "Versions/Current/Foo")
+    self._scratch_symlink(
+        "out/Foo.framework/Resources", "Versions/Current/Resources")
+
+    imported_dynamic_framework_processor._create_framework_zip(
+        temp_path, output_zip)
+
+    with zipfile.ZipFile(output_zip) as zip_file:
+      zip_names = zip_file.namelist()
+      self.assertNotIn("Foo.framework/Versions/", zip_names)
+      self.assertNotIn("Foo.framework/Versions/A/", zip_names)
+      self.assertNotIn("Foo.framework/Versions/A/Resources/", zip_names)
+      self.assertNotIn("Foo.framework/Resources/", zip_names)
+      self.assertEqual(
+          b"Versions/Current/Resources",
+          zip_file.read("Foo.framework/Resources"),
+      )
+      self.assertTrue(stat.S_ISLNK(
+          zip_file.getinfo("Foo.framework/Resources").external_attr >> 16))
+      self.assertEqual(
+          b"A",
+          zip_file.read("Foo.framework/Versions/Current"),
+      )
+      self.assertTrue(stat.S_ISLNK(
+          zip_file.getinfo(
+              "Foo.framework/Versions/Current").external_attr >> 16))
+
+  def test_create_framework_zip_preserves_empty_versioned_directory(self):
+    temp_path = os.path.join(self._scratch_dir, "out", "Foo.framework")
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+    self._scratch_file("out/Foo.framework/Versions/A/Foo", "binary")
+    self._scratch_directory("out/Foo.framework/Versions/A/Headers")
+    self._scratch_symlink("out/Foo.framework/Versions/Current", "A")
+    self._scratch_symlink(
+        "out/Foo.framework/Headers", "Versions/Current/Headers")
+
+    imported_dynamic_framework_processor._create_framework_zip(
+        temp_path, output_zip)
+
+    with zipfile.ZipFile(output_zip) as zip_file:
+      zip_names = zip_file.namelist()
+      self.assertIn("Foo.framework/Versions/A/Headers/", zip_names)
+      self.assertNotIn("Foo.framework/Headers/", zip_names)
+      self.assertEqual(
+          b"Versions/Current/Headers",
+          zip_file.read("Foo.framework/Headers"),
+      )
+      self.assertTrue(stat.S_ISLNK(
+          zip_file.getinfo("Foo.framework/Headers").external_attr >> 16))
+      self.assertTrue(stat.S_ISDIR(
+          zip_file.getinfo(
+              "Foo.framework/Versions/A/Headers/").external_attr >> 16))
 
 if __name__ == "__main__":
   unittest.main()

@@ -74,10 +74,6 @@ load(
     "linkmap_test",
 )
 load(
-    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
-    "output_group_zip_contents_test",
-)
-load(
     "//test/starlark_tests/rules:plisttool_error_test.bzl",
     "plisttool_error_test",
 )
@@ -160,8 +156,49 @@ def ios_application_test_suite(name):
     """
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        expected_outputs = ["ipa_with_app.ipa"],
+        tags = [name],
+    )
+    action_command_line_test(
+        name = "{}_combined_dossier_zip_error_directs_to_apple_archive_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        expected_outputs = ["app.ipa"],
+        mnemonic = "CreateCombinedDossierZip",
+        expected_argv = [
+            "Wrap this application target in apple_archive",
+            "--output_groups=combined_dossier_zip",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_ipa_forwards_dsyms_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app.app.dSYM/Contents/Info.plist",
+            "app.app.dSYM/Contents/Resources/DWARF/app",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_test(
+        name = "{}_ipa_forwards_linkmaps_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_arm64.linkmap",
+            "app_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+    apple_dsym_bundle_info_test(
+        name = "{}_ipa_forwards_dsym_bundle_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app",
+        expected_direct_dsyms = [
+            "dSYMs/app.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "dSYMs/app.app.dSYM",
+        ],
         tags = [name],
     )
     analysis_target_tree_artifacts_outputs_test(
@@ -393,16 +430,29 @@ def ios_application_test_suite(name):
     # Tests that an app with a mixed target framework compiles
     analysis_target_outputs_test(
         name = "{}_mixed_target_framework_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
-        expected_outputs = ["app_with_fmwk_with_multiple_objc_library_and_swift_library_deps.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps",
+        expected_outputs = ["ipa_app_with_fmwk_with_multiple_objc_library_and_swift_library_deps.ipa"],
         tags = [name],
     )
 
     apple_verification_test(
         name = "{}_ext_and_fmwk_provisioned_codesign_test".format(name),
         build_type = "simulator",
+        env = {
+            "EXPECT_CODESIGN_FMWKS_OUTPUT": ["1"],
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_codesigning_post_processor_marker_in_archive_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_ext_and_fmwk_provisioned",
+        contains = [
+            "$BUNDLE_ROOT/codesign_v_fmwks_output.txt",
+        ],
         tags = [name],
     )
 
@@ -434,7 +484,7 @@ def ios_application_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_span_compatibility_dylib_present_on_older_os".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_pre_26",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_swift_app_using_span_pre_26",
         contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
@@ -458,7 +508,7 @@ def ios_application_test_suite(name):
     archive_contents_test(
         name = "{}_device_swift_span_compatibility_dylib_not_present_on_newer_os".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_using_span_post_26",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_swift_app_using_span_post_26",
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCompatibilitySpan.dylib",
             "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCompatibilitySpan.dylib",
@@ -641,7 +691,7 @@ def ios_application_test_suite(name):
     archive_contents_test(
         name = "{}_swift_support_codesign_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_swift_dep",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_with_app_with_swift_dep",
         binary_test_file = "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
         codesign_info_contains = [
             "Identifier=com.apple.dt.runtime.swiftCore",
@@ -937,8 +987,9 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
-    # is enabled for both the iOS application and the watchOS extensions.
+    # Tests that the archive contains .symbols package files when `include_symbols`
+    # is enabled on the wrapping archive target for both the iOS application and
+    # the watchOS extensions.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_watchos_test".format(name),
         binary_paths = [
@@ -948,38 +999,39 @@ def ios_application_test_suite(name):
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_watchos_with_watchos_extension_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_ios_watchos_with_watchos_extension_and_symbols",
     )
 
-    # Tests that the archive contains .symbols package files when `include_symbols_in_bundle`
-    # is enabled.
+    # Tests that the archive contains .symbols package files when `include_symbols`
+    # is enabled on the wrapping archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_test".format(name),
         binary_paths = [
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/app_with_ext_and_fmwk_and_symbols_in_bundle",
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/PlugIns/ext_with_fmwk_provisioned.appex/ext_with_fmwk_provisioned",
-            "Payload/app_with_ext_and_fmwk_and_symbols_in_bundle.app/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/app_with_ext_and_fmwk_and_symbols",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/PlugIns/ext_with_fmwk_provisioned.appex/ext_with_fmwk_provisioned",
+            "Payload/app_with_ext_and_fmwk_and_symbols.app/Frameworks/fmwk_with_provisioning.framework/fmwk_with_provisioning",
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_ext_and_fmwk_and_symbols",
     )
 
     # Tests that app clips also contribute .symbols package files when
-    # `include_symbols_in_bundle` is enabled on the embedding application.
+    # `include_symbols` is enabled on the wrapping archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_with_app_clip_test".format(name),
         binary_paths = [
-            "Payload/app_with_app_clip_and_symbols_in_bundle.app/app_with_app_clip_and_symbols_in_bundle",
-            "Payload/app_with_app_clip_and_symbols_in_bundle.app/AppClips/app_clip.app/app_clip",
+            "Payload/app_with_app_clip.app/app_with_app_clip",
+            "Payload/app_with_app_clip.app/AppClips/app_clip.app/app_clip",
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_clip_and_symbols_in_bundle",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_app_clip_and_symbols",
     )
 
     # Tests that the archive contains .symbols package files generated from
-    # imported frameworks when `include_symbols_in_bundle` is enabled.
+    # imported frameworks when `include_symbols` is enabled on the wrapping
+    # archive target.
     apple_symbols_file_test(
         name = "{}_archive_contains_apple_symbols_files_from_external_fmwk_test".format(name),
         binary_paths = [
@@ -989,7 +1041,7 @@ def ios_application_test_suite(name):
         ],
         build_type = "simulator",
         tags = [name],
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_with_dsym",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_dynamic_fmwk_with_dsym",
     )
 
     # Tests that the linkmap outputs are produced when `--objc_generate_linkmap`
@@ -1120,20 +1172,6 @@ def ios_application_test_suite(name):
             framework = Label("//test/starlark_tests/targets_under_test/ios:fmwk_not_extension_safe"),
             target = Label("//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_not_extension_safe"),
         ),
-        tags = [name],
-    )
-
-    output_group_zip_contents_test(
-        name = "{}_has_combined_zip_output_group".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
-        output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "test/starlark_tests/targets_under_test/ios/app_dossier_with_bundle.zip",
-        contains = [
-            "bundle/Payload/app.app/Info.plist",
-            "bundle/Payload/app.app/app",
-            "dossier/manifest.json",
-        ],
         tags = [name],
     )
 

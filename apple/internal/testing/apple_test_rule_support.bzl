@@ -119,6 +119,7 @@ def _get_template_substitutions(
         test_environment,
         test_host_artifact = None,
         test_host_bundle_name = "",
+        test_host_executable_name = "",
         test_filter = None,
         test_host_dossier = None,
         test_type):
@@ -137,6 +138,8 @@ def _get_template_substitutions(
         test_host_artifact: Optional. A File representing the artifact found from the referenced
             test host rule if one was assigned.
         test_host_bundle_name: Optional. The bundle_name for the test host rule if one was assigned.
+        test_host_executable_name: Optional. The executable_name for the test host rule if one was
+            assigned.
         test_host_dossier: Optional. A File representing the dossier generated for the test host, if
             one exists.
         test_type: String. The test type received from the test rule implementation.
@@ -153,6 +156,7 @@ def _get_template_substitutions(
         "test_env": ",".join([k + "=" + v for (k, v) in test_environment.items()]),
         "test_filter": test_filter or "",
         "test_host_bundle_name": test_host_bundle_name,
+        "test_host_executable_name": test_host_executable_name,
         "test_host_path": test_host_artifact.short_path if test_host_artifact else "",
         "test_host_dossier_path": test_host_dossier.short_path if test_host_dossier else "",
         "test_type": test_type.upper(),
@@ -316,12 +320,15 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
 
     # Bundle name of the app under test (test host) if given
     test_host_bundle_name = ""
+    test_host_executable_name = ""
     test_host_dossier = None
 
     test_host_attr = ctx.attr.test_host
     if test_host_attr:
         if AppleBundleInfo in test_host_attr:
-            test_host_bundle_name = test_host_attr[AppleBundleInfo].bundle_name
+            test_host_bundle_info = test_host_attr[AppleBundleInfo]
+            test_host_bundle_name = test_host_bundle_info.bundle_name
+            test_host_executable_name = test_host_bundle_info.executable_name
         if requires_dossiers and AppleCodesigningDossierInfo in test_host_attr:
             test_host_dossier = test_host_attr[AppleCodesigningDossierInfo].dossier
             if test_host_dossier:
@@ -364,6 +371,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             test_filter = ctx.attr.test_filter,
             test_host_artifact = test_host_artifact,
             test_host_bundle_name = test_host_bundle_name,
+            test_host_executable_name = test_host_executable_name,
             test_host_dossier = test_host_dossier,
             test_type = test_type,
         ),

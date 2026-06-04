@@ -88,6 +88,7 @@ ios_ui_test(
     name = "HelloWorldSwiftUITests",
     minimum_os_version = "15.0",
     runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    tags = ["exclusive"],
     test_host = ":HelloWorldSwift",
     deps = [":UITests"],
 )

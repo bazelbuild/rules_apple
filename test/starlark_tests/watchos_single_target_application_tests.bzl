@@ -23,6 +23,10 @@ load(
     "analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -50,6 +54,24 @@ def watchos_single_target_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    analysis_target_outputs_test(
+        name = "{}_default_tree_artifact_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app",
+        expected_outputs = ["single_target_app.app"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ipa_archive_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_single_target_app",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/single_target_app",
+        ],
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_too_low_minimum_os_version_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_too_low_minos",

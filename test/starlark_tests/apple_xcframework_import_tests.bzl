@@ -45,15 +45,15 @@ def apple_xcframework_import_test_suite(name):
     # Test that apple_dynamic_xcframework_import can import XCFrameworks bundling dynamic frameworks
     analysis_target_outputs_test(
         name = "{}_dynamic_xcfw_import_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_xcfmwk",
-        expected_outputs = ["app_with_imported_dynamic_xcfmwk.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_dynamic_xcfmwk",
+        expected_outputs = ["ipa_app_with_imported_dynamic_xcfmwk.ipa"],
         tags = [name],
     )
 
     analysis_target_outputs_test(
         name = "{}_dynamic_xcfw_import_with_lib_ids_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_xcfmwk_with_lib_ids",
-        expected_outputs = ["app_with_imported_dynamic_xcfmwk_with_lib_ids.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_dynamic_xcfmwk_with_lib_ids",
+        expected_outputs = ["ipa_app_with_imported_dynamic_xcfmwk_with_lib_ids.ipa"],
         tags = [name],
     )
 
@@ -132,8 +132,8 @@ def apple_xcframework_import_test_suite(name):
     # Test that apple_static_xcframework_import can import XCFrameworks bundling static frameworks
     analysis_target_outputs_test(
         name = "{}_xcfmwk_bundling_static_fmwks_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcfmwk_bundling_static_fmwks",
-        expected_outputs = ["app_with_imported_xcfmwk_bundling_static_fmwks.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_xcfmwk_bundling_static_fmwks",
+        expected_outputs = ["ipa_app_with_imported_xcfmwk_bundling_static_fmwks.ipa"],
         tags = [name],
     )
 
@@ -157,8 +157,8 @@ def apple_xcframework_import_test_suite(name):
     # bundling static libraries and make them usable from objc_library
     analysis_target_outputs_test(
         name = "{}_static_xcfw_import_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk",
-        expected_outputs = ["app_with_imported_static_xcfmwk.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_static_xcfmwk",
+        expected_outputs = ["ipa_app_with_imported_static_xcfmwk.ipa"],
         tags = [name],
     )
 
@@ -207,8 +207,8 @@ def apple_xcframework_import_test_suite(name):
 
     analysis_target_outputs_test(
         name = "{}_static_xcfw_import_with_lib_ids_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_lib_ids",
-        expected_outputs = ["app_with_imported_static_xcfmwk_with_lib_ids.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_static_xcfmwk_with_lib_ids",
+        expected_outputs = ["ipa_app_with_imported_static_xcfmwk_with_lib_ids.ipa"],
         tags = [name],
     )
 
@@ -225,8 +225,8 @@ def apple_xcframework_import_test_suite(name):
     # swift_library
     analysis_target_outputs_test(
         name = "{}_static_xcfw_with_module_map_import_ipa_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_xcfmwk_with_module_map",
-        expected_outputs = ["app_with_imported_static_xcfmwk_with_module_map.ipa"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ipa_app_with_imported_static_xcfmwk_with_module_map",
+        expected_outputs = ["ipa_app_with_imported_static_xcfmwk_with_module_map.ipa"],
         tags = [name],
     )
 

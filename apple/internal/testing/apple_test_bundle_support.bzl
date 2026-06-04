@@ -494,6 +494,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -594,7 +595,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         output = ctx.outputs.test_bundle_output,
     )
 
-    if is_experimental_tree_artifact_enabled(platform_prerequisites = platform_prerequisites):
+    if is_experimental_tree_artifact_enabled(
+        platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
+    ):
         test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output

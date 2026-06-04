@@ -162,6 +162,7 @@ def _create_combined_zip_artifact(
         output_discriminator,
         platform_prerequisites,
         bundletool,
+        rule_descriptor,
         xplat_exec_group):
     """Generates a zip file with the IPA contents in one subdirectory and the dossier in another.
 
@@ -175,6 +176,7 @@ def _create_combined_zip_artifact(
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       bundletool: A bundle tool from xplat toolchain.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     bundletool_control_file = intermediates.file(
@@ -207,6 +209,7 @@ def _create_combined_zip_artifact(
 
     tree_artifact_is_enabled = is_experimental_tree_artifact_enabled(
         platform_prerequisites = platform_prerequisites,
+        rule_descriptor = rule_descriptor,
     )
 
     if tree_artifact_is_enabled:
@@ -216,11 +219,10 @@ def _create_combined_zip_artifact(
         actions.run_shell(
             command = "echo '{error_message}' 1>&2 && exit 1".format(
                 error_message = (
-                    "ERROR: The combined dossier zip output group does not yet support the " +
-                    "experimental tree artifact. Please ensure that the " +
-                    "`apple.experimental.tree_artifact_outputs` variable is not set to 1 on " +
-                    "the command line or in your active build " +
-                    "configuration."
+                    "ERROR: The combined dossier zip output group is not supported directly " +
+                    "on application rule targets that use tree artifact outputs. Wrap this " +
+                    "application target in apple_archive and build the apple_archive target " +
+                    "with --output_groups=combined_dossier_zip instead."
                 ),
             ),
             **common_combined_dossier_zip_args
@@ -341,6 +343,7 @@ def _codesigning_dossier_partial_impl(
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         bundletool = apple_xplat_toolchain_info.bundletool,
+        rule_descriptor = rule_descriptor,
         xplat_exec_group = xplat_exec_group,
     )
 

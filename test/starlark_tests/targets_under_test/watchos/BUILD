@@ -11,6 +11,10 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_archive.bzl",
+    "apple_archive",
+)
+load(
     "//apple:ios.bzl",
     "ios_application",
 )
@@ -73,6 +77,12 @@ watchos_application(
     ],
     minimum_os_version = common.min_os_watchos.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+)
+
+apple_archive(
+    name = "ipa_with_app",
+    bundle = ":app",
     tags = common.fixture_tags,
 )
 
@@ -270,6 +280,12 @@ watchos_application(
     deps = [
         "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_with_single_target_app",
+    bundle = ":single_target_app",
+    tags = common.fixture_tags,
 )
 
 watchos_application(
@@ -756,6 +772,16 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_app_companion",
+    bundle = ":app_companion",
+    tags = common.fixture_tags,
+    visibility = [
+        "//test/starlark_tests:__subpackages__",
+        "//tools/dossier_codesigningtool:__pkg__",
+    ],
+)
+
 ios_application(
     name = "app_companion_arm64_support",
     bundle_id = "com.google",
@@ -999,7 +1025,6 @@ ios_application(
     bundle_id = "com.google",
     bundle_name = "companion",
     families = ["iphone"],
-    include_symbols_in_bundle = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -1135,6 +1160,12 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_ios_with_swift_watchos_no_swift",
+    bundle = ":ios_with_swift_watchos_no_swift",
+    tags = common.fixture_tags,
+)
+
 ios_application(
     name = "ios_no_swift_watchos_with_swift",
     bundle_id = "com.google",
@@ -1150,6 +1181,12 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_ios_no_swift_watchos_with_swift",
+    bundle = ":ios_no_swift_watchos_with_swift",
+    tags = common.fixture_tags,
 )
 
 ios_application(
@@ -1169,6 +1206,12 @@ ios_application(
     ],
 )
 
+apple_archive(
+    name = "ipa_ios_with_swift_watchos_with_swift",
+    bundle = ":ios_with_swift_watchos_with_swift",
+    tags = common.fixture_tags,
+)
+
 ios_application(
     name = "ios_with_swift_watchos_with_swift_stable_abi",
     bundle_id = "com.google",
@@ -1184,6 +1227,12 @@ ios_application(
     deps = [
         ":swift_lib",
     ],
+)
+
+apple_archive(
+    name = "ipa_ios_with_swift_watchos_with_swift_stable_abi",
+    bundle = ":ios_with_swift_watchos_with_swift_stable_abi",
+    tags = common.fixture_tags,
 )
 
 ios_application(
@@ -1756,4 +1805,14 @@ watchos_ui_test(
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+# IPA targets for testing the new ipa rule with tree artifact outputs.
+
+apple_archive(
+    name = "ipa_with_ios_watchos_with_watchos_extension_and_symbols",
+    bundle = ":ios_watchos_with_watchos_extension_and_symbols_in_bundle",
+    include_symbols = True,
+    tags = common.fixture_tags,
 )

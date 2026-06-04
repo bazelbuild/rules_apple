@@ -20,6 +20,7 @@ import stat
 import tempfile
 import unittest
 import zipfile
+from unittest import mock
 
 from tools.bundletool import bundletool_experimental
 
@@ -203,6 +204,37 @@ class BundlerExperimentalTest(unittest.TestCase):
               "dest": "",
           }],
       })
+
+  @mock.patch.object(bundletool_experimental.subprocess, "check_call")
+  def test_post_processor_preserves_toolchain_env_without_runfiles_vars(
+      self, mock_check_call):
+    bundle_root = os.path.join(self._scratch_dir, "Payload", "App.app")
+    os.makedirs(bundle_root)
+    bundler = bundletool_experimental.Bundler({})
+
+    with mock.patch.dict(
+        os.environ,
+        {
+            "APPLE_SDK_PLATFORM": "MacOSX",
+            "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+            "RUNFILES_MANIFEST_ONLY": "1",
+            "RUNFILES_DIR": "/tmp/runfiles",
+        },
+        clear=True):
+      bundler._post_process_bundle(bundle_root, "/tool/post_processor")
+
+    mock_check_call.assert_called_once()
+    _, kwargs = mock_check_call.call_args
+    self.assertEqual(
+        "MacOSX",
+        kwargs["env"]["APPLE_SDK_PLATFORM"],
+    )
+    self.assertEqual(
+        bundle_root,
+        kwargs["env"]["TREE_ARTIFACT_OUTPUT"],
+    )
+    self.assertNotIn("RUNFILES_MANIFEST_ONLY", kwargs["env"])
+    self.assertNotIn("RUNFILES_DIR", kwargs["env"])
 
 if __name__ == "__main__":
   unittest.main()

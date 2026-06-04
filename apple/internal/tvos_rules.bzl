@@ -320,6 +320,7 @@ def _tvos_application_impl(ctx):
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -660,6 +661,7 @@ def _tvos_dynamic_framework_impl(ctx):
             frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -951,6 +953,7 @@ def _tvos_framework_impl(ctx):
             frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -1238,6 +1241,7 @@ def _tvos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             **embedded_bundles_args
         ),
         partials.extension_safe_validation_partial(
@@ -1478,7 +1482,11 @@ def _tvos_static_framework_impl(ctx):
     ] + processor_result.providers
 
 tvos_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles a tvOS Application.",
+    doc = """Builds and bundles a tvOS Application.
+
+This rule produces an `.app` bundle. To package that bundle as an `.ipa`, wrap
+it in [`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+""",
     implementation = _tvos_application_impl,
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.ipa"},

@@ -74,9 +74,16 @@ _FAKE_SIMPLE_MANIFEST_NO_PROFILE = {
     'embedded_bundle_manifests': [],
 }
 
-_IPA_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/ios/app.ipa'
-_IPA_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion.ipa'
-_COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = 'test/starlark_tests/targets_under_test/watchos/app_companion_dossier_with_bundle.zip'
+_IPA_WORKSPACE_PATH = (
+    'test/starlark_tests/targets_under_test/ios/ipa_with_app.ipa'
+)
+_IPA_W_WATCHOS_WORKSPACE_PATH = (
+    'test/starlark_tests/targets_under_test/watchos/ipa_app_companion.ipa'
+)
+_COMBINED_ZIP_W_WATCHOS_WORKSPACE_PATH = (
+    'test/starlark_tests/targets_under_test/watchos/'
+    'ipa_app_companion_dossier_with_bundle.zip'
+)
 
 _ADDITIONAL_SIGNING_KEYCHAIN = '/tmp/Library/Keychains/ios-dev-signing.keychain'
 

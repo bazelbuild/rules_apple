@@ -292,6 +292,7 @@ def _resources_partial_impl(
                 "platform_prerequisites": platform_prerequisites,
                 "primary_icon_name": primary_icon_name,
                 "product_type": rule_descriptor.product_type,
+                "rule_descriptor": rule_descriptor,
                 "rule_label": rule_label,
             }
 

@@ -324,6 +324,7 @@ def _watchos_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -606,6 +607,7 @@ def _watchos_dynamic_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -940,6 +942,7 @@ reproducible error case.".format(
             bundle_embedded_bundles = True,
             embeddable_targets = [watch_extension],
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             watch_bundles = [archive],
         ),
         partials.resources_partial(
@@ -1275,6 +1278,7 @@ def _watchos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             bundle_embedded_bundles = True,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             embeddable_targets = embeddable_targets,
             plugins = [archive],
         ),
@@ -1746,6 +1750,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             watch_bundles = [archive],
         ),
         partials.extension_safe_validation_partial(
@@ -1883,7 +1888,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ] + processor_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
-    doc = "Builds and bundles a watchOS Application.",
+    doc = """Builds and bundles a watchOS Application.
+
+This rule produces an `.app` bundle. To package that bundle as an `.ipa`, wrap
+it in [`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+""",
     implementation = _watchos_application_impl,
     is_executable = True,
     predeclared_outputs = {"archive": "%{name}.zip"},

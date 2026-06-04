@@ -33,7 +33,6 @@ visibility("//test/starlark_tests/...")
 def _contains_files(env, expected_files, actual_files):
     target_under_test = analysistest.target_under_test(env)
     expected_set = sets.make(expected_files)
-
     all_outputs = sets.make([
         paths.relativize(
             file.short_path,
@@ -50,6 +49,25 @@ def _contains_files(env, expected_files, actual_files):
         "{} not contained in {}".format(sets.to_list(expected_set), sets.to_list(all_outputs)),
     )
 
+def _equals_files(env, expected_files, actual_files):
+    target_under_test = analysistest.target_under_test(env)
+    expected_set = sets.make(expected_files)
+    all_outputs = sets.make([
+        paths.relativize(
+            file.short_path,
+            target_under_test.label.package,
+        )
+        for file in actual_files
+    ])
+
+    asserts.set_equals(
+        env,
+        expected_set,
+        all_outputs,
+        "{} != {}".format(sets.to_list(expected_set), sets.to_list(all_outputs)),
+    )
+
 assertions = struct(
     contains_files = _contains_files,
+    equals_files = _equals_files,
 )

@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":apple_archive_tests.bzl", "apple_archive_test_suite")
 load(":apple_bundle_version_tests.bzl", "apple_bundle_version_test_suite")
 load(":apple_capability_tests.bzl", "apple_capability_test_suite")
 load(":apple_core_data_model_tests.bzl", "apple_core_data_model_test_suite")
@@ -74,6 +75,8 @@ load(":xcarchive_tests.bzl", "xcarchive_test_suite")
 load(":xctrunner_tests.bzl", "xctrunner_test_suite")
 
 licenses(["notice"])
+
+apple_archive_test_suite(name = "apple_archive")
 
 apple_bundle_version_test_suite(name = "apple_bundle_version")
 

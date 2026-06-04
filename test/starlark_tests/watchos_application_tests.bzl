@@ -25,6 +25,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
+    "analysis_target_outputs_test",
     "analysis_target_tree_artifacts_outputs_test",
 )
 load(
@@ -108,6 +109,40 @@ def watchos_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    analysis_target_outputs_test(
+        name = "{}_default_tree_artifact_output_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app",
+        expected_outputs = ["app.app"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_ipa_archive_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_with_app",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/app",
+            "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
+            "$BUNDLE_ROOT/_WatchKitStub/WK",
+        ],
+        not_contains = [
+            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_apple_archive_embeds_watch_application_forced_tree_artifact_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
+        contains = [
+            "$BUNDLE_ROOT/Watch/app.app/Info.plist",
+            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/ext",
+        ],
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -438,7 +473,7 @@ def watchos_application_test_suite(name):
     archive_contents_test(
         name = "{}_contains_stub_executable_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         contains = [
             "$ARCHIVE_ROOT/WatchKitSupport2/WK",
             "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
@@ -452,7 +487,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_simulator_ios_cpus_intel_platform_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "ios_multi_cpus": ["x86_64", "sim_arm64"],
             "watchos_cpus": [""],
@@ -470,7 +505,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_simulator_ios_cpus_arm_platform_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "ios_multi_cpus": ["x86_64", "sim_arm64"],
             "watchos_cpus": [""],
@@ -488,7 +523,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_device_ios_cpus_platform_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "ios_multi_cpus": ["arm64"],
             "watchos_cpus": [""],
@@ -506,7 +541,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_simulator_multiarch_platform_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "watchos_cpus": ["x86_64", "arm64"],
         },
@@ -522,7 +557,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_device_multiarch_arm32_platform_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "watchos_cpus": ["arm64_32"],
         },
@@ -539,7 +574,7 @@ def watchos_application_test_suite(name):
     binary_contents_test(
         name = "{}_device_arm64_32_platform_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ipa_app_companion",
         cpus = {
             "watchos_cpus": ["arm64_32"],
         },

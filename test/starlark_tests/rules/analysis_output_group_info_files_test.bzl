@@ -45,11 +45,13 @@ def _analysis_output_group_info_files_test_assertion(ctx, env, output_group_file
         actual_files = output_group_files,
     )
 
-def make_analysis_output_group_info_files_test(config_settings = {}):
+def make_analysis_output_group_info_files_test(
+        config_settings = {},
+        assertion_fn = _analysis_output_group_info_files_test_assertion):
     return make_provider_test_rule(
         provider = OutputGroupInfo,
         provider_fn = _get_output_group_files,
-        assertion_fn = _analysis_output_group_info_files_test_assertion,
+        assertion_fn = assertion_fn,
         attrs = {
             "output_group_name": attr.string(
                 mandatory = True,

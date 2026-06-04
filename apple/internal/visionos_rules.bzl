@@ -327,6 +327,7 @@ Resolved Xcode is version {xcode_version}.
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
         ),
         partials.framework_import_partial(
             actions = actions,
@@ -661,6 +662,7 @@ def _visionos_dynamic_framework_impl(ctx):
             frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -955,6 +957,7 @@ def _visionos_framework_impl(ctx):
             frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             signed_frameworks = depset(signed_frameworks),
         ),
         partials.extension_safe_validation_partial(
@@ -1233,6 +1236,7 @@ def _visionos_extension_impl(ctx):
         partials.embedded_bundles_partial(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
             **embedded_bundles_args
         ),
         partials.extension_safe_validation_partial(
@@ -1474,7 +1478,12 @@ def _visionos_static_framework_impl(ctx):
 
 visionos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_platforms_rule_bundle_output_base_transition,
-    doc = "Builds and bundles a visionOS Application.",
+    doc = """Builds and bundles a visionOS Application.
+
+This rule produces an `.app` bundle. To package that bundle as an Apple
+archive, wrap it in
+[`apple_archive`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-apple_archive.md#apple_archive).
+""",
     implementation = _visionos_application_impl,
     is_executable = True,
     # TODO(b/288582842): Currently needed to supply a "dummy archive" for the tree artifact
