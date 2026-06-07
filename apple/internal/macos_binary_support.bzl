@@ -179,7 +179,6 @@ macos_binary_infoplist = rule(
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
-        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.signing_attrs(
             supports_capabilities = False,
             profile_extension = ".provisionprofile",  # Unused, but staying consistent with macOS.
@@ -275,7 +274,6 @@ macos_command_line_launchdplist = rule(
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
-        rule_attrs.custom_transition_allowlist_attr(),
         {
             "launchdplists": attr.label_list(
                 allow_files = [".plist"],

@@ -2705,7 +2705,6 @@ Targets created with `macos_command_line_application` can be executed using
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_tool_attrs(),
-        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
@@ -2761,7 +2760,6 @@ macos_dylib = rule_factory.create_apple_rule(
             requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.common_tool_attrs(),
-        rule_attrs.custom_transition_allowlist_attr(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
             platform_type = "macos",
