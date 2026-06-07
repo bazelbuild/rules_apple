@@ -34,20 +34,13 @@ load("@rules_swift//swift:swift.bzl", "swift_library")
 swift_library(
     name = "MyLibrary",
     srcs = glob(["**/*.swift"]),
-    data = [":Main.storyboard"],
 )
 
-# Links code from "deps" into an executable, collects and compiles resources
-# from "deps" and places them with the executable in an .app bundle, and then
-# outputs an .ipa with the bundle in its Payload directory.
 ios_application(
     name = "App",
     bundle_id = "com.example.app",
-    families = [
-        "iphone",
-        "ipad",
-    ],
-    minimum_os_version = "15.0",
+    families = ["iphone"],
+    minimum_os_version = "26.0",
     deps = [":MyLibrary"],
 )
 ```
