@@ -15,6 +15,10 @@
 """apple_static_xcframework_import Starlark tests."""
 
 load(
+    "//apple:ios.bzl",
+    "ios_build_test",
+)
+load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -29,6 +33,10 @@ load(
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+)
+load(
+    ":common.bzl",
+    "common",
 )
 
 _action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_action_inputs_test_rule({
@@ -109,6 +117,16 @@ def apple_static_xcframework_import_test_suite(name):
         ],
         contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/generated_static_xcframework_with_headers"],
+        tags = [name],
+    )
+
+    # Verifies that Swift can import an Objective-C static XCFramework even
+    # when the bundle does not ship a module.modulemap and rules_swift must
+    # synthesize the module from the imported headers.
+    ios_build_test(
+        name = "{}_swift_imported_static_xcframework_without_modulemap_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:static_xcframework_without_modulemap_depending_swift_lib"],
         tags = [name],
     )
 

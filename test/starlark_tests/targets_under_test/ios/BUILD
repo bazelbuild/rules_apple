@@ -4350,6 +4350,27 @@ func static_xcframework_depending_swift_lib_function_function() {
     tags = common.fixture_tags,
 )
 
+swift_library(
+    name = "static_xcframework_without_modulemap_depending_swift_lib",
+    srcs = [":static_xcframework_without_modulemap_depending_swift_lib_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_xcframework_without_modulemap"],
+)
+
+write_file(
+    name = "static_xcframework_without_modulemap_depending_swift_lib_src",
+    out = "SwiftWithStaticFrameworkWithoutModulemap.swift",
+    content = ["""
+import generated_static_xcframework_with_headers_and_no_modulemap
+
+func static_xcframework_without_modulemap_depending_swift_lib_function() {
+  let sc = generated_static_xcframework_with_headers_and_no_modulemap.SharedClass()
+  sc.doSomethingShared()
+}
+"""],
+    tags = common.fixture_tags,
+)
+
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     features = ["-swift.layering_check"],
@@ -4377,6 +4398,14 @@ generate_static_xcframework(
         ],
     },
     tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_without_modulemap",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    xcframework_imports = [":generated_static_xcframework_with_headers_and_no_modulemap"],
 )
 
 # Swift app with imported Swift XCFramework
