@@ -791,6 +791,7 @@ def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports)
     returning the provider when it doesn't so imported Objective-C frameworks
     and XCFrameworks remain visible to Swift.
     """
+
     # Assume that there is only a single module map file (the legacy
     # implementation that read from the Objc provider made the same
     # assumption).
