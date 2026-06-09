@@ -20,7 +20,17 @@ jobs:
 
           COPYFILE_DISABLE=1 tar czvf "rules_apple.$TAG.tar.gz" ./*
           ./.github/generate-notes.sh "$TAG" | tee notes.md
-          gh release create "$TAG" --title "$TAG" --target "$GITHUB_REF_NAME" --notes-file notes.md "rules_apple.$TAG.tar.gz"
+
+          # Add generated API docs to the release
+          # See https://github.com/bazelbuild/bazel-central-registry/blob/main/docs/stardoc.md
+          docs="$(mktemp -d)"; targets="$(mktemp)"
+          bazel --output_base="$docs" query --output=label --output_file="$targets" 'kind("starlark_doc_extract rule", //...)'
+          bazel --output_base="$docs" build --target_pattern_file="$targets"
+          tar --create --auto-compress \
+              --directory "$(bazel --output_base="$docs" info bazel-bin)" \
+              --file "rules_apple.$TAG.docs.tar.gz" .
+
+          gh release create "$TAG" --title "$TAG" --target "$GITHUB_REF_NAME" --notes-file notes.md "rules_apple.$TAG.tar.gz" "rules_apple.$TAG.docs.tar.gz"
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
