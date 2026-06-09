@@ -35,6 +35,7 @@ load(
     "find_cc_toolchain",
     "use_cc_toolchain",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "@rules_swift//swift:swift.bzl",
@@ -143,7 +144,7 @@ def _is_debugging(compilation_mode):
     """
     return compilation_mode in ("dbg", "fastbuild")
 
-def _ensure_swiftmodule_is_embedded(swiftmodule):
+def _ensure_swiftmodule_is_embedded(label, swiftmodule):
     """Ensures that a `.swiftmodule` file is embedded in a library or binary.
 
     rules_apple specific implementation of rules_swift's
@@ -151,9 +152,18 @@ def _ensure_swiftmodule_is_embedded(swiftmodule):
 
     See: https://github.com/bazelbuild/rules_swift/blob/e78ceb37c401a9bf9e551a6accd1df7d864688d5/swift/internal/debugging.bzl#L20-L47
     """
-    return dict(
-        linkopt = depset(["-Wl,-add_ast_path,{}".format(swiftmodule.path)]),
-        link_inputs = depset([swiftmodule]),
+    return CcInfo(
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset([
+                cc_common.create_linker_input(
+                    owner = label,
+                    additional_inputs = depset([swiftmodule]),
+                    user_link_flags = [
+                        "-Wl,-add_ast_path,{}".format(swiftmodule.path),
+                    ],
+                ),
+            ]),
+        ),
     )
 
 def _framework_search_paths(header_imports):
@@ -326,10 +336,8 @@ def _apple_static_framework_import_impl(ctx):
         deps = deps,
     ))
 
-    # Collect transitive Objc/CcInfo providers from Swift toolchain
+    # Collect transitive CcInfo providers from Swift toolchain.
     additional_cc_infos = []
-    additional_objc_providers = []
-    additional_objc_provider_fields = {}
     if framework.swift_interface_imports or framework.swift_module_imports or has_swift:
         swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(SwiftUsageInfo())
@@ -347,14 +355,7 @@ def _apple_static_framework_import_impl(ctx):
                 target_triplet.architecture,
             )
             if swiftmodule:
-                additional_objc_provider_fields.update(_ensure_swiftmodule_is_embedded(swiftmodule))
-
-    # Create apple_common.Objc provider
-    additional_objc_providers.extend([
-        dep[apple_common.Objc]
-        for dep in deps
-        if apple_common.Objc in dep
-    ])
+                additional_cc_infos.append(_ensure_swiftmodule_is_embedded(label, swiftmodule))
 
     linkopts = []
     if sdk_dylibs:
