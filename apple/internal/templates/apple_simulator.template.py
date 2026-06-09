@@ -466,10 +466,41 @@ def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
 
   # Boot the device explicitly via simctl. Historically the boot was a side
   # effect of launching Simulator.app with `-CurrentDeviceUDID`, but Simulator.app
-  # was removed from the Xcode bundle in favor of DeviceHub.app (Xcode 26+), which
+  # was removed from the Xcode bundle in favor of DeviceHub.app (Xcode 27), which
   # does not boot a device on launch. Booting via simctl works on every Xcode
-  # version; an already-booted device exits non-zero, which we ignore.
-  subprocess.run([simctl_path, "boot", udid], check=False)
+  # version.
+  try:
+    subprocess.run([simctl_path, "boot", udid], check=True)
+  except subprocess.CalledProcessError as e:
+    # `simctl boot` errors out if the device is already booted, exiting 149
+    # with "Unable to boot device in current state: Booted". Since our goal is
+    # simply for the device to be booted, that case is already satisfied and we
+    # can carry on. But 149 is not unique to "already booted" -- other states
+    # like "Shutting Down" report it too -- so, as simulator_creator.py does, we
+    # only ignore it after confirming via `simctl list` that the device really
+    # is booted. Every other failure propagates.
+    already_booted = False
+    if e.returncode == 149:
+      list_result = subprocess.run(
+          [simctl_path, "list", "devices", "-j", udid],
+          encoding="utf-8",
+          stdout=subprocess.PIPE,
+          check=True,
+      )
+      devices = json.loads(list_result.stdout)["devices"]
+      device = next(
+          (
+              blob
+              for devices_for_os in devices.values()
+              for blob in devices_for_os
+              if blob["udid"] == udid
+          ),
+          None,
+      )
+      already_booted = bool(device) and device["state"].lower() == "booted"
+    if not already_booted:
+      raise
+    logger.debug("Simulator %s is already booted", udid)
 
   # Bring up a GUI window so the running app is visible. This is purely cosmetic
   # for `bazel run` -- the device is already booted above -- so it is best-effort:
