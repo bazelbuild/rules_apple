@@ -810,7 +810,6 @@ generate_dynamic_xcframework(
     },
     platforms = {
         "watchos": [
-            "armv7k",
             "arm64_32",
         ],
         "watchos_simulator": [
@@ -863,7 +862,6 @@ generate_static_xcframework(
     },
     platforms = {
         "watchos": [
-            "armv7k",
             "arm64_32",
         ],
         "watchos_simulator": [

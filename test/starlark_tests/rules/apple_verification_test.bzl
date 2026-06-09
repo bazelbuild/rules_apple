@@ -54,7 +54,6 @@ _CPU_TO_PLATFORM = {
     "tvos_x86_64": "//buildenv/platforms/apple/simulator:tvos_x86_64",
     "visionos_arm64": "//buildenv/platforms/apple:visionos_arm64",
     "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
-    "watchos_armv7k": "//buildenv/platforms/apple:watchos_armv7k",
     "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
     "watchos_device_arm64": "//buildenv/platforms/apple:watchos_arm64",
     "watchos_device_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
@@ -83,7 +82,7 @@ def _apple_verification_transition_impl(settings, attr):
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "device_arm64,arm64_32,armv7k",
+            "//command_line_option:watchos_cpus": "device_arm64,arm64_32",
             "//command_line_option:visionos_cpus": "arm64",
         })
 

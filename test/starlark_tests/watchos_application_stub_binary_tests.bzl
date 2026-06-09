@@ -69,7 +69,7 @@ def watchos_application_stub_binary_test_suite(name):
 
     # Test that the output stub binary is identified as watchOS simulator via the Mach-O load
     # command LC_VERSION_MIN_WATCHOS for the arm64 binary slice when only iOS cpus are defined, and
-    # that it defaults to armv7k.
+    # that it defaults to arm64_32.
     binary_contents_test(
         name = "{}_device_ios_cpus_arm64_platform_test".format(name),
         build_type = "device",
@@ -79,15 +79,15 @@ def watchos_application_stub_binary_test_suite(name):
             "watchos_cpus": [""],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        binary_test_architecture = "armv7k",
-        binary_not_contains_architectures = ["arm64_32", "arm64", "arm64e"],
+        binary_test_architecture = "arm64_32",
+        binary_not_contains_architectures = ["arm64", "arm64e"],
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
     )
 
     # Test that the output stub binary is identified as watchOS simulator via the Mach-O load
     # command LC_VERSION_MIN_WATCHOS for the arm64e binary slice when only iOS cpus are defined, and
-    # that it defaults to armv7k.
+    # that it defaults to arm64_32.
     binary_contents_test(
         name = "{}_device_ios_cpus_arm64e_platform_test".format(name),
         build_type = "device",
@@ -97,14 +97,14 @@ def watchos_application_stub_binary_test_suite(name):
             "watchos_cpus": [""],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        binary_test_architecture = "armv7k",
-        binary_not_contains_architectures = ["arm64_32", "arm64", "arm64e"],
+        binary_test_architecture = "arm64_32",
+        binary_not_contains_architectures = ["arm64", "arm64e"],
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
     )
 
     # Test that the output multi-arch stub binary is identified as watchOS simulator via the Mach-O
-    # load command LC_BUILD_VERSION for the arm64 binary slice, and that 32-bit archs are
+    # load command LC_BUILD_VERSION for the arm64 binary slice, and that the arm64e arch is
     # eliminated.
     binary_contents_test(
         name = "{}_simulator_multiarch_platform_test".format(name),
@@ -115,23 +115,23 @@ def watchos_application_stub_binary_test_suite(name):
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
         binary_test_architecture = "arm64",
-        binary_not_contains_architectures = ["i386", "arm64e"],
+        binary_not_contains_architectures = ["arm64e"],
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
     # Test that the output multi-arch stub binary is identified as watchOS device via the Mach-O
-    # load command LC_VERSION_MIN_WATCHOS for the arm64_32 binary slice, and that 64-bit archs are
-    # eliminated.
+    # load command LC_VERSION_MIN_WATCHOS for the arm64_32 binary slice, and that the arm64e arch
+    # is eliminated if it was not explicitly requested.
     binary_contents_test(
-        name = "{}_device_multiarch_arm32_platform_test".format(name),
+        name = "{}_device_multiarch_arm64_no_64e_platform_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
         cpus = {
-            "watchos_cpus": ["armv7k", "arm64_32"],
+            "watchos_cpus": ["arm64_32", "device_arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        binary_not_contains_architectures = ["arm64e", "arm64"],
+        binary_not_contains_architectures = ["arm64e"],
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
@@ -139,7 +139,7 @@ def watchos_application_stub_binary_test_suite(name):
 
     # Test that the output binary for a single arch build is identified as watchOS device via the
     # Mach-O load command LC_VERSION_MIN_WATCHOS for the arm64_32 binary slice, and that the 64-bit
-    # archs and the armv7k arch are eliminated.
+    # archs are eliminated.
     binary_contents_test(
         name = "{}_device_arm64_32_platform_test".format(name),
         build_type = "device",
@@ -148,7 +148,7 @@ def watchos_application_stub_binary_test_suite(name):
             "watchos_cpus": ["arm64_32"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        binary_not_contains_architectures = ["armv7k", "arm64e", "arm64"],
+        binary_not_contains_architectures = ["arm64e", "arm64"],
         binary_test_architecture = "arm64_32",
         macho_load_commands_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
         tags = [name],
