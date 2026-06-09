@@ -335,8 +335,8 @@ swift_library(
 swift_library(
     name = "swift_framework_lib_with_swiftinterface",
     srcs = ["//test/testdata/sources:main.swift"],
-    library_evolution = True,
     generates_header = True,
+    library_evolution = True,
     module_name = "swift_framework_lib",
     tags = common.fixture_tags,
 )
