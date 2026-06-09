@@ -155,6 +155,19 @@ def _watchos_extension_based_application_impl(ctx):
         rule_label = ctx.label,
     )
 
+    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_version_less_than_27 = (
+        xcode_version_config.xcode_version() < apple_common.dotted_version("27.0")
+    )
+    if not xcode_version_less_than_27:
+        fail("""
+Error: watchOS 2 extension-based applications can no longer be built with Xcode 27 or later.
+
+Please migrate {rule_label} to a single-target watchOS application by removing the assigned \
+watchOS 2 app extension and making sure a valid watchOS application delegate is referenced in this \
+watchos_application's `deps`.
+""".format(rule_label = str(ctx.label)))
+
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
     if minimum_os >= apple_common.dotted_version("9.0"):
         fail("""
@@ -246,7 +259,7 @@ watchos_application's `deps`.
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = False,  # No binary deps to check.
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = xcode_version_config,
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
