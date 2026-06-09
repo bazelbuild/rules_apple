@@ -689,10 +689,6 @@ def _apple_static_xcframework_import_impl(ctx):
         # links to the standard libraries correctly.
         additional_cc_infos.extend(swift_toolchains.swift.implicit_deps_providers.cc_infos)
 
-        # TODO: remove this once rules_swift 3+ is required
-        if hasattr(swift_toolchains.swift.implicit_deps_providers, "objc_infos"):
-            additional_objc_providers.extend(swift_toolchains.swift.implicit_deps_providers.objc_infos)
-
     # Create Objc provider
     additional_objc_providers.extend([
         dep[apple_common.Objc]
