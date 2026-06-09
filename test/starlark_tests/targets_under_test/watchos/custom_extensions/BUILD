@@ -31,7 +31,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.requires_single_target_app,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -46,7 +46,7 @@ watchos_extension(
     infoplists = [
         ":WidgetKitExtensionInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.requires_single_target_app,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [

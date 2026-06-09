@@ -18,10 +18,6 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
-load(
-    "//test/starlark_tests/rules:output_group_zip_contents_test.bzl",
-    "output_group_zip_contents_test",
-)
 
 visibility("private")
 
@@ -49,24 +45,6 @@ def watchos_application_swift_test_suite(name):
 
     # Check that the combined zip contains the expected essential Payload files and watchOS + Swift
     # support files.
-    output_group_zip_contents_test(
-        name = "{}_has_combined_zip_output_group".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_watchos_with_swift",
-        output_group_name = "combined_dossier_zip",
-        output_group_file_shortpath = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/watchos/ios_with_swift_watchos_with_swift_dossier_with_bundle.zip",
-        contains = [
-            "bundle/Payload/companion.app/Info.plist",
-            "bundle/Payload/companion.app/companion",
-            "bundle/Payload/companion.app/Watch/app.app/Info.plist",
-            "bundle/Payload/companion.app/Watch/app.app/app",
-            "bundle/Payload/companion.app/Watch/app.app/PlugIns/ext.appex/Info.plist",
-            "bundle/Payload/companion.app/Watch/app.app/PlugIns/ext.appex/ext",
-            "bundle/WatchKitSupport2/WK",
-            "dossier/manifest.json",
-        ],
-        tags = [name],
-    )
 
     native.test_suite(
         name = name,

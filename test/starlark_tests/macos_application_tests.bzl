@@ -116,19 +116,6 @@ def macos_application_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_swift_dylibs_no_static_linkage_test".format(name),
-        build_type = "device",
-        contains = [
-            "$CONTENT_ROOT/Frameworks/libswiftCore.dylib",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_basic_swift",
-        binary_test_file = "$CONTENT_ROOT/MacOS/app_basic_swift",
-        binary_test_architecture = "x86_64",
-        binary_not_contains_symbols = ["_swift_slowAlloc"],
-        tags = [name],
-    )
-
-    archive_contents_test(
         name = "{}_additional_contents_test".format(name),
         build_type = "device",
         contains = [
@@ -444,7 +431,7 @@ def macos_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": common.min_os_macos.baseline,
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         tags = [name],
     )
@@ -456,7 +443,7 @@ def macos_application_test_suite(name):
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_macos.baseline,
+            "--minimum-deployment-target " + common.min_os_macos.min_deployment_target,
             "--platform macosx",
         ],
         tags = [name],

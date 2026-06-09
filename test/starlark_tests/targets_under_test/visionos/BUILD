@@ -20,7 +20,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_visionos.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -36,7 +36,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_visionos.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -59,7 +59,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
@@ -73,7 +73,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:realitykit_codeless_content",
@@ -88,7 +88,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:realitykit_standalone_content",
@@ -103,7 +103,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:library_with_two_apple_resource_hints",
@@ -118,7 +118,7 @@ visionos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_visionos.baseline,
+    minimum_os_version = common.min_os_visionos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:realitykit_dependent_content",

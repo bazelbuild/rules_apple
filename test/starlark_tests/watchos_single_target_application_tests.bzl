@@ -423,7 +423,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.baseline,
+            "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "UIDeviceFamily:0": "4",
             "WKApplication": "true",
         },
@@ -487,7 +487,7 @@ bundles are present.""",
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_watchos.baseline,
+            "--minimum-deployment-target " + common.min_os_watchos.min_deployment_target,
             "--platform watchsimulator",
         ],
         tags = [
@@ -496,21 +496,6 @@ bundles are present.""",
     )
 
     # Post-ABI stability, Swift should not be bundled at all.
-    archive_contents_test(
-        name = "{}_device_build_ios_swift_watchos_swift_stable_abi_test".format(name),
-        build_type = "device",
-        not_contains = [
-            "$ARCHIVE_ROOT/SwiftSupport/iphoneos/libswiftCore.dylib",
-            "$ARCHIVE_ROOT/SwiftSupport/watchos/libswiftCore.dylib",
-            "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
-            "$BUNDLE_ROOT/Watch/app.app/Frameworks/libswiftCore.dylib",
-            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Frameworks/libswiftCore.dylib",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ios_with_swift_single_target_watchos_with_swift_stable_abi",
-        tags = [
-            name,
-        ],
-    )
 
     # TODO: b/440323872 - Re-enable these tests when the logic to derive watchOS platforms from
     # multiple iOS platforms is resolved.

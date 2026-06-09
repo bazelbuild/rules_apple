@@ -94,7 +94,7 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": common.min_os_macos.baseline,
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         tags = [name],
     )
@@ -119,7 +119,7 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.13",
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         tags = [name],
     )
@@ -205,7 +205,7 @@ def macos_command_line_application_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": "10.13",
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         tags = [name],
     )

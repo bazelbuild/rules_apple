@@ -295,7 +295,7 @@ There must be one root Info.plist in the framework bundle at \
             "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/",
             "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/",
         ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
     archive_contents_test(
@@ -315,7 +315,7 @@ There must be one root Info.plist in the framework bundle at \
             "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/",
             "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/",
         ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -326,7 +326,7 @@ There must be one root Info.plist in the framework bundle at \
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_nplus1_minos_and_baseline_minos_imported_static_framework_xcframework",
         plist_test_file = "$BUNDLE_ROOT/Frameworks/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
         plist_test_values = {
-            "MinimumOSVersion": common.min_os_ios.baseline,
+            "MinimumOSVersion": common.min_os_ios.min_deployment_target,
         },
         tags = [name],
     )
@@ -354,7 +354,7 @@ There must be one root Info.plist in the framework bundle at \
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
         ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.min_deployment_target, "platform MACOS"],
         tags = [name],
     )
     archive_contents_test(
@@ -372,7 +372,7 @@ There must be one root Info.plist in the framework bundle at \
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
         ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.min_deployment_target, "platform MACOS"],
         tags = [name],
     )
     archive_contents_test(
@@ -390,7 +390,7 @@ There must be one root Info.plist in the framework bundle at \
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/Resources/Info.plist",
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current/generated_static_macos_versioned_xcframework",
         ],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support_plus1, "platform MACOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.min_deployment_target, "platform MACOS"],
         tags = [name],
     )
 

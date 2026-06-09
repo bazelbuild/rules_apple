@@ -163,7 +163,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -178,7 +178,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -195,7 +195,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -212,7 +212,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64e",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -227,7 +227,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -242,7 +242,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -257,7 +257,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64e",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
     )
 
@@ -272,7 +272,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -287,7 +287,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -304,7 +304,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.min_deployment_target, "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
@@ -319,7 +319,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.min_deployment_target, "platform WATCHOSSIMULATOR"],
         tags = [name],
     )
 
@@ -336,7 +336,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_watch_library_arm_sim_support",
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.min_deployment_target, "platform WATCHOS"],
         tags = [name],
     )
 
@@ -351,7 +351,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64_32",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.baseline, "platform WATCHOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_watchos.min_deployment_target, "platform WATCHOS"],
         tags = [name],
     )
 
@@ -392,7 +392,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform VISIONOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.min_deployment_target, "platform VISIONOS"],
         tags = [
             name,
         ],
@@ -409,7 +409,7 @@ All requested architectures must be either device or simulator architectures."""
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.baseline, "platform VISIONOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_visionos.min_deployment_target, "platform VISIONOSSIMULATOR"],
         tags = [
             name,
         ],

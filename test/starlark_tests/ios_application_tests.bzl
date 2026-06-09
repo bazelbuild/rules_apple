@@ -589,7 +589,7 @@ All requested architectures must be either device or simulator architectures."""
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_ios.baseline,
+            "MinimumOSVersion": common.min_os_ios.min_deployment_target,
             "UIDeviceFamily:0": "1",
         },
         tags = [name],

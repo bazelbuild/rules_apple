@@ -90,7 +90,7 @@ def tvos_extension_test_suite(name):
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_tvos.baseline,
+            "MinimumOSVersion": common.min_os_tvos.min_deployment_target,
             "UIDeviceFamily:0": "3",
         },
         tags = [name],

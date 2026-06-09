@@ -87,7 +87,7 @@ def macos_unit_test_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": common.min_os_macos.baseline,
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test",
         tags = [name],
@@ -136,7 +136,7 @@ def macos_unit_test_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos 11.0", "platform MACOS"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.min_deployment_target, "platform MACOS"],
         tags = [name],
     )
 

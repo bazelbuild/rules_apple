@@ -148,7 +148,7 @@ def watchos_extension_test_suite(name):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.baseline,
+            "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
             "NSExtension:NSExtensionPointIdentifier": "com.apple.watchkit",
             "UIDeviceFamily:0": "4",

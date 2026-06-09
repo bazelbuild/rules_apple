@@ -23,10 +23,6 @@ load(
     "analysis_target_actions_test",
 )
 load(
-    "//test/starlark_tests/rules:apple_bundle_archive_support_info_device_test.bzl",
-    "apple_bundle_archive_support_info_device_test",
-)
-load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -87,7 +83,7 @@ def watchos_application_test_suite(name):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.baseline,
+            "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "UIDeviceFamily:0": "4",
             "WKWatchKitApp": "true",
         },
@@ -101,7 +97,7 @@ def watchos_application_test_suite(name):
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_watchos.baseline,
+            "--minimum-deployment-target " + common.min_os_watchos.min_deployment_target,
             "--platform watchsimulator",
         ],
         tags = [name],
@@ -111,25 +107,9 @@ def watchos_application_test_suite(name):
     # supposed to be. This must be tested through the companion app since
     # the `WatchKitSupport2` directory is only added at the root of archives
     # for distribution.
-    archive_contents_test(
-        name = "{}_contains_stub_executable_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
-        contains = [
-            "$ARCHIVE_ROOT/WatchKitSupport2/WK",
-            "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
-        ],
-        tags = [name],
-    )
 
     # Tests that the WatchKit stub executable is referenced via the provider if we're building the
     # iOS companion app as a tree artifact.
-    apple_bundle_archive_support_info_device_test(
-        name = "{}_bundle_archive_support_contains_stub_executable_device_test".format(name),
-        expected_archive_bundle_files = ["WatchKitSupport2/WK"],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
-        tags = [name],
-    )
 
     # Tests that the tsan support libraries are found in the app extension bundle of a watchOS app.
     archive_contents_test(
@@ -193,33 +173,6 @@ def watchos_application_test_suite(name):
     )
 
     # Bundle identifier watchOS plist keys tests:
-    archive_contents_test(
-        name = "{}_plist_keys_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
-        contains = [
-            "$BUNDLE_ROOT/Watch/app.app/Info.plist",
-            "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Info.plist",
-        ],
-        plist_test_file = "$BUNDLE_ROOT/Watch/app.app/Info.plist",
-        plist_test_values = {
-            "CFBundleIdentifier": "com.google.example",
-            "WKCompanionAppBundleIdentifier": "com.google",
-        },
-        tags = [name],
-    )
-
-    archive_contents_test(
-        name = "{}_ext_plist_keys_test".format(name),
-        build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
-        plist_test_file = "$BUNDLE_ROOT/Watch/app.app/PlugIns/ext.appex/Info.plist",
-        plist_test_values = {
-            "CFBundleIdentifier": "com.google.example.ext",
-            "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
-        },
-        tags = [name],
-    )
 
     native.test_suite(
         name = name,

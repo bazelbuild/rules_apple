@@ -59,7 +59,7 @@ def watchos_framework_test_suite(name):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.requires_single_target_app,
+            "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "UIDeviceFamily:0": "4",
         },
         tags = [name],
@@ -160,7 +160,7 @@ def watchos_framework_test_suite(name):
 ERROR: minimum_os_version {framework_version} on the framework //test/starlark_tests/targets_under_test/watchos/frameworks:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/watchos/frameworks:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version of {app_version}
 
 Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/watchos/frameworks:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/watchos/frameworks:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version.
-""".format(app_version = common.min_os_watchos.requires_single_target_app, framework_version = common.min_os_watchos.requires_single_target_app_nplus1),
+""".format(app_version = common.min_os_watchos.min_deployment_target, framework_version = common.min_os_watchos.nplus1),
         tags = [name],
     )
 

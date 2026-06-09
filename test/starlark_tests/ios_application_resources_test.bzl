@@ -669,7 +669,7 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_ios.baseline,
+            "--minimum-deployment-target " + common.min_os_ios.min_deployment_target,
             "--platform iphonesimulator",
         ],
         tags = [name],

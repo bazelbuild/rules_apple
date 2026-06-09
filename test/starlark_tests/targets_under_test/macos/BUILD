@@ -58,7 +58,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -87,7 +87,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -116,7 +116,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -133,7 +133,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -146,7 +146,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     resources = [
         "//test/starlark_tests/resources:mergeable_strings_resources",
     ],
@@ -163,7 +163,7 @@ macos_application(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -183,7 +183,7 @@ macos_application(
         "-exported_symbol",
         "_linkopts_test_main",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -197,7 +197,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -210,7 +210,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -230,7 +230,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -248,7 +248,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -263,7 +263,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -281,7 +281,7 @@ macos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -300,7 +300,7 @@ macos_extension(
     infoplists = [
         "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -317,7 +317,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_lib",
@@ -343,7 +343,7 @@ generate_import_framework(
     archs = ["x86_64"],
     include_versioned_frameworks = False,
     libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     sdk = "macosx",
     tags = common.fixture_tags,
 )
@@ -355,7 +355,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":dynamic_versioned_fmwk_depending_lib",
@@ -380,7 +380,7 @@ generate_import_framework(
     # buildifier: disable=platform-specific-binaries
     archs = ["x86_64"],
     libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     sdk = "macosx",
     tags = common.fixture_tags,
 )
@@ -395,7 +395,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":dynamic_xcframework_depending_lib",
@@ -423,7 +423,7 @@ generate_dynamic_xcframework(
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     include_versioned_frameworks = False,
     minimum_os_versions = {
-        "macos": common.min_os_macos.arm64_support,
+        "macos": common.min_os_macos.min_deployment_target,
     },
     platforms = {
         "macos": [
@@ -441,7 +441,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     secure_features = [
         "apple.enable_enhanced_security",
         "pointer_authentication",
@@ -476,7 +476,7 @@ generate_dynamic_xcframework(
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
-        "macos": common.min_os_macos.arm64_support,
+        "macos": common.min_os_macos.min_deployment_target,
     },
     platforms = {
         "macos": [
@@ -495,7 +495,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_macos.arm64_support_plus1,
+    minimum_os_version = common.min_os_macos.nplus1,
     secure_features = [
         "apple.enable_enhanced_security",
         "pointer_authentication",
@@ -532,7 +532,7 @@ generate_static_xcframework(
     bundle_format = "framework",
     include_versioned_frameworks = False,
     minimum_os_versions = {
-        "macos": common.min_os_macos.arm64_support,
+        "macos": common.min_os_macos.min_deployment_target,
     },
     platforms = {
         "macos": [
@@ -551,7 +551,7 @@ macos_application(
         "//test/starlark_tests/resources:Info.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_macos.arm64_support_plus1,
+    minimum_os_version = common.min_os_macos.nplus1,
     secure_features = [
         "apple.enable_enhanced_security",
         "pointer_authentication",
@@ -587,7 +587,7 @@ generate_static_xcframework(
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     bundle_format = "framework",
     minimum_os_versions = {
-        "macos": common.min_os_macos.arm64_support,
+        "macos": common.min_os_macos.min_deployment_target,
     },
     platforms = {
         "macos": [
@@ -612,7 +612,7 @@ macos_bundle(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -627,7 +627,7 @@ macos_bundle(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -641,7 +641,7 @@ macos_bundle(
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -662,7 +662,7 @@ macos_bundle(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -680,7 +680,7 @@ macos_bundle(
         "_anotherFunctionShared",
         "_linkopts_test_anotherFunctionShared",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -694,7 +694,7 @@ macos_bundle(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -705,7 +705,7 @@ macos_bundle(
 
 macos_command_line_application(
     name = "cmd_app_basic",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
@@ -714,7 +714,7 @@ macos_command_line_application(
 
 macos_command_line_application(
     name = "cmd_app_basic_swift",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:swift_main_lib",
@@ -728,7 +728,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -747,7 +747,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:launchd.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -761,7 +761,7 @@ macos_command_line_application(
         "_main",
         "_linkopts_test_main",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -774,7 +774,7 @@ macos_command_line_application(
         "//test/starlark_tests/resources:ExportAnotherFunctionMain.exp",
     ],
     linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -783,7 +783,7 @@ macos_command_line_application(
 
 macos_command_line_application(
     name = "cmd_app_basic_version",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     version = "//test/starlark_tests/targets_under_test/apple:manual_1_2_build_1_2_3_version",
     deps = [
@@ -795,7 +795,7 @@ macos_command_line_application(
 
 macos_dylib(
     name = "dylib",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
@@ -809,7 +809,7 @@ macos_dylib(
         "//test/starlark_tests/resources:ExportAnotherFunctionShared.exp",
     ],
     linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -827,7 +827,7 @@ macos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -842,7 +842,7 @@ macos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -857,7 +857,7 @@ macos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -875,7 +875,7 @@ macos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -895,7 +895,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -913,7 +913,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.arm64_support,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
@@ -927,7 +927,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -942,7 +942,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -960,7 +960,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -972,7 +972,7 @@ macos_unit_test(
 macos_unit_test(
     name = "unit_test_data_deps",
     data = [":runfiles1"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
 )
@@ -1051,7 +1051,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -1067,7 +1067,7 @@ macos_bundle(
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -1083,7 +1083,7 @@ macos_command_line_application(
     infoplists = [
         "//test/starlark_tests/resources:Info-nopackage.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -1099,7 +1099,7 @@ macos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
     ],
@@ -1116,7 +1116,7 @@ macos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -1132,7 +1132,7 @@ macos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
@@ -1150,7 +1150,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     resource_locales = "//test/starlark_tests/resources:locales_it",
     resources = [
         "//test/starlark_tests/resources:localized_strings",
@@ -1170,7 +1170,7 @@ macos_dylib(
         "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
         "apple.enable_enhanced_security",
@@ -1184,7 +1184,7 @@ macos_dylib(
 
 macos_dylib(
     name = "pointer_authentication_dylib",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
         "apple.enable_enhanced_security",
@@ -1230,7 +1230,7 @@ objc_library(
 
 macos_command_line_application(
     name = "cmd_app_to_test_building_apple_bundle",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":is_building_apple_bundle_lib",
@@ -1243,7 +1243,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":is_building_apple_bundle_lib",
@@ -1257,7 +1257,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:framework_resources_lib",
@@ -1272,7 +1272,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1286,7 +1286,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     visibility = [
         "//test/starlark_tests:__subpackages__",
@@ -1311,7 +1311,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":objc_lib_with_generated_resources",
@@ -1326,7 +1326,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1339,7 +1339,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:bundle_library_apple_lib",
@@ -1354,7 +1354,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1368,7 +1368,7 @@ macos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1382,7 +1382,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1416,7 +1416,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info-noversion.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1431,7 +1431,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1444,7 +1444,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":fmwk_structured_resources_lib",
@@ -1459,7 +1459,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":app_structured_resources_lib",
@@ -1473,7 +1473,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:basic_bundle_lib",
@@ -1488,7 +1488,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1501,7 +1501,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib_with_resources",
@@ -1515,7 +1515,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":lib_with_structured_resources",
@@ -1530,7 +1530,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1545,7 +1545,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1559,7 +1559,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1573,7 +1573,7 @@ macos_framework(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1590,7 +1590,7 @@ macos_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-x"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1607,7 +1607,7 @@ macos_framework(
         "//test/starlark_tests/resources:Info.plist",
     ],
     linkopts = ["-dead_strip"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1620,7 +1620,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":imported_dynamic_versioned_fmwk",
@@ -1635,7 +1635,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1648,7 +1648,7 @@ macos_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.arm64_support,
+    minimum_os_version = common.min_os_macos.nplus1,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
@@ -1662,7 +1662,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -1676,7 +1676,7 @@ generate_import_framework(
     include_resource_bundle = True,
     include_versioned_frameworks = False,
     libtype = "static",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     sdk = "macosx",
     tags = common.fixture_tags,
 )
@@ -1686,7 +1686,7 @@ generate_import_framework(
     archs = ["arm64"],
     include_resource_bundle = True,
     libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     sdk = "macosx",
     tags = common.fixture_tags,
 )
@@ -1716,7 +1716,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":macOSImportedStaticFramework",
@@ -1731,7 +1731,7 @@ macos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":macOSImportedDynamicFramework",
@@ -1771,7 +1771,7 @@ macos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
         ":objc_lib_with_macos_framework",
@@ -1871,7 +1871,7 @@ macos_application(
     name = "macos_app_fixture",
     bundle_id = "my.bundle.id",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )
@@ -1881,7 +1881,7 @@ macos_application(
     bundle_id = "my.bundle.id",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
     ipa_post_processor = "//test/starlark_tests/resources:post_processor.sh",
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )
@@ -1890,7 +1890,7 @@ macos_bundle(
     name = "macos_bundle_fixture",
     bundle_id = "my.bundle.id",
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
-    minimum_os_version = common.min_os_macos.baseline,
+    minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )

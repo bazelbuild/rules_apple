@@ -163,7 +163,7 @@ def tvos_application_test_suite(name):
         target_mnemonic = "AssetCatalogCompile",
         expected_argv = [
             "--compile",
-            "--minimum-deployment-target " + common.min_os_tvos.baseline,
+            "--minimum-deployment-target " + common.min_os_tvos.min_deployment_target,
             "--platform appletvsimulator",
         ],
         tags = [name],
@@ -248,7 +248,7 @@ def tvos_application_test_suite(name):
             "DTSDKName": "appletvsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_tvos.baseline,
+            "MinimumOSVersion": common.min_os_tvos.min_deployment_target,
             "UIDeviceFamily:0": "3",
             "UILaunchStoryboardName": "launch_screen_tvos",
         },

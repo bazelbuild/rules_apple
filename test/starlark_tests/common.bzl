@@ -24,16 +24,16 @@ _fixture_tags = [
     "notap",
 ]
 
-# The current baseline for iOS is version 15.0, based on Xcode 26.0 on Apple's Xcode Support page:
-# https://developer.apple.com/support/xcode/, and it is what Apple builds backport compatibility
-# libraries with. Anything earlier than 15.0 is likely not going to work with the current toolchain.
+# The current min_deployment_target for iOS is version 15.0, based on Xcode 27 on Apple's Xcode
+# Support page: https://developer.apple.com/support/xcode/, and it is what Apple builds backport
+# compatibility libraries with. Anything earlier than 15.0 is likely not going to work with the
+#current toolchain.
 _min_os_ios = struct(
     app_intents_support = "16.0",
     app_intents_package_support = "17.0",
-    baseline = "15.0",
+    min_deployment_target = "15.0",
     cpp_typed_allocator_simulator_support = "18.0",
     icon_bundle_required = "26.0",
-    oldest_supported = "15.0",
     nplus1 = "16.0",
     span_in_os = "26.0",
     test_mismatch_high_threshold = "17.0",
@@ -41,46 +41,37 @@ _min_os_ios = struct(
     widget_configuration_intents_support = "16.0",
 )
 
-# The baseline for macOS is version 10.13, which is lower than the lowest version supported by
-# Xcode 26.0 (which is 11.0). This will likely get bumped as we get closer to Intel deprecation,
-# especially as Apple builds backport compatibility libraries with a minimum OS version of 11.0.
+# The current min_deployment_target for macOS is version 12.0, based on Xcode 27 on Apple's Xcode
+# Support page: https://developer.apple.com/support/xcode/
 _min_os_macos = struct(
     app_intents_support = "13.0",
     app_intents_package_support = "14.0",
-    arm64_support = "11.0",
-    concurrency_sleep_support = "10.15",
-    baseline = "10.13",
+    min_deployment_target = "12.0",
+    nplus1 = "13.0",
     icon_bundle_required = "26.0",
-    requires_concurrency_stdlib = "10.14",
-    arm64_support_plus1 = "12.0",
 )
 
-# The current baseline for tvOS is version 15.0, based on Xcode 26.0 on Apple's Xcode Support page:
-# https://developer.apple.com/support/xcode/
+# The current min_deployment_target for tvOS is version 15.0, based on Xcode 27 on Apple's Xcode
+# Support page: https://developer.apple.com/support/xcode/
 _min_os_tvos = struct(
     app_intents_support = "16.0",
     app_intents_package_support = "17.0",
-    arm_sim_support = "14.0",
-    baseline = "13.0",
+    min_deployment_target = "15.0",
     nplus1 = "16.0",
-    oldest_supported = "15.0",
 )
 
 _min_os_visionos = struct(
-    baseline = "1.0",
-    oldest_supported = "1.0",
+    min_deployment_target = "1.0",
 )
 
-# The current baseline for watchOS is version 8.0, based on Xcode 26.0 on Apple's Xcode Support page:
-# https://developer.apple.com/support/xcode/
+# The current min_deployment_target for watchOS is version 9.0, based on Xcode 27 on Apple's Xcode
+# Support page: https://developer.apple.com/support/xcode/
 _min_os_watchos = struct(
     app_intents_support = "9.0",
     app_intents_package_support = "10.0",
-    arm64_support = "9.0",
-    baseline = "8.0",
+    min_deployment_target = "9.0",
+    nplus1 = "10.0",
     icon_bundle_required = "26.0",
-    requires_single_target_app = "9.0",
-    requires_single_target_app_nplus1 = "10.0",
 )
 
 common = struct(

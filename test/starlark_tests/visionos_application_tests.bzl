@@ -220,7 +220,7 @@ def visionos_application_test_suite(name):
             "DTSDKName": "xr*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_visionos.baseline,
+            "MinimumOSVersion": common.min_os_visionos.min_deployment_target,
             "UIDeviceFamily:0": "7",
         },
         tags = [

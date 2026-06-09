@@ -86,7 +86,7 @@ def watchos_unit_test_test_suite(name):
             "DTSDKName": "watchsimulator*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_watchos.baseline,
+            "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "UIDeviceFamily:0": "4",
         },
         tags = [name],

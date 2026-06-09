@@ -134,7 +134,7 @@ def ios_extension_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_ios.baseline,
+            "MinimumOSVersion": common.min_os_ios.min_deployment_target,
             "UIDeviceFamily:0": "1",
             "UIDeviceFamily:1": "2",
         },

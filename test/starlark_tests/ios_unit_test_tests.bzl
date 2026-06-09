@@ -82,7 +82,7 @@ def ios_unit_test_test_suite(name):
             "DTSDKName": "iphone*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "MinimumOSVersion": common.min_os_ios.baseline,
+            "MinimumOSVersion": common.min_os_ios.min_deployment_target,
             "UIDeviceFamily:0": "1",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
@@ -206,7 +206,7 @@ def ios_unit_test_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 
@@ -219,7 +219,7 @@ def ios_unit_test_test_suite(name):
         },
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.baseline, "platform IOSSIMULATOR"],
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOSSIMULATOR"],
         tags = [name],
     )
 

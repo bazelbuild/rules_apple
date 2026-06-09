@@ -42,52 +42,13 @@ package(
 )
 
 watchos_application(
-    name = "app",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":ext",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_application(
     name = "app_with_no_extension_or_deps",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_application(
-    name = "app_for_test_runner",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":ext",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_application(
-    name = "app_with_ext_with_invalid_watchos_version",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":ext",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.requires_single_target_app,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
 )
@@ -100,7 +61,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -135,7 +96,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -153,7 +114,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -168,7 +129,7 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -183,7 +144,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     watch_application = ":single_target_app_with_generic_ext",
@@ -200,26 +161,12 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
     ],
-)
-
-watchos_application(
-    name = "app_with_generic_ext",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":ext",
-    extensions = [":generic_ext"],
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
 )
 
 watchos_extension(
@@ -230,7 +177,7 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:ExtensionKitInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -246,7 +193,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -262,7 +209,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -276,18 +223,6 @@ watchos_application(
 )
 
 watchos_application(
-    name = "app_with_ext_with_imported_fmwk",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":ext_with_imported_fmwk",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    tags = common.fixture_tags,
-)
-
-watchos_application(
     name = "single_target_app_with_imported_fmwk",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     bundle_id = "com.google.example",
@@ -296,7 +231,7 @@ watchos_application(
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
     ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -312,77 +247,11 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.arm64_support,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
-    ],
-)
-
-watchos_extension(
-    name = "ext",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    resources = [
-        "//test/starlark_tests/resources:example_filegroup",
-        "//test/starlark_tests/resources:localization",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
-watchos_application(
-    name = "app_with_watchos2_delegate_extensionkit_ext",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    extension = ":watchos2_delegate_extensionkit_ext",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_extension(
-    name = "watchos2_delegate_extensionkit_ext",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    extensionkit_extension = True,
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
-watchos_extension(
-    name = "ext_with_imported_fmwk",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_verify_codesigning",
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        ":dynamic_fmwk_depending_lib",
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
 )
 
@@ -393,31 +262,8 @@ watchos_extension(
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     tags = common.fixture_tags,
-)
-
-ios_application(
-    name = "app_companion",
-    bundle_id = "com.google",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    secure_features = [
-        "apple.enable_enhanced_security",
-        "pointer_authentication",
-    ],
-    tags = common.fixture_tags,
-    visibility = [
-        "//test/starlark_tests:__subpackages__",
-    ],
-    watch_application = ":app",
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
 )
 
 ios_application(
@@ -427,7 +273,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
@@ -460,7 +306,7 @@ generate_import_framework(
     archs = ["x86_64"],
     include_resource_bundle = True,
     libtype = "dynamic",
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     sdk = "watchsimulator",
     tags = common.fixture_tags,
 )
@@ -475,7 +321,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.baseline,
+    minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     watch_application = ":watchos_app_with_extension",
@@ -491,26 +337,12 @@ watchos_extension(
     infoplists = [
         "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:watchkit_ext_main_lib",
     ],
-)
-
-watchos_application(
-    name = "watchos_app_with_extension",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    bundle_name = "app",
-    extension = ":watchos_app_extension",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
 )
 
 watchos_application(
@@ -521,7 +353,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -543,7 +375,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -558,168 +390,6 @@ watchos_application(
 
 # ---------------------------------------------------------------------------------------
 
-ios_application(
-    name = "ios_with_swift_watchos_no_swift",
-    bundle_id = "com.google",
-    bundle_name = "companion",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    watch_application = ":watchos_app_no_swift",
-    deps = [
-        ":swift_lib",
-    ],
-)
-
-ios_application(
-    name = "ios_no_swift_watchos_with_swift",
-    bundle_id = "com.google",
-    bundle_name = "companion",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    watch_application = ":watchos_app_swift",
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "ios_with_swift_watchos_with_swift",
-    bundle_id = "com.google",
-    bundle_name = "companion",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.oldest_supported,  # Before the stable Swift ABI
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    watch_application = ":watchos_app_swift",
-    deps = [
-        ":swift_lib",
-    ],
-)
-
-ios_application(
-    name = "ios_with_swift_watchos_with_swift_stable_abi",
-    bundle_id = "com.google",
-    bundle_name = "companion",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    watch_application = ":watchos_app_swift_stable_abi",
-    deps = [
-        ":swift_lib",
-    ],
-)
-
-ios_application(
-    name = "ios_with_swift_single_target_watchos_with_swift_stable_abi",
-    bundle_id = "com.google",
-    bundle_name = "companion",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    watch_application = ":watchos_single_target_app_swift_stable_abi",
-    deps = [
-        ":swift_lib",
-    ],
-)
-
-watchos_application(
-    name = "watchos_app_swift",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    bundle_name = "app",
-    extension = ":watchos_ext_swift",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_extension(
-    name = "watchos_ext_swift",
-    bundle_id = "com.google.example.ext",
-    bundle_name = "ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
-watchos_application(
-    name = "watchos_app_swift_stable_abi",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    bundle_name = "app",
-    extension = ":watchos_ext_swift_stable_abi",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-)
-
-watchos_application(
-    name = "watchos_single_target_app_swift_stable_abi",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_id = "com.google.example",
-    bundle_name = "app",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
-    ],
-)
-
-watchos_extension(
-    name = "watchos_ext_swift_stable_abi",
-    bundle_id = "com.google.example.ext",
-    bundle_name = "ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
 swift_library(
     name = "swift_lib",
     srcs = ["//test/testdata/sources:main.swift"],
@@ -731,7 +401,7 @@ watchos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app_for_test_runner",
@@ -745,7 +415,7 @@ watchos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":single_target_app_for_test_runner",
@@ -759,7 +429,7 @@ watchos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
@@ -777,7 +447,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.arm64_support,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -805,8 +475,8 @@ generate_dynamic_xcframework(
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
-        "watchos": common.min_os_watchos.arm64_support,
-        "watchos_simulator": common.min_os_watchos.baseline,
+        "watchos": common.min_os_watchos.min_deployment_target,
+        "watchos_simulator": common.min_os_watchos.min_deployment_target,
     },
     platforms = {
         "watchos": [
@@ -830,7 +500,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.arm64_support,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -857,8 +527,8 @@ generate_static_xcframework(
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
-        "watchos": common.min_os_watchos.arm64_support,
-        "watchos_simulator": common.min_os_watchos.baseline,
+        "watchos": common.min_os_watchos.min_deployment_target,
+        "watchos_simulator": common.min_os_watchos.min_deployment_target,
     },
     platforms = {
         "watchos": [
@@ -917,7 +587,7 @@ watchos_application(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     resources = [
         "//test/starlark_tests/resources:example_filegroup",
@@ -938,51 +608,13 @@ watchos_application(
 # Targets for base_bundle_id and bundle_id flows with and without shared capabilities.
 
 watchos_application(
-    name = "app_with_ext_with_capability_set_derived_bundle_id",
-    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
-    bundle_name = "app",
-    extension = ":ext_with_capability_set_derived_bundle_id",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosAppInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    tags = common.fixture_tags,
-)
-
-watchos_extension(
-    name = "ext_with_capability_set_derived_bundle_id",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:WatchosExtensionCapabilityDerivedInfo.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.baseline,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    resources = [
-        "//test/starlark_tests/resources:example_filegroup",
-        "//test/starlark_tests/resources:localization",
-        "//test/starlark_tests/resources:resource_bundle",
-    ],
-    shared_capabilities = [
-        "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:watchkit_ext_main_lib",
-    ],
-)
-
-watchos_application(
     name = "single_target_app_with_capability_set_derived_bundle_id",
     app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     shared_capabilities = [
         "//test/starlark_tests/targets_under_test/apple/capabilities:base_capability_set",
@@ -1000,7 +632,7 @@ watchos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app_for_test_runner",
@@ -1016,7 +648,7 @@ watchos_unit_test(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     deps = [
@@ -1031,7 +663,7 @@ watchos_ui_test(
     infoplists = [
         "//test/starlark_tests/resources:WatchosAppInfo.plist",
     ],
-    minimum_os_version = common.min_os_watchos.baseline,
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":single_target_app_for_test_runner",

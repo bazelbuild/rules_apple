@@ -79,7 +79,7 @@ def macos_bundle_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": common.min_os_macos.baseline,
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle",
         tags = [name],

@@ -62,7 +62,7 @@ def macos_framework_test_suite(name):
             "DTSDKName": "macosx*",
             "DTXcode": "*",
             "DTXcodeBuild": "*",
-            "LSMinimumSystemVersion": common.min_os_macos.baseline,
+            "LSMinimumSystemVersion": common.min_os_macos.min_deployment_target,
         },
         tags = [name],
     )
@@ -301,7 +301,7 @@ def macos_framework_test_suite(name):
 ERROR: minimum_os_version {framework_version} on the framework //test/starlark_tests/targets_under_test/macos:fmwk_min_os_nplus1 is too high compared to //test/starlark_tests/targets_under_test/macos:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version of {app_version}
 
 Please address the minimum_os_version on framework //test/starlark_tests/targets_under_test/macos:fmwk_min_os_nplus1 to match //test/starlark_tests/targets_under_test/macos:app_with_baseline_min_os_and_nplus1_fmwk's minimum_os_version.
-""".format(app_version = common.min_os_macos.baseline, framework_version = common.min_os_macos.arm64_support),
+""".format(app_version = common.min_os_macos.min_deployment_target, framework_version = common.min_os_macos.nplus1),
         tags = [name],
     )
 

@@ -427,7 +427,7 @@ def apple_xcframework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
         plist_test_file = "$BUNDLE_ROOT/ios-x86_64-simulator/ios_dynamic_xcframework.framework/Info.plist",
         plist_test_values = {
-            "MinimumOSVersion": common.min_os_ios.baseline,
+            "MinimumOSVersion": common.min_os_ios.min_deployment_target,
         },
         tags = [name],
     )
