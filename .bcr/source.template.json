@@ -1,5 +1,6 @@
 {
   "integrity": "",
   "strip_prefix": "",
+  "docs_url": "https://github.com/bazelbuild/rules_apple/releases/download/{TAG}/rules_apple.{TAG}.docs.tar.gz",
   "url": "https://github.com/bazelbuild/rules_apple/releases/download/{TAG}/rules_apple.{TAG}.tar.gz"
 }
