@@ -332,15 +332,11 @@ swift_library(
     tags = common.fixture_tags,
 )
 
-# TODO: Use `library_evolution = True` and remove `features` once rules_swift 3+ is required.
 swift_library(
     name = "swift_framework_lib_with_swiftinterface",
     srcs = ["//test/testdata/sources:main.swift"],
-    features = [
-        "swift.emit_swiftinterface",
-        "swift.enable_library_evolution",
-    ],
     generates_header = True,
+    library_evolution = True,
     module_name = "swift_framework_lib",
     tags = common.fixture_tags,
 )

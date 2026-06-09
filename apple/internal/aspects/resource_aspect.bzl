@@ -181,11 +181,6 @@ def _apple_resource_aspect_impl(target, ctx):
         bucketize_args["swift_module"] = module_names[0] if module_names else None
         owner = str(ctx.label)
 
-        # TODO: older versions of rules_swift used to have mixed_language_library
-        # with `data` attr, this remains for backward compatibility, but should be removed
-        # when our min rules_swift becomes 3.5+.
-        collect_args["res_attrs"] = ["data"]
-
         # The mixed_language_library macro passes data to its clang_target and
         # swift_target sub-targets. Collect their resource providers so resources
         # propagate even when the rule itself does not have a data attribute.

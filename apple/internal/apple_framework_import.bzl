@@ -341,10 +341,6 @@ def _apple_static_framework_import_impl(ctx):
         # links to the standard libraries correctly.
         additional_cc_infos.extend(swift_toolchains.swift.implicit_deps_providers.cc_infos)
 
-        # TODO: remove this once rules_swift 3+ is required
-        if hasattr(swift_toolchains.swift.implicit_deps_providers, "objc_infos"):
-            additional_objc_providers.extend(swift_toolchains.swift.implicit_deps_providers.objc_infos)
-
         if _is_debugging(compilation_mode):
             swiftmodule = _swiftmodule_for_cpu(
                 framework.swift_module_imports,
