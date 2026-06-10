@@ -792,9 +792,7 @@ def _swift_interop_info_with_dependencies(deps, module_name, module_map_imports)
     and XCFrameworks remain visible to Swift.
     """
 
-    # Assume that there is only a single module map file (the legacy
-    # implementation that read from the Objc provider made the same
-    # assumption).
+    # Assume that there is only a single module map file.
     module_map = _primary_module_map(module_map_imports)
 
     return create_swift_interop_info(

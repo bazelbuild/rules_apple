@@ -120,9 +120,9 @@ def _macos_command_line_application_impl(name, visibility, **kwargs):
     additional_deps = []
 
     # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
+    # Info.plist target. This target also propagates CcInfo with the linkopts
+    # necessary to add the Info.plist to the binary, so it must become a
+    # dependency of the binary as well.
     base_bundle_id = kwargs.get("base_bundle_id")
     bundle_id = kwargs.get("bundle_id")
     infoplists = kwargs.get("infoplists")
@@ -182,9 +182,9 @@ def _macos_dylib_impl(name, visibility, **kwargs):
     additional_deps = []
 
     # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates an objc provider that
-    # contains the linkopts necessary to add the Info.plist to the binary, so it
-    # must become a dependency of the binary as well.
+    # Info.plist target. This target also propagates CcInfo with the linkopts
+    # necessary to add the Info.plist to the binary, so it must become a
+    # dependency of the binary as well.
     base_bundle_id = kwargs.get("base_bundle_id")
     bundle_id = kwargs.get("bundle_id")
     infoplists = kwargs.get("infoplists")
