@@ -114,11 +114,20 @@ _WATCHOS_PLATFORM_TO_ENV_ARCH = {
 
 _DEFAULT_ARCH = {
     "ios": "sim_arm64",
-    "macos": "x86_64",
+    "macos": "arm64",  # There is no Intel version of macOS 27.
     "tvos": "sim_arm64",
     "visionos": "sim_arm64",
     "watchos": "arm64",
 }
+
+def _default_arch(*, platform_type, minimum_os_version):
+    if (platform_type == "macos" and
+        apple_common.dotted_version(minimum_os_version) < apple_common.dotted_version("27.0")):
+        # Fall back to the Intel default architecture if the minimum OS version is less than 27.0,
+        # until we're ready to switch the default for all macOS builds to Apple Silicon (arm64).
+        #
+        return "x86_64"
+    return _DEFAULT_ARCH[platform_type]
 
 def _platform_specific_cpu_setting_name(platform_type):
     """Returns the name of a platform-specific CPU setting.
@@ -212,16 +221,21 @@ def _environment_archs(*, platform_type, minimum_os_version, settings):
                     settings = settings,
                 )
         if not environment_archs:
-            environment_archs = [_DEFAULT_ARCH[platform_type]]
+            environment_archs = [_default_arch(
+                platform_type = platform_type,
+                minimum_os_version = minimum_os_version,
+            )]
     return environment_archs
 
-def _cpu_string(*, environment_arch, platform_type, settings = {}):
+def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings = {}):
     """Generates a <platform>_<environment?>_<arch> string for the current target based on args.
 
     Args:
         environment_arch: A valid Apple environment when applicable with its architecture as a
             string (for example `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`), or
             None to infer a value from command line options passed through settings.
+        minimum_os_version: A string representing the minimum OS version specified for this
+            platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
             `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`).
         settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
@@ -244,35 +258,50 @@ def _cpu_string(*, environment_arch, platform_type, settings = {}):
         )
         if env_arch:
             return "ios_{}".format(env_arch)
-        return "ios_{}".format(_DEFAULT_ARCH[platform_type])
+        return "ios_{}".format(_default_arch(
+            platform_type = platform_type,
+            minimum_os_version = minimum_os_version,
+        ))
     if platform_type == "macos":
         if environment_arch:
             return "darwin_{}".format(environment_arch)
         macos_cpus = settings["//command_line_option:macos_cpus"]
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
-        return "darwin_{}".format(_DEFAULT_ARCH[platform_type])
+        return "darwin_{}".format(_default_arch(
+            platform_type = platform_type,
+            minimum_os_version = minimum_os_version,
+        ))
     if platform_type == "tvos":
         if environment_arch:
             return "tvos_{}".format(environment_arch)
         tvos_cpus = settings["//command_line_option:tvos_cpus"]
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
-        return "tvos_{}".format(_DEFAULT_ARCH[platform_type])
+        return "tvos_{}".format(_default_arch(
+            platform_type = platform_type,
+            minimum_os_version = minimum_os_version,
+        ))
     if platform_type == "visionos":
         if environment_arch:
             return "visionos_{}".format(environment_arch)
         visionos_cpus = settings["//command_line_option:visionos_cpus"]
         if visionos_cpus:
             return "visionos_{}".format(visionos_cpus[0])
-        return "visionos_{}".format(_DEFAULT_ARCH[platform_type])
+        return "visionos_{}".format(_default_arch(
+            platform_type = platform_type,
+            minimum_os_version = minimum_os_version,
+        ))
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
         watchos_cpus = settings["//command_line_option:watchos_cpus"]
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
-        return "watchos_{}".format(_DEFAULT_ARCH[platform_type])
+        return "watchos_{}".format(_default_arch(
+            platform_type = platform_type,
+            minimum_os_version = minimum_os_version,
+        ))
 
     fail("ERROR: Unknown platform type: {}".format(platform_type))
 
@@ -338,6 +367,7 @@ def _command_line_options(
     """
     cpu = _cpu_string(
         environment_arch = environment_arch,
+        minimum_os_version = minimum_os_version,
         platform_type = platform_type,
         settings = settings,
     )
@@ -381,7 +411,7 @@ def _command_line_options(
         ),
     }
 
-def _xcframework_split_attr_key(*, arch, environment, platform_type):
+def _xcframework_split_attr_key(*, arch, environment, minimum_os_version, platform_type):
     """Return the split attribute key for this target within the XCFramework given linker options.
 
      Args:
@@ -389,6 +419,8 @@ def _xcframework_split_attr_key(*, arch, environment, platform_type):
         environment: The environment of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
             for environment. Typically `device` or `simulator`.
+        minimum_os_version: A string representing the minimum OS version specified for this
+            platform, represented as a dotted version number (for example, `"9.0"`).
         platform_type: The platform of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_support.link_multi_arch_binary`
             for platform. For example, `ios`, `macos`, `tvos`, `visionos` or `watchos`.
@@ -403,6 +435,7 @@ def _xcframework_split_attr_key(*, arch, environment, platform_type):
     # library identifiers as they are generated by Xcode.
     return _cpu_string(
         environment_arch = arch,
+        minimum_os_version = minimum_os_version,
         platform_type = platform_type,
     ) + "_" + environment
 
@@ -489,6 +522,7 @@ allow it to build for arm64e with the required Apple capabilities for pointer au
                 _xcframework_split_attr_key(
                     arch = arch,
                     environment = target_environment,
+                    minimum_os_version = minimum_os_version,
                     platform_type = platform_type,
                 ): _command_line_options(
                     building_apple_bundle = building_apple_bundle,
@@ -682,6 +716,7 @@ def _apple_platform_split_transition_impl(settings, attr):
     for environment_arch in environment_archs:
         found_cpu = _cpu_string(
             environment_arch = environment_arch,
+            minimum_os_version = minimum_os_version,
             platform_type = platform_type,
             settings = settings,
         )
@@ -772,12 +807,12 @@ def _xcframework_base_transition_impl(settings, attr):
         secure_features = attr.secure_features,
     )
 
-    # For safety, lean on darwin_{default arch} with no incoming minimum_os_version to avoid
+    # For safety, explicitly lean on darwin_arm64 with no incoming minimum_os_version to avoid
     # incoming settings meant for other platforms overriding the settings for the xcframework rule's
     # underlying actions, and allow for toolchain resolution in the future.
     return _command_line_options(
         building_apple_bundle = False,
-        environment_arch = _DEFAULT_ARCH["macos"],
+        environment_arch = "arm64",
         features = requested_features,
         force_bundle_outputs = False,
         minimum_os_version = None,
