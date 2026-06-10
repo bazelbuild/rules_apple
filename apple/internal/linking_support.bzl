@@ -97,16 +97,11 @@ def _archive_multi_arch_static_library(
                 deps = split_deps[split_transition_key],
             )
 
-        avoid_objc_providers = []
-        avoid_cc_providers = []
         avoid_cc_linking_contexts = []
 
         if len(split_avoid_deps.keys()):
             for dep in split_avoid_deps[split_transition_key]:
-                if apple_common.Objc in dep:
-                    avoid_objc_providers.append(dep[apple_common.Objc])
                 if CcInfo in dep:
-                    avoid_cc_providers.append(dep[CcInfo])
                     avoid_cc_linking_contexts.append(dep[CcInfo].linking_context)
 
         name = ctx.label.name + "-" + cc_toolchain.target_gnu_system_name + "-fl"
@@ -378,10 +373,10 @@ def _debug_outputs_by_architecture(link_outputs):
         linkmaps = linkmaps,
     )
 
-def _sectcreate_objc_provider(label, segname, sectname, file):
-    """Returns an objc provider that propagates a section in a linked binary.
+def _sectcreate_cc_info(label, segname, sectname, file):
+    """Returns a CcInfo that propagates a section in a linked binary.
 
-    This function creates a new objc provider that contains the necessary linkopts
+    This function creates a new CcInfo that contains the necessary linkopts
     to create a new section in the binary to which the provider is propagated; it
     is equivalent to the `ld` flag `-sectcreate segname sectname file`. This can
     be used, for example, to embed entitlements in a simulator executable (since
@@ -396,11 +391,9 @@ def _sectcreate_objc_provider(label, segname, sectname, file):
       file: The file whose contents will be used as the content of the section.
 
     Returns:
-      An objc provider that propagates the section linkopts.
+      A CcInfo that propagates the section linkopts.
     """
 
-    # linkopts get deduped, so use a single option to pass then through as a
-    # set.
     linkopts = ["-Wl,-sectcreate,%s,%s,%s" % (segname, sectname, file.path)]
     return [
         CcInfo(
@@ -444,10 +437,9 @@ def _register_binary_linking_action(
             This target must propagate the `AppleExecutableBinaryInfo` provider.
             This simplifies the process of passing the bundle loader to all the arguments
             that need it: the binary will automatically be added to the linker inputs, its
-            path will be added to linkopts via `-bundle_loader`, and the `apple_common.Objc`
-            provider of its dependencies (obtained from the `AppleExecutableBinaryInfo` provider)
-            will be passed as an additional `avoid_dep` to ensure that those dependencies are
-            subtracted when linking the bundle's binary.
+            path will be added to linkopts via `-bundle_loader`, and it will be passed as an
+            additional `avoid_dep` to ensure that those dependencies are subtracted when linking
+            the bundle's binary.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         entitlements: An optional `File` that provides the processed entitlements for the
@@ -483,8 +475,6 @@ def _register_binary_linking_action(
             is a new universal (fat) binary obtained by invoking `lipo`.
         *   `cc_info`: The CcInfo provider containing information about the targets that were
             linked.
-        *   `objc`: The `apple_common.Objc` provider containing information about the targets
-            that were linked.
         *   `outputs`: A `list` of `struct`s containing the single-architecture binaries and
             debug outputs, with identifying information about the target platform, architecture,
             and environment that each was built for.
@@ -583,7 +573,6 @@ def _register_binary_linking_action(
         binary = fat_binary,
         cc_info = linking_outputs.cc_info,
         debug_outputs_provider = linking_outputs.debug_outputs_provider,
-        objc = getattr(linking_outputs, "objc", None),
         outputs = linking_outputs.outputs,
         output_groups = linking_outputs.output_groups,
     )
@@ -628,7 +617,6 @@ def _register_static_library_archive_action(
 
     return struct(
         library = fat_library,
-        objc = getattr(archive_outputs, "objc", None),
         outputs = archive_outputs.outputs,
         output_groups = archive_outputs.output_groups,
     )
@@ -662,5 +650,5 @@ linking_support = struct(
     lipo_or_symlink_inputs = _lipo_or_symlink_inputs,
     register_binary_linking_action = _register_binary_linking_action,
     register_static_library_archive_action = _register_static_library_archive_action,
-    sectcreate_objc_provider = _sectcreate_objc_provider,
+    sectcreate_cc_info = _sectcreate_cc_info,
 )
