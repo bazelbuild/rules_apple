@@ -225,10 +225,16 @@ def _find_smartcard_identities(identity=None):
       # Valid from: 2021-02-12 21:35:04 +0000 to: 2022-02-12 21:35:05 +0000, SSL trust: NO, X509 trust: YES
       #
       expiry_date = re.search(r"(?<=to:)(.*?)(?=,)", data, re.DOTALL).group().strip()
-      expiry_date = datetime.datetime.strptime(expiry_date, "%Y-%m-%d %H:%M:%S %z")
-      now = datetime.datetime.now(expiry_date.tzinfo)
-      if now > expiry_date:
-        continue
+      # Some smartcards report certs with no expiry date as "N/A". Treat an
+      # unparseable expiry as non-expiring rather than crashing.
+      try:
+        expiry_date = datetime.datetime.strptime(expiry_date, "%Y-%m-%d %H:%M:%S %z")
+      except ValueError:
+        expiry_date = None
+      if expiry_date is not None:
+        now = datetime.datetime.now(expiry_date.tzinfo)
+        if now > expiry_date:
+          continue
 
       # This is a valid identity, decode the certificate, extract
       # Common Name and Fingerprint and handle their values accordingly
