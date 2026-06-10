@@ -4031,6 +4031,45 @@ genrule(
     tags = common.fixture_tags,
 )
 
+genrule(
+    name = "swiftmodule_static_framework_with_modulemap",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule"],
+    outs = [
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Swift3PFmwkBinarySwiftmodule",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Info.plist",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftdoc",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftdoc",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/x86_64.swiftmodule",
+        "binary_swiftmodule_static_framework/Swift3PFmwkBinarySwiftmodule.framework/Modules/module.modulemap",
+    ],
+    cmd = "tmp=$$(mktemp -d) && unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_binary_swiftmodule) -d $$tmp && rm -rf $(RULEDIR)/binary_swiftmodule_static_framework && mkdir -p $(RULEDIR)/binary_swiftmodule_static_framework && cp -R $$tmp/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkBinarySwiftmodule.framework $(RULEDIR)/binary_swiftmodule_static_framework/",
+    tags = common.fixture_tags,
+)
+
+apple_static_framework_import(
+    name = "ios_imported_static_framework_binary_swiftmodule",
+    features = ["-swift.layering_check"],
+    framework_imports = [":swiftmodule_static_framework_with_modulemap"],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_imported_static_framework_binary_swiftmodule",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":ios_imported_static_framework_binary_swiftmodule",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 apple_dynamic_xcframework_import(
     name = "ios_imported_xcframework_swiftmodule_no_modulemap",
     features = [

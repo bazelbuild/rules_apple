@@ -15,6 +15,10 @@
 """apple_static_framework_import Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:action_inputs_test.bzl",
     "make_action_inputs_test_rule",
 )
@@ -28,6 +32,14 @@ _action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_ac
         "apple._import_framework_via_swiftinterface",
     ],
     "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_x86_64")),
+})
+
+_action_command_line_with_ios_sim_arm64_platform_test = make_action_command_line_test_rule({
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_sim_arm64")),
+})
+
+_action_inputs_with_ios_sim_arm64_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_sim_arm64")),
 })
 
 _analysis_actions_with_ios_x86_64_platform_test = make_analysis_target_actions_test({
@@ -56,6 +68,27 @@ def apple_static_framework_import_test_suite(name):
         expected_inputs = [
             "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64-apple-ios-simulator.swiftinterface",
             "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64-apple-ios-simulator.private.swiftinterface",
+        ],
+        tags = [name],
+    )
+
+    _action_command_line_with_ios_sim_arm64_platform_test(
+        name = "{}_binary_links_imported_swiftmodule_ast_path".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_binary_swiftmodule",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-add_ast_path",
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        ],
+        tags = [name],
+    )
+
+    _action_inputs_with_ios_sim_arm64_platform_test(
+        name = "{}_binary_links_imported_swiftmodule_ast_input".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_binary_swiftmodule",
+        mnemonic = "ObjcLink",
+        expected_inputs = [
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
         ],
         tags = [name],
     )
