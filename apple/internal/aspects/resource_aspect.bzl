@@ -53,14 +53,6 @@ load(
     "AppIntentsBundleInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_hint_info.bzl",
-    "AppleResourceHintInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_swift_srcs_info.bzl",
-    "AppleResourceSwiftSrcsInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
     "AppleResourceValidationInfo",
 )
@@ -80,28 +72,6 @@ load(
 visibility([
     "@build_bazel_rules_apple//apple/...",
 ])
-
-def _find_apple_resource_hint_info(aspect_ctx):
-    """Finds a `AppleResourceHintInfo` provider associated with the target."""
-    resource_hint_target = None
-
-    # We don't break this loop early when we find a matching hint, because we
-    # want to give an error message if there are two aspect hints that provide
-    # `AppleResourceHintInfo` (or if both the rule and an aspect hint do).
-    for hint in aspect_ctx.rule.attr.aspect_hints:
-        if AppleResourceHintInfo in hint:
-            if resource_hint_target:
-                fail(("Conflicting Apple resource hint info from aspect hints " +
-                      "'{hint1}' and '{hint2}'. Only one is " +
-                      "allowed.").format(
-                    hint1 = str(resource_hint_target.label),
-                    hint2 = str(hint.label),
-                ))
-            resource_hint_target = hint
-
-    if resource_hint_target:
-        return resource_hint_target[AppleResourceHintInfo]
-    return None
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
@@ -154,15 +124,6 @@ def _apple_resource_aspect_impl(target, ctx):
     # The name of the bundle directory to place resources within, if required.
     bundle_name = None
 
-    # The local apple_resource_hint affecting processing.
-    apple_resource_hint_info = _find_apple_resource_hint_info(ctx)
-
-    # Any Swift source code files that should be relayed to processing, if required.
-    swift_files = depset()
-
-    # Signal if we need to create providers to send Swift source code data down, if required.
-    needs_transitive_swift_srcs = False
-
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
@@ -180,10 +141,6 @@ def _apple_resource_aspect_impl(target, ctx):
         bucketize_args["swift_module"] = module_names[0] if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
-        if apple_resource_hint_info and apple_resource_hint_info.needs_swift_srcs:
-            swift_files = depset(transitive = [x.files for x in ctx.rule.attr.srcs])
-        if apple_resource_hint_info and apple_resource_hint_info.needs_transitive_swift_srcs:
-            needs_transitive_swift_srcs = True
 
     elif ctx.rule.kind == "apple_resource_group":
         collect_args["res_attrs"] = ["resources"]
@@ -200,16 +157,6 @@ def _apple_resource_aspect_impl(target, ctx):
 
     # Assign the provider deps once we have the resource attributes sorted out.
     provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
-
-    # Any transitive Swift sources that should be relayed to processing, if required.
-    transitive_swift_srcs = []
-
-    # Do any work with "provider_deps" up front, ahead of resource processing, when required.
-    if needs_transitive_swift_srcs:
-        for attr in provider_deps:
-            for target in getattr(ctx.rule.attr, attr, []):
-                if AppleResourceSwiftSrcsInfo in target:
-                    transitive_swift_srcs.append(target[AppleResourceSwiftSrcsInfo])
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:
@@ -232,8 +179,6 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
-                    swift_files = swift_files,
-                    transitive_swift_srcs = transitive_swift_srcs,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -258,8 +203,6 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
-                    swift_files = swift_files,
-                    transitive_swift_srcs = transitive_swift_srcs,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -311,8 +254,6 @@ def _apple_resource_aspect_impl(target, ctx):
                     buckets = buckets,
                     platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
                     processing_owner = owner,
-                    swift_files = swift_files,
-                    transitive_swift_srcs = transitive_swift_srcs,
                     unowned_resources = unowned_resources,
                     **process_args
                 ),
@@ -434,28 +375,6 @@ App Intents are not supported within frameworks that aren't directly loaded by a
                         x.transitive_target_bundle_infos
                         for x in apple_resource_validation_infos
                     ],
-                ),
-            ),
-        )
-
-    if needs_transitive_swift_srcs:
-        # Start by sending up a direct reference to the current set of Swift source information.
-        swift_src_info = struct(
-            module_name = bucketize_args["swift_module"],
-            src_files = swift_files,
-        )
-        transitive_swift_src_infos = []
-        if transitive_swift_srcs:
-            # Append any additional Swift source infos if any were found before
-            transitive_swift_src_infos = [
-                x.transitive_swift_src_infos
-                for x in transitive_swift_srcs
-            ]
-        providers.append(
-            AppleResourceSwiftSrcsInfo(
-                transitive_swift_src_infos = depset(
-                    [swift_src_info],
-                    transitive = transitive_swift_src_infos,
                 ),
             ),
         )

@@ -41,11 +41,6 @@ load(
     _copy_png = "copy_png",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/resource_actions:realitytool.bzl",
-    _compile_rkassets = "compile_rkassets",
-    _create_schema_rkassets = "create_schema_rkassets",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:texture_atlas.bzl",
     _compile_texture_atlas = "compile_texture_atlas",
 )
@@ -60,12 +55,10 @@ resource_actions = struct(
     compile_datamodels = _compile_datamodels,
     compile_mappingmodel = _compile_mappingmodel,
     compile_plist = _compile_plist,
-    compile_rkassets = _compile_rkassets,
     compile_storyboard = _compile_storyboard,
     compile_texture_atlas = _compile_texture_atlas,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
-    create_schema_rkassets = _create_schema_rkassets,
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
     merge_root_infoplists = _merge_root_infoplists,

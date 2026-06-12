@@ -16,10 +16,6 @@ load(
     "apple_resource_locales",
 )
 load(
-    "//apple/hints:apple_resource_hint.bzl",
-    "apple_resource_hint",
-)
-load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
@@ -897,11 +893,6 @@ filegroup(
     srcs = glob(["versioned_datamodel.xcdatamodeld/**"]),
 )
 
-filegroup(
-    name = "realitykit_assets",
-    srcs = glob(["RealityKitContent.rkassets/**"]),
-)
-
 objc_library(
     name = "framework_resources_lib",
     data = [
@@ -1083,76 +1074,6 @@ swift_library(
         ":StaticLibraryAppIntentsWithDependency",
         ":framework_defined_app_intent_with_dependency",
     ],
-)
-
-objc_library(
-    name = "realitykit_codeless_content",
-    data = [":realitykit_assets"],
-    tags = common.fixture_tags,
-)
-
-swift_library(
-    name = "realitykit_standalone_content",
-    srcs = [
-        "realitykit_content.swift",
-        "realitykit_standalone_component.swift",
-    ],
-    aspect_hints = ["//apple/hints:realitykit_library_hint"],
-    data = [":realitykit_assets"],
-    module_name = "RealityKitContent",
-    tags = common.fixture_tags,
-)
-
-swift_library(
-    name = "realitykit_dependent_content",
-    srcs = [
-        "realitykit_content.swift",
-        "realitykit_dependent_component.swift",
-    ],
-    aspect_hints = ["//apple/hints:realitykit_library_hint"],
-    data = [":realitykit_assets"],
-    module_name = "RealityKitDependentContent",
-    tags = common.fixture_tags,
-    deps = [
-        ":realitykit_content_library_dependency",
-    ],
-)
-
-swift_library(
-    name = "realitykit_content_library_dependency",
-    srcs = [
-        "realitykit_content_library_dependency.swift",
-    ],
-    aspect_hints = ["//apple/hints:realitykit_library_hint"],
-    module_name = "RealityKitContentLibraryDependency",
-    tags = common.fixture_tags,
-    deps = [
-        ":realitykit_library_transient_dependency",
-    ],
-)
-
-swift_library(
-    name = "realitykit_library_transient_dependency",
-    srcs = [
-        "realitykit_library_transient_dependency.swift",
-    ],
-    aspect_hints = ["//apple/hints:realitykit_library_hint"],
-    module_name = "RealityKitLibraryTransientDependency",
-    tags = common.fixture_tags,
-)
-
-apple_resource_hint(
-    name = "dummy_library_hint",
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "library_with_two_apple_resource_hints",
-    aspect_hints = [
-        ":dummy_library_hint",
-        "//apple/hints:realitykit_library_hint",
-    ],
-    tags = common.fixture_tags,
 )
 
 objc_library(

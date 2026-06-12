@@ -554,94 +554,6 @@ def _pngs(
         processed_origins = processed_origins,
     )
 
-def _rkassets(
-        *,
-        actions,
-        apple_mac_toolchain_info,
-        files,
-        mac_exec_group,
-        output_discriminator,
-        parent_dir,
-        platform_prerequisites,
-        rule_label,
-        swift_files,
-        swift_module,
-        transitive_swift_srcs,
-        **_kwargs):
-    """Transforms rkassets into a reality bundle."""
-
-    label_name = rule_label.name
-    xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative
-
-    schema_file = None
-    if swift_files:
-        schema_file = intermediates.file(
-            actions = actions,
-            file_name = "CustomComponentUSDInitializers.usda",
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-        )
-
-        if not swift_module:
-            fail("Internal Error: Unable to determine the module name when processing rkassets " +
-                 "for " + rule_label)
-
-        # Strategy: "files" will be just the rkassets, which are NOT inputs to the whole
-        # create-schema action.
-        #
-        # We assume that one (Swift) module == one set of files, and all Swift sources coming from
-        # transitive, hinted deps are represented via transitive_swift_srcs. Collectively these
-        # three inputs all form one Pixar USDA schema.
-        resource_actions.create_schema_rkassets(
-            actions = actions,
-            label_name = label_name,
-            mac_exec_group = mac_exec_group,
-            module_name = swift_module,
-            output_discriminator = output_discriminator,
-            output_file = schema_file,
-            platform_prerequisites = platform_prerequisites,
-            swift_files = swift_files,
-            transitive_swift_srcs = transitive_swift_srcs,
-            xctoolrunner = xctoolrunner,
-        )
-
-    rkassets_groups = group_files_by_directory(
-        files.to_list(),
-        ["rkassets"],
-        attr = "rkassets",
-    )
-
-    processed_origins = {}
-
-    reality_files = []
-    for rkassets_path, files in rkassets_groups.items():
-        reality_file = intermediates.file(
-            actions = actions,
-            file_name = paths.replace_extension(paths.basename(rkassets_path), ".reality"),
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-        )
-
-        resource_actions.compile_rkassets(
-            actions = actions,
-            input_files = files,
-            input_path = rkassets_path,
-            mac_exec_group = mac_exec_group,
-            output_file = reality_file,
-            platform_prerequisites = platform_prerequisites,
-            schema_file = schema_file,
-            xctoolrunner = xctoolrunner,
-        )
-
-        reality_files.append(reality_file)
-
-        processed_origins[reality_file.short_path] = [f.short_path for f in files.to_list()]
-
-    return struct(
-        files = [(location_enum.resource, parent_dir, depset(direct = reality_files))],
-        processed_origins = processed_origins,
-    )
-
 def _storyboards(
         *,
         actions,
@@ -838,7 +750,6 @@ resources_support = struct(
     noop = _noop,
     plists_and_strings = _plists_and_strings,
     pngs = _pngs,
-    rkassets = _rkassets,
     storyboards = _storyboards,
     texture_atlases = _texture_atlases,
     xibs = _xibs,

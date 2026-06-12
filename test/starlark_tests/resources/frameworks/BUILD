@@ -13,7 +13,7 @@ licenses(["notice"])
 # compile the Swift module interface file.
 swift_library(
     name = "swift_library",
-    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.swift"],
+    srcs = [":SharedClass.swift"],
     generates_header = True,
     library_evolution = True,
     module_name = "iOSSwiftStaticFramework",
@@ -23,8 +23,8 @@ swift_library(
 swift_library(
     name = "swift_lib_for_static_xcframework",
     srcs = [
-        "//test/starlark_tests/resources/frameworks:SharedClass.swift",
-        "//test/starlark_tests/resources/frameworks:SharedObjCClass.m",
+        ":SharedClass.swift",
+        ":SharedObjCClass.m",
     ],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedObjCClass.h"],
     generates_header = True,

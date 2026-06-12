@@ -103,7 +103,6 @@ CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
     "infoplists": (resources_support.infoplists, False),
     "plists": (resources_support.plists_and_strings, False),
     "pngs": (resources_support.pngs, False),
-    "rkassets": (resources_support.rkassets, True),
     "strings": (resources_support.plists_and_strings, False),
 }
 
@@ -275,9 +274,6 @@ def _bucketize_data(
                 bucket_name = "asset_catalogs"
             elif ".xcdatamodel" in resource_short_path or ".xcmappingmodel/" in resource_short_path:
                 bucket_name = "datamodels"
-                resource_swift_module = swift_module
-            elif ".rkassets/" in resource_short_path:
-                bucket_name = "rkassets"
                 resource_swift_module = swift_module
             elif ".atlas" in resource_short_path:
                 bucket_name = "texture_atlases"
@@ -470,8 +466,6 @@ def _process_bucketized_data(
         processing_owner = None,
         product_type,
         rule_label,
-        swift_files,
-        transitive_swift_srcs,
         unowned_resources = [],
         xplat_exec_group):
     """Registers actions for cacheable resource types, given bucketized groupings of data.
@@ -496,11 +490,6 @@ def _process_bucketized_data(
             own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         product_type: The product type identifier used to describe the current bundle type.
         rule_label: The label of the target being analyzed.
-        swift_files: A depset of Swift files required for processing resource actions. Should be
-            gated by an aspect_hint.
-        transitive_swift_srcs: A list of AppleResourceSwiftSrcsInfo providers representing
-            transitive Swift module names and source files required for processing resource actions
-            if any were needed. Should be gated by an aspect_hint.
         unowned_resources: A list of "unowned" resources.
         xplat_exec_group: The exec_group associated with apple_xplat_toolchain_info
 
@@ -530,8 +519,6 @@ def _process_bucketized_data(
                 "platform_prerequisites": platform_prerequisites,
                 "product_type": product_type,
                 "rule_label": rule_label,
-                "swift_files": swift_files,
-                "transitive_swift_srcs": transitive_swift_srcs,
                 "xplat_exec_group": xplat_exec_group,
             }
 

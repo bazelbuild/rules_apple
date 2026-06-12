@@ -15,10 +15,6 @@
 """visionos_application Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -333,45 +329,6 @@ def visionos_application_test_suite(name):
         name = "{}_codesigning_dossier_info_provider_test".format(name),
         expected_dossier = "app_dossier.zip",
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",
-        tags = [
-            name,
-        ],
-    )
-
-    archive_contents_test(
-        name = "{}_with_codeless_rkassets_content_contains_compiled_reality_file_test".format(name),
-        build_type = "simulator",
-        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_codeless_realitykit_content",
-        tags = [
-            name,
-        ],
-    )
-
-    archive_contents_test(
-        name = "{}_with_standalone_rkassets_contains_compiled_reality_file_test".format(name),
-        build_type = "simulator",
-        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_standalone_realitykit_content",
-        tags = [
-            name,
-        ],
-    )
-
-    analysis_failure_message_test(
-        name = "{}_two_apple_resource_hints_fail_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_two_apple_resource_hints",
-        expected_error = "Conflicting Apple resource hint info from aspect hints",
-        tags = [
-            name,
-        ],
-    )
-
-    archive_contents_test(
-        name = "{}_with_dependent_rkassets_contains_compiled_reality_file_test".format(name),
-        build_type = "simulator",
-        contains = ["$BUNDLE_ROOT/RealityKitContent.reality"],
-        target_under_test = "//test/starlark_tests/targets_under_test/visionos:swift_app_with_dependent_realitykit_content",
         tags = [
             name,
         ],

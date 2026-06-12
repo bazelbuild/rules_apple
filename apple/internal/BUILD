@@ -480,7 +480,6 @@ bzl_library(
         "//apple/internal/resource_actions:ibtool",
         "//apple/internal/resource_actions:plist",
         "//apple/internal/resource_actions:png",
-        "//apple/internal/resource_actions:realitytool",
         "//apple/internal/resource_actions:texture_atlas",
     ],
 )
