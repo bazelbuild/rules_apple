@@ -352,6 +352,7 @@ bzl_library(
         ":platform_support",
         ":processor",
         ":providers",
+        ":required_minimum_os",
         ":resource_actions",
         ":resources",
         ":rule_attrs",
@@ -613,6 +614,9 @@ bzl_library(
     srcs = ["required_minimum_os.bzl"],
     visibility = [
         "//apple:__subpackages__",
+    ],
+    deps = [
+        "@build_bazel_apple_support//lib:providers",
     ],
 )
 

@@ -111,6 +111,7 @@ bzl_library(
         "//apple/internal:apple_product_type",
         "//apple/internal:bundling_support",
         "//apple/internal:providers",
+        "//apple/internal:required_minimum_os",
         "//apple/internal:rule_attrs",
         "//apple/internal:rule_factory",
         "//apple/internal:transition_support",

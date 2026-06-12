@@ -14,22 +14,42 @@
 
 """Required minimum OS versions for Apple platforms."""
 
+load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+
 visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",
 ])
 
-# Based on https://developer.apple.com/support/xcode/ for Xcode 16 as of 2025-08-01.
+# Based on https://developer.apple.com/support/xcode/ for Xcode 27 as of 2026-06-10.
 _REQUIRED_MINIMUM_OS_VERSION = {
     "ios": "15.0",
-    "macos": "10.13",  # TODO: b/433768882 - Move up to 11.0 for Xcode 26.
-    "tvos": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 16.0.
+    "macos": "10.13",  # TODO: b/433768882 - Move up to 12.0 for Xcode 27.
+    "tvos": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 27.
     "visionos": "1.0",
-    "watchos": "8.0",
+    "watchos": "8.0",  # TODO: b/433768882 - Move up to 9.0 for Xcode 27.
 }
 
-def _validate(*, minimum_os_version, platform_type, rule_label):
+def _validate(*, cc_toolchain_forwarder, minimum_os_version, platform_type, rule_label):
     """Verifies that the given minimum OS version is supported for the given platform type."""
+    if (platform_type == "macos" and
+        apple_common.dotted_version(minimum_os_version) >= apple_common.dotted_version("27.0")):
+        toolchains = cc_toolchain_forwarder.values()
+        for toolchain in toolchains:
+            if (ApplePlatformInfo in toolchain and
+                toolchain[ApplePlatformInfo].target_arch == "x86_64"):
+                fail("""
+Error: The declared macOS minimum OS version for {rule_label} is "{minimum_os_version}".
+
+macOS 27.0 and later is Apple Silicon only, and has no Intel native counterpart.
+""".format(
+                    rule_label = str(rule_label),
+                    minimum_os_version = minimum_os_version,
+                ))
+
     if (apple_common.dotted_version(minimum_os_version) <
         apple_common.dotted_version(_REQUIRED_MINIMUM_OS_VERSION[platform_type])):
         fail("""

@@ -33,6 +33,10 @@ load(
     "new_macosxctestbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -67,6 +71,12 @@ _MACOS_TEST_HOST_PROVIDERS = [[AppleBundleInfo, MacosApplicationBundleInfo]]
 
 def _macos_ui_test_bundle_impl(ctx):
     """Implementation of macos_ui_test."""
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
@@ -76,6 +86,12 @@ def _macos_ui_test_bundle_impl(ctx):
 
 def _macos_unit_test_bundle_impl(ctx):
     """Implementation of macos_unit_test."""
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+    )
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,

@@ -150,6 +150,7 @@ def _watchos_application_impl(ctx):
 def _watchos_extension_based_application_impl(ctx):
     """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
     required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
@@ -495,6 +496,7 @@ reproducible error case.".format(
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
     required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
@@ -842,6 +844,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
     required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
@@ -1152,6 +1155,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 def _watchos_framework_impl(ctx):
     """Implementation of the watchos_framework rule."""
     required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
