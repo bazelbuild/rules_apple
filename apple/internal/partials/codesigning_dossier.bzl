@@ -173,15 +173,17 @@ def _create_combined_zip_artifact(
     ]
     label_name = rule_label.name
 
-    max_cumulative_uncompressed_size = None
+    enable_zip64_support = False
+
+    enable_zip64_support = False
     bundling_support.generate_bundle_archive_action(
         actions = actions,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundletool_inputs = depset([input_archive, dossier_merge_zip]),
         control_file_name = "combined_zip_bundletool_control.json",
         control_merge_zips = combined_zip_archive_zips,
+        enable_zip64_support = enable_zip64_support,
         label_name = label_name,
-        max_cumulative_uncompressed_size = max_cumulative_uncompressed_size,
         mnemonic = "CreateCombinedDossierZip",
         output_archive = output_combined_zip,
         output_discriminator = output_discriminator,

@@ -389,7 +389,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
-        max_cumulative_uncompressed_size = None
+        enable_zip64_support = False
         bundling_support.generate_bundle_archive_action(
             actions = actions,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -397,8 +397,8 @@ Please file a bug against the Apple BUILD rules with repro steps.
             control_file_name = control_file_name,
             control_merge_files = control_files,
             control_merge_zips = control_zips,
+            enable_zip64_support = enable_zip64_support,
             label_name = label_name,
-            max_cumulative_uncompressed_size = max_cumulative_uncompressed_size,
             mnemonic = "BundleApp",
             output_archive = output_file,
             output_discriminator = output_discriminator,

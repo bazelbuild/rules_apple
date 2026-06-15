@@ -318,12 +318,12 @@ def _generate_bundle_archive_action(
         control_file_name,
         control_merge_files = [],
         control_merge_zips = [],
-        max_cumulative_uncompressed_size = None,
+        enable_zip64_support = False,
+        label_name,
         mnemonic,
         output_archive,
         output_discriminator,
         progress_message,
-        label_name,
         xplat_exec_group):
     """Generates an action that creates a archive for a bundle rule output.
 
@@ -341,9 +341,9 @@ def _generate_bundle_archive_action(
           whose contents should be merged into the bundle; and "dest", the path inside the bundle
           where the ZIPs contents should be placed. The destination path is relative to the bundle
           root.
+      enable_zip64_support: Whether to enable ZIP64 support in the bundletool. If not set, then
+          ZIP64 support will be disabled.
       label_name: Name of the target being built.
-      max_cumulative_uncompressed_size: The maximum cumulative uncompressed size of the bundle in
-          bytes. If "None", no limit will be enforced.
       mnemonic: A String. The mnemonic to use for the action.
       output_archive: A File referencing the output archive.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -367,17 +367,14 @@ def _generate_bundle_archive_action(
     )
     args.add(control_file.path)
 
-    additional_control_options = {}
+    additional_control_options = {
+        "enable_zip64_support": enable_zip64_support,
+    }
+
     if force_python_bundletool:
         executable = apple_xplat_toolchain_info.bundletool
-        if max_cumulative_uncompressed_size and max_cumulative_uncompressed_size > 0:
-            additional_control_options["enable_zip64_support"] = False
-        else:
-            additional_control_options["enable_zip64_support"] = True
     else:
         executable = apple_xplat_toolchain_info.bundletool_swift
-        # NOTE: "enable_zip64_support" and "max_cumulative_uncompressed_size" are currently not
-        # supported by the Swift bundletool.
 
     control = struct(
         bundle_merge_files = control_merge_files,
