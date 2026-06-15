@@ -167,6 +167,7 @@ def _macos_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -484,6 +485,7 @@ def _macos_bundle_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -729,6 +731,7 @@ def _macos_framework_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -967,6 +970,7 @@ def _macos_extension_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     product_type = apple_product_type.app_extension
@@ -1261,6 +1265,7 @@ def _macos_xpc_service_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1493,6 +1498,7 @@ def _macos_command_line_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1773,6 +1779,7 @@ def _macos_dylib_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,

@@ -33,10 +33,31 @@ _REQUIRED_MINIMUM_OS_VERSION = {
     "watchos": "8.0",  # TODO: b/433768882 - Move up to 9.0 for Xcode 27.
 }
 
-def _validate(*, cc_toolchain_forwarder, minimum_os_version, platform_type, rule_label):
+_REQUIRED_MINIMUM_OS_VERSION_XCODE_27 = {
+    "ios": "15.0",
+    "macos": "12.0",
+    "tvos": "15.0",
+    "visionos": "1.0",
+    "watchos": "9.0",
+}
+
+def _validate(
+        *,
+        cc_toolchain_forwarder,
+        minimum_os_version,
+        platform_type,
+        rule_label,
+        xcode_version_config):
     """Verifies that the given minimum OS version is supported for the given platform type."""
-    if (platform_type == "macos" and
-        apple_common.dotted_version(minimum_os_version) >= apple_common.dotted_version("27.0")):
+    xcode_version_greater_than_or_equal_to_27 = (
+        xcode_version_config.xcode_version() >= apple_common.dotted_version("27.0")
+    )
+    if xcode_version_greater_than_or_equal_to_27:
+        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION_XCODE_27[platform_type]
+    else:
+        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION[platform_type]
+
+    if platform_type == "macos" and xcode_version_greater_than_or_equal_to_27:
         toolchains = cc_toolchain_forwarder.values()
         for toolchain in toolchains:
             if (ApplePlatformInfo in toolchain and
@@ -51,7 +72,7 @@ macOS 27.0 and later is Apple Silicon only, and has no Intel native counterpart.
                 ))
 
     if (apple_common.dotted_version(minimum_os_version) <
-        apple_common.dotted_version(_REQUIRED_MINIMUM_OS_VERSION[platform_type])):
+        apple_common.dotted_version(required_minimum_os_version)):
         fail("""
 Error: The declared minimum OS version for {rule_label} is "{minimum_os_version}", which is lower \
 than the required minimum OS version of "{required_minimum_os_version}".
@@ -60,7 +81,7 @@ Please update the minimum_os_version attribute to "{required_minimum_os_version}
         """.format(
             rule_label = str(rule_label),
             minimum_os_version = minimum_os_version,
-            required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION[platform_type],
+            required_minimum_os_version = required_minimum_os_version,
         ))
 
 required_minimum_os = struct(

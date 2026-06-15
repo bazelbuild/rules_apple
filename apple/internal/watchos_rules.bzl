@@ -154,6 +154,7 @@ def _watchos_extension_based_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -500,6 +501,7 @@ def _watchos_extension_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
@@ -848,6 +850,7 @@ def _watchos_single_target_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
@@ -1159,6 +1162,7 @@ def _watchos_framework_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
     rule_descriptor = rule_support.rule_descriptor(
