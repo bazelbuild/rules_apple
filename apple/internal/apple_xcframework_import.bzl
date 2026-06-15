@@ -617,13 +617,13 @@ def _apple_dynamic_xcframework_import_impl(ctx):
             providers.append(swift_info)
         else:
             # Create SwiftInteropInfo provider for swift_clang_module_aspect
-            swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-                deps = deps,
-                module_name = xcframework.library_name,
-                module_map_imports = xcframework_library.clang_module_maps,
+            providers.append(
+                framework_import_support.swift_interop_info_with_dependencies(
+                    deps = deps,
+                    module_name = xcframework.library_name,
+                    module_map_imports = xcframework_library.clang_module_maps,
+                ),
             )
-            if swift_interop_info:
-                providers.append(swift_interop_info)
 
     return providers
 
@@ -793,13 +793,13 @@ def _apple_static_xcframework_import_impl(ctx):
             providers.append(swift_info)
         else:
             # Create SwiftInteropInfo provider for swift_clang_module_aspect
-            swift_interop_info = framework_import_support.swift_interop_info_with_dependencies(
-                deps = deps,
-                module_name = xcframework.library_name,
-                module_map_imports = xcframework_library.clang_module_maps,
+            providers.append(
+                framework_import_support.swift_interop_info_with_dependencies(
+                    deps = deps,
+                    module_name = xcframework.library_name,
+                    module_map_imports = xcframework_library.clang_module_maps,
+                ),
             )
-            if swift_interop_info:
-                providers.append(swift_interop_info)
 
     # Create AppleFrameworkImportBundleInfo provider.
     bundle_files = [x for x in xcframework_library.framework_files if ".bundle/" in x.short_path]
