@@ -170,9 +170,11 @@ def _is_uuid(value):
     """
     if not value or len(value) != 36:
         return False
+
     # Check for hyphens at the correct positions (8, 13, 18, 23)
     if value[8] != "-" or value[13] != "-" or value[18] != "-" or value[23] != "-":
         return False
+
     # Check that all other characters are hexadecimal
     for i, char in enumerate(value):
         if i in [8, 13, 18, 23]:
@@ -525,6 +527,7 @@ def _ios_application_impl(ctx):
         )
     else:
         ios_device = apple_xplat_toolchain_info.build_settings.ios_device
+
         # Determine whether ios_device is a UUID or a device name
         # If it's a UUID, pass it as simulator_identifier
         # If it's a device name, pass it as simulator_device (overriding the default)
@@ -883,6 +886,7 @@ def _ios_app_clip_impl(ctx):
         )
     else:
         ios_device = apple_xplat_toolchain_info.build_settings.ios_device
+
         # Determine whether ios_device is a UUID or a device name
         # If it's a UUID, pass it as simulator_identifier
         # If it's a device name, pass it as simulator_device (overriding the default)
