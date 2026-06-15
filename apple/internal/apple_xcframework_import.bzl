@@ -181,7 +181,7 @@ Please verify that an Info.plist was supplied at the root of the XCFramework bun
 def _get_xcframework_library_with_xcframework_processor(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         cc_configured_features,
@@ -387,7 +387,7 @@ attempting to mix simulator and device architectures.
 
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [args],
         env = shared_environment.default_env,
         executable = xcframework_processor_tool,
@@ -509,7 +509,7 @@ def _get_library_identifier(
 def _collect_signature_from_xcframework(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         binary,
         codesignature_files,
@@ -595,7 +595,7 @@ invocation appear to be valid.
 
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [args],
         env = shared_environment.default_env,
         executable = signature_tool,
@@ -611,7 +611,7 @@ invocation appear to be valid.
 def _generate_empty_dylib(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         bundle_name,
         framework_info_plist,
@@ -694,7 +694,7 @@ such as a static framework or a framework with mergeable libraries.
 
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [args],
         env = shared_environment.default_env,
         executable = xcframework_processor_tool,
@@ -723,6 +723,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     secure_features_support.validate_expected_secure_features(
         cc_configured_features = cc_configured_features,
@@ -738,7 +739,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         cc_configured_features = cc_configured_features,
@@ -757,7 +758,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     signature_file = _collect_signature_from_xcframework(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary = xcframework_library.binary,
         codesignature_files = xcframework.codesignature_files,
@@ -842,6 +843,7 @@ def _apple_static_xcframework_import_impl(ctx):
     deps = ctx.attr.deps
     has_swift = ctx.attr.has_swift
     label = ctx.label
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
     linkopts = ctx.attr.linkopts
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xcframework_imports = ctx.files.xcframework_imports
@@ -859,7 +861,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         cc_configured_features = cc_configured_features,
@@ -881,7 +883,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     signature_file = _collect_signature_from_xcframework(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary = xcframework_library.binary,
         codesignature_files = xcframework.codesignature_files,
@@ -898,7 +900,7 @@ def _apple_static_xcframework_import_impl(ctx):
         # Add an empty dylib to the bundle to make the static framework valid for App Store Connect.
         stub_binary = _generate_empty_dylib(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundle_name = xcframework.bundle_name,
             framework_info_plist = xcframework_library.framework_info_plist,
@@ -989,7 +991,7 @@ directory. apple_xcframework_import targets need to be added as dependencies to 
 through the `deps` attribute.
 """,
     implementation = _apple_dynamic_xcframework_import_impl,
-    attrs = rule_attrs.common_tool_attrs() | {
+    attrs = rule_attrs.common_tool_attrs() | apple_support.platform_constraint_attrs() | {
         "deps": attr.label_list(
             doc = """
 List of targets that are dependencies of the target being built, which will provide headers and be
@@ -1039,7 +1041,7 @@ files in a .xcframework directory. apple_xcframework_import targets need to be a
 to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
-    attrs = rule_attrs.common_tool_attrs() | {
+    attrs = rule_attrs.common_tool_attrs() | apple_support.platform_constraint_attrs() | {
         "alwayslink": attr.bool(
             default = False,
             doc = """

@@ -15,6 +15,10 @@
 """apple_static_library Starlark implementation"""
 
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
@@ -119,6 +123,7 @@ implementation of `apple_static_library` in Bazel core so that it can be removed
         "lipo_archive": "%{name}_lipo.a",
     },
     attrs = [
+        apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         rule_attrs.static_library_archive_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,

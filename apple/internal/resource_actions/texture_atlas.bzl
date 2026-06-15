@@ -43,7 +43,7 @@ def compile_texture_atlas(
     """
     apple_support.run(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         env = shared_environment.default_env,
         arguments = [
             "TextureAtlas",

@@ -41,7 +41,7 @@ def copy_png(*, actions, input_file, output_file, platform_prerequisites):
     # directly run Xcode's copy of pngcrush with the same args.
     apple_support.run(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         arguments = [
             "pngcrush",
             # -compress expands to:

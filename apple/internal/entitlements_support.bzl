@@ -208,7 +208,7 @@ def _extract_signing_info(
 
         apple_support.run(
             actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             arguments = [control_file.path],
             env = shared_environment.default_env,
             executable = provisioning_profile_tool,
@@ -433,7 +433,7 @@ def _process_entitlements(
 def _generate_der_entitlements(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         entitlements,
         label_name,
         xcode_version_config):
@@ -460,7 +460,7 @@ def _generate_der_entitlements(
     )
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [
             "query",
             "-f",

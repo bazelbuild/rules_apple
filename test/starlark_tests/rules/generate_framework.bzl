@@ -35,9 +35,9 @@ _SDK_TO_OS = {
 
 def _generate_import_framework_impl(ctx):
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     label = ctx.label
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     architectures = ctx.attr.archs
     hdrs = ctx.files.hdrs
@@ -65,7 +65,7 @@ def _generate_import_framework_impl(ctx):
         # Compile library
         binary = generation_support.compile_binary(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             archs = architectures,
             hdrs = hdrs,
             label = label,
@@ -79,7 +79,7 @@ def _generate_import_framework_impl(ctx):
         if libtype == "dynamic":
             library = generation_support.create_dynamic_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 archs = architectures,
                 binary = binary,
                 label = label,
@@ -90,7 +90,7 @@ def _generate_import_framework_impl(ctx):
         else:
             library = generation_support.create_static_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 binary = binary,
                 label = label,
                 xcode_config = xcode_config,
@@ -139,7 +139,7 @@ def _generate_import_framework_impl(ctx):
     # Create framework bundle
     framework_files = generation_support.create_framework(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         bundle_name = label.name,
         headers = headers,
         include_resource_bundle = include_resource_bundle,
@@ -158,7 +158,7 @@ def _generate_import_framework_impl(ctx):
 
 generate_import_framework = rule(
     implementation = _generate_import_framework_impl,
-    attrs = apple_support.action_required_attrs() | {
+    attrs = apple_support.action_required_attrs() | apple_support.platform_constraint_attrs() | {
         "archs": attr.string_list(
             allow_empty = False,
             doc = "A list of architectures this framework will be generated for.",

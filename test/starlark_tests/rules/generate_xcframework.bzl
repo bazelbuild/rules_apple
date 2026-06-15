@@ -69,7 +69,7 @@ def _sdk_for_platform(platform):
 def _create_xcframework(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         frameworks = {},
         headers = [],
         label,
@@ -153,7 +153,7 @@ def _create_xcframework(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         command = " ".join(args),
         inputs = depset(inputs),
         mnemonic = "GenerateXCFrameworkXcodebuild",
@@ -167,7 +167,7 @@ def _create_xcframework(
 def _generate_static_library_xcframework_files(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         generate_modulemap,
         hdrs,
         include_module_interface_files,
@@ -230,7 +230,7 @@ Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously
             minimum_os_version = minimum_os_versions[platform]
             binary = generation_support.compile_binary(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 archs = architectures,
                 label = label,
                 minimum_os_version = minimum_os_version,
@@ -243,7 +243,7 @@ Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously
             # Create static library
             static_library = generation_support.create_static_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 binary = binary,
                 label = label,
                 parent_dir = library_identifier,
@@ -342,7 +342,7 @@ Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously
     # Create static library XCFramework
     xcframework_files = _create_xcframework(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         headers = headers + modulemaps,
         label = label,
         libraries = libraries,
@@ -356,7 +356,7 @@ Attributes `minimum_os_versions` and `swift_library` can't be set simultaneously
 def _generate_framework_xcframework_files(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         hdrs,
         include_framework_root_infoplists,
         include_resource_bundles,
@@ -408,7 +408,7 @@ def _generate_framework_xcframework_files(
         # Compile library
         binary = generation_support.compile_binary(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             archs = architectures,
             hdrs = hdrs,
             label = label,
@@ -423,7 +423,7 @@ def _generate_framework_xcframework_files(
         if kind == "dynamic":
             library_file = generation_support.create_dynamic_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 archs = architectures,
                 binary = binary,
                 label = label,
@@ -434,7 +434,7 @@ def _generate_framework_xcframework_files(
         elif kind == "static":
             library_file = generation_support.create_static_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 binary = binary,
                 label = label,
                 parent_dir = library_identifier,
@@ -448,7 +448,7 @@ Internal Error: Received undefined kind of {}, expected either static or dynamic
         # Create framework bundle
         framework_files = generation_support.create_framework(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
@@ -472,7 +472,7 @@ Internal Error: Received undefined kind of {}, expected either static or dynamic
     # Create xcframework bundle
     xcframework_files = _create_xcframework(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         frameworks = frameworks,
         label = label,
         target_dir = target_dir,
@@ -488,6 +488,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     srcs = ctx.files.srcs
     hdrs = ctx.files.hdrs
@@ -498,7 +499,7 @@ def _generate_dynamic_xcframework_impl(ctx):
 
     xcframework_files = _generate_framework_xcframework_files(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         hdrs = hdrs,
         include_framework_root_infoplists = True,
         include_resource_bundles = include_resource_bundles,
@@ -526,6 +527,7 @@ def _generate_static_xcframework_impl(ctx):
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     srcs = ctx.files.srcs
     hdrs = list(ctx.files.hdrs)
@@ -546,7 +548,7 @@ def _generate_static_xcframework_impl(ctx):
     if bundle_format == "library":
         xcframework_files = _generate_static_library_xcframework_files(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             generate_modulemap = generate_modulemap,
             hdrs = hdrs,
             include_module_interface_files = include_module_interface_files,
@@ -573,7 +575,7 @@ Error: The `generate_modulemap` attribute is not yet supported for the \
 generate_static_xcframework test-scoped rule for Static Framework XCFrameworks.""")
         xcframework_files = _generate_framework_xcframework_files(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             hdrs = hdrs,
             include_framework_root_infoplists = include_framework_root_infoplists,
             include_resource_bundles = include_resource_bundles,
@@ -596,7 +598,7 @@ generate_static_xcframework test-scoped rule for Static Framework XCFrameworks."
 generate_dynamic_xcframework = rule(
     doc = "Generates XCFramework with dynamic frameworks using Xcode build utilities.",
     implementation = _generate_dynamic_xcframework_impl,
-    attrs = apple_support.action_required_attrs() | {
+    attrs = apple_support.action_required_attrs() | apple_support.platform_constraint_attrs() | {
         "srcs": attr.label_list(
             doc = "List of source files for compiling Objective-C(++) / Swift binaries.",
             mandatory = True,
@@ -663,7 +665,7 @@ Versions directory. This is only supported for macOS platform.
 
 generate_static_xcframework = rule(
     implementation = _generate_static_xcframework_impl,
-    attrs = apple_support.action_required_attrs() | {
+    attrs = apple_support.action_required_attrs() | apple_support.platform_constraint_attrs() | {
         "bundle_format": attr.string(
             default = "library",
             doc = """

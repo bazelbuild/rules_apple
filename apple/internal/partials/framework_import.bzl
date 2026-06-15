@@ -258,7 +258,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
 
         apple_support.run(
             actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             arguments = [args],
             env = shared_environment.default_env,
             executable = imported_dynamic_framework_processor,

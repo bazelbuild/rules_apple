@@ -155,7 +155,7 @@ def _generate_swift_support_dylibs(
 
     apple_support.run(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         arguments = [swift_stdlib_tool_args],
         env = shared_environment.default_env,
         exec_group = mac_exec_group,

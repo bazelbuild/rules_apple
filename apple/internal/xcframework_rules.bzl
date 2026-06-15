@@ -17,6 +17,10 @@
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
+load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
@@ -368,7 +372,7 @@ for {platform_type} as the value.
 def _group_link_outputs_by_library_identifier(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         deps,
         label_name,
         link_result,
@@ -437,7 +441,7 @@ def _group_link_outputs_by_library_identifier(
             actions = actions,
             inputs = inputs,
             output = universal_binary,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             xcode_config = xcode_config,
         )
 
@@ -1105,7 +1109,7 @@ def _create_xcframework_root_infoplist(
 def _create_xcframework_bundle(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_name,
@@ -1170,7 +1174,7 @@ def _create_xcframework_bundle(
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
             additional_bundling_tools = [],
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundletool_control_file = bundletool_control_file,
             bundletool_inputs = depset(
@@ -1221,7 +1225,7 @@ def _create_xcframework_bundle(
 def _create_xcframework_codesigning_dossier(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         build_settings,
         mac_exec_group,
@@ -1237,7 +1241,7 @@ def _create_xcframework_codesigning_dossier(
 
     output_dossier = codesigning_support.generate_dossier_file(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = [],
@@ -1273,6 +1277,7 @@ def _apple_xcframework_impl(ctx):
         ],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
     deps = ctx.split_attr.deps
@@ -1397,7 +1402,7 @@ def _apple_xcframework_impl(ctx):
 
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         deps = deps,
         label_name = rule_label.name,
         link_result = link_result,
@@ -1450,7 +1455,7 @@ def _apple_xcframework_impl(ctx):
 
     _create_xcframework_bundle(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
@@ -1468,7 +1473,7 @@ def _apple_xcframework_impl(ctx):
 
     dossier_outputs = _create_xcframework_codesigning_dossier(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         build_settings = build_settings,
         mac_exec_group = mac_exec_group,
@@ -1515,6 +1520,7 @@ apple_xcframework = rule_factory.create_apple_rule(
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     attrs = [
+        apple_support.platform_constraint_attrs(),
         _xcframework_platform_attrs(),
         _xcframework_resource_attrs(),
         rule_attrs.common_tool_attrs(),
@@ -1749,6 +1755,7 @@ def _apple_static_xcframework_impl(ctx):
         ],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
     config_vars = ctx.var
     cpp_fragment = ctx.fragments.cpp
     deps = ctx.split_attr.deps
@@ -1815,7 +1822,7 @@ def _apple_static_xcframework_impl(ctx):
     )
     link_outputs_by_library_identifier = _group_link_outputs_by_library_identifier(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         deps = deps,
         label_name = bundle_name,
         link_result = archive_result,
@@ -1882,7 +1889,7 @@ def _apple_static_xcframework_impl(ctx):
 
     _create_xcframework_bundle(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
@@ -1900,7 +1907,7 @@ def _apple_static_xcframework_impl(ctx):
 
     dossier_outputs = _create_xcframework_codesigning_dossier(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         build_settings = build_settings,
         mac_exec_group = mac_exec_group,
@@ -1939,6 +1946,7 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     toolchains = [],
     attrs = [
+        apple_support.platform_constraint_attrs(),
         _xcframework_platform_attrs(),
         _xcframework_resource_attrs(),
         rule_attrs.common_tool_attrs(),

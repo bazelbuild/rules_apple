@@ -79,7 +79,7 @@ def plisttool_action(
     if platform_prerequisites.build_settings.force_plisttool_on_mac:
         apple_support.run(
             actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             arguments = [control_file.path],
             executable = apple_mac_toolchain_info.plisttool,
             inputs = inputs + [control_file],
@@ -127,7 +127,7 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
     )
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         command = complete_command,
         env = shared_environment.default_env,
         inputs = [input_file],

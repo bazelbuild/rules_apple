@@ -253,7 +253,7 @@ def _codesigning_dossier_partial_impl(
 
     dossier_file = codesigning_support.generate_dossier_file(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = embedded_codesign_dossiers,

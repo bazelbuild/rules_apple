@@ -519,7 +519,7 @@ def compile_asset_catalog(
     apple_support.run(
         actions = actions,
         arguments = [args],
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         env = shared_environment.default_env,
         executable = xctoolrunner,
         execution_requirements = execution_requirements,

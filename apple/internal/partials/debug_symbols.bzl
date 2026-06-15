@@ -252,7 +252,7 @@ def _generate_merged_dsym_bundle(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         inputs = command_inputs,
         outputs = [dsym_bundle_dir],
         command = command,

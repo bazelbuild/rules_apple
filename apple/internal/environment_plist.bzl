@@ -62,7 +62,7 @@ def _environment_plist_impl(ctx):
     sdk_version = platform_prerequisites.sdk_version
     apple_support.run(
         actions = ctx.actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         env = shared_environment.default_env,
         arguments = [
             # Custom xctoolrunner options.

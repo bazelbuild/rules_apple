@@ -403,7 +403,7 @@ def _generate_tree_artifact_bundle_action(
         *,
         actions,
         additional_bundling_tools,
-        apple_fragment,
+        apple_platform_info,
         apple_mac_toolchain_info,
         bundletool_control_file,
         bundletool_inputs,
@@ -417,7 +417,7 @@ def _generate_tree_artifact_bundle_action(
     Args:
       actions: The actions provider from `ctx.actions`.
       additional_bundling_tools: A list of additional tools to make available to the action.
-      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      apple_platform_info: The ApplePlatformInfo provider.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       bundletool_control_file: A File referencing the control file for the bundletool.
       bundletool_inputs: A depset of files to pass to the bundletool.
@@ -429,7 +429,7 @@ def _generate_tree_artifact_bundle_action(
     """
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [
             bundletool_control_file.path,
         ],

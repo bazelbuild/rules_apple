@@ -378,7 +378,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
             additional_bundling_tools = additional_bundling_tools,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             bundletool_control_file = control_file,
             bundletool_inputs = depset(bundletool_inputs),

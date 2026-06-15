@@ -112,6 +112,7 @@ def _platform_prerequisites(
 
     return struct(
         apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,

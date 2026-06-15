@@ -469,7 +469,7 @@ def _codesigning_command(
 def _generate_dossier_file(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         codesign_identity,
         dossier_codesigningtool,
         embedded_dossiers,
@@ -544,7 +544,7 @@ def _generate_dossier_file(
 
     apple_support.run(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         arguments = [args],
         env = shared_environment.default_env,
         exec_group = mac_exec_group,
@@ -702,7 +702,7 @@ def _post_process_and_sign_archive_action(
     if run_on_darwin:
         apple_support.run(
             actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             arguments = arguments,
             env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
@@ -782,7 +782,7 @@ def _sign_binary_action(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = platform_prerequisites.apple_fragment,
+        apple_platform_info = platform_prerequisites.apple_platform_info,
         env = shared_environment.default_env,
         command = [
             "/bin/bash",

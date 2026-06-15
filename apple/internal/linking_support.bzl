@@ -14,6 +14,10 @@
 
 """Support for linking related actions."""
 
+load(
+    "@build_bazel_apple_support//lib:apple_support.bzl",
+    "apple_support",
+)
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load(
     "@build_bazel_apple_support//lib:providers.bzl",
@@ -601,7 +605,7 @@ def _register_binary_linking_action(
 
         der_entitlements = entitlements_support.generate_der_entitlements(
             actions = ctx.actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             entitlements = entitlements,
             label_name = ctx.label.name,
             xcode_version_config = platform_prerequisites.xcode_version_config,
@@ -648,11 +652,13 @@ def _register_binary_linking_action(
 
     universal_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
 
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
+
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = [output.binary for output in linking_outputs.outputs],
         output = universal_binary,
-        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = apple_platform_info,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
@@ -702,11 +708,13 @@ def _register_static_library_archive_action(
 
     universal_library = ctx.actions.declare_file("{}_lipo.a".format(ctx.label.name))
 
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
+
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = [output.library for output in archive_outputs.outputs],
         output = universal_library,
-        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = apple_platform_info,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
@@ -716,14 +724,14 @@ def _register_static_library_archive_action(
         output_groups = archive_outputs.output_groups,
     )
 
-def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_platform_info, xcode_config):
     """Creates a universal binary with `lipo` if inputs > 1, symlinks otherwise.
 
     Args:
       actions: The rule context actions.
       inputs: Binary inputs to use for the lipo action.
       output: Binary output for universal binary or symlink.
-      apple_fragment: The `apple` configuration fragment used to configure
+      apple_platform_info: The ApplePlatformInfo provider used to configure
                       the action environment.
       xcode_config: The `apple_common.XcodeVersionConfig` provider used to
                     configure the action environment.
@@ -733,7 +741,7 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_co
             actions = actions,
             inputs = inputs,
             output = output,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             xcode_config = xcode_config,
         )
     else:

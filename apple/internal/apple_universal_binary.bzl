@@ -33,14 +33,14 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_fragment, xcode_config):
+def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_platform_info, xcode_config):
     """Creates a universal binary with `lipo` if inputs > 1, symlinks otherwise."""
     if len(inputs) > 1:
         lipo.create(
             actions = actions,
             inputs = inputs,
             output = output,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             xcode_config = xcode_config,
         )
     else:
@@ -59,11 +59,13 @@ def _apple_universal_binary_impl(ctx):
 
     universal_binary = ctx.actions.declare_file(ctx.label.name)
 
+    apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
+
     _lipo_or_symlink_inputs(
         actions = ctx.actions,
         inputs = inputs,
         output = universal_binary,
-        apple_fragment = ctx.fragments.apple,
+        apple_platform_info = apple_platform_info,
         xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 

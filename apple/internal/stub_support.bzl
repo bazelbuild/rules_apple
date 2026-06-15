@@ -76,13 +76,13 @@ def _create_stub_binary(
             ),
             archs = archs_for_lipo,
             output = binary_artifact,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
         apple_support.run_shell(
             actions = actions,
-            apple_fragment = platform_prerequisites.apple_fragment,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
             env = shared_environment.default_env,
             command = "cp -f \"$SDKROOT/{xcode_stub_path}\" {output_path}".format(
                 output_path = binary_artifact.path,

@@ -99,7 +99,7 @@ def _min_version_arg_for_sdk(sdk, minimum_os_version):
 def _compile_binary(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         archs,
         hdrs,
         label,
@@ -152,7 +152,7 @@ def _compile_binary(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         command = " ".join(args),
         inputs = inputs,
         mnemonic = "XcodeToolingClangCompile",
@@ -167,7 +167,7 @@ def _compile_binary(
 def _create_static_library(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         label,
         parent_dir = "",
         binary,
@@ -195,7 +195,7 @@ def _create_static_library(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         command = " ".join(args),
         inputs = depset([binary]),
         mnemonic = "XcodeToolingLibtool",
@@ -209,7 +209,7 @@ def _create_static_library(
 def _create_dynamic_library(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         archs,
         binary,
         label,
@@ -260,7 +260,7 @@ def _create_dynamic_library(
 
     apple_support.run_shell(
         actions = actions,
-        apple_fragment = apple_fragment,
+        apple_platform_info = apple_platform_info,
         command = " ".join(args),
         inputs = depset([binary]),
         mnemonic = "XcodeToolingClangDylib",
@@ -274,7 +274,7 @@ def _create_dynamic_library(
 def _create_framework(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         base_path = "",
         bundle_name,
         kind,
@@ -337,7 +337,7 @@ def _create_framework(
         framework_files.append(
             _copy_framework_library(
                 actions = actions,
-                apple_fragment = apple_fragment,
+                apple_platform_info = apple_platform_info,
                 bundle_name = bundle_name,
                 framework_directory = framework_directory,
                 kind = kind,
@@ -423,7 +423,7 @@ def _create_framework(
 def _copy_framework_library(
         *,
         actions,
-        apple_fragment,
+        apple_platform_info,
         bundle_name,
         framework_directory,
         kind,
@@ -474,7 +474,7 @@ def _copy_framework_library(
         )
         apple_support.run_shell(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             xcode_config = xcode_config,
             outputs = [framework_binary],
             inputs = [library],
@@ -486,7 +486,7 @@ def _copy_framework_library(
     else:
         apple_support.run_shell(
             actions = actions,
-            apple_fragment = apple_fragment,
+            apple_platform_info = apple_platform_info,
             xcode_config = xcode_config,
             outputs = [framework_binary],
             inputs = [library],
