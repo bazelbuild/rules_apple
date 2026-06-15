@@ -59,6 +59,10 @@ load(
     "new_appletestinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -333,6 +337,14 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
 
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
 

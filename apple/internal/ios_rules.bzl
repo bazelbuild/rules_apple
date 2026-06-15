@@ -90,6 +90,10 @@ load(
     "new_iosstaticframeworkbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -159,6 +163,14 @@ visibility([
 
 def _ios_application_impl(ctx):
     """Implementation of ios_application."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -533,6 +545,14 @@ def _ios_application_impl(ctx):
 
 def _ios_app_clip_impl(ctx):
     """Implementation of ios_app_clip."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.app_clip,
@@ -842,6 +862,14 @@ def _ios_app_clip_impl(ctx):
 
 def _ios_framework_impl(ctx):
     """Implementation of ios_framework."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
@@ -1068,6 +1096,14 @@ def _ios_framework_impl(ctx):
 
 def _ios_extension_impl(ctx):
     """Implementation of ios_extension."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     product_type = apple_product_type.app_extension
     if ctx.attr.extensionkit_extension:
@@ -1362,6 +1398,14 @@ def _ios_extension_impl(ctx):
 
 def _ios_static_framework_impl(ctx):
     """Implementation of ios_static_framework."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.static_framework,
@@ -1518,6 +1562,14 @@ def _ios_static_framework_impl(ctx):
 
 def _ios_imessage_extension_impl(ctx):
     """Implementation of ios_imessage_extension."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.messages_extension,

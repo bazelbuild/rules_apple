@@ -24,15 +24,15 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-# Based on https://developer.apple.com/support/xcode/ for Xcode 27 as of 2026-06-10.
 _REQUIRED_MINIMUM_OS_VERSION = {
-    "ios": "15.0",
-    "macos": "10.13",  # TODO: b/433768882 - Move up to 12.0 for Xcode 27.
-    "tvos": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 27.
+    "ios": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 26.
+    "macos": "10.13",  # TODO: b/433768882 - Move up to 11.0 for Xcode 26.
+    "tvos": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 26.
     "visionos": "1.0",
-    "watchos": "8.0",  # TODO: b/433768882 - Move up to 9.0 for Xcode 27.
+    "watchos": "8.0",
 }
 
+# Based on https://developer.apple.com/support/xcode/ for Xcode 27 as of 2026-06-15.
 _REQUIRED_MINIMUM_OS_VERSION_XCODE_27 = {
     "ios": "15.0",
     "macos": "12.0",
@@ -73,6 +73,12 @@ macOS 27.0 and later is Apple Silicon only, and has no Intel native counterpart.
 
     if (apple_common.dotted_version(minimum_os_version) <
         apple_common.dotted_version(required_minimum_os_version)):
+        full_label = "//{package}:{name}".format(
+            package = rule_label.package,
+            name = rule_label.name,
+        )
+        if platform_type == "watchos" and full_label in ALLOWED_USERS_OF_WATCHOS_LOW_MINOS:
+            return
         fail("""
 Error: The declared minimum OS version for {rule_label} is "{minimum_os_version}", which is lower \
 than the required minimum OS version of "{required_minimum_os_version}".

@@ -44,6 +44,10 @@ load(
     "AppleBundleInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:rule_attrs.bzl",
     "rule_attrs",
 )
@@ -88,6 +92,13 @@ _BLOCKED_PROVIDERS = [
 ]
 
 def _apple_build_test_rule_impl(ctx):
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     if ctx.attr.platform_type != ctx.attr._platform_type:
         fail((
             "The 'platform_type' attribute of '{}' is an implementation " +

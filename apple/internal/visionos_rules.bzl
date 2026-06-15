@@ -61,6 +61,10 @@ load(
     "new_visionosapplicationbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -109,6 +113,14 @@ visibility([
 
 def _visionos_application_impl(ctx):
     """Implementation of visionos_application."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,

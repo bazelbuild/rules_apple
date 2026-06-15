@@ -74,6 +74,10 @@ load(
     "new_applexcframeworkbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -1317,6 +1321,15 @@ def _apple_xcframework_impl(ctx):
         rule_label = rule_label,
     )
 
+    for platform_type, min_os in minimum_os_versions.items():
+        required_minimum_os.validate(
+            cc_toolchain_forwarder = cc_toolchain_forwarder,
+            minimum_os_version = min_os,
+            platform_type = platform_type,
+            rule_label = rule_label,
+            xcode_version_config = xcode_version_config,
+        )
+
     extra_linkopts = []
 
     # Computing for all deps, rather than a subset via the `ctx.split_attr` interface.
@@ -1773,6 +1786,15 @@ def _apple_static_xcframework_impl(ctx):
         all_attrs = ctx.attr,
         rule_label = rule_label,
     )
+
+    for platform_type, min_os in minimum_os_versions.items():
+        required_minimum_os.validate(
+            cc_toolchain_forwarder = cc_toolchain_forwarder,
+            minimum_os_version = min_os,
+            platform_type = platform_type,
+            rule_label = rule_label,
+            xcode_version_config = xcode_version_config,
+        )
 
     secure_features = ctx.attr.secure_features
 

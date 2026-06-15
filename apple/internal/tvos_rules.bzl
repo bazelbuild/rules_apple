@@ -85,6 +85,10 @@ load(
     "new_tvosstaticframeworkbundleinfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
+    "required_minimum_os",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
     "resources",
 )
@@ -157,6 +161,14 @@ visibility([
 
 def _tvos_application_impl(ctx):
     """Implementation of tvos_application."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
@@ -481,6 +493,14 @@ def _tvos_application_impl(ctx):
 
 def _tvos_framework_impl(ctx):
     """Implementation of tvos_framework."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.framework,
@@ -704,6 +724,14 @@ def _tvos_framework_impl(ctx):
 
 def _tvos_extension_impl(ctx):
     """Implementation of tvos_extension."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
 
     product_type = apple_product_type.app_extension
     if ctx.attr.extensionkit_extension:
@@ -988,6 +1016,14 @@ def _tvos_extension_impl(ctx):
 
 def _tvos_static_framework_impl(ctx):
     """Implementation of tvos_static_framework."""
+
+    required_minimum_os.validate(
+        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
+        minimum_os_version = ctx.attr.minimum_os_version,
+        platform_type = ctx.attr.platform_type,
+        rule_label = ctx.label,
+        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+    )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.static_framework,
