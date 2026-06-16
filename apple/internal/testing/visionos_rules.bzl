@@ -135,6 +135,7 @@ Internal attribute read by Apple rule transitions to set the
 visionos_internal_unit_test_bundle = _visionos_internal_unit_test_bundle
 
 visionos_unit_test = rule_factory.create_apple_test_rule(
+    cfg = apple_test_rule_support.dossier_signing_transition,
     doc = "visionOS Unit Test rule.",
     implementation = _visionos_unit_test_impl,
     platform_type = "visionos",
