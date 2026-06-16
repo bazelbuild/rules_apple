@@ -61,10 +61,6 @@ load(
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_swift//swift:module_name.bzl",
-    "derive_swift_module_name",
-)
-load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
@@ -136,8 +132,6 @@ def _apple_resource_aspect_impl(target, ctx):
         module_names = collections.uniq(
             [x.name for x in target[SwiftInfo].direct_modules if x.swift],
         )
-        if not module_names:
-            module_names = [derive_swift_module_name(ctx.label)]
         bucketize_args["swift_module"] = module_names[0] if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)

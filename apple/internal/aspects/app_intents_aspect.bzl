@@ -25,10 +25,6 @@ load(
     "AppIntentsInfo",
 )
 load(
-    "@build_bazel_rules_swift//swift:module_name.bzl",
-    "derive_swift_module_name",
-)
-load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
@@ -57,9 +53,6 @@ def _find_valid_module_name(*, label, target):
         a user-actionable error.
     """
     module_names = collections.uniq([x.name for x in target[SwiftInfo].direct_modules if x.swift])
-    if not module_names:
-        module_names = [derive_swift_module_name(label)]
-
     if len(module_names) > 1:
         fail("""
 Found the following module names in the swift_library target {label} defining App Intents: \
