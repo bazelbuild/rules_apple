@@ -268,6 +268,10 @@ def _apple_test_rule_impl(
     direct_runfiles = [test_bundle]
     transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
 
+    # Enable dossier generation if legacy signing is disabled via transition
+    if "disable_legacy_signing" in ctx.features:
+        requires_dossiers = True
+
     test_bundle_dossier = None
     if requires_dossiers and AppleCodesigningDossierInfo in test_bundle_target:
         test_bundle_dossier = test_bundle_target[AppleCodesigningDossierInfo].dossier
@@ -367,6 +371,22 @@ def _apple_test_rule_impl(
         ),
     ]
 
+def _dossier_signing_transition_impl(settings, _):
+    """Rule transition for test rules that sets the disable_legacy_signing feature."""
+    features = list(settings["//command_line_option:features"])
+    if "disable_legacy_signing" not in features:
+        features.append("disable_legacy_signing")
+    return {
+        "//command_line_option:features": features,
+    }
+
+_dossier_signing_transition = transition(
+    implementation = _dossier_signing_transition_impl,
+    inputs = ["//command_line_option:features"],
+    outputs = ["//command_line_option:features"],
+)
+
 apple_test_rule_support = struct(
     apple_test_rule_impl = _apple_test_rule_impl,
+    dossier_signing_transition = _dossier_signing_transition,
 )

@@ -160,7 +160,8 @@ that this target depends on.
 tvos_internal_ui_test_bundle = _tvos_internal_ui_test_bundle
 
 tvos_ui_test = rule_factory.create_apple_test_rule(
-    doc = "tvOS UI Test rule.",
+    cfg = apple_test_rule_support.dossier_signing_transition,
+    doc = "tvOS UI Test rule. Internal target not to be called directly.",
     implementation = _tvos_ui_test_impl,
     platform_type = "tvos",
 )
@@ -220,7 +221,8 @@ that this target depends on.
 tvos_internal_unit_test_bundle = _tvos_internal_unit_test_bundle
 
 tvos_unit_test = rule_factory.create_apple_test_rule(
-    doc = "tvOS Unit Test rule.",
+    cfg = apple_test_rule_support.dossier_signing_transition,
+    doc = "tvOS Unit Test rule. Internal target not to be called directly.",
     implementation = _tvos_unit_test_impl,
     platform_type = "tvos",
 )
