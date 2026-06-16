@@ -252,7 +252,6 @@ watchos_application's `deps`.
     embeddable_targets = [ctx.attr.extension[0]]
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
@@ -550,7 +549,6 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
@@ -896,7 +894,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
@@ -1194,7 +1191,6 @@ def _watchos_framework_impl(ctx):
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,

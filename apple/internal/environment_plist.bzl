@@ -46,7 +46,6 @@ def _environment_plist_impl(ctx):
     # Only need as much platform information as this rule is able to give, for environment plist
     # processing.
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = None,
         config_vars = ctx.var,
@@ -97,7 +96,6 @@ This rule generates the plist containing the required variables about the versio
 being built for and with. This is used by Apple when submitting to the App Store. This reduces the
 amount of duplicative work done generating these plists for the same platforms.
 """,
-    fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
     implementation = _environment_plist_impl,
 )

@@ -483,7 +483,7 @@ def _generate_dossier_file(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_fragment: The apple fragment from `ctx.fragments.apple` to use for the action.
+      apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
       codesign_identity: The identity for the dossier to sign with.
       dossier_codesigningtool: The files_to_run for the code signing tool.
       embedded_dossiers: An optional List of structs indicating which dossiers to embed in the

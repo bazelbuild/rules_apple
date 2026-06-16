@@ -232,7 +232,6 @@ Versions directory. This is only supported for macOS platform.
                 """,
         ),
     },
-    fragments = ["apple"],
     doc = """
 Generates an imported dynamic framework for testing.
 

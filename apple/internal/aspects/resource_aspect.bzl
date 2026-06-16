@@ -71,14 +71,12 @@ visibility([
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
-    apple_fragment = aspect_ctx.fragments.apple
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(aspect_ctx)
     cpp_fragment = aspect_ctx.fragments.cpp
     deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
     uses_swift = swift_support.uses_swift(deps_and_target)
 
     return platform_support.platform_prerequisites(
-        apple_fragment = apple_fragment,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(aspect_ctx),
         build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = aspect_ctx.var,

@@ -446,7 +446,7 @@ def _generate_der_entitlements(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_fragment: An Apple fragment (ctx.fragments.apple).
+      apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
       entitlements: The entitlements file to sign with.
       label_name: The name of the target being built.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.

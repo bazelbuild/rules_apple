@@ -111,7 +111,7 @@ def _compile_binary(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         archs: List of architectures to compile (e.g. ['arm64', 'x86_64']).
         hdrs: List of headers files to compile.
         label: Label of the target being built.
@@ -168,15 +168,15 @@ def _create_static_library(
         *,
         actions,
         apple_platform_info,
+        binary,
         label,
         parent_dir = "",
-        binary,
         xcode_config):
     """Creates an Apple static library using libtool.
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         binary: A binary file to use for the archive file.
         label: Label of the target being built.
         parent_dir: Optional parent directory name for the generated archive file.
@@ -220,7 +220,7 @@ def _create_dynamic_library(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         archs: List of architectures to compile (e.g. ['arm64', 'x86_64']).
         binary: A binary file to use for the archive file.
         label: Label of the target being built.
@@ -291,7 +291,7 @@ def _create_framework(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         base_path: Base path for the generated archive file (optional).
         bundle_name: Name of the framework bundle.
         kind: String. Indicates whether the framework is "static" or "dynamic", based on the given
@@ -436,7 +436,7 @@ def _copy_framework_library(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         bundle_name: Name of the framework/XCFramework bundle.
         framework_directory: Target .framework directory to copy files to.
         kind: String. Indicates whether the framework is "static" or "dynamic", based on the given

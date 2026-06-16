@@ -137,7 +137,6 @@ def _apple_build_test_rule_impl(ctx):
     )
 
     platform_prerequisites = platform_support.platform_prerequisites(
-        apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
         build_settings = apple_toolchain_utils.get_xplat_toolchain(ctx).build_settings,
         config_vars = ctx.var,
@@ -229,7 +228,6 @@ this target.
         },
         doc = doc,
         fragments = [
-            "apple",
             "cpp",
             "objc",
         ],

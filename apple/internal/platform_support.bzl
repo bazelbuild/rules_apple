@@ -75,7 +75,6 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
 
 def _platform_prerequisites(
         *,
-        apple_fragment,
         apple_platform_info,
         build_settings,
         config_vars,
@@ -88,7 +87,6 @@ def _platform_prerequisites(
     """Returns a struct containing information on the platform being targeted.
 
     Args:
-      apple_fragment: An Apple fragment (ctx.fragments.apple).
       apple_platform_info: An ApplePlatformInfo provider to determine the platform.
       build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
@@ -111,7 +109,6 @@ def _platform_prerequisites(
         device_families = platform_defaults.device_families(target_os)
 
     return struct(
-        apple_fragment = apple_fragment,
         apple_platform_info = apple_platform_info,
         build_settings = build_settings,
         config_vars = config_vars,

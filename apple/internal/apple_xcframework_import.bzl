@@ -181,8 +181,8 @@ Please verify that an Info.plist was supplied at the root of the XCFramework bun
 def _get_xcframework_library_with_xcframework_processor(
         *,
         actions,
-        apple_platform_info,
         apple_mac_toolchain_info,
+        apple_platform_info,
         apple_xplat_toolchain_info,
         cc_configured_features,
         label,
@@ -197,8 +197,8 @@ def _get_xcframework_library_with_xcframework_processor(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        apple_platform_info: An ApplePlatformInfo provider.
         apple_xplat_toolchain_info: An AppleXplatToolsToolchainInfo provider.
         cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`.
         label: Label of the target being built.
@@ -509,8 +509,8 @@ def _get_library_identifier(
 def _collect_signature_from_xcframework(
         *,
         actions,
-        apple_platform_info,
         apple_mac_toolchain_info,
+        apple_platform_info,
         binary,
         codesignature_files,
         label,
@@ -522,8 +522,8 @@ def _collect_signature_from_xcframework(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         binary: The singular binary File to help us identify the library to report in metadata.
         codesignature_files: A List of Files representing the code signing information for the
             XCFramework.
@@ -623,7 +623,7 @@ def _generate_empty_dylib(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         bundle_name: The name of the framework bundle.
         framework_info_plist: The Info.plist file to base the generated framework binary path on and
@@ -711,7 +711,6 @@ such as a static framework or a framework with mergeable libraries.
 def _apple_dynamic_xcframework_import_impl(ctx):
     """Implementation for the apple_dynamic_framework_import rule."""
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_configured_features = features_support.cc_configured_features(
@@ -833,7 +832,6 @@ def _apple_static_xcframework_import_impl(ctx):
     """Implementation of apple_static_xcframework_import."""
     actions = ctx.actions
     alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
-    apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_configured_features = features_support.cc_configured_features(
@@ -1025,7 +1023,7 @@ on this target.
         ),
     },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
@@ -1096,6 +1094,6 @@ on this target.
         ),
     },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    fragments = ["apple", "cpp", "objc"],
+    fragments = ["cpp", "objc"],
     toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )

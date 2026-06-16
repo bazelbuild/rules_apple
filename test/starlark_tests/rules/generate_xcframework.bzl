@@ -81,7 +81,7 @@ def _create_xcframework(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         frameworks: Dictionary of framework paths and framework files.
         headers: A list of files referencing headers.
         label: Label of the target being built.
@@ -182,7 +182,7 @@ def _generate_static_library_xcframework_files(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         generate_modulemap: Boolean. Indicates if the target should generate a Clang modulemap.
         hdrs: A list of files referencing headers.
         include_module_interface_files: Boolean. Indicates if the target should generate Swift
@@ -372,7 +372,7 @@ def _generate_framework_xcframework_files(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         hdrs: A list of files referencing headers.
         include_framework_root_infoplists: Boolean. Indicates if all bundled frameworks should
             include a root infoplist.
@@ -484,7 +484,6 @@ Internal Error: Received undefined kind of {}, expected either static or dynamic
 def _generate_dynamic_xcframework_impl(ctx):
     """Implementation of generate_dynamic_xcframework."""
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -522,7 +521,6 @@ def _generate_dynamic_xcframework_impl(ctx):
 def _generate_static_xcframework_impl(ctx):
     """Implementation of generate_static_xcframework."""
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     bundle_format = ctx.attr.bundle_format
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
@@ -771,6 +769,5 @@ XCFramework outputs.
                 """,
         ),
     },
-    fragments = ["apple"],
     doc = "Generates XCFramework with a static library using Xcode build utilities.",
 )

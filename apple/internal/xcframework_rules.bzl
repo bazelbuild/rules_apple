@@ -384,7 +384,7 @@ def _group_link_outputs_by_library_identifier(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
         deps: Label list of dependencies from rule context (ctx.split_attr.deps).
         label_name: Name of the target being built.
         link_result: The struct returned by `linking_support.register_binary_linking_action`.
@@ -607,12 +607,10 @@ def _available_library_dictionary(
 
 def _limited_platform_prerequisites(
         *,
-        apple_fragment,
         build_settings,
         xcode_version_config):
     """Returns a limited set of platform prerequisites for generating XCFramework Info.plists."""
     return struct(
-        apple_fragment = apple_fragment,
         build_settings = build_settings,
         xcode_version_config = xcode_version_config,
     )
@@ -620,7 +618,6 @@ def _limited_platform_prerequisites(
 def _create_framework_outputs(
         *,
         actions,
-        apple_fragment,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_name,
@@ -650,7 +647,6 @@ def _create_framework_outputs(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_name: The name of the XCFramework bundle.
@@ -750,7 +746,6 @@ bundle_id on the target.
         cc_toolchain = cc_toolchain_forwarder[link_output.split_attr_keys[0]]
         apple_platform_info = cc_toolchain[ApplePlatformInfo]
         platform_prerequisites = platform_support.platform_prerequisites(
-            apple_fragment = apple_fragment,
             apple_platform_info = apple_platform_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = config_vars,
@@ -1127,7 +1122,6 @@ def _create_xcframework_bundle(
 
      Args:
         actions: The actions providerx from `ctx.actions`.
-        apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
         bundle_name: The name of the XCFramework bundle.
@@ -1265,7 +1259,6 @@ def _create_xcframework_codesigning_dossier(
 def _apple_xcframework_impl(ctx):
     """Implementation of apple_xcframework."""
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_name = ctx.attr.bundle_name or ctx.attr.name
@@ -1412,7 +1405,6 @@ def _apple_xcframework_impl(ctx):
 
     bundled_artifacts = _create_framework_outputs(
         actions = actions,
-        apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
@@ -1445,7 +1437,6 @@ def _apple_xcframework_impl(ctx):
         available_libraries = bundled_artifacts.available_libraries,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = _limited_platform_prerequisites(
-            apple_fragment = apple_fragment,
             build_settings = build_settings,
             xcode_version_config = xcode_version_config,
         ),
@@ -1743,7 +1734,6 @@ def _apple_static_xcframework_impl(ctx):
     """Implementation of apple_static_xcframework."""
 
     actions = ctx.actions
-    apple_fragment = ctx.fragments.apple
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     bundle_format = ctx.attr.bundle_format
@@ -1845,7 +1835,6 @@ def _apple_static_xcframework_impl(ctx):
     elif bundle_format == "framework":
         bundled_artifacts = _create_framework_outputs(
             actions = actions,
-            apple_fragment = apple_fragment,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_name = bundle_name,
@@ -1879,7 +1868,6 @@ def _apple_static_xcframework_impl(ctx):
         available_libraries = bundled_artifacts.available_libraries,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = _limited_platform_prerequisites(
-            apple_fragment = apple_fragment,
             build_settings = build_settings,
             xcode_version_config = xcode_version_config,
         ),

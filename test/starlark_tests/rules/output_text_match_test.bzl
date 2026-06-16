@@ -85,6 +85,7 @@ def _output_text_match_test_impl(ctx):
 
 def _device_transition_impl(_, __):
     return {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:ios_arm64",
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "arm64",
         "//command_line_option:tvos_cpus": "arm64",
@@ -96,6 +97,7 @@ _device_transition = transition(
     implementation = _device_transition_impl,
     inputs = [],
     outputs = [
+        "//command_line_option:platforms",
         "//command_line_option:macos_cpus",
         "//command_line_option:ios_multi_cpus",
         "//command_line_option:tvos_cpus",

@@ -121,7 +121,6 @@ def _create_apple_rule(
         executable = is_executable,
         exec_groups = exec_groups,
         fragments = [
-            "apple",
             "cpp",
             "objc",
         ],

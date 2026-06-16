@@ -33,7 +33,9 @@ def _analysis_failure_message_test_impl(ctx):
     asserts.expect_failure(env, ctx.attr.expected_error)
     return analysistest.end(env)
 
-def make_analysis_failure_message_test(*, config_settings = {}):
+def make_analysis_failure_message_test(*, config_settings = {
+    "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+}):
     """Returns a new `analysis_failure_message_test`-like rule with custom configs.
 
     Args:
@@ -60,6 +62,7 @@ analysis_failure_message_test = make_analysis_failure_message_test()
 
 analysis_failure_message_with_arm64e_target_test = make_analysis_failure_message_test(
     config_settings = {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64e",
         "//command_line_option:ios_multi_cpus": ["arm64e"],
         "//command_line_option:macos_cpus": ["arm64e"],
         "//command_line_option:tvos_cpus": ["arm64e"],
@@ -69,12 +72,14 @@ analysis_failure_message_with_arm64e_target_test = make_analysis_failure_message
 )
 analysis_failure_message_with_tree_artifact_outputs_test = make_analysis_failure_message_test(
     config_settings = {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
         build_settings_labels.use_tree_artifacts_outputs: True,
     },
 )
 analysis_failure_message_with_wip_features_test = make_analysis_failure_message_test(
     config_settings = {
         build_settings_labels.enable_wip_features: True,
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
         "//command_line_option:macos_cpus": "arm64",
     },
 )
