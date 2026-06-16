@@ -53,10 +53,33 @@ basename_without_extension() {
   echo "${filename%.*}"
 }
 
+test_timeout_detected=""
+
+cleanup() {
+  local exit_status=$?
+
+  # Clean up simulator if one was created.
+  if [[ -n "${simulator_id:-}" && "$simulator_id" != "unused" ]]; then
+    SIMULATOR_UDID="$simulator_id" \
+    SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" \
+    XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" \
+    TEST_TIMEOUT_DETECTED="${test_timeout_detected:-}" \
+    "%(clean_up_simulator_action_binary)s"
+  fi
+
+  # Clean up temporary directory if appropriate.
+  if [[ -n "${test_tmp_dir:-}" && -z "${NO_CLEAN:-}" ]]; then
+    rm -rf "${test_tmp_dir}"
+  fi
+
+  exit $exit_status
+}
+
+trap 'cleanup' EXIT
+trap 'test_timeout_detected=1; exit 143' INT TERM
+
 test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
-if [[ -z "${NO_CLEAN:-}" ]]; then
-  trap 'rm -rf "${test_tmp_dir}"' EXIT
-else
+if [[ -n "${NO_CLEAN:-}" ]]; then
   test_tmp_dir="${TMPDIR:-/tmp}/test_tmp_dir"
   rm -rf "$test_tmp_dir"
   mkdir -p "$test_tmp_dir"
@@ -646,8 +669,6 @@ if [[
   # Reduce download size by removing the xcresult bundle if the test run was successful
   rm -r "$result_bundle_path"
 fi
-
-SIMULATOR_UDID="$simulator_id" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(clean_up_simulator_action_binary)s"
 
 if [[ "$post_action_determines_exit_code" == true ]]; then
   if [[ "$post_action_exit_code" -ne 0 ]]; then

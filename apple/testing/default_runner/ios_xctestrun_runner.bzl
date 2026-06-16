@@ -163,6 +163,7 @@ When executed, the binary will have the following environment variables availabl
 <ul>
 <li>`SIMULATOR_UDID`: The UDID of the simulator to clean up. This will be the same UDID produced by the `create_simulator_action` and used to run the tests.</li>
 <li>`SIMULATOR_REUSE_SIMULATOR`: Whether to an existing simulator was reused or if a new one was created. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator cleanup tool.</li>
+<li>`TEST_TIMEOUT_DETECTED`: Whether the test timed out. The value will be set to "1" if the test timed out (i.e., if the test runner received SIGTERM or SIGINT), and unset otherwise.</li>
 </ul>
 """,
         ),
