@@ -84,9 +84,8 @@ single_version_override(
 
 archive_override(
     module_name = "apple_support",
-    integrity = "sha256-7ixekg+gdqywu2hAKQzSxfFXCnBcfbWOx7YxSDHXbmU=",
-    strip_prefix = "apple_support-efc5733a7cd657914d66b2569e7519c426f35a10",
+    strip_prefix = "apple_support-de78a97ff858f1b39c2738c1d5dd482e736b6705",
     urls = [
-        "https://github.com/bazelbuild/apple_support/archive/efc5733a7cd657914d66b2569e7519c426f35a10.tar.gz",
+        "https://github.com/bazelbuild/apple_support/archive/de78a97ff858f1b39c2738c1d5dd482e736b6705.tar.gz",
     ],
 )
