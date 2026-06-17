@@ -29,7 +29,15 @@ def visionos_test_runner(
         execution_requirements = None,
         os_version = "",
         **kwargs):
-    """Deprecated. Use apple_xctestrun_runner instead."""
+    """Deprecated. Use apple_xctestrun_runner instead.
+
+    Args:
+      name: Name for the runner target.
+      device_type: Simulator device type to pass through to apple_xctestrun_runner.
+      execution_requirements: Optional execution requirements override.
+      os_version: Simulator OS version to pass through to apple_xctestrun_runner.
+      **kwargs: Additional keyword arguments forwarded to apple_xctestrun_runner.
+    """
     runner_kwargs = dict(kwargs)
     runner_kwargs.update({
         "name": name,

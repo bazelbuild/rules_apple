@@ -31,7 +31,17 @@ def macos_test_runner(
         pre_action = None,
         test_environment = None,
         **kwargs):
-    """Deprecated. Use apple_xctestrun_runner instead."""
+    """Deprecated. Use apple_xctestrun_runner instead.
+
+    Args:
+      name: Name for the runner target.
+      execution_requirements: Optional execution requirements override.
+      post_action: Optional action to run after test execution.
+      post_action_determines_exit_code: Whether the post action result should determine test result.
+      pre_action: Optional action to run before test execution.
+      test_environment: Optional test environment values to propagate into XCTest.
+      **kwargs: Additional keyword arguments forwarded to apple_xctestrun_runner.
+    """
     runner_kwargs = dict(kwargs)
     runner_kwargs.update({
         "name": name,

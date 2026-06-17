@@ -611,16 +611,16 @@ Deprecated. Use apple_xctestrun_runner instead.
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="ios_test_runner-name"></a>name |  <p align="center"> - </p>   |  none |
-| <a id="ios_test_runner-create_simulator_action"></a>create_simulator_action |  <p align="center"> - </p>   |  `None` |
-| <a id="ios_test_runner-device_type"></a>device_type |  <p align="center"> - </p>   |  `""` |
-| <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  <p align="center"> - </p>   |  `None` |
-| <a id="ios_test_runner-os_version"></a>os_version |  <p align="center"> - </p>   |  `""` |
-| <a id="ios_test_runner-post_action"></a>post_action |  <p align="center"> - </p>   |  `None` |
-| <a id="ios_test_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  <p align="center"> - </p>   |  `False` |
-| <a id="ios_test_runner-pre_action"></a>pre_action |  <p align="center"> - </p>   |  `None` |
-| <a id="ios_test_runner-test_environment"></a>test_environment |  <p align="center"> - </p>   |  `None` |
-| <a id="ios_test_runner-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
+| <a id="ios_test_runner-name"></a>name |  Name for the runner target.   |  none |
+| <a id="ios_test_runner-create_simulator_action"></a>create_simulator_action |  Optional simulator creation action override.   |  `None` |
+| <a id="ios_test_runner-device_type"></a>device_type |  Simulator device type to pass through to the legacy runner.   |  `""` |
+| <a id="ios_test_runner-execution_requirements"></a>execution_requirements |  Optional execution requirements override.   |  `None` |
+| <a id="ios_test_runner-os_version"></a>os_version |  Simulator OS version to pass through to the legacy runner.   |  `""` |
+| <a id="ios_test_runner-post_action"></a>post_action |  Optional action to run after test execution.   |  `None` |
+| <a id="ios_test_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  Whether the post action result should determine test result.   |  `False` |
+| <a id="ios_test_runner-pre_action"></a>pre_action |  Optional action to run before test execution.   |  `None` |
+| <a id="ios_test_runner-test_environment"></a>test_environment |  Optional test environment values to propagate into XCTest.   |  `None` |
+| <a id="ios_test_runner-kwargs"></a>kwargs |  Additional keyword arguments forwarded to the underlying runner rule.   |  none |
 
 
 <a id="ios_xctestrun_runner"></a>

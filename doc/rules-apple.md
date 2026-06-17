@@ -352,8 +352,8 @@ apple_xctestrun_runner(<a href="#apple_xctestrun_runner-name">name</a>, <a href=
 </pre>
 
 This rule creates an Apple test runner that uses xctestrun files to run hosted
-simulator and device tests, and uses xctest directly to run unhosted simulator
-logic tests.
+simulator, device, and macOS tests, and uses xctest directly to run unhosted
+simulator logic tests.
 
 You can use this rule directly if you need to override 'device_type' or
 'os_version', otherwise you can use the predefined runners:

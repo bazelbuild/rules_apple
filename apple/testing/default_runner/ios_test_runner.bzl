@@ -251,7 +251,20 @@ def ios_test_runner(
         pre_action = None,
         test_environment = None,
         **kwargs):
-    """Deprecated. Use apple_xctestrun_runner instead."""
+    """Deprecated. Use apple_xctestrun_runner instead.
+
+    Args:
+      name: Name for the runner target.
+      create_simulator_action: Optional simulator creation action override.
+      device_type: Simulator device type to pass through to the legacy runner.
+      execution_requirements: Optional execution requirements override.
+      os_version: Simulator OS version to pass through to the legacy runner.
+      post_action: Optional action to run after test execution.
+      post_action_determines_exit_code: Whether the post action result should determine test result.
+      pre_action: Optional action to run before test execution.
+      test_environment: Optional test environment values to propagate into XCTest.
+      **kwargs: Additional keyword arguments forwarded to the underlying runner rule.
+    """
     runner_kwargs = dict(kwargs)
     runner_kwargs.update({
         "device_type": device_type,
