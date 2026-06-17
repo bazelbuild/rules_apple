@@ -81,3 +81,12 @@ single_version_override(
         "//:bazel_features.patch",
     ],
 )
+
+archive_override(
+    module_name = "apple_support",
+    integrity = "sha256-7ixekg+gdqywu2hAKQzSxfFXCnBcfbWOx7YxSDHXbmU=",
+    strip_prefix = "apple_support-efc5733a7cd657914d66b2569e7519c426f35a10",
+    urls = [
+        "https://github.com/bazelbuild/apple_support/archive/efc5733a7cd657914d66b2569e7519c426f35a10.tar.gz",
+    ],
+)
