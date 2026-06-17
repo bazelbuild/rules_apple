@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""iOS test runner rule."""
+"""Deprecated iOS test runner rule."""
 
 load("@apple_support//xcode:providers.bzl", "XcodeVersionPropertiesInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
@@ -21,6 +21,8 @@ load(
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
+
+_DEPRECATION_MESSAGE = "ios_test_runner is deprecated. Use apple_xctestrun_runner instead."
 
 def _get_template_substitutions(
         *,
@@ -120,7 +122,7 @@ def _ios_test_runner_impl(ctx):
         DefaultInfo(runfiles = runfiles),
     ]
 
-ios_test_runner = rule(
+_ios_test_runner = rule(
     _ios_test_runner_impl,
     attrs = {
         "create_simulator_action": attr.label(
@@ -237,3 +239,37 @@ Outputs:
     files: The files needed during runtime for the test to be performed.
 """,
 )
+
+def ios_test_runner(
+        name,
+        create_simulator_action = None,
+        device_type = "",
+        execution_requirements = None,
+        os_version = "",
+        post_action = None,
+        post_action_determines_exit_code = False,
+        pre_action = None,
+        test_environment = None,
+        **kwargs):
+    """Deprecated. Use apple_xctestrun_runner instead."""
+    runner_kwargs = dict(kwargs)
+    runner_kwargs.update({
+        "device_type": device_type,
+        "name": name,
+        "os_version": os_version,
+        "post_action_determines_exit_code": post_action_determines_exit_code,
+    })
+    if create_simulator_action != None:
+        runner_kwargs["create_simulator_action"] = create_simulator_action
+    if execution_requirements != None:
+        runner_kwargs["execution_requirements"] = execution_requirements
+    if post_action != None:
+        runner_kwargs["post_action"] = post_action
+    if pre_action != None:
+        runner_kwargs["pre_action"] = pre_action
+    if test_environment != None:
+        runner_kwargs["test_environment"] = test_environment
+    if "deprecation" not in runner_kwargs:
+        runner_kwargs["deprecation"] = _DEPRECATION_MESSAGE
+
+    _ios_test_runner(**runner_kwargs)

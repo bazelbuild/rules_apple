@@ -337,6 +337,82 @@ Builds and bundles an XCFramework for third-party distribution.
 | <a id="apple_xcframework-visionos"></a>visionos |  A dictionary of strings indicating which platform variants should be built for the visionOS platform (`device` or `simulator`) as keys, and arrays of strings listing which architectures should be built for those platform variants (for example, `arm64`) as their values.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> List of strings</a> | optional |  `{}`  |
 
 
+<a id="apple_xctestrun_runner"></a>
+
+## apple_xctestrun_runner
+
+<pre>
+load("@rules_apple//apple:apple.bzl", "apple_xctestrun_runner")
+
+apple_xctestrun_runner(<a href="#apple_xctestrun_runner-name">name</a>, <a href="#apple_xctestrun_runner-attachment_lifetime">attachment_lifetime</a>, <a href="#apple_xctestrun_runner-clean_up_simulator_action">clean_up_simulator_action</a>, <a href="#apple_xctestrun_runner-command_line_args">command_line_args</a>,
+                       <a href="#apple_xctestrun_runner-create_simulator_action">create_simulator_action</a>, <a href="#apple_xctestrun_runner-create_xcresult_bundle">create_xcresult_bundle</a>, <a href="#apple_xctestrun_runner-destination_timeout">destination_timeout</a>,
+                       <a href="#apple_xctestrun_runner-device_type">device_type</a>, <a href="#apple_xctestrun_runner-execution_requirements">execution_requirements</a>, <a href="#apple_xctestrun_runner-os_version">os_version</a>, <a href="#apple_xctestrun_runner-post_action">post_action</a>,
+                       <a href="#apple_xctestrun_runner-post_action_determines_exit_code">post_action_determines_exit_code</a>, <a href="#apple_xctestrun_runner-pre_action">pre_action</a>, <a href="#apple_xctestrun_runner-random">random</a>, <a href="#apple_xctestrun_runner-reuse_simulator">reuse_simulator</a>,
+                       <a href="#apple_xctestrun_runner-test_environment">test_environment</a>, <a href="#apple_xctestrun_runner-xcodebuild_args">xcodebuild_args</a>)
+</pre>
+
+This rule creates an Apple test runner that uses xctestrun files to run hosted
+simulator and device tests, and uses xctest directly to run unhosted simulator
+logic tests.
+
+You can use this rule directly if you need to override 'device_type' or
+'os_version', otherwise you can use the predefined runners:
+
+```
+"@rules_apple//apple/testing/default_runner:ios_xctestrun_ordered_runner"
+```
+
+or:
+
+```
+"@rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner"
+```
+
+Depending on if you want random test ordering or not. Set these as the `runner`
+attribute on your `ios_unit_test` target:
+
+```bzl
+ios_unit_test(
+    name = "Tests",
+    minimum_os_version = "15.5",
+    runner = "@rules_apple//apple/testing/default_runner:ios_xctestrun_random_runner",
+    deps = [":TestsLib"],
+)
+```
+
+If you would like this test runner to generate xcresult bundles for your tests,
+pass `--test_env=CREATE_XCRESULT_BUNDLE=1`. It is preferable to use the
+`create_xcresult_bundle` on the test runner itself instead of this parameter.
+
+This rule automatically handles running x86_64 tests on arm64 hosts. The only
+exception is that if you want to generate xcresult bundles or run tests in
+random order, the test must have a test host. This is because of a limitation
+in Xcode.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="apple_xctestrun_runner-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="apple_xctestrun_runner-attachment_lifetime"></a>attachment_lifetime |  Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"` or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using `xcodebuild` or an XCTestRun file but the value will be used in that case.   | String | optional |  `"keepNever"`  |
+| <a id="apple_xctestrun_runner-clean_up_simulator_action"></a>clean_up_simulator_action |  A binary that cleans up any simulators created by the `create_simulator_action`. Runs after the `post_action`, regardless of test success or failure.<br><br>When executed, the binary will have the following environment variables available to it:<br><br><ul> <li>`SIMULATOR_UDID`: The UDID of the simulator to clean up. This will be the same UDID produced by the `create_simulator_action` and used to run the tests.</li> <li>`SIMULATOR_REUSE_SIMULATOR`: Whether to an existing simulator was reused or if a new one was created. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator cleanup tool.</li> </ul>   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_apple//apple/testing/default_runner:simulator_cleanup"`  |
+| <a id="apple_xctestrun_runner-command_line_args"></a>command_line_args |  CommandLineArguments to pass to xctestrun file when running the test bundle. This means it will always use `xcodebuild test-without-building` to run the test bundle.   | List of strings | optional |  `[]`  |
+| <a id="apple_xctestrun_runner-create_simulator_action"></a>create_simulator_action |  A binary that produces a UDID for a simulator that matches the given device type and OS version. Runs before the `pre_action`. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.<br><br>When executed, the binary will have the following environment variables available to it:<br><br><ul> <li>`SIMULATOR_DEVICE_TYPE`: The device type of the simulator to create. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone 6, iPad Air. The value will either be the value of the `device_type` attribute, or the `ios_simulator_device` build setting. If empty, the default simulator creator selects a platform-appropriate device type.</li> <li>`SIMULATOR_OS_VERSION`: The OS version of the simulator to create. The supported OS versions correspond to the output of `xcrun simctl list runtimes`. E.g., 11.2, 9.3. The value will either be the value of the `os_version` attribute, or the `ios_simulator_version` build setting.</li> <li>`SIMULATOR_REUSE_SIMULATOR`: Whether to reuse an existing simulator or create a new one. The value will be set to "1" if the `reuse_simulator` attribute is true, and unset otherwise. Whether or not this variable is respected should be treated as an implementation detail of the simulator creator tool.</li> <li>`SIMULATOR_PLATFORM_TYPE`: The Apple platform type of the simulator to create, derived from the consuming test rule.</li> <li>`SIMULATOR_SDK_VERSION`: The SDK version of the simulator to create. The supported SDK builds correspond to the output of `xcrun simctl runtime match list`. E.g., 11.2, 9.3. The value will be derived from the corresponding default SDK version for the current Xcode version.</li> </ul>   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@rules_apple//apple/testing/default_runner:simulator_creator"`  |
+| <a id="apple_xctestrun_runner-create_xcresult_bundle"></a>create_xcresult_bundle |  Force the test runner to always create an XCResult bundle. This means it will always use `xcodebuild test-without-building` to run the test bundle.   | Boolean | optional |  `False`  |
+| <a id="apple_xctestrun_runner-destination_timeout"></a>destination_timeout |  Use the specified timeout when searching for a destination device. The default is 30 seconds.   | Integer | optional |  `0`  |
+| <a id="apple_xctestrun_runner-device_type"></a>device_type |  The device type of the Apple simulator to run test. The supported types correspond to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air. The default reads from the `ios_simulator_device` build setting. If empty, the default simulator creator selects a platform-appropriate device type.   | String | optional |  `""`  |
+| <a id="apple_xctestrun_runner-execution_requirements"></a>execution_requirements |  Dictionary of strings to strings which specifies the execution requirements for the runner. In most common cases, this should not be used.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{"requires-darwin": ""}`  |
+| <a id="apple_xctestrun_runner-os_version"></a>os_version |  The OS version of the Apple simulator to run test. The supported OS versions correspond to the output of `xcrun simctl list runtimes`. E.g., 15.5. The default reads the `ios_simulator_version` build setting and then falls back to the latest supported version.   | String | optional |  `""`  |
+| <a id="apple_xctestrun_runner-post_action"></a>post_action |  A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="apple_xctestrun_runner-post_action_determines_exit_code"></a>post_action_determines_exit_code |  When true, the exit code of the test run will be set to the exit code of the `post_action`. This is useful for tests that need to fail the test run based on their own criteria.   | Boolean | optional |  `False`  |
+| <a id="apple_xctestrun_runner-pre_action"></a>pre_action |  A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="apple_xctestrun_runner-random"></a>random |  Whether to run the tests in random order to identify unintended state dependencies.   | Boolean | optional |  `False`  |
+| <a id="apple_xctestrun_runner-reuse_simulator"></a>reuse_simulator |  Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.   | Boolean | optional |  `True`  |
+| <a id="apple_xctestrun_runner-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="apple_xctestrun_runner-xcodebuild_args"></a>xcodebuild_args |  Arguments to pass to `xcodebuild` when running the test bundle. This means it will always use `xcodebuild test-without-building` to run the test bundle.   | List of strings | optional |  `[]`  |
+
+
 <a id="local_provisioning_profile"></a>
 
 ## local_provisioning_profile

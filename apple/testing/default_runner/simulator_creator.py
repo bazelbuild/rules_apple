@@ -25,6 +25,28 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 
+_SIMCTL_RUNTIME_PLATFORMS = {
+    "ios": "iOS",
+    "tvos": "tvOS",
+    "visionos": "visionOS",
+    "watchos": "watchOS",
+}
+
+_SDK_NAME_PREFIXES = {
+    "ios": "iphoneos",
+    "tvos": "appletvos",
+    "visionos": "xros",
+    "watchos": "watchos",
+}
+
+_DEVICE_TYPE_PRODUCT_FAMILY_PREFERENCES = {
+    "ios": ("iPhone", "iPad"),
+    "tvos": ("Apple TV",),
+    "visionos": ("Apple Vision",),
+    "watchos": ("Apple Watch",),
+}
+
+
 def _simctl(extra_args: List[str]) -> str:
     return subprocess.check_output(["xcrun", "simctl", *extra_args], text=True)
 
@@ -91,19 +113,20 @@ class _Runtime:
 
 
 def _selected_simulator_runtime(
-    os_version: Optional[str], sdk_version: Optional[str]
+    platform_type: str, os_version: Optional[str], sdk_version: Optional[str]
 ) -> _Runtime:
+    runtime_platform = _SIMCTL_RUNTIME_PLATFORMS[platform_type]
     runtimes = json.loads(_simctl(["list", "runtimes", "-j"]))["runtimes"]
     available_runtimes = [
         runtime
         for runtime in runtimes
-        if runtime["platform"] == "iOS" and runtime["isAvailable"]
+        if runtime["platform"] == runtime_platform and runtime["isAvailable"]
     ]
     if not available_runtimes:
-        raise RuntimeError("no available runtimes found")
+        raise RuntimeError(f"no available {runtime_platform} runtimes found")
     sdk_runtime_match = None
     if sdk_version:
-        sdk_name = f"iphoneos{sdk_version}"
+        sdk_name = f"{_SDK_NAME_PREFIXES[platform_type]}{sdk_version}"
         sdk_runtime_matches = json.loads(_simctl(["runtime", "match", "list", "-j"]))
         if sdk_name not in sdk_runtime_matches:
             raise RuntimeError(
@@ -129,8 +152,22 @@ def _selected_simulator_runtime(
     raise RuntimeError("no matching runtimes found")
 
 
-def _default_device_name(device_type: str, os_version: str) -> str:
-    return f"BAZEL_TEST_{device_type}_{os_version}"
+def _default_device_name(platform_type: str, device_type: str, os_version: str) -> str:
+    return f"BAZEL_TEST_{platform_type}_{device_type}_{os_version}"
+
+
+def _default_device_type(platform_type: str) -> str:
+    device_types = json.loads(_simctl(["list", "devicetypes", "-j"]))["devicetypes"]
+    for product_family in _DEVICE_TYPE_PRODUCT_FAMILY_PREFERENCES[platform_type]:
+        matching_device_types = [
+            device_type
+            for device_type in device_types
+            if device_type.get("productFamily") == product_family
+        ]
+        if matching_device_types:
+            return matching_device_types[-1]["name"]
+
+    raise RuntimeError(f"no default device type found for {platform_type}")
 
 
 def _create_and_boot_simulator(
@@ -175,6 +212,7 @@ def _create_and_boot_simulator(
 
 
 class Namespace(argparse.Namespace):
+    platform_type: Optional[str]
     os_version: Optional[str]
     sdk_version: Optional[str]
     device_type: Optional[str]
@@ -184,6 +222,13 @@ class Namespace(argparse.Namespace):
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--platform-type",
+        required=False,
+        default=None,
+        choices=sorted(_SIMCTL_RUNTIME_PLATFORMS),
+        help="The Apple platform type to run the tests on, ex: ios, tvos, visionos, watchos",
+    )
     parser.add_argument(
         "--os-version",
         required=False,
@@ -200,7 +245,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--device-type",
         required=False,
         default=None,
-        help="The iOS device to run the tests on, ex: iPhone 15",
+        help="The simulator device to run the tests on, ex: iPhone 15",
     )
     parser.add_argument(
         "--name",
@@ -222,11 +267,11 @@ def _main() -> None:
 
     args = parser.parse_args(namespace=Namespace())
 
-    device_type = args.device_type or os.getenv("SIMULATOR_DEVICE_TYPE")
-    if not device_type:
-        parser.error(
-            "Device type must be provided either as an argument or through the SIMULATOR_DEVICE_TYPE environment variable"
-        )
+    platform_type = (
+        args.platform_type or os.getenv("SIMULATOR_PLATFORM_TYPE") or "ios"
+    )
+    if platform_type not in _SIMCTL_RUNTIME_PLATFORMS:
+        parser.error(f"Unsupported platform type: {platform_type}")
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     sdk_version = args.sdk_version or os.getenv("SIMULATOR_SDK_VERSION")
@@ -234,9 +279,16 @@ def _main() -> None:
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
-    selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
+    selected_runtime = _selected_simulator_runtime(
+        platform_type, os_version, sdk_version
+    )
+    device_type = (
+        args.device_type
+        or os.getenv("SIMULATOR_DEVICE_TYPE")
+        or _default_device_type(platform_type)
+    )
     device_name = args.name or _default_device_name(
-        device_type, selected_runtime.version
+        platform_type, device_type, selected_runtime.version
     )
 
     print("Selected simulator runtime", selected_runtime.identifier, file=sys.stderr)

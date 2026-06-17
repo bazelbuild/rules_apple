@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS xctestrun runner.
+# Integration tests for apple_xctestrun_runner.
 
 function set_up() {
   mkdir -p ios
@@ -35,18 +35,18 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
-    "ios_xctestrun_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone Xs",
 )
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_reuse_disabled_runner",
     device_type = "iPhone Xs",
     reuse_simulator = False,
@@ -94,14 +94,14 @@ sh_binary(
   srcs = [":post_action_soft_fail_gen"],
 )
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner_with_soft_fail",
     device_type = "iPhone Xs",
     post_action = ":post_action_soft_fail",
     post_action_determines_exit_code = True,
 )
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner_with_hooks",
     device_type = "iPhone Xs",
     pre_action = ":pre_action",
@@ -717,6 +717,59 @@ ios_unit_test(
 EOF
 }
 
+function create_ios_unit_main_thread_checker_tests() {
+  cat > ios/main_thread_checker_violation.swift <<EOF
+import XCTest
+
+class MainThreadCheckerViolationTest : XCTestCase {
+  func testTriggerMainThreadChecker() {
+        let expectation = self.expectation(description: "Background operation")
+
+        DispatchQueue.global().async {
+            // This will trigger the Main Thread Checker because we are
+            // trying to update the UI from a background thread.
+            let label = UILabel()
+            label.text = "Test"
+
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 5) { (error) in
+            if let error = error {
+                XCTFail("waitForExpectations errored: \(error)")
+            }
+        }
+    }
+}
+EOF
+
+  cat > ios/MainThreadCheckerViolationTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>MainThreadCheckerViolationTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+swift_library(
+    name = "main_thread_checker_violation_test_lib",
+    testonly = True,
+    srcs = ["main_thread_checker_violation.swift"],
+)
+
+ios_unit_test(
+    name = "MainThreadCheckerViolationTest",
+    infoplists = ["MainThreadCheckerViolationTest-Info.plist"],
+    deps = [":main_thread_checker_violation_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_runner",
+)
+EOF
+}
+
 function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
@@ -1138,6 +1191,28 @@ function test_ios_unit_test_with_build_attribute_and_test_env_filters() {
   expect_log "Executed 2 tests, with 0 failures"
 }
 
+function test_ios_unit_test_pass_main_thread_checker_without_crash_on_report_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_main_thread_checker_tests
+  do_ios_test --features=apple.include_main_thread_checker //ios:MainThreadCheckerViolationTest || fail "should pass"
+
+  expect_log "Test Suite 'MainThreadCheckerViolationTest' passed"
+  expect_log "Test Suite 'MainThreadCheckerViolationTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_pass_main_thread_checker_with_crash_on_report_fail() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_main_thread_checker_tests
+  ! do_ios_test --features=apple.include_main_thread_checker --features=apple.fail_on_main_thread_checker //ios:MainThreadCheckerViolationTest || fail "should fail"
+
+  expect_log "Test Suite 'MainThreadCheckerViolationTest' failed"
+  expect_log "Test Suite 'MainThreadCheckerViolationTest.xctest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+}
+
 # Tests a test execution with parallel testing enabled is successful.
 function test_ios_unit_test_parallel_testing_pass() {
   create_sim_runners
@@ -1173,4 +1248,4 @@ function test_ios_unit_test_parallel_testing_no_tests_fail() {
   expect_log "Executed 1 out of 1 test: 1 fails locally."
 }
 
-run_suite "ios_unit_test with iOS xctestrun runner bundling tests"
+run_suite "ios_unit_test with apple_xctestrun_runner bundling tests"

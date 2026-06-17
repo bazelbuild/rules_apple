@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS xctestrun runner.
+# Integration tests for apple_xctestrun_runner.
 
 function set_up() {
   mkdir -p ios
@@ -35,12 +35,12 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
-    "ios_xctestrun_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone Xs",
 )
@@ -480,4 +480,4 @@ function test_ios_ui_test_attachment_lifetime_arg() {
     expect_log "<string>deleteOnSuccess</string>"
 }
 
-run_suite "ios_ui_test with iOS xctestrun runner bundling tests"
+run_suite "ios_ui_test with apple_xctestrun_runner bundling tests"
