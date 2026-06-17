@@ -184,6 +184,5 @@ provider will be used instead.
             ),
         ),
     },
-    fragments = ["apple"],
     test = True,
 )

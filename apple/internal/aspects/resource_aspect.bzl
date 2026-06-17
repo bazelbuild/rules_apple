@@ -406,7 +406,7 @@ apple_resource_aspect = aspect(
     attrs = apple_support.action_required_attrs() |
             apple_support.platform_constraint_attrs(),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    fragments = ["apple", "cpp"],
+    fragments = ["cpp"],
     doc = """
 Aspect that collects and propagates transitive `AppleResourceInfo` providers to allow for resources
 to be bundled by a top-level Apple bundling rule.

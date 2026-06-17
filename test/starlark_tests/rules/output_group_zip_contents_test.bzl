@@ -142,6 +142,5 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
             ),
         ),
     },
-    fragments = ["apple"],
     test = True,
 )

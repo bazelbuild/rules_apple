@@ -345,5 +345,4 @@ variables to exist:
         ),
     },
     test = True,
-    fragments = ["apple"],
 )

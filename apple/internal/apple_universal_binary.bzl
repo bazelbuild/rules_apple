@@ -158,5 +158,4 @@ platforms. The `lipo` tool is used to combine built binaries of multiple
 architectures.
 """,
     executable = True,
-    fragments = ["apple"],
 )

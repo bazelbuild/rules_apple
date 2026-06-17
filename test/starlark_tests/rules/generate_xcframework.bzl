@@ -658,7 +658,6 @@ Versions directory. This is only supported for macOS platform.
                 """,
         ),
     },
-    fragments = ["apple"],
 )
 
 generate_static_xcframework = rule(
