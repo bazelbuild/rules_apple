@@ -35,11 +35,11 @@ Apple BUILD rule maintainers.
     ),
     "force_python_bundletool": struct(
         doc = """
-Use the Python version of `bundletool`, rather than the Swift version, where possible. The Swift
-version of `bundletool` that is used for generating archives is a work in progress that should not
-be used for production, and the flag should only be used for testing the Swift version at this time.
+Use the Python version of `bundletool`, rather than the Swift version, where possible. This is an
+emergency valve so the default can be flipped if we ever have a problem with the Apple bundletool
+binary on Linux, and should not be used or set by anyone except Apple BUILD rule maintainers.
 """,
-        default = True,
+        default = False,
     ),
     "generate_stubs_for_swift_support_inputs": struct(
         doc = """
