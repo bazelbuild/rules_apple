@@ -408,10 +408,6 @@ def _command_line_options(
     return {
         build_settings_labels.use_tree_artifacts_outputs: force_bundle_outputs if force_bundle_outputs else settings[build_settings_labels.use_tree_artifacts_outputs],
         "//command_line_option:apple_platform_type": platform_type,
-        # apple_split_cpu is still needed for Bazel built-in objc_library transition logic and Apple
-        # fragment APIs, and it's also required to keep Bazel from optimizing away splits when deps
-        # are identical between platforms.
-        "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
         "//command_line_option:cpu": cpu,
         "//command_line_option:fission": [],
@@ -553,7 +549,6 @@ _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
 _apple_rule_base_transition_outputs = [
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_platform_type",
-    "//command_line_option:apple_split_cpu",
     "//command_line_option:compiler",
     "//command_line_option:cpu",
     "//command_line_option:fission",
