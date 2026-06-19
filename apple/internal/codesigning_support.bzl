@@ -214,7 +214,7 @@ def _validate_provisioning_profile(
     # Verify that a provisioning profile was provided for device builds on
     # platforms that require it.
     if (platform_prerequisites.platform.is_device and
-        rule_descriptor.requires_signing_for_device and
+        rule_descriptor.cannot_adhoc_sign_on_device and
         not provisioning_profile):
         fail("The provisioning_profile attribute must be set for device " +
              "builds on this platform (%s)." %

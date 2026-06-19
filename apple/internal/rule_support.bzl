@@ -80,11 +80,11 @@ def _describe_rule_type(
         bundle_extension = None,
         bundle_locations = None,
         bundle_package_type = None,
+        cannot_adhoc_sign_on_device = True,
         codesigning_exceptions = _CODESIGNING_EXCEPTIONS.none,
         expose_non_archive_relative_output = False,
         product_type = None,
         requires_pkginfo = False,
-        requires_signing_for_device = True,
         rpaths = [],
         skip_simulator_signing_allowed = True,
         stub_binary_path = None):
@@ -98,6 +98,8 @@ def _describe_rule_type(
         bundle_package_type: Four-character code representing the bundle type.
         bundle_extension: Extension for the Apple bundle inside the archive.
         bundle_locations: Struct with expected bundle locations for different types of artifacts.
+        cannot_adhoc_sign_on_device: Whether the rule's artifacts can only be signed with a
+            provisioning profile and cannot be adhoc signed to run on a device (e.g. iOS apps).
         codesigning_exceptions: A value from _CODESIGNING_EXCEPTIONS to determine conditions for
             code signing, if exceptions should be made.
         expose_non_archive_relative_output: Whether or not to expose an output archive that ignores
@@ -105,8 +107,6 @@ def _describe_rule_type(
             effect if `archive_relative` is empty.
         product_type: The product type for this rule.
         requires_pkginfo: Whether the PkgInfo file should be included inside the rule's bundle.
-        requires_signing_for_device: Whether signing is required when building for devices (as
-            opposed to simulators).
         rpaths: List of rpaths to add to the linker.
         skip_simulator_signing_allowed: Whether this rule is allowed to skip signing when building
             for the simulator.
@@ -127,11 +127,11 @@ def _describe_rule_type(
         bundle_extension = bundle_extension,
         bundle_locations = bundle_locations,
         bundle_package_type = bundle_package_type,
+        cannot_adhoc_sign_on_device = cannot_adhoc_sign_on_device,
         codesigning_exceptions = codesigning_exceptions,
         expose_non_archive_relative_output = expose_non_archive_relative_output,
         product_type = product_type,
         requires_pkginfo = requires_pkginfo,
-        requires_signing_for_device = requires_signing_for_device,
         rpaths = rpaths,
         skip_simulator_signing_allowed = skip_simulator_signing_allowed,
         stub_binary_path = stub_binary_path,
@@ -247,8 +247,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.ui_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -263,8 +263,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["iphone", "ipad"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.unit_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -282,9 +282,9 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".app",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.application,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.application,
             requires_pkginfo = True,
-            requires_signing_for_device = False,
             rpaths = [
                 # Application binaries live in Application.app/Contents/MacOS/Application
                 # Frameworks are packaged in Application.app/Contents/Frameworks
@@ -295,15 +295,15 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.tool: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.tool,
-            requires_signing_for_device = False,
         ),
         # macos_dylib
         apple_product_type.dylib: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = "",
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.dylib,
-            requires_signing_for_device = False,
         ),
         # macos_extension (NSExtension)
         apple_product_type.app_extension: _describe_rule_type(
@@ -311,8 +311,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.app_extension,
-            requires_signing_for_device = False,
             rpaths = [
                 # Extension binaries live in
                 # Application.app/Contents/PlugIns/Extension.appex/Contents/MacOS/Extension
@@ -326,8 +326,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".appex",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.extensionkit_extension,
-            requires_signing_for_device = False,
             rpaths = [
                 # ExtensionKit binaries live in
                 # Application.app/Contents/Extensions/Extension.appex/Contents/MacOS/Extension
@@ -341,8 +341,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".framework",
             bundle_locations = _MACOS_FRAMEWORK_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.framework,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.framework,
-            requires_signing_for_device = False,
             rpaths = [
                 # Framework binaries are loaded from the executable location and application
                 # binaries live in Application.app/Contents/MacOS/Application
@@ -357,8 +357,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".bundle",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Bundle binaries are loaded from the executable location and application binaries
                 # live in Application.app/Contents/MacOS/Application
@@ -372,8 +372,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xpc",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.extension_or_xpc,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.xpc_service,
-            requires_signing_for_device = False,
             requires_pkginfo = True,
             rpaths = [
                 # XPC Application binaries live in
@@ -388,8 +388,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.ui_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in
                 # Application.app/Contents/PlugIns/Test.xctest/Contents/MacOS/Test
@@ -405,8 +405,8 @@ _RULE_TYPE_DESCRIPTORS = {
             bundle_extension = ".xctest",
             bundle_locations = _DEFAULT_MACOS_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.unit_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in
                 # Application.app/Contents/PlugIns/Test.xctest/Contents/MacOS/Test
@@ -484,8 +484,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.ui_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -500,8 +500,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["tv"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.unit_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -547,8 +547,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["vision"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.unit_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -641,8 +641,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.ui_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
@@ -657,8 +657,8 @@ _RULE_TYPE_DESCRIPTORS = {
             allowed_device_families = ["watch"],
             bundle_extension = ".xctest",
             bundle_package_type = bundle_package_type.bundle,
+            cannot_adhoc_sign_on_device = False,
             product_type = apple_product_type.unit_test_bundle,
-            requires_signing_for_device = False,
             rpaths = [
                 # Test binaries live in Application.app/PlugIns/Test.xctest/Test
                 # Frameworks are packaged in Application.app/Frameworks and in
