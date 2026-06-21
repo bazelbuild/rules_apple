@@ -241,12 +241,10 @@ def _find_smartcard_identities(identity=None):
       # as described above
       # Some smartcards report entries with no embedded certificate data, in
       # which case re.search returns None. Skip those rather than crashing.
-      try:
-        cert = re.search(r"(?<=-----BEGIN CERTIFICATE-----)(.*?)(?=-----END CERTIFICATE-----)", data, re.DOTALL).group().strip()
-      except AttributeError:
-        cert = None
-      if cert is None:
+      match = re.search(r"(?<=-----BEGIN CERTIFICATE-----)(.*?)(?=-----END CERTIFICATE-----)", data, re.DOTALL)
+      if not match:
         continue
+      cert = match.group().strip()
       cert = base64.b64decode(cert)
       cert = _certificate_data(cert)
       common_name = _certificate_common_name(cert)
