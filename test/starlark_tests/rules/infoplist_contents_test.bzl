@@ -21,6 +21,7 @@ This rule is meant to be used only for rules_apple tests and are considered impl
 that may change at any time. Please do not depend on this rule.
 """
 
+load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
@@ -120,7 +121,7 @@ def _infoplist_contents_test_impl(ctx):
 # Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 infoplist_contents_test = rule(
     _infoplist_contents_test_impl,
-    attrs = {
+    attrs = apple_support.action_required_attrs() | {
         "build_settings": attr.string_dict(
             mandatory = False,
             doc = "Build settings for target under test.",
@@ -176,12 +177,6 @@ Optional. A short path to the plist file to test with `expected_values`. Require
 `output_group_name`. If this is not set, the default `infoplist` referenced by the AppleBundleInfo
 provider will be used instead.
 """,
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                name = "xcode_config_label",
-                fragment = "apple",
-            ),
         ),
     },
     test = True,

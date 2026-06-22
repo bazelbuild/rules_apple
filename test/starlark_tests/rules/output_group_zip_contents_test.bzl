@@ -14,6 +14,7 @@
 
 """Starlark test rule to validate the zip file referenced from an output group."""
 
+load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_transition",
@@ -97,7 +98,7 @@ def _output_group_zip_contents_test_impl(ctx):
 # Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 output_group_zip_contents_test = rule(
     _output_group_zip_contents_test_impl,
-    attrs = {
+    attrs = apple_support.action_required_attrs() | {
         "build_type": attr.string(
             default = "simulator",
             doc = """
@@ -134,12 +135,6 @@ https://docs.bazel.build/versions/master/user-manual.html#flag--compilation_mode
         "output_group_file_shortpath": attr.string(
             doc = "A short path to the output group file that represents the archive to validate.",
             mandatory = True,
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                name = "xcode_config_label",
-                fragment = "apple",
-            ),
         ),
     },
     test = True,

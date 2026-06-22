@@ -22,6 +22,7 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
@@ -255,7 +256,7 @@ def _apple_verification_test_impl(ctx):
 # Need a cfg for a transition on target_under_test, so can't use analysistest.make.
 apple_verification_test = rule(
     implementation = _apple_verification_test_impl,
-    attrs = {
+    attrs = apple_support.action_required_attrs() | {
         "apple_generate_dsym": attr.bool(
             default = False,
             doc = """
@@ -336,12 +337,6 @@ variables to exist:
         ),
         "_test_deps": attr.label(
             default = "@build_bazel_rules_apple//test:apple_verification_test_deps",
-        ),
-        "_xcode_config": attr.label(
-            default = configuration_field(
-                name = "xcode_config_label",
-                fragment = "apple",
-            ),
         ),
     },
     test = True,

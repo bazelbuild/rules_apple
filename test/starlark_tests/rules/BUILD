@@ -14,7 +14,6 @@ bzl_library(
         "//apple/internal:apple_product_type",
         "//apple/internal:intermediates",
         "//apple/internal:providers",
-        "//apple/internal:shared_environment",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:unittest",
         "@build_bazel_apple_support//lib:apple_support",
