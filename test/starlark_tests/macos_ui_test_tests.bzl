@@ -23,12 +23,12 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
-    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
-    "apple_dsym_bundle_info_test",
+    "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
+    "apple_codesigning_dossier_info_provider_test",
 )
 load(
-    "//test/starlark_tests/rules:apple_verification_test.bzl",
-    "apple_verification_test",
+    "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
+    "apple_dsym_bundle_info_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -51,11 +51,10 @@ def macos_ui_test_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
-    apple_verification_test(
-        name = "{}_codesign_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test",
-        verifier_script = "verifier_scripts/codesign_verifier.sh",
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_codesigning_dossier_info_provider_test".format(name),
+        expected_dossier = "ui_test.__internal__.__test_bundle_dossier.zip",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ui_test.__internal__.__test_bundle",
         tags = [name],
     )
 

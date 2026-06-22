@@ -181,6 +181,7 @@ desired Contents subdirectory.
 macos_internal_ui_test_bundle = _macos_internal_ui_test_bundle
 
 macos_ui_test = rule_factory.create_apple_test_rule(
+    cfg = apple_test_rule_support.dossier_signing_transition,
     doc = "macOS UI Test rule.",
     implementation = _macos_ui_test_impl,
     platform_type = "macos",
@@ -245,6 +246,7 @@ desired Contents subdirectory.
 macos_internal_unit_test_bundle = _macos_internal_unit_test_bundle
 
 macos_unit_test = rule_factory.create_apple_test_rule(
+    cfg = apple_test_rule_support.dossier_signing_transition,
     doc = "macOS Unit Test rule.",
     implementation = _macos_unit_test_impl,
     platform_type = "macos",
