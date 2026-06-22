@@ -18,8 +18,10 @@ The "defaults" tool provided with OS X is somewhat satisfactory for reading and
 writing single values in a plist, but merging whole plists with conflict
 detection is not as easy.
 
-This script takes a single argument that points to a file containing the JSON
-representation of a "control" structure (similar to the PlMerge tool, which
+This script takes a single argument that is either a JSON string of the control
+structure (which can be a long sequence of characters passed directly as an
+argument), or a path to a file containing the JSON representation (similar to
+the PlMerge tool, which
 takes a binary protocol buffer). This control structure is a dictionary with
 the following keys:
 
@@ -1853,8 +1855,17 @@ class PlistTool(object):
 
 def _main(control_path):
   """Loads JSON parameters file and runs PlistTool."""
-  with open(control_path) as control_file:
-    control = json.load(control_file)
+
+  # If the argument starts with a curly brace, it is an inline JSON string.
+  # We parse it directly instead of interpreting it as a file path.
+  #
+  # This allows callers to pass the control structure without writing an
+  # intermediate file.
+  if control_path.startswith('{'):
+    control = json.loads(control_path)
+  else:
+    with open(control_path) as control_file:
+      control = json.load(control_file)
 
   tool = PlistTool(control)
   try:
