@@ -1745,6 +1745,20 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_post_processor_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        contains = [
+            "$RESOURCE_ROOT/post_processed.txt",
+        ],
+        text_test_file = "$RESOURCE_ROOT/post_processed.txt",
+        text_test_values = [
+            "^post-processed$",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
