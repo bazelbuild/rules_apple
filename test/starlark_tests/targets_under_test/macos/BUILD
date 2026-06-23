@@ -1894,3 +1894,13 @@ macos_bundle(
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )
+
+macos_bundle(
+    name = "macos_bundle_w_post_processor",
+    bundle_id = "my.bundle.id",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ipa_post_processor = "//test/starlark_tests/resources:post_processor.sh",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
