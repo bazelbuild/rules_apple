@@ -496,7 +496,9 @@ def run_app(
     ]
     launch_args = ensure_devicectl_terminate_existing(launch_args)
     # Append optional launch arguments.
-    app_args = [app_bundle_id] + sys.argv[1:]
+    # devicectl keeps parsing dash-prefixed values as command options even
+    # after the bundle identifier. Terminate option parsing before app args.
+    app_args = ["--", app_bundle_id] + sys.argv[1:]
     launch_app(
         launch_args=launch_args,
         app_args=app_args,
