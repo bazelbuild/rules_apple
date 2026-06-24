@@ -23,6 +23,7 @@ apple_xplat_tools_toolchain(
     swiftstdlibstubtool = "//tools/swiftstdlibstubtool",
     verifystringstool = "//tools/verifystringstool",
     versiontool = "//tools/versiontool",
+    versiontool_swift = "//tools/versiontool",
 )
 
 toolchain(
