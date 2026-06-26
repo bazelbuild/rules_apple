@@ -25,9 +25,9 @@ visibility([
 ])
 
 _REQUIRED_MINIMUM_OS_VERSION = {
-    "ios": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 26.
-    "macos": "10.13",  # TODO: b/433768882 - Move up to 11.0 for Xcode 26.
-    "tvos": "12.0",  # TODO: b/433768882 - Move up to 15.0 for Xcode 26.
+    "ios": "15.0",
+    "macos": "10.13",
+    "tvos": "15.0",
     "visionos": "1.0",
     "watchos": "8.0",
 }
@@ -52,11 +52,6 @@ def _validate(
     xcode_version_greater_than_or_equal_to_27 = (
         xcode_version_config.xcode_version() >= apple_common.dotted_version("27.0")
     )
-    if xcode_version_greater_than_or_equal_to_27:
-        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION_XCODE_27[platform_type]
-    else:
-        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION[platform_type]
-
     if platform_type == "macos" and xcode_version_greater_than_or_equal_to_27:
         toolchains = cc_toolchain_forwarder.values()
         for toolchain in toolchains:
@@ -70,6 +65,11 @@ macOS 27.0 and later is Apple Silicon only, and has no Intel native counterpart.
                     rule_label = str(rule_label),
                     minimum_os_version = minimum_os_version,
                 ))
+
+    if xcode_version_greater_than_or_equal_to_27:
+        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION_XCODE_27[platform_type]
+    else:
+        required_minimum_os_version = _REQUIRED_MINIMUM_OS_VERSION[platform_type]
 
     if (apple_common.dotted_version(minimum_os_version) <
         apple_common.dotted_version(required_minimum_os_version)):
