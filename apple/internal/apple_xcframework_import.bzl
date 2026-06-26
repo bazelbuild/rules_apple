@@ -734,7 +734,19 @@ def _apple_dynamic_xcframework_import_impl(ctx):
 
     xcframework = _classify_xcframework_imports(xcframework_imports)
     if xcframework.bundle_type == _BUNDLE_TYPE.libraries:
-        fail("Importing XCFrameworks with dynamic libraries is not supported.")
+        fail("""
+Error: Importing XCFrameworks with dynamic libraries, specifically ".dylib" files rather than \
+".framework" files, is not supported by the apple_dynamic_xcframework_import rule.
+
+Target:
+{rule_label}
+
+Files found:
+{files}
+        """.format(
+            files = str(xcframework.files),
+            rule_label = str(label),
+        ))
 
     xcframework_library = _get_xcframework_library_with_xcframework_processor(
         actions = actions,

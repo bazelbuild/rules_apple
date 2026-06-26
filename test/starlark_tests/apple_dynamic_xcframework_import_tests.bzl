@@ -332,7 +332,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     analysis_failure_message_test(
         name = "{}_fails_importing_xcframework_with_static_xcframework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mismatched_xcframework_import",
-        expected_error = "Importing XCFrameworks with dynamic libraries is not supported.",
+        expected_error = "Error: Importing XCFrameworks with dynamic libraries, specifically \".dylib\" files rather than \".framework\" files, is not supported by the apple_dynamic_xcframework_import rule.",
         tags = [name],
     )
 
