@@ -1607,6 +1607,27 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_linkopts",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-alias",
+        "_main",
+        "_linkopts_test_main",
+        "-exported_symbol",
+        "_linkopts_test_main",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_framework(
     name = "fmwk_no_version",
     hdrs = ["//test/starlark_tests/resources:common.h"],
