@@ -1628,6 +1628,28 @@ ios_application(
     ],
 )
 
+ios_application(
+    name = "app_with_additional_linker_inputs",
+    additional_linker_inputs = [
+        "//test/starlark_tests/resources:ExportAnotherFunctionMain.exp",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-exported_symbols_list",
+        "$(location //test/starlark_tests/resources:ExportAnotherFunctionMain.exp)",
+        "-dead_strip",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_framework(
     name = "fmwk_no_version",
     hdrs = ["//test/starlark_tests/resources:common.h"],
