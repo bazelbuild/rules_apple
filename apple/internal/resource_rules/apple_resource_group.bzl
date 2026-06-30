@@ -14,6 +14,12 @@
 
 """Implementation of apple_resource_group rule."""
 
+load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "new_appleresourcegroupinfo",
+)
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 visibility("@build_bazel_rules_apple//apple/...")
 
 def _apple_resource_group_impl(_ctx):
@@ -21,7 +27,10 @@ def _apple_resource_group_impl(_ctx):
     #
     # To transform the attributes referenced by this rule into resource providers, that aspect must
     # be used to iterate through all relevant instances of this rule in the build graph.
-    return []
+    return [
+        CcInfo(),
+        new_appleresourcegroupinfo(),
+    ]
 
 apple_resource_group = rule(
     implementation = _apple_resource_group_impl,

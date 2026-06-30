@@ -32,10 +32,13 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleBundleImportInfo",
     "AppleBundleInfo",
     "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
     "AppleLinkmapInfo",
+    "AppleResourceBundleInfo",
+    "AppleResourceGroupInfo",
     "AppleResourceInfo",
     "new_appledsymbundleinfo",
     "new_applelinkmapinfo",
@@ -118,15 +121,19 @@ def _apple_resource_aspect_impl(target, ctx):
     # The name of the bundle directory to place resources within, if required.
     bundle_name = None
 
+    # TODO(b/520345483): Replace with a better mechanism for identifying "leaf" resource rules for
+    # propagating resource providers. The notion of "owner-less" resources is currently tied too
+    # closely to the objc_library rule itself.
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
         # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
         # treats objc_library targets without sources as resource aggregators.
-        if ctx.rule.attr.srcs or ctx.rule.attr.non_arc_srcs or ctx.rule.attr.deps:
-            owner = str(ctx.label)
+        for attr in ["srcs", "non_arc_srcs", "deps"]:
+            if getattr(ctx.rule.attr, attr):
+                owner = str(ctx.label)
 
-    elif ctx.rule.kind == "swift_library":
+    elif SwiftInfo in target:
         module_names = collections.uniq(
             [x.name for x in target[SwiftInfo].direct_modules if x.swift],
         )
@@ -134,17 +141,17 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 
-    elif ctx.rule.kind == "apple_resource_group":
+    elif AppleResourceGroupInfo in target:
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
 
-    elif ctx.rule.kind == "apple_resource_bundle":
+    elif AppleResourceBundleInfo in target:
         collect_infoplists_args["res_attrs"] = ["infoplists"]
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
 
-    elif ctx.rule.kind == "apple_bundle_import":
+    elif AppleBundleImportInfo in target:
         collect_bundle_imports_args["res_attrs"] = ["bundle_imports"]
 
     # Assign the provider deps once we have the resource attributes sorted out.

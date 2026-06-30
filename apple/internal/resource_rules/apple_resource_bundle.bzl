@@ -28,7 +28,6 @@ def _apple_resource_bundle_impl(_ctx):
     # To transform the attributes referenced by this rule into resource providers, that aspect must
     # be used to iterate through all relevant instances of this rule in the build graph.
     return [
-        apple_common.new_objc_provider(),
         CcInfo(),
         new_appleresourcebundleinfo(),
     ]

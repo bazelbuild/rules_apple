@@ -28,6 +28,7 @@ load(
     _AppleBaseBundleIdInfo = "AppleBaseBundleIdInfo",
     _AppleBinaryInfo = "AppleBinaryInfo",
     _AppleBundleArchiveSupportInfo = "AppleBundleArchiveSupportInfo",
+    _AppleBundleImportInfo = "AppleBundleImportInfo",
     _AppleBundleInfo = "AppleBundleInfo",
     _AppleBundleVersionInfo = "AppleBundleVersionInfo",
     _AppleCodesigningDossierInfo = "AppleCodesigningDossierInfo",
@@ -38,6 +39,7 @@ load(
     _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
     _AppleLinkmapInfo = "AppleLinkmapInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
+    _AppleResourceGroupInfo = "AppleResourceGroupInfo",
     _AppleResourceInfo = "AppleResourceInfo",
     _AppleResourceLocalesInfo = "AppleResourceLocalesInfo",
     _AppleSharedCapabilityInfo = "AppleSharedCapabilityInfo",
@@ -77,6 +79,7 @@ visibility("public")
 
 AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
 AppleBundleArchiveSupportInfo = _AppleBundleArchiveSupportInfo
+AppleBundleImportInfo = _AppleBundleImportInfo
 AppleBundleInfo = _AppleBundleInfo
 AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
@@ -89,6 +92,7 @@ AppleLinkmapInfo = _AppleLinkmapInfo
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
 AppleResourceBundleInfo = _AppleResourceBundleInfo
 AppleResourceInfo = _AppleResourceInfo
+AppleResourceGroupInfo = _AppleResourceGroupInfo
 AppleResourceLocalesInfo = _AppleResourceLocalesInfo
 AppleSharedCapabilityInfo = _AppleSharedCapabilityInfo
 AppleStaticXcframeworkBundleInfo = _AppleStaticXcframeworkBundleInfo

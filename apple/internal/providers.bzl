@@ -568,6 +568,22 @@ Received the following arguments for make_apple_test_runner_info: {kwargs}
 
     return new_appletestrunnerinfo(**kwargs)
 
+AppleBundleImportInfo, new_applebundleimportinfo = provider(
+    doc = """
+Denotes that a target is an apple_bundle_import instance.
+""",
+    fields = {},
+    init = make_banned_init(provider_name = "AppleBundleImportInfo"),
+)
+
+AppleResourceGroupInfo, new_appleresourcegroupinfo = provider(
+    doc = """
+Denotes that a target is an apple_resource_group instance.
+""",
+    fields = {},
+    init = make_banned_init(provider_name = "AppleResourceGroupInfo"),
+)
+
 AppleXcframeworkBundleInfo, new_applexcframeworkbundleinfo = provider(
     doc = """
 Denotes that a target is an XCFramework.

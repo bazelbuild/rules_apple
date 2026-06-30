@@ -16,7 +16,7 @@
 
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "new_appleresourcebundleinfo",
+    "new_applebundleimportinfo",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -29,7 +29,7 @@ def _apple_bundle_import_impl(_ctx):
     # To transform the attributes referenced by this rule into resource providers, that aspect must
     # be used to iterate through all relevant instances of this rule in the build graph.
     return [
-        new_appleresourcebundleinfo(),
+        new_applebundleimportinfo(),
     ]
 
 apple_bundle_import = rule(
