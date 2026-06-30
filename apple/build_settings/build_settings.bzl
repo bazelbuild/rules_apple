@@ -33,14 +33,6 @@ Apple BUILD rule maintainers.
 """,
         default = False,
     ),
-    "force_python_bundletool": struct(
-        doc = """
-Use the Python version of `bundletool`, rather than the Swift version, where possible. This is an
-emergency valve so the default can be flipped if we ever have a problem with the Apple bundletool
-binary on Linux, and should not be used or set by anyone except Apple BUILD rule maintainers.
-""",
-        default = False,
-    ),
     "force_python_versiontool": struct(
         doc = """
 Use the Python version of `versiontool`, rather than the Swift version, where possible. This is an

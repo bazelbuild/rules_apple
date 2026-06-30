@@ -351,13 +351,9 @@ def _generate_bundle_archive_action(
       progress_message: A String. The progress message to use for the action.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
-    force_python_bundletool = False
-    if apple_xplat_toolchain_info.build_settings.force_python_bundletool:
-        force_python_bundletool = True
 
     args = actions.args()
-    if not force_python_bundletool:
-        args.add("archive")
+    args.add("archive")
 
     control_file = intermediates.file(
         actions = actions,
@@ -370,11 +366,6 @@ def _generate_bundle_archive_action(
     additional_control_options = {
         "enable_zip64_support": enable_zip64_support,
     }
-
-    if force_python_bundletool:
-        executable = apple_xplat_toolchain_info.bundletool
-    else:
-        executable = apple_xplat_toolchain_info.bundletool_swift
 
     control = struct(
         bundle_merge_files = control_merge_files,
@@ -391,7 +382,7 @@ def _generate_bundle_archive_action(
     actions.run(
         arguments = [args],
         env = shared_environment.default_env,
-        executable = executable.files_to_run,
+        executable = apple_xplat_toolchain_info.bundletool_swift.files_to_run,
         exec_group = xplat_exec_group,
         inputs = bundletool_final_inputs,
         mnemonic = mnemonic,

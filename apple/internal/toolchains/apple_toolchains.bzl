@@ -109,10 +109,6 @@ target name and values are retrieved from the BuildSettingInfo provider for each
 
 e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 """,
-        "bundletool": """\
-The legacy tool to create an Apple bundle by taking a list of
-files/ZIPs and destinations paths to build the directory structure for those files.
-""",
         "bundletool_swift": """\
 A tool to create an Apple bundle by taking a list of files/ZIPs and destinations paths to build the
 directory structure for those files.
@@ -278,7 +274,6 @@ def _apple_xplat_tools_toolchain_impl(ctx):
                 for build_setting in ctx.attr.build_settings
             }
         ),
-        bundletool = ctx.attr.bundletool,
         bundletool_swift = ctx.attr.bundletool_swift,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
@@ -300,14 +295,6 @@ apple_xplat_tools_toolchain = rule(
             mandatory = True,
             doc = """
 List of `Label`s referencing custom build settings for all Apple rules.
-""",
-        ),
-        "bundletool": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = """
-A `File` referencing a legacy tool to create an Apple bundle by taking a list of files/ZIPs and
-destination paths to build the directory structure for those files.
 """,
         ),
         "bundletool_swift": attr.label(
