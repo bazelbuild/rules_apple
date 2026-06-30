@@ -25,6 +25,7 @@ visibility("private")
 analysis_target_outputs_with_ios_platform_test = make_analysis_target_outputs_test(
     config_settings = {
         "//command_line_option:ios_multi_cpus": "x86_64",
+        "//command_line_option:platforms": "//buildenv/platforms/apple/simulator:ios_x86_64",
     },
 )
 

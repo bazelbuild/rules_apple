@@ -487,6 +487,8 @@ def _generate_dynamic_xcframework_impl(ctx):
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if not apple_support.target_os_from_rule_ctx(ctx, fail_on_missing_constraint = False):
+        return []
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     srcs = ctx.files.srcs
@@ -525,6 +527,9 @@ def _generate_static_xcframework_impl(ctx):
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    if not apple_support.target_os_from_rule_ctx(ctx, fail_on_missing_constraint = False):
+        return []
+
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     srcs = ctx.files.srcs
