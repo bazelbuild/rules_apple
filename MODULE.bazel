@@ -81,3 +81,9 @@ single_version_override(
         "//:bazel_features.patch",
     ],
 )
+
+developer_frameworks = use_extension(
+    "//apple:extensions.bzl",
+    "developer_frameworks",
+)
+use_repo(developer_frameworks, "developer_frameworks")

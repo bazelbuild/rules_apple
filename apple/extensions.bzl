@@ -15,6 +15,7 @@
 """Definitions for bzlmod module extensions."""
 
 load("@bazel_features//:features.bzl", "bazel_features")
+load("//apple/internal:developer_frameworks.bzl", _developer_frameworks = "developer_frameworks")
 load("//apple/internal:repositories.bzl", "apple_rules_dependencies")
 
 def _non_module_deps_impl(module_ctx):
@@ -29,3 +30,5 @@ def _non_module_deps_impl(module_ctx):
     )
 
 non_module_deps = module_extension(implementation = _non_module_deps_impl)
+
+developer_frameworks = _developer_frameworks

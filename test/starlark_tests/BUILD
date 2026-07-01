@@ -71,6 +71,7 @@ load(":watchos_static_framework_tests.bzl", "watchos_static_framework_test_suite
 load(":watchos_ui_test_tests.bzl", "watchos_ui_test_test_suite")
 load(":watchos_unit_test_tests.bzl", "watchos_unit_test_test_suite")
 load(":xcarchive_tests.bzl", "xcarchive_test_suite")
+load(":xcode_developer_framework_import_tests.bzl", "xcode_developer_framework_import_test_suite")
 load(":xctrunner_tests.bzl", "xctrunner_test_suite")
 
 licenses(["notice"])
@@ -219,6 +220,8 @@ watchos_ui_test_test_suite(name = "watchos_ui_test")
 watchos_unit_test_test_suite(name = "watchos_unit_test")
 
 xcarchive_test_suite(name = "xcarchive")
+
+xcode_developer_framework_import_test_suite(name = "xcode_developer_framework_import")
 
 xctrunner_test_suite(name = "xctrunner")
 

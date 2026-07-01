@@ -550,6 +550,74 @@ exec "$bazel_real" "$@"
 
 In your main `.bazelrc` add `import xcode.bazelrc` at the very bottom.
 
+## Xcode developer frameworks
+
+Some Apple frameworks ship inside Xcode itself rather than in any SDK; they live
+under `$(xcode-select -p)/Library/Frameworks`. The most common examples are
+`XcodeKit.framework` (used by Source Editor extensions and other tools that
+embed Xcode functionality) and `Python3.framework`.
+
+`rules_apple` provides a `developer_frameworks` module extension which scans
+locally installed Xcodes at fetch time and exposes one
+`apple_dynamic_framework_import` target per framework exported by the default
+Xcode selected by `xcode-select` (or `DEVELOPER_DIR`). A hub repo then
+`select()`s the right per-Xcode repo based on `--xcode_version`.
+
+### Enabling the repository
+
+Add this to your `MODULE.bazel`:
+
+```bzl
+developer_frameworks = use_extension(
+    "@build_bazel_rules_apple//apple:extensions.bzl",
+    "developer_frameworks",
+)
+use_repo(developer_frameworks, "developer_frameworks")
+```
+
+### Using a developer framework
+
+Depend on the framework by its basename. For example, a Source Editor
+extension's `macos_extension` can link `XcodeKit` directly:
+
+```bzl
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_extension")
+
+macos_extension(
+    name = "MySourceEditorExtension",
+    bundle_id = "com.example.MyApp.MySourceEditorExtension",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "12.0",
+    deps = [
+        ":extension_lib",
+        "@developer_frameworks//:XcodeKit",
+    ],
+)
+```
+
+The exact list of top-level targets exposed by `@developer_frameworks` is taken
+from the default Xcode selected when Bazel fetches the extension. Inspect them
+with:
+
+```sh
+bazel query @developer_frameworks//...
+```
+
+### How resolution works
+
+`@developer_frameworks` is a hub repo whose exported framework labels come from
+the default Xcode selected at fetch time. Each target `select()`s on
+`@bazel_tools//tools/osx:xcode_version_flag_exact`, and each selected branch
+points at `@developer_frameworks_xcode_<version>//:<framework>`, which symlinks
+the framework (and its `.dSYM` if present) out of that Xcode's
+`Library/Frameworks` directory. When you switch Xcode versions via
+`--xcode_version`, an existing hub label resolves to the matching per-Xcode repo
+automatically — you do not need to refetch.
+
+Hosts without any full Xcode get an empty stub repo. The developer frameworks
+feature is macOS-only and not
+expected to work elsewhere.
+
 ## Optimizing remote cache and build execution performance
 
 When using Bazel's remote cache and/or build execution, there are a few flags you can pass to optimize performance. One of those flags is [`--modify_execution_info`](https://bazel.build/reference/command-line-reference#flag--modify_execution_info), which allows adding or removing execution info for specific [mnemonics](https://bazel.build/reference/glossary#mnemonic), which in turn allows you to configure what is cached or built remotely.

@@ -57,6 +57,7 @@ bzl_library(
         "//apple/internal:apple_xcframework_import",
         "//apple/internal:local_provisioning_profiles",
         "//apple/internal:xcframework_rules",
+        "//apple/internal:xcode_developer_framework_import",
         "@bazel_features//:features",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
@@ -180,6 +181,7 @@ bzl_library(
     srcs = ["providers.bzl"],
     deps = [
         "//apple/internal:providers",
+        "//apple/internal/providers:developer_framework_import_info",
     ],
 )
 
