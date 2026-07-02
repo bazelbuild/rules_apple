@@ -60,6 +60,12 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),
+    "merge_info_plist_icons": struct(
+        doc = """
+Whether to recursively merge CFBundleIcons and CFBundleIcons~* sub-dictionaries in Info.plist files instead of failing on conflicts.
+""",
+        default = False,
+    ),
 }
 
 # List of all registered build settings without command line flags at

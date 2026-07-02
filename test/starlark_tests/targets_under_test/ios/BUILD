@@ -387,6 +387,26 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_overlapping_icons",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:IconsPrimary.plist",
+        "//test/starlark_tests/resources:IconsAlternate.plist",
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags + [
+        "manual",
+        "needs-latest-apple-tools",
+    ],
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_launch_storyboard_as_xib",
     bundle_id = "com.google.example",
     families = [

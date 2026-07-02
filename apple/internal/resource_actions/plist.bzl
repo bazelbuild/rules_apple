@@ -353,6 +353,9 @@ def merge_root_infoplists(
     if version_keys_required:
         info_plist_options["version_keys_required"] = True
 
+    if platform_prerequisites.build_settings.merge_info_plist_icons:
+        info_plist_options["merge_info_plist_icons"] = True
+
     # Add any UIDeviceFamily entry needed.
     families = platform_support.ui_device_family_plist_value(
         platform_prerequisites = platform_prerequisites,

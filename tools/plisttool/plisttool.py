@@ -240,6 +240,11 @@ CONFLICTING_KEYS_MSG = (
     'values: "%s" != "%s"'
 )
 
+CONFLICTING_SUBPROPERTY_MSG = (
+    'While processing target "%s"; conflict for subproperty "%s" in "%s": '
+    '"%s" != "%s"'
+)
+
 UNKNOWN_CONTROL_KEYS_MSG = (
     'Target "%s" used a control structure has unknown key(s): %s'
 )
@@ -395,6 +400,7 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
     'version_file',
     'version_keys_required',
     'extensionkit_keys_required',
+    'merge_info_plist_icons',
 ])
 
 # All valid keys in the entitlements_options control structure.
@@ -1770,10 +1776,20 @@ class PlistTool(object):
       raise PlistToolError(
           SKIP_SUBSTITUTIONS_WITH_SUBSTITUTIONS_MSG % target
       )
+    info_plist_options = self._control.get('info_plist_options') or {}
+    merge_info_plist_icons = info_plist_options.get(
+        'merge_info_plist_icons', False
+    )
     out_plist = {}
     for p in self._control.get('plists', []):
       plist = PlistIO.get_object(p, target)
-      self._merge_dictionaries(plist, out_plist, target, subs_engine)
+      self._merge_dictionaries(
+          plist,
+          out_plist,
+          target,
+          subs_engine,
+          merge_info_plist_icons=merge_info_plist_icons,
+      )
 
     overridable_forced_plists = self._control.get(
         'overridable_forced_plists', []
@@ -1783,7 +1799,12 @@ class PlistTool(object):
       # The order is flipped between incoming/outgoing info plist so that the
       # merged plist above has priority, unlike normal `forced_plists` below.
       self._merge_dictionaries(
-          out_plist, plist, target, subs_engine, override_collisions=True
+          out_plist,
+          plist,
+          target,
+          subs_engine,
+          override_collisions=True,
+          merge_info_plist_icons=merge_info_plist_icons,
       )
       out_plist = plist
 
@@ -1791,7 +1812,12 @@ class PlistTool(object):
     for p in forced_plists:
       plist = PlistIO.get_object(p, target)
       self._merge_dictionaries(
-          plist, out_plist, target, subs_engine, override_collisions=True
+          plist,
+          out_plist,
+          target,
+          subs_engine,
+          override_collisions=True,
+          merge_info_plist_icons=merge_info_plist_icons,
       )
 
     for t in tasks:
@@ -1816,7 +1842,12 @@ class PlistTool(object):
 
   @staticmethod
   def _merge_dictionaries(
-      src, dest, target, subs_engine, override_collisions=False
+      src,
+      dest,
+      target,
+      subs_engine,
+      override_collisions=False,
+      merge_info_plist_icons=False,
   ):
     """Merge the top-level keys from src into dest.
 
@@ -1826,11 +1857,13 @@ class PlistTool(object):
       src: The dictionary whose values will be merged into dest.
       dest: The dictionary into which the values will be merged.
       target: The name of the target for which the plist is being built.
-      subs_engine: The SubstitutionEngine to use during the merge, or None if
-        no substitutions should be made.
+      subs_engine: The SubstitutionEngine to use during the merge, or None if no
+        substitutions should be made.
       override_collisions: If True, collisions will be resolved by replacing the
         previous value with the new value. If False, an error will be raised if
         old and new values do not match.
+      merge_info_plist_icons: If True, recursively merge CFBundleIcons and
+        CFBundleIcons~* sub-dictionaries.
 
     Raises:
       PlistToolError: If the two dictionaries had different values for the
@@ -1845,12 +1878,69 @@ class PlistTool(object):
       if key in dest:
         dest_value = dest[key]
 
+        if (
+            merge_info_plist_icons
+            and (key == 'CFBundleIcons' or key.startswith('CFBundleIcons~'))
+            and isinstance(src_value, dict)
+            and isinstance(dest_value, dict)
+        ):
+          PlistTool._merge_info_plist_icons(
+              src_value, dest_value, key, target, override_collisions
+          )
+          continue
+
         if not override_collisions and src_value != dest_value:
           raise PlistToolError(
               CONFLICTING_KEYS_MSG % (target, key, src_value, dest_value)
           )
 
       dest[key] = src_value
+
+  @staticmethod
+  def _merge_info_plist_icons(
+      src, dest, parent_path, target, override_collisions
+  ):
+    """Recursively merges sub-dictionaries of CFBundleIcons.
+
+    This matches the behavior of Xcode and swift-build, which make an exception
+    for icons when merging dictionary keys for root Info.plist files. See:
+    https://github.com/swiftlang/swift-build/blob/91068eb7b8f2141702eb7ba8603852198edacae1/Sources/SWBTaskExecution/TaskActions/InfoPlistProcessorTaskAction.swift#L1251-L1262
+
+    Args:
+      src: The source dictionary containing icon configurations to merge from.
+      dest: The destination dictionary to merge icon configurations into.
+      parent_path: The dot-separated path of keys from the root plist to the
+        current dictionary, used for error reporting (e.g.,
+        'CFBundleIcons.CFBundlePrimaryIcon').
+      target: The label of the target being processed, used for error reporting.
+      override_collisions: If True, conflicting values in dest will be
+        overwritten by values from src. If False, a PlistToolError will be
+        raised.
+
+    Raises:
+      PlistToolError: If override_collisions is False and there is a conflict.
+    """
+    for sub_key, sub_src_val in src.items():
+      if sub_key not in dest:
+        dest[sub_key] = sub_src_val
+        continue
+
+      sub_dest_val = dest[sub_key]
+      if isinstance(sub_src_val, dict) and isinstance(sub_dest_val, dict):
+        PlistTool._merge_info_plist_icons(
+            sub_src_val,
+            sub_dest_val,
+            f'{parent_path}.{sub_key}',
+            target,
+            override_collisions,
+        )
+      elif sub_src_val != sub_dest_val:
+        if not override_collisions:
+          raise PlistToolError(
+              CONFLICTING_SUBPROPERTY_MSG
+              % (target, sub_key, parent_path, sub_src_val, sub_dest_val)
+          )
+        dest[sub_key] = sub_src_val
 
 
 def _main(control_path):
