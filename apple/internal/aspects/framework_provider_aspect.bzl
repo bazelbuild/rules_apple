@@ -28,7 +28,12 @@ visibility([
 ])
 
 # List of attributes through which the aspect propagates.
-_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = ["deps", "frameworks"]
+_FRAMEWORK_PROVIDERS_ASPECT_ATTRS = [
+    # keep sorted
+    "deps",
+    "frameworks",
+    "implementation_deps",
+]
 
 def _framework_provider_aspect_impl(target, ctx):
     """Implementation of the framework provider propagation aspect."""

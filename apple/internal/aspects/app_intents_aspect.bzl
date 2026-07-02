@@ -105,7 +105,12 @@ def _generate_metadata_bundle_inputs(
         swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
     )
 
-_APP_INTENTS_ATTR_ASPECTS = ["deps", "private_deps"]
+_APP_INTENTS_ASPECT_ATTRS = [
+    # keep sorted
+    "deps",
+    "implementation_deps",
+    "private_deps",
+]
 
 def _app_intents_hint_info(aspect_hints):
     """Returns the AppIntentsHintInfo if the target has an AppIntentsHintInfo provider."""
@@ -135,7 +140,7 @@ def _app_intents_aspect_impl(target, ctx):
     direct_app_intents_modules = []
 
     # Identify all of the transitive App IntentsInfo providers from the expected attributes.
-    for attr in _APP_INTENTS_ATTR_ASPECTS:
+    for attr in _APP_INTENTS_ASPECT_ATTRS:
         for deps_target in getattr(ctx.rule.attr, attr, []):
             if AppIntentsInfo not in deps_target:
                 continue
@@ -198,6 +203,6 @@ def _app_intents_aspect_impl(target, ctx):
 
 app_intents_aspect = aspect(
     implementation = _app_intents_aspect_impl,
-    attr_aspects = _APP_INTENTS_ATTR_ASPECTS,
+    attr_aspects = _APP_INTENTS_ASPECT_ATTRS,
     doc = "Collects App Intents metadata dependencies from swift_library targets.",
 )

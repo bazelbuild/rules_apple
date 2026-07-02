@@ -19,6 +19,13 @@ load(
     "SwiftInfo",
 )
 
+_SWIFT_USAGE_ASPECT_ATTRS = [
+    # keep sorted
+    "deps",
+    "implementation_deps",
+    "private_deps",
+]
+
 SwiftUsageInfo = provider(
     doc = """\
 A provider that indicates that Swift was used by a target or any target that it
@@ -56,7 +63,7 @@ def _swift_usage_aspect_impl(target, aspect_ctx):
     return []
 
 swift_usage_aspect = aspect(
-    attr_aspects = ["deps"],
+    attr_aspects = _SWIFT_USAGE_ASPECT_ATTRS,
     doc = """\
 Collects information about how Swift is used in a dependency tree.
 

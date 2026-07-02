@@ -72,6 +72,13 @@ visibility([
     "@build_bazel_rules_apple//apple/...",
 ])
 
+_RESOURCE_ASPECT_BASE_ATTRS = [
+    # keep sorted
+    "deps",
+    "implementation_deps",
+    "private_deps",
+]
+
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(aspect_ctx)
@@ -127,9 +134,10 @@ def _apple_resource_aspect_impl(target, ctx):
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
-        # Only set objc_library targets as owners if they have srcs, non_arc_srcs or deps. This
-        # treats objc_library targets without sources as resource aggregators.
-        for attr in ["srcs", "non_arc_srcs", "deps"]:
+        # Only set objc_library targets as owners if they have srcs, non_arc_srcs, deps, or
+        # implementation_deps. This treats objc_library targets without sources as resource
+        # aggregators.
+        for attr in ["srcs", "non_arc_srcs", "deps", "implementation_deps"]:
             if getattr(ctx.rule.attr, attr):
                 owner = str(ctx.label)
 
@@ -155,7 +163,7 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_bundle_imports_args["res_attrs"] = ["bundle_imports"]
 
     # Assign the provider deps once we have the resource attributes sorted out.
-    provider_deps = ["deps", "private_deps"] + collect_args.get("res_attrs", [])
+    provider_deps = _RESOURCE_ASPECT_BASE_ATTRS + collect_args.get("res_attrs", [])
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:
@@ -402,11 +410,9 @@ App Intents are not supported within frameworks that aren't directly loaded by a
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = [
+    attr_aspects = _RESOURCE_ASPECT_BASE_ATTRS + [
         # keep sorted
         "data",
-        "deps",
-        "private_deps",
         "resources",
         "structured_resources",
     ],
