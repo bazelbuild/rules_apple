@@ -52,7 +52,12 @@ def _validate(
     xcode_version_greater_than_or_equal_to_27 = (
         xcode_version_config.xcode_version() >= apple_common.dotted_version("27.0")
     )
-    if platform_type == "macos" and xcode_version_greater_than_or_equal_to_27:
+
+    # Check that we're not building for Intel macOS when targeting a minimum OS version of
+    # macOS 27.0 or later, which is Apple Silicon only.
+    if (platform_type == "macos" and
+        xcode_version_greater_than_or_equal_to_27 and
+        apple_common.dotted_version(minimum_os_version) >= apple_common.dotted_version("27.0")):
         toolchains = cc_toolchain_forwarder.values()
         for toolchain in toolchains:
             if (ApplePlatformInfo in toolchain and
