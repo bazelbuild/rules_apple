@@ -44,6 +44,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_resource_explicit_files_info",
+    srcs = ["apple_resource_explicit_files_info.bzl"],
+    visibility = [
+        # Visibility set to subpackages since this provider is used by the
+        # `resource_aspect` partial.
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "apple_resource_validation_info",
     srcs = ["apple_resource_validation_info.bzl"],
     visibility = [

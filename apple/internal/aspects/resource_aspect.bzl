@@ -56,6 +56,10 @@ load(
     "AppIntentsBundleInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_explicit_files_info.bzl",
+    "AppleResourceExplicitFilesInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
     "AppleResourceValidationInfo",
 )
@@ -162,6 +166,19 @@ def _apple_resource_aspect_impl(target, ctx):
     elif AppleBundleImportInfo in target:
         collect_bundle_imports_args["res_attrs"] = ["bundle_imports"]
 
+    if AppleResourceExplicitFilesInfo in target:
+        explicit_files_info = target[AppleResourceExplicitFilesInfo]
+        explicit_files = explicit_files_info.files
+        if type(explicit_files) == "depset":
+            explicit_files = explicit_files.to_list()
+        apple_resource_infos.append(
+            resources.bucketize_typed(
+                bucket_type = "unprocessed",
+                expect_files = True,
+                resources = explicit_files,
+            ),
+        )
+
     # Assign the provider deps once we have the resource attributes sorted out.
     provider_deps = _RESOURCE_ASPECT_BASE_ATTRS + collect_args.get("res_attrs", [])
 
@@ -178,7 +195,6 @@ def _apple_resource_aspect_impl(target, ctx):
                 owner = owner,
                 parent_dir_param = bundle_name,
                 resources = infoplists,
-                **bucketize_args
             )
             apple_resource_infos.append(
                 resources.process_bucketized_data(
@@ -283,7 +299,6 @@ def _apple_resource_aspect_impl(target, ctx):
                     bucket_type = "unprocessed",
                     parent_dir_param = bundle_imports_parent_dir_param,
                     resources = bundle_imports_files,
-                    **bucketize_args
                 ),
             )
 
