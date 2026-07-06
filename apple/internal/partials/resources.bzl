@@ -308,133 +308,6 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
                   str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include or your bundle's resource_locales is defined properly.")
 
-def _merge_mergeable_strings(
-        *,
-        actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
-        default_lproj,
-        rule_label,
-        mac_exec_group,
-        platform_prerequisites,
-        unmerged,
-        xplat_exec_group):
-    """Merges mergeable strings into a single file.
-
-    Args:
-        actions: The actions object for the rule.
-        apple_mac_toolchain_info: Info about the Apple Mac toolchain.
-        apple_xplat_toolchain_info: Info about the Apple cross-platform toolchain.
-        default_lproj: The default locale for the mergeable strings.
-        rule_label: The label of the rule being processed.
-        mac_exec_group: The exec group for mac binaries.
-        platform_prerequisites: The platform prerequisites for the rule.
-        unmerged: A list of tuples with the resources to be merged.
-        xplat_exec_group: The exec group for cross-platform binaries.
-
-    Returns:
-        A tuple of (merged, validation_outputs), where merged is a list of tuples with the
-        resources to be merged, and validation_outputs is a list of files containing the outputs of
-        the validation steps.
-        """
-    merged = []
-    mergeable_strings = {}
-
-    # Top level directory for storing all merged strings files.
-    root_merged_strings_dir = rule_label.name + "_merged_strings"
-
-    # Create a map of owning directory to lproj directory to files.
-    # i.e. "foo/bar.bundle" -> "en.lproj" -> ["baz.strings", "qux.strings"]
-    BUG_URL = "https://github.com/bazelbuild/rules_apple/issues/new"
-    for parent_dir, _, files in unmerged:
-        if not files:
-            fail("No files found for parent_dir: %s. This is a tooling error, please report a bug %s" % (parent_dir, BUG_URL))
-        if not parent_dir:
-            fail("No parent_dir found for files: %s. This is a tooling error, please report a bug %s" % (files, BUG_URL))
-
-        components = parent_dir.split("/")
-        lproj_dir = components[-1]
-        if not lproj_dir.endswith(".lproj"):
-            fail("No locale found for files in `%s`. All strings files should be in a directory named after the locale (eg. en.lproj)." % parent_dir)
-
-        owning_dir = "/".join(components[:-1])
-
-        owning_dir_to_files = mergeable_strings.setdefault(owning_dir, {})
-        localized_files = owning_dir_to_files.setdefault(lproj_dir, [])
-        localized_files.extend(files.to_list())
-
-    # Iterate through the grouped mergeable strings and merge them.
-    # Also declare the validation outputs for each group.
-    validation_outputs = []
-    for owning_dir, lproj_dirs in mergeable_strings.items():
-        # Every bundle should have a default locale. This will almost always be "en.lproj"
-        if not default_lproj in lproj_dirs:
-            fail("No default locale '%s' found in: '%s'. Please define a strings file for '%s' in '%s'" % (default_lproj, owning_dir, default_lproj, owning_dir))
-        merged_strings_dir = root_merged_strings_dir + "/" + owning_dir
-
-        # Map of table name to list of merged files for that table. Used for validation at the end.
-        merged_table_files = {}
-
-        for lproj_dir_name, mergeable_files in lproj_dirs.items():
-            merged_lproj_dir = merged_strings_dir + "/" + lproj_dir_name
-
-            # Group the mergeable strings files by table name.
-            # ["a/baz.mergeable.strings", "a/qux.mergeable.strings", "b/baz.mergeable.strings"] ->
-            # {"baz.strings": ["a/baz.mergeable.strings", "b/baz.mergeable.strings"],
-            #  "qux.strings": ["a/qux.mergeable.strings"]}
-            mergeable_tables = {}
-            for mergeable_file in mergeable_files:
-                table_name = mergeable_file.basename.removesuffix(".mergeable.strings") + ".strings"
-                mergeable_tables.setdefault(table_name, []).append(mergeable_file)
-
-            # Iterate through the grouped mergeable strings and merge them for this locale.
-            for table_name, table_files in mergeable_tables.items():
-                merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + table_name)
-                merged_table_files.setdefault(table_name, []).append(merged_strings_file)
-                plisttool_control = struct(
-                    binary = True,
-                    output = merged_strings_file.path,
-                    plists = [f.path for f in table_files],
-                    skip_substitutions = True,
-                    target = str(rule_label),
-                )
-                resource_actions.plisttool_action(
-                    actions = actions,
-                    apple_mac_toolchain_info = apple_mac_toolchain_info,
-                    apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                    control = plisttool_control,
-                    inputs = table_files,
-                    mac_exec_group = mac_exec_group,
-                    mnemonic = "MergeStrings",
-                    outputs = [merged_strings_file],
-                    platform_prerequisites = platform_prerequisites,
-                    xplat_exec_group = xplat_exec_group,
-                )
-                if owning_dir:
-                    parent_dir = owning_dir + "/" + lproj_dir_name
-                else:
-                    parent_dir = lproj_dir_name
-
-                merged.append((location_enum.resource, parent_dir, depset([merged_strings_file])))
-
-        # This verifies that all of the merged string files have the same top-level keys per locale
-        # per table.
-        for table_name, merged_strings_files in merged_table_files.items():
-            if len(merged_strings_files) > 1:
-                validation_output = actions.declare_file(merged_strings_dir + table_name + ".validation")
-                validation_outputs.append(validation_output)
-                actions.run(
-                    arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
-                    env = shared_environment.default_env,
-                    exec_group = xplat_exec_group,
-                    executable = apple_xplat_toolchain_info.verifystringstool,
-                    inputs = merged_strings_files,
-                    mnemonic = "VerifyMergeStrings",
-                    outputs = [validation_output],
-                )
-
-    return (merged, validation_outputs)
-
 def _resources_partial_impl(
         *,
         actions,
@@ -533,6 +406,7 @@ def _resources_partial_impl(
         "datamodels": (resources_support.datamodels, True),
         "framework": (resources_support.apple_bundle(location_enum.framework), False),
         "infoplists": (resources_support.infoplists, False),
+        "mergeable_strings": (resources_support.mergeable_strings, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
         "processed": (resources_support.noop, False),
@@ -596,26 +470,32 @@ def _resources_partial_impl(
             resources_provider = final_provider,
         )
 
-        if field == "mergeable_strings":
-            files, validation_outputs = _merge_mergeable_strings(
-                actions = actions,
-                apple_mac_toolchain_info = apple_mac_toolchain_info,
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                default_lproj = default_lproj,
-                rule_label = rule_label,
-                mac_exec_group = mac_exec_group,
-                platform_prerequisites = platform_prerequisites,
-                unmerged = deduplicated,
-                xplat_exec_group = xplat_exec_group,
-            )
-            if validation_outputs:
-                all_validation_outputs.extend(validation_outputs)
-            if files:
-                bundle_files.extend(files)
-            continue
-
         processing_func, requires_swift_module = provider_field_to_action[field]
+
+        # Create a map of owning directory to lproj directory to files.
+        # i.e. "foo/bar.bundle" -> "en.lproj" -> ["baz.strings", "qux.strings"]
+        mergeable_strings_lproj_dirs = {}
+
+        # Map of table name to list of merged files for that table. Used for validation at the end.
+        mergeable_strings_table_files = {}
+
+        BUG_URL = "https://github.com/bazelbuild/rules_apple/issues/new"
+
         for parent_dir, swift_module, files in deduplicated:
+            if field == "mergeable_strings":
+                if not files:
+                    fail("No files found for parent_dir: %s. This is a tooling error, please report a bug %s" % (parent_dir, BUG_URL))
+                if not parent_dir:
+                    fail("No parent_dir found for files: %s. This is a tooling error, please report a bug %s" % (files, BUG_URL))
+
+                components = parent_dir.split("/")
+                lproj_dir = components[-1]
+                if not lproj_dir.endswith(".lproj"):
+                    fail("No locale found for files in `%s`. All strings files should be in a directory named after the locale (eg. en.lproj)." % parent_dir)
+
+                owning_dir = "/".join(components[:-1])
+                mergeable_strings_lproj_dirs.setdefault(owning_dir, []).append(lproj_dir)
+
             processing_args = {
                 "actions": actions,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
@@ -640,10 +520,41 @@ def _resources_partial_impl(
             result = processing_func(**processing_args)
             if hasattr(result, "files"):
                 bundle_files.extend(result.files)
+                if field == "mergeable_strings":
+                    for _, _, file_depset in result.files:
+                        for f in file_depset.to_list():
+                            table_name = f.basename
+                            mergeable_strings_table_files.setdefault(table_name, []).append(f)
             if hasattr(result, "archives"):
                 bundle_zips.extend(result.archives)
             if hasattr(result, "infoplists"):
                 infoplists.extend(result.infoplists)
+            if hasattr(result, "validation_outputs"):
+                all_validation_outputs.extend(result.validation_outputs)
+
+        if field == "mergeable_strings":
+            for owning_dir, lproj_dirs in mergeable_strings_lproj_dirs.items():
+                # Every bundle should have a default locale. This will almost always be "en.lproj"
+                if not default_lproj in lproj_dirs:
+                    fail("No default locale '%s' found in: '%s'. Please define a strings file for '%s' in '%s'" % (default_lproj, owning_dir, default_lproj, owning_dir))
+
+            merged_strings_dir = rule_label.name + "_merged_strings/"
+
+            # This verifies that all of the merged string files have the same top-level keys per locale
+            # per table.
+            for table_name, merged_strings_files in mergeable_strings_table_files.items():
+                if len(merged_strings_files) > 1:
+                    validation_output = actions.declare_file(merged_strings_dir + table_name + ".validation")
+                    all_validation_outputs.append(validation_output)
+                    actions.run(
+                        arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
+                        env = shared_environment.default_env,
+                        exec_group = xplat_exec_group,
+                        executable = apple_xplat_toolchain_info.verifystringstool,
+                        inputs = merged_strings_files,
+                        mnemonic = "VerifyMergeStrings",
+                        outputs = [validation_output],
+                    )
 
     if locales_requested:
         _validate_processed_locales(

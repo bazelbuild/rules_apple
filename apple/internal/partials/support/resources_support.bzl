@@ -740,11 +740,68 @@ def _apple_bundle(bundle_type):
 
     return _bundle_at_location
 
+def _mergeable_strings(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        files,
+        mac_exec_group,
+        parent_dir,
+        platform_prerequisites,
+        rule_label,
+        xplat_exec_group,
+        **_kwargs):
+    """Merges mergeable strings into a single file."""
+    merged = []
+
+    # Group the mergeable strings files by table name.
+    # ["a/baz.mergeable.strings", "a/qux.mergeable.strings"] ->
+    # {"baz.strings": ["a/baz.mergeable.strings"],
+    #  "qux.strings": ["a/qux.mergeable.strings"]}
+    mergeable_tables = {}
+    for mergeable_file in files.to_list():
+        table_name = mergeable_file.basename.removesuffix(".mergeable.strings") + ".strings"
+        mergeable_tables.setdefault(table_name, []).append(mergeable_file)
+
+    for table_name, table_files in mergeable_tables.items():
+        merged_strings_dir = rule_label.name + "_merged_strings"
+        if parent_dir:
+            merged_lproj_dir = merged_strings_dir + "/" + parent_dir
+        else:
+            merged_lproj_dir = merged_strings_dir
+
+        merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + table_name)
+        plisttool_control = struct(
+            binary = True,
+            output = merged_strings_file.path,
+            plists = [f.path for f in table_files],
+            skip_substitutions = True,
+            target = str(rule_label),
+        )
+        resource_actions.plisttool_action(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            control = plisttool_control,
+            inputs = table_files,
+            mac_exec_group = mac_exec_group,
+            mnemonic = "MergeStrings",
+            outputs = [merged_strings_file],
+            platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
+        )
+
+        merged.append((location_enum.resource, parent_dir, depset([merged_strings_file])))
+
+    return struct(files = merged)
+
 resources_support = struct(
     apple_bundle = _apple_bundle,
     asset_catalogs = _asset_catalogs,
     datamodels = _datamodels,
     infoplists = _infoplists,
+    mergeable_strings = _mergeable_strings,
     mlmodels = _mlmodels,
     noop = _noop,
     plists_and_strings = _plists_and_strings,
