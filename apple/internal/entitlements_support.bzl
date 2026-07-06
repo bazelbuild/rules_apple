@@ -405,21 +405,11 @@ def _process_entitlements(
         target = str(rule_label),
         variable_substitutions = struct(CFBundleIdentifier = bundle_id),
     )
-    control_file = _new_entitlements_artifact(
-        actions = actions,
-        extension = "plisttool-control",
-        label_name = rule_label.name,
-    )
-    actions.write(
-        output = control_file,
-        content = json.encode(control),
-    )
-
     resource_actions.plisttool_action(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        control_file = control_file,
+        control = control,
         inputs = inputs,
         mac_exec_group = mac_exec_group,
         mnemonic = "ProcessEntitlementsFiles",

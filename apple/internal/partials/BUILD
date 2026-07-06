@@ -188,6 +188,7 @@ bzl_library(
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
+        "//apple/internal:shared_environment",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",

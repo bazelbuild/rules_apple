@@ -372,7 +372,6 @@ def _infoplists(
             bundle_name_with_extension = paths.basename(parent_dir),
             input_files = input_files,
             mac_exec_group = mac_exec_group,
-            output_discriminator = output_discriminator,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
             rule_label = rule_label,

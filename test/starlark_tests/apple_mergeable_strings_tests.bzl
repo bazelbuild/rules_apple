@@ -22,6 +22,10 @@ load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:plisttool_action_test.bzl",
+    "plisttool_action_test",
+)
 
 visibility("private")
 
@@ -107,14 +111,17 @@ def apple_mergeable_strings_test_suite(name):
         tags = [name],
     )
 
-    # Tests that the MergeStrings action is registered.
-    analysis_target_actions_test(
+    # Tests that the MergeStrings action is registered and gets a shell quoted JSON string.
+    plisttool_action_test(
         name = "{}_merge_strings_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
         target_mnemonic = "MergeStrings",
-        expected_argv = [
-            "mergeable_strings_control.json",
-        ],
+        expected_control_dict = json.encode({
+            "binary": True,
+            "skip_substitutions": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+            "plists": ["*"],
+        }),
         tags = [name],
     )
 

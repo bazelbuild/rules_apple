@@ -111,7 +111,6 @@ def _merge_root_infoplists(
 
     resource_actions.merge_root_infoplists(
         actions = actions,
-        output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
         platform_prerequisites = platform_prerequisites,
@@ -317,7 +316,6 @@ def _merge_mergeable_strings(
         default_lproj,
         rule_label,
         mac_exec_group,
-        output_discriminator,
         platform_prerequisites,
         unmerged,
         xplat_exec_group):
@@ -330,8 +328,6 @@ def _merge_mergeable_strings(
         default_lproj: The default locale for the mergeable strings.
         rule_label: The label of the rule being processed.
         mac_exec_group: The exec group for mac binaries.
-        output_discriminator: A string to differentiate between different target intermediate files
-          or `None`.
         platform_prerequisites: The platform prerequisites for the rule.
         unmerged: A list of tuples with the resources to be merged.
         xplat_exec_group: The exec group for cross-platform binaries.
@@ -402,21 +398,11 @@ def _merge_mergeable_strings(
                     skip_substitutions = True,
                     target = str(rule_label),
                 )
-                plisttool_control_file = intermediates.file(
-                    actions = actions,
-                    target_name = rule_label.name,
-                    output_discriminator = output_discriminator,
-                    file_name = merged_lproj_dir + "/" + table_name + "_mergeable_strings_control.json",
-                )
-                actions.write(
-                    output = plisttool_control_file,
-                    content = json.encode(plisttool_control),
-                )
                 resource_actions.plisttool_action(
                     actions = actions,
                     apple_mac_toolchain_info = apple_mac_toolchain_info,
                     apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                    control_file = plisttool_control_file,
+                    control = plisttool_control,
                     inputs = table_files,
                     mac_exec_group = mac_exec_group,
                     mnemonic = "MergeStrings",
@@ -618,7 +604,6 @@ def _resources_partial_impl(
                 default_lproj = default_lproj,
                 rule_label = rule_label,
                 mac_exec_group = mac_exec_group,
-                output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 unmerged = deduplicated,
                 xplat_exec_group = xplat_exec_group,

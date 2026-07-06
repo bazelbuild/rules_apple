@@ -1077,21 +1077,11 @@ def _create_xcframework_root_infoplist(
         plists = [{"AvailableLibraries": available_libraries}, default_xcframework_plist],
         target = str(rule_label),
     )
-    plisttool_control_file = intermediates.file(
-        actions = actions,
-        target_name = rule_label.name,
-        output_discriminator = None,
-        file_name = "xcframework_plisttool_control.json",
-    )
-    actions.write(
-        output = plisttool_control_file,
-        content = json.encode(plisttool_control),
-    )
     resource_actions.plisttool_action(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        control_file = plisttool_control_file,
+        control = plisttool_control,
         inputs = [],
         mac_exec_group = mac_exec_group,
         mnemonic = "CreateXCFrameworkRootInfoPlist",

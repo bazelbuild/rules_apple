@@ -72,7 +72,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple/internal:intermediates",
         "//apple/internal:platform_support",
         "//apple/internal:providers",
         "//apple/internal:shared_environment",
