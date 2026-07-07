@@ -39,7 +39,7 @@ Use the Python version of `versiontool`, rather than the Swift version, where po
 emergency valve so the default can be flipped if we ever have a problem with the Apple versiontool
 binary on Linux, and should not be used or set by anyone except Apple BUILD rule maintainers.
 """,
-        default = True,
+        default = False,
     ),
     "generate_stubs_for_swift_support_inputs": struct(
         doc = """
