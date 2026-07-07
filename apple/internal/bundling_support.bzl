@@ -393,31 +393,77 @@ def _generate_bundle_archive_action(
 def _generate_tree_artifact_bundle_action(
         *,
         actions,
-        additional_bundling_tools,
         apple_platform_info,
         apple_mac_toolchain_info,
-        bundletool_control_file,
         bundletool_inputs,
+        code_signing_commands = "",
+        control_file_name,
+        control_merge_files,
+        control_merge_zips,
+        label_name,
         mac_exec_group,
         mnemonic,
         output_archive,
+        output_discriminator,
+        post_processor = None,
         progress_message,
         xcode_config):
     """Generates an action that creates a tree artifact for a bundle rule output.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      additional_bundling_tools: A list of additional tools to make available to the action.
       apple_platform_info: The ApplePlatformInfo provider.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
-      bundletool_control_file: A File referencing the control file for the bundletool.
       bundletool_inputs: A depset of files to pass to the bundletool.
+      code_signing_commands: String. The sequence of code signing commands to execute, or an empty
+          string if codesigning should not be performed.
+      control_file_name: The name of the control file to generate.
+      control_merge_files: A list of structs representing files that should be merged into the
+          bundle. Each struct contains two fields: "src", the path of the file that should be merged
+          into the bundle; and "dest", the path inside the bundle where the file should be placed.
+          The destination path is relative to the bundle root.
+      control_merge_zips: A list of structs representing ZIP archives whose contents should be
+          merged into the bundle. Each struct contains two fields: "src", the path of the archive
+          whose contents should be merged into the bundle; and "dest", the path inside the bundle
+          where the ZIPs contents should be placed. The destination path is relative to the bundle
+          root.
+      label_name: The name of the target being built.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       mnemonic: A String. The mnemonic to use for the action.
       output_archive: A File referencing the output tree artifact.
+      output_discriminator: A string to differentiate between different target intermediate files
+          or `None`.
+      post_processor: A File referencing the post processor tool to use, or None if no post
+          processor should be used.
       progress_message: A String. The progress message to use for the action.
       xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     """
+
+    additional_bundling_tools = []
+    if code_signing_commands:
+        codesigningtool = apple_mac_toolchain_info.codesigningtool
+        additional_bundling_tools.append(codesigningtool)
+    if post_processor:
+        additional_bundling_tools.append(post_processor)
+
+    bundletool_control_file = intermediates.file(
+        actions = actions,
+        file_name = control_file_name,
+        output_discriminator = output_discriminator,
+        target_name = label_name,
+    )
+    bundletool_control = struct(
+        bundle_merge_files = control_merge_files,
+        bundle_merge_zips = control_merge_zips,
+        output = output_archive.path,
+        code_signing_commands = code_signing_commands,
+        post_processor = post_processor.path if post_processor else "",
+    )
+    actions.write(
+        output = bundletool_control_file,
+        content = json.encode(bundletool_control),
+    )
+    bundletool_final_inputs = depset([bundletool_control_file], transitive = [bundletool_inputs])
     apple_support.run(
         actions = actions,
         apple_platform_info = apple_platform_info,
@@ -435,7 +481,7 @@ def _generate_tree_artifact_bundle_action(
             # $HOME.
             "no-sandbox": "1",
         },
-        inputs = bundletool_inputs,
+        inputs = bundletool_final_inputs,
         mnemonic = mnemonic,
         outputs = [output_archive],
         progress_message = progress_message,

@@ -334,12 +334,6 @@ Please file a bug against the Apple BUILD rules with repro steps.
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
                 control_zips.append(struct(src = source_path, dest = target_path))
 
-    post_processor = ipa_post_processor
-    post_processor_path = ""
-
-    if post_processor:
-        post_processor_path = post_processor.path
-
     if embedding:
         control_file_name = "embedding_bundletool_control.json"
     else:
@@ -348,43 +342,21 @@ Please file a bug against the Apple BUILD rules with repro steps.
     bundletool_inputs = input_files + extra_input_files
 
     if tree_artifact_is_enabled:
-        control_file = intermediates.file(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = output_discriminator,
-            file_name = control_file_name,
-        )
-        bundletool_inputs.append(control_file)
-        control = struct(
-            bundle_merge_files = control_files,
-            bundle_merge_zips = control_zips,
-            output = output_file.path,
-            code_signing_commands = codesigning_command or "",
-            post_processor = post_processor_path,
-        )
-        actions.write(
-            output = control_file,
-            content = json.encode(control),
-        )
-
-        # Required to satisfy an implicit dependency, when the codesigning commands are executed by
-        # the mac-only bundle tool script.
-        codesigningtool = apple_mac_toolchain_info.codesigningtool
-
-        additional_bundling_tools = [codesigningtool]
-        if post_processor:
-            additional_bundling_tools.append(post_processor)
-
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
-            additional_bundling_tools = additional_bundling_tools,
             apple_platform_info = platform_prerequisites.apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            bundletool_control_file = control_file,
             bundletool_inputs = depset(bundletool_inputs),
+            code_signing_commands = codesigning_command or "",
+            control_file_name = control_file_name,
+            control_merge_files = control_files,
+            control_merge_zips = control_zips,
+            label_name = label_name,
             mac_exec_group = mac_exec_group,
             mnemonic = "BundleTreeApp",
             output_archive = output_file,
+            output_discriminator = output_discriminator,
+            post_processor = ipa_post_processor,
             progress_message = "Bundling, processing and signing %s" % label_name,
             xcode_config = platform_prerequisites.xcode_version_config,
         )

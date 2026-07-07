@@ -1139,35 +1139,23 @@ def _create_xcframework_bundle(
     root_info_plist_merge_file = struct(src = root_info_plist.path, dest = "Info.plist")
 
     if tree_artifact_is_enabled:
-        bundletool_control_file = intermediates.file(
-            actions = actions,
-            target_name = label_name,
-            output_discriminator = None,
-            file_name = control_file_name,
-        )
         final_bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files
-        bundletool_control = struct(
-            bundle_merge_files = final_bundle_merge_files,
-            bundle_merge_zips = framework_archive_merge_zips,
-            output = output_archive.path,
-        )
-        actions.write(
-            output = bundletool_control_file,
-            content = json.encode(bundletool_control),
-        )
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
-            additional_bundling_tools = [],
             apple_platform_info = apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            bundletool_control_file = bundletool_control_file,
             bundletool_inputs = depset(
-                direct = [bundletool_control_file, root_info_plist],
+                direct = [root_info_plist],
                 transitive = framework_archive_files,
             ),
+            control_file_name = control_file_name,
+            control_merge_files = final_bundle_merge_files,
+            control_merge_zips = framework_archive_merge_zips,
+            label_name = label_name,
             mac_exec_group = mac_exec_group,
             mnemonic = "CreateXCFrameworkBundle",
             output_archive = output_archive,
+            output_discriminator = None,
             progress_message = "Bundling %s" % label_name,
             xcode_config = xcode_config,
         )
