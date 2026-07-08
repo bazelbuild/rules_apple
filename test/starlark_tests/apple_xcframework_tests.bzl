@@ -1109,6 +1109,30 @@ Check the rule definition for each of the dependencies to ensure that they have 
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_public_hdrs_dedup_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:xcframework_with_public_hdrs",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64_arm64e/xcframework_with_public_hdrs.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/xcframework_with_public_hdrs.framework/Headers/SharedClass.h",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_generated_public_hdrs_dedup_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:xcframework_with_generated_public_hdrs",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64_arm64e/xcframework_with_generated_public_hdrs.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/ios-arm64_arm64e/xcframework_with_generated_public_hdrs.framework/Headers/DummyFmwk.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/xcframework_with_generated_public_hdrs.framework/Headers/SharedClass.h",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/xcframework_with_generated_public_hdrs.framework/Headers/DummyFmwk.h",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

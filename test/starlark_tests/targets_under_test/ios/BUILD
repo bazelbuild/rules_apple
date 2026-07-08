@@ -5448,3 +5448,121 @@ ios_application(
         ":ownerless_res_lib",
     ],
 )
+
+apple_xcframework(
+    name = "xcframework_with_public_hdrs",
+    bundle_id = "com.google.example",
+    bundle_name = "xcframework_with_public_hdrs",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            # buildifier: disable=platform-specific-binaries
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+    ],
+    secure_features = ["pointer_authentication"],
+    tags = common.fixture_tags,
+    deps = [
+        ":xcframework_shared_class",
+    ],
+)
+
+apple_static_xcframework(
+    name = "static_xcframework_with_public_hdrs",
+    bundle_name = "static_xcframework_with_public_hdrs",
+    ios = {
+        "simulator": [
+            # buildifier: disable=platform-specific-binaries
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+    ],
+    secure_features = ["pointer_authentication"],
+    tags = common.fixture_tags,
+    deps = [
+        ":xcframework_shared_class",
+    ],
+)
+
+apple_xcframework(
+    name = "xcframework_with_generated_public_hdrs",
+    bundle_id = "com.google.example",
+    bundle_name = "xcframework_with_generated_public_hdrs",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            # buildifier: disable=platform-specific-binaries
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+        "//test/starlark_tests/targets_under_test/apple:dummy_fmwk_objc_hdr",
+    ],
+    secure_features = ["pointer_authentication"],
+    tags = common.fixture_tags,
+    deps = [
+        ":xcframework_shared_class",
+    ],
+)
+
+apple_static_xcframework(
+    name = "static_xcframework_with_generated_public_hdrs",
+    bundle_name = "static_xcframework_with_generated_public_hdrs",
+    ios = {
+        "simulator": [
+            # buildifier: disable=platform-specific-binaries
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+        "//test/starlark_tests/targets_under_test/apple:dummy_fmwk_objc_hdr",
+    ],
+    secure_features = ["pointer_authentication"],
+    tags = common.fixture_tags,
+    deps = [
+        ":xcframework_shared_class",
+    ],
+)

@@ -550,7 +550,7 @@ def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
         A new list of attributes based on the union of all rule attributes given, by split
         attribute key.
     """
-    unioned_attrs = []
+    unioned_attrs = set()
     for attr_name in attr_names:
         attr = getattr(split_attr, attr_name)
         if not attr:
@@ -558,8 +558,37 @@ def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
         for split_attr_key in split_attr_keys:
             found_attr = attr.get(split_attr_key)
             if found_attr:
-                unioned_attrs += found_attr
-    return unioned_attrs
+                for item in found_attr:
+                    unioned_attrs.add(item)
+    return list(unioned_attrs)
+
+def _deduplicated_files_by_basename(*, attr_names, split_attr, split_attr_keys):
+    """Deduplicates a list of files from targets by basename.
+
+    This ensures that generated files (like headers), which evaluate to distinct `Target`
+    objects per configuration, don't cause duplicate file bundle errors.
+    Note: If two completely distinct files have the same basename, this will silently
+    drop one of them.
+
+    Args:
+        attr_names: The rule attributes to union. Assumed to contain lists of values.
+        split_attr: The Starlark interface for 1:2+ transitions, typically from `ctx.split_attr`.
+        split_attr_keys: A list of strings representing each 1:2+ transition key to check.
+
+    Returns:
+        A list of deduplicated `File` objects from the unioned targets.
+    """
+    targets = _unioned_attrs(
+        attr_names = attr_names,
+        split_attr = split_attr,
+        split_attr_keys = split_attr_keys,
+    )
+
+    files_by_basename = {}
+    for target in targets:
+        for f in target.files.to_list():
+            files_by_basename[f.basename] = f
+    return files_by_basename.values()
 
 def _available_library_dictionary(
         *,
@@ -633,7 +662,6 @@ def _create_framework_outputs(
         minimum_os_versions,
         nested_bundle_id,
         objc_fragment,
-        public_hdr_files,
         resource_split_attrs,
         rule_label,
         targets_to_avoid_attr_name = None,
@@ -668,7 +696,6 @@ def _create_framework_outputs(
             this nested framework for a given platform type.
         nested_bundle_id: The bundle ID to configure for this nested framework.
         objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
-        public_hdr_files: A list of header files representing public interfaces for the library.
         resource_split_attrs: A split_attrs interface to retrieve resource attributes from.
         rule_label: The label of the target being analyzed.
         targets_to_avoid_attr_name: String. The name of the attribute to retrieve targets to avoid
@@ -737,6 +764,12 @@ bundle_id on the target.
 
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         binary_artifact = link_output.binary
+
+        public_hdr_files = _deduplicated_files_by_basename(
+            attr_names = ["public_hdrs"],
+            split_attr = resource_split_attrs,
+            split_attr_keys = link_output.split_attr_keys,
+        )
 
         rule_descriptor = rule_support.rule_descriptor(
             platform_type = link_output.platform,
@@ -1258,7 +1291,6 @@ def _apple_xcframework_impl(ctx):
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
     objc_fragment = ctx.fragments.objc
-    public_hdr_files = ctx.files.public_hdrs
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -1397,10 +1429,9 @@ def _apple_xcframework_impl(ctx):
         mac_exec_group = mac_exec_group,
         minimum_os_versions = minimum_os_versions,
         nested_bundle_id = nested_bundle_id,
+        objc_fragment = objc_fragment,
         resource_split_attrs = ctx.split_attr,
         rule_label = rule_label,
-        objc_fragment = objc_fragment,
-        public_hdr_files = public_hdr_files,
         tree_artifact_is_enabled = tree_artifact_is_enabled,
         version = version,
         xcframework_deps = xcframework_deps,
@@ -1521,6 +1552,7 @@ frameworks. If this attribute is not set, then the name of the target will be us
             ),
             "public_hdrs": attr.label_list(
                 allow_files = [".h"],
+                cfg = transition_support.xcframework_split_transition,
                 doc = """
 A list of files directly referencing header files to be used as the publicly visible interface for
 each of these embedded frameworks. These header files will be embedded within each bundle,
@@ -1543,7 +1575,6 @@ def _create_static_library_outputs(
         bundle_name,
         deps,
         link_outputs_by_library_identifier,
-        public_hdr_files,
         resource_split_attrs,
         rule_label,
         targets_to_avoid_attr_name):
@@ -1555,7 +1586,6 @@ def _create_static_library_outputs(
         deps: Label list of dependencies from rule context (ctx.split_attr.deps).
         link_outputs_by_library_identifier: A list of structs with labels generated by the helper
             function `_group_link_outputs_by_library_identifier`.
-        public_hdr_files: A list of header files representing public interfaces for the library.
         resource_split_attrs: A split_attrs interface to retrieve resource attributes from.
         rule_label: The label of the target being analyzed.
         targets_to_avoid_attr_name: String. The name of the attribute to retrieve targets to avoid
@@ -1601,6 +1631,12 @@ def _create_static_library_outputs(
             dest = paths.join(library_identifier, binary_name),
         ))
         framework_archive_files.append(depset([binary_artifact]))
+
+        public_hdr_files = _deduplicated_files_by_basename(
+            attr_names = ["public_hdrs"],
+            split_attr = resource_split_attrs,
+            split_attr_keys = link_output.split_attr_keys,
+        )
 
         if link_output.framework_swift_infos:
             if public_hdr_files:
@@ -1733,7 +1769,6 @@ def _apple_static_xcframework_impl(ctx):
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
     objc_fragment = ctx.fragments.objc
-    public_hdr_files = ctx.files.public_hdrs
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -1805,7 +1840,6 @@ def _apple_static_xcframework_impl(ctx):
             bundle_name = bundle_name,
             deps = deps,
             link_outputs_by_library_identifier = link_outputs_by_library_identifier,
-            public_hdr_files = public_hdr_files,
             resource_split_attrs = ctx.split_attr,
             rule_label = rule_label,
             targets_to_avoid_attr_name = "avoid_deps",
@@ -1830,7 +1864,6 @@ def _apple_static_xcframework_impl(ctx):
             resource_split_attrs = ctx.split_attr,
             rule_label = rule_label,
             objc_fragment = objc_fragment,
-            public_hdr_files = public_hdr_files,
             targets_to_avoid_attr_name = "avoid_deps",
             targets_to_avoid_must_be_owned = False,
             tree_artifact_is_enabled = tree_artifact_is_enabled,
