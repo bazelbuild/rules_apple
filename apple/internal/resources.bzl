@@ -64,10 +64,6 @@ This file provides methods to easily:
 """
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -81,7 +77,7 @@ load(
     "new_appleresourceinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "@build_bazel_rules_apple//apple/internal/bundling_tasks/support:resources_support.bzl",
     "resources_support",
 )
 load(
@@ -207,9 +203,9 @@ def _bucketize_data(
             means all buckets are allowed.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a struct used to calculate the value of
-            parent_dir for each resource. If it is a struct, it will be considered a partial
-            context, and will be invoked with partial.call().
+        parent_dir_param: Either a string/None or a function used to calculate the value of
+            parent_dir for each resource. If it is a function, it will be considered a bundling task
+            context, and will be invoked with ().
         resources: List of resources to bucketize.
         swift_module: The Swift module name to associate to these resources.
 
@@ -239,7 +235,7 @@ def _bucketize_data(
             if types.is_string(parent_dir_param) or parent_dir_param == None:
                 parent = parent_dir_param
             else:
-                parent = partial.call(partial = parent_dir_param, resource = resource)
+                parent = parent_dir_param(resource = resource)
 
             # Special case for localized. If .lproj/ is in the path of the resource (and the parent
             # doesn't already have it) append the lproj component to the current parent.
@@ -326,9 +322,9 @@ def _bucketize(
             means all buckets are allowed.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a struct used to calculate the value of
-            parent_dir for each resource. If it is a struct, it will be considered a partial
-            context, and will be invoked with partial.call().
+        parent_dir_param: Either a string/None or a function used to calculate the value of
+            parent_dir for each resource. If it is a function, it will be considered a bundling task
+            context, and will be invoked with ().
         resources: List of resources to bucketize.
         swift_module: The Swift module name to associate to these resources.
 
@@ -367,9 +363,9 @@ def _bucketize_typed_data(
             instead of Targets.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a struct used to calculate the value of
-            parent_dir for each resource. If it is a struct, it will be considered a partial
-            context, and will be invoked with partial.call().
+        parent_dir_param: Either a string/None or a function used to calculate the value of
+            parent_dir for each resource. If it is a function, it will be considered a bundling task
+            context, and will be invoked with ().
         resources: List of targets to place in bucket_type.
 
     Returns:
@@ -397,7 +393,7 @@ def _bucketize_typed_data(
         if types.is_string(parent_dir_param) or parent_dir_param == None:
             parent = parent_dir_param
         else:
-            parent = partial.call(parent_dir_param, resource)
+            parent = parent_dir_param(resource)
 
         if ".lproj/" in resource_short_path and (not parent or ".lproj" not in parent):
             lproj_path = bundle_paths.farthest_parent(resource_short_path, "lproj")
@@ -431,8 +427,8 @@ def _bucketize_typed(
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
         parent_dir_param: Either a string/None or a struct used to calculate the value of
-            parent_dir for each resource. If it is a struct, it will be considered a partial
-            context, and will be invoked with partial.call().
+            parent_dir for each resource. If it is a struct, it will be considered a bundling task
+            context, and will be invoked with ().
         resources: List of resources to place in bucket_type.
 
     Returns:

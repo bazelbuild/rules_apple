@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
+    "apple_bundler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -26,6 +30,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
@@ -44,16 +52,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -218,13 +218,13 @@ def _visionos_application_impl(ctx):
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
     linking_contexts = [output.linking_context for output in link_result.outputs]
 
-    processor_partials = [
-        partials.app_assets_validation_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.app_assets_validation(
             app_icons = ctx.files.app_icons,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),
-        partials.apple_bundle_info_partial(
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -236,13 +236,13 @@ def _visionos_application_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -252,7 +252,7 @@ def _visionos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -267,7 +267,7 @@ def _visionos_application_impl(ctx):
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -276,7 +276,7 @@ def _visionos_application_impl(ctx):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -296,7 +296,7 @@ def _visionos_application_impl(ctx):
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -311,24 +311,24 @@ def _visionos_application_impl(ctx):
     ]
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -362,13 +362,13 @@ def _visionos_application_impl(ctx):
     )
 
     dsyms = outputs.dsyms(
-        processor_result = processor_result,
+        bundler_result = bundler_result,
     )
 
     return [
         DefaultInfo(
             executable = executable,
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
                 transitive_files = dsyms,
@@ -377,7 +377,7 @@ def _visionos_application_impl(ctx):
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_visionosapplicationbundleinfo(),
@@ -387,14 +387,14 @@ def _visionos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 visionos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a visionOS Application.",
     implementation = _visionos_application_impl,
     is_executable = True,
-    # Required to supply a "dummy archive" for the tree artifact processor.
+    # Required to supply a "dummy archive" for the tree artifact Apple bundler.
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),

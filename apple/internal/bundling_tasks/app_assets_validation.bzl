@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for app assets validation."""
+"""Bundling Task implementation for app assets validation."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
@@ -44,12 +40,12 @@ _VALID_ICON_EXTENSIONS_FOR_PLATFORM = {
     "visionos": [".solidimagestack/"],
 }
 
-def _app_assets_validation_partial_impl(
+def _app_assets_validation_bundling_task_impl(
         *,
         app_icons,
         platform_prerequisites,
         product_type):
-    """Implementation for the app assets processing partial."""
+    """Implementation for the app assets processing bundling task."""
 
     # actool.bzl has the most comprehensive validations since it evaluates the final set of files
     # before they are sent to actool. We only check here that the user is sending files that look
@@ -81,14 +77,14 @@ Valid icon bundles for this target have the following extensions: {valid_icon_ex
 
     return struct()
 
-def app_assets_validation_partial(
+def app_assets_validation_bundling_task(
         *,
         app_icons = [],
         platform_prerequisites,
         product_type):
-    """Constructor for the app assets validation partial.
+    """Constructor for the app assets validation bundling task.
 
-    This partial validates the given app_icons are correct for the current product type.
+    This bundling task validates the given app_icons are correct for the current product type.
 
     Args:
         app_icons: List of files that represents the App icons.
@@ -96,11 +92,12 @@ def app_assets_validation_partial(
         product_type: Product type identifier used to describe the current bundle type.
 
     Returns:
-        A partial that validates app assets.
+        A bundling task that validates app assets.
     """
-    return partial.make(
-        _app_assets_validation_partial_impl,
+    return lambda *args, **kwargs: _app_assets_validation_bundling_task_impl(
         app_icons = app_icons,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
+        *args,
+        **kwargs
     )

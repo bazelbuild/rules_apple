@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementations for resource processing.
+"""Bundling Task implementations for resource processing.
 
 Resources are processed according to type, by a series of methods that deal with the specifics for
 each resource type. Each of this methods returns a struct, which always have a `files` field
-containing resource tuples as described in processor.bzl. Optionally, the structs can also have an
-`infoplists` field containing a list of plists that should be merged into the root Info.plist.
+containing resource tuples as described in apple_bundler.bzl. Optionally, the structs can also have
+an `infoplists` field containing a list of plists that should be merged into the root Info.plist.
 """
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
@@ -60,7 +56,7 @@ load(
     "shared_environment",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/partials/support:resources_support.bzl",
+    "@build_bazel_rules_apple//apple/internal/bundling_tasks/support:resources_support.bzl",
     "resources_support",
 )
 load(
@@ -94,7 +90,7 @@ def _merge_root_infoplists(
       **kwargs: Extra parameters forwarded into the merge_root_infoplists action.
 
     Returns:
-      A list of tuples as described in processor.bzl with the Info.plist file
+      A list of tuples as described in apple_bundler.bzl with the Info.plist file
       reference and the PkgInfo file if required.
     """
     files = [out_infoplist]
@@ -308,7 +304,7 @@ def _validate_processed_locales(*, label, locales_dropped, locales_included, loc
                   str(unused_locales) + " in locale filter. Please verify " +
                   "apple.locales_to_include or your bundle's resource_locales is defined properly.")
 
-def _resources_partial_impl(
+def _resources_bundling_task_impl(
         *,
         actions,
         additional_forced_root_infoplist_values,
@@ -338,7 +334,7 @@ def _resources_partial_impl(
         version,
         version_keys_required,
         xplat_exec_group):
-    """Implementation for the resource processing partial."""
+    """Implementation for the resource processing bundling task."""
     providers = []
 
     if resource_deps:
@@ -417,7 +413,7 @@ def _resources_partial_impl(
         "xibs": (resources_support.xibs, True),
     }
 
-    # List containing all the files that the processor will bundle in their
+    # List containing all the files that the Apple bundler will bundle in their
     # configured location.
     bundle_files = []
     bundle_zips = []
@@ -628,7 +624,7 @@ with dependencies where applicable. Please add a bundle ID to your target defini
         output_groups = {"_validation": depset(all_validation_outputs)},
     )
 
-def resources_partial(
+def resources_bundling_task(
         *,
         actions,
         additional_forced_root_infoplist_values = [],
@@ -658,9 +654,10 @@ def resources_partial(
         version,
         version_keys_required = True,
         xplat_exec_group):
-    """Constructor for the resources processing partial.
+    """Constructor for the resources processing bundling task.
 
-    This partial collects and propagates all resources that should be bundled in the target being
+    This bundling task collects and propagates all resources that should be bundled in the target
+    being
     processed.
 
     Args:
@@ -716,10 +713,10 @@ def resources_partial(
         xplat_exec_group: The exec group associated with apple_xplat_toolchain.
 
     Returns:
-        A partial that returns the bundle location of the resources and the resources provider.
+        A bundling task that returns the bundle location of the resources and the resources
+        provider.
     """
-    return partial.make(
-        _resources_partial_impl,
+    return lambda *args, **kwargs: _resources_bundling_task_impl(
         actions = actions,
         additional_forced_root_infoplist_values = additional_forced_root_infoplist_values,
         additional_overridable_root_infoplist_values = additional_overridable_root_infoplist_values,
@@ -748,4 +745,6 @@ def resources_partial(
         version = version,
         version_keys_required = version_keys_required,
         xplat_exec_group = xplat_exec_group,
+        *args,
+        **kwargs
     )

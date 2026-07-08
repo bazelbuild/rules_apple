@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for AppleDynamicFrameworkInfo configuration."""
+"""Bundling Task implementation for AppleDynamicFrameworkInfo configuration."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
@@ -26,7 +22,7 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _framework_provider_partial_impl(
+def _framework_provider_bundling_task_impl(
         *,
         actions,
         binary_artifact,
@@ -34,7 +30,7 @@ def _framework_provider_partial_impl(
         cc_linking_contexts,
         cc_toolchain,
         rule_label):
-    """Implementation for the framework provider partial."""
+    """Implementation for the framework provider bundling task."""
 
     feature_configuration = cc_configured_features.configure_features(
         cc_toolchain = cc_toolchain,
@@ -66,7 +62,7 @@ def _framework_provider_partial_impl(
         providers = [framework_provider],
     )
 
-def framework_provider_partial(
+def framework_provider_bundling_task(
         *,
         actions,
         binary_artifact,
@@ -74,9 +70,9 @@ def framework_provider_partial(
         cc_linking_contexts,
         cc_toolchain,
         rule_label):
-    """Constructor for the framework provider partial.
+    """Constructor for the framework provider bundling task.
 
-    This partial propagates the AppleDynamicFrameworkInfo provider required by
+    This bundling task propagates the AppleDynamicFrameworkInfo provider required by
     the linking step. It contains the necessary files and configuration so that
     the framework can be linked against. This is only required for dynamic
     framework bundles.
@@ -92,16 +88,17 @@ def framework_provider_partial(
       rule_label: The label of the target being analyzed.
 
     Returns:
-      A partial that returns the AppleDynamicFrameworkInfo provider used to link
+      A bundling task that returns the AppleDynamicFrameworkInfo provider used to link
       this framework into the final binary.
 
     """
-    return partial.make(
-        _framework_provider_partial_impl,
+    return lambda *args, **kwargs: _framework_provider_bundling_task_impl(
         actions = actions,
         binary_artifact = binary_artifact,
         cc_configured_features = cc_configured_features,
         cc_linking_contexts = cc_linking_contexts,
         cc_toolchain = cc_toolchain,
         rule_label = rule_label,
+        *args,
+        **kwargs
     )

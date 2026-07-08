@@ -15,10 +15,6 @@
 """Implementation of framework import rules."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -368,9 +364,12 @@ There should only be one valid framework binary, given a name that matches its f
     # Create AppleResourceInfo provider
     bundle_files = [x for x in framework_imports if ".bundle/" in x.short_path]
     if bundle_files:
-        parent_dir_param = partial.make(
-            resources.bundle_relative_parent_dir,
-            extension = "bundle",
+        parent_dir_param = (
+            lambda *args, **kwargs: resources.bundle_relative_parent_dir(
+                extension = "bundle",
+                *args,
+                **kwargs
+            )
         )
         resource_provider = resources.bucketize_typed(
             bucket_type = "unprocessed",

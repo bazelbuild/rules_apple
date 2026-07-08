@@ -15,10 +15,6 @@
 """Rules for writing build tests for libraries that target Apple platforms."""
 
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -27,12 +23,12 @@ load(
     "apple_product_type",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
-    "features_support",
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
@@ -147,7 +143,7 @@ def _apple_build_test_rule_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
     )
 
-    resource_artifacts = partial.call(partials.resources_partial(
+    resource_artifacts = bundling_tasks.resources(
         actions = ctx.actions,
         apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx),
         apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
@@ -164,7 +160,7 @@ def _apple_build_test_rule_impl(ctx):
         version = None,
         version_keys_required = False,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
-    ))
+    )()
 
     transitive_files = [target[DefaultInfo].files for target in targets]
     if hasattr(resource_artifacts, "bundle_files"):

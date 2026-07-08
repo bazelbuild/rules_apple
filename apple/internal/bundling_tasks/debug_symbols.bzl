@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for debug symbol file processing."""
+"""Bundling Task implementation for debug symbol file processing."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -265,7 +261,7 @@ def _generate_merged_dsym_bundle(
 
     return dsym_bundle_dir
 
-def _debug_symbols_partial_impl(
+def _debug_symbols_bundling_task_impl(
         *,
         actions,
         bundle_extension,
@@ -276,7 +272,7 @@ def _debug_symbols_partial_impl(
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites):
-    """Implementation for the debug symbols processing partial."""
+    """Implementation for the debug symbols processing bundling task."""
     deps_dsym_bundle_providers = [
         x[AppleDsymBundleInfo]
         for x in debug_dependencies
@@ -358,7 +354,7 @@ def _debug_symbols_partial_impl(
         providers = output_providers,
     )
 
-def debug_symbols_partial(
+def debug_symbols_bundling_task(
         *,
         actions,
         bundle_extension,
@@ -369,15 +365,15 @@ def debug_symbols_partial(
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites):
-    """Constructor for the debug symbols processing partial.
+    """Constructor for the debug symbols processing bundling task.
 
-    This partial collects all of the transitive debug files information. The output of this partial
-    are the debug output files for the target being processed _plus_ all of the dependencies debug
-    symbol files. This includes dSYM bundles and linkmaps. With this, for example, by building an
-    ios_application target with --apple_generate_dsym, this partial will return the dSYM bundle of
-    the ios_application itself plus the dSYM bundles of any ios_framework and ios_extension
-    dependencies there may be, which will force bazel to present these files in the output files
-    section of a successful build.
+    This bundling task collects all of the transitive debug files information. The output of this
+    bundling task are the debug output files for the target being processed _plus_ all of the
+    dependencies debug symbol files. This includes dSYM bundles and linkmaps. With this, for
+    example, by building an ios_application target with --apple_generate_dsym, this bundling task
+    will return the dSYM bundle of the ios_application itself plus the dSYM bundles of any
+    ios_framework and ios_extension dependencies there may be, which will force bazel to present
+    these files in the output files section of a successful build.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -395,10 +391,9 @@ def debug_symbols_partial(
         platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
-        A partial that returns the debug output files, if any were requested.
+        A bundling task that returns the debug output files, if any were requested.
     """
-    return partial.make(
-        _debug_symbols_partial_impl,
+    return lambda *args, **kwargs: _debug_symbols_bundling_task_impl(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -408,4 +403,6 @@ def debug_symbols_partial(
         linkmaps = linkmaps,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
+        *args,
+        **kwargs
     )

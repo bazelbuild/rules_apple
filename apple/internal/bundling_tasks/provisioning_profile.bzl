@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for embedding provisioning profiles."""
+"""Bundling Task implementation for embedding provisioning profiles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
@@ -29,7 +25,7 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _provisioning_profile_partial_impl(
+def _provisioning_profile_bundling_task_impl(
         *,
         actions,
         extension,
@@ -37,7 +33,7 @@ def _provisioning_profile_partial_impl(
         output_discriminator,
         profile_artifact,
         rule_label):
-    """Implementation for the provisioning profile partial."""
+    """Implementation for the provisioning profile bundling task."""
 
     if not profile_artifact:
         fail(
@@ -65,7 +61,7 @@ def _provisioning_profile_partial_impl(
         ],
     )
 
-def provisioning_profile_partial(
+def provisioning_profile_bundling_task(
         *,
         actions,
         extension = "mobileprovision",
@@ -73,10 +69,10 @@ def provisioning_profile_partial(
         output_discriminator = None,
         profile_artifact,
         rule_label):
-    """Constructor for the provisioning profile partial.
+    """Constructor for the provisioning profile bundling task.
 
-    This partial propagates the bundle location for the embedded provisioning profile artifact for
-    the target.
+    This bundling task propagates the bundle location for the embedded provisioning profile artifact
+    for the target.
 
     Args:
       actions: The actions provider from `ctx.actions`.
@@ -88,14 +84,15 @@ def provisioning_profile_partial(
       rule_label: The label of the target being analyzed.
 
     Returns:
-      A partial that returns the bundle location of the provisioning profile artifact.
+      A bundling task that returns the bundle location of the provisioning profile artifact.
     """
-    return partial.make(
-        _provisioning_profile_partial_impl,
+    return lambda *args, **kwargs: _provisioning_profile_bundling_task_impl(
         actions = actions,
         extension = extension,
         location = location,
         output_discriminator = output_discriminator,
         profile_artifact = profile_artifact,
         rule_label = rule_label,
+        *args,
+        **kwargs
     )

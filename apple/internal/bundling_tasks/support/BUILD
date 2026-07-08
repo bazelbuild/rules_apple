@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# Partials support.
+# Bundling Tasks support.
 
-# This file exists to create a package under which to load the processor
-# partials support bzl files.
+# This file exists to create a package under which to load the Apple bundler
+# bundling tasks support bzl files.
 
 licenses(["notice"])
 

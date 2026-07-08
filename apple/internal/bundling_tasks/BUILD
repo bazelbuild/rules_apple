@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# Partials.
+# Bundling Tasks.
 
-# This file exists to create a package under which to load the processor
-# partials bzl files.
+# This file exists to create a package under which to load the Apple bundler
+# bundling tasks bzl files.
 
 licenses(["notice"])
 
@@ -13,10 +13,7 @@ bzl_library(
     visibility = [
         "//apple/internal:__pkg__",
     ],
-    deps = [
-        "//apple/internal:apple_product_type",
-        "@bazel_skylib//lib:partial",
-    ],
+    deps = ["//apple/internal:apple_product_type"],
 )
 
 bzl_library(
@@ -29,7 +26,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal/providers:app_intents_info",
         "//apple/internal/resource_actions:app_intents",
-        "@bazel_skylib//lib:partial",
         "@rules_cc//cc/common",
     ],
 )
@@ -43,7 +39,6 @@ bzl_library(
     deps = [
         "//apple/internal:outputs",
         "//apple/internal:providers",
-        "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:providers",
     ],
 )
@@ -57,7 +52,6 @@ bzl_library(
     deps = [
         "//apple/internal:location_enum",
         "//apple/internal:outputs",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -71,7 +65,6 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal/providers:apple_resource_validation_info",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -86,7 +79,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:clang_rt_dylibs",
-        "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )
@@ -103,7 +95,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal:outputs",
         "//apple/internal:providers",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
 )
@@ -120,7 +111,6 @@ bzl_library(
         "//apple/internal:providers",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:defines",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
         "@build_bazel_apple_support//lib:apple_support",
@@ -136,7 +126,6 @@ bzl_library(
     deps = [
         "//apple/internal:location_enum",
         "//apple/internal/providers:embeddable_info",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -145,9 +134,6 @@ bzl_library(
     srcs = ["extension_safe_validation.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -161,7 +147,6 @@ bzl_library(
         "//apple/internal:clang_modulemap_support",
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -171,10 +156,7 @@ bzl_library(
     visibility = [
         "//apple/internal:__pkg__",
     ],
-    deps = [
-        "//apple/internal:location_enum",
-        "@bazel_skylib//lib:partial",
-    ],
+    deps = ["//apple/internal:location_enum"],
 )
 
 bzl_library(
@@ -190,7 +172,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal:shared_environment",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -204,7 +185,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/providers:apple_dynamic_framework_info",
-        "@bazel_skylib//lib:partial",
         "@rules_cc//cc/common",
     ],
 )
@@ -219,7 +199,6 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:location_enum",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
 )
@@ -233,7 +212,6 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -252,9 +230,8 @@ bzl_library(
         "//apple/internal:resource_actions",
         "//apple/internal:resources",
         "//apple/internal:shared_environment",
-        "//apple/internal/partials/support:resources_support",
+        "//apple/internal/bundling_tasks/support:resources_support",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -269,7 +246,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal:resources",
         "//apple/internal/utils:bundle_paths",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -283,7 +259,6 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
         "//apple/internal:shared_environment",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -300,7 +275,6 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
         "//apple/internal:swift_info_support",
-        "@bazel_skylib//lib:partial",
         "@bazel_skylib//lib:paths",
     ],
 )
@@ -314,7 +288,6 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
-        "@bazel_skylib//lib:partial",
     ],
 )
 
@@ -323,7 +296,7 @@ filegroup(
     name = "for_bazel_tests",
     testonly = 1,
     srcs = glob(["**"]) + [
-        "//apple/internal/partials/support:for_bazel_tests",
+        "//apple/internal/bundling_tasks/support:for_bazel_tests",
     ],
     visibility = [
         "//apple:__subpackages__",

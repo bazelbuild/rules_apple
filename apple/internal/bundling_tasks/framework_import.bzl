@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for framework import file processing."""
+"""Bundling Task implementation for framework import file processing."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -109,7 +105,7 @@ def _framework_provider_files_to_bundle(
 
     return files_to_bundle
 
-def _framework_import_partial_impl(
+def _framework_import_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -122,7 +118,7 @@ def _framework_import_partial_impl(
         rule_descriptor,
         targets,
         targets_to_avoid):
-    """Implementation for the framework import file processing partial."""
+    """Implementation for the framework import file processing bundling task."""
 
     bundling_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
@@ -153,7 +149,7 @@ def _framework_import_partial_impl(
         for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list()
     ]
 
-    # Start assembling our partial's outputs.
+    # Start assembling our bundling task's outputs.
     bundle_files = []
     bundle_zips = []
     signed_frameworks_list = []
@@ -284,7 +280,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
         signed_frameworks = depset(signed_frameworks_list),
     )
 
-def framework_import_partial(
+def framework_import_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -297,10 +293,10 @@ def framework_import_partial(
         rule_descriptor,
         targets,
         targets_to_avoid = []):
-    """Constructor for the framework import file processing partial.
+    """Constructor for the framework import file processing bundling task.
 
-    This partial propagates framework import file bundle locations. The files are collected through
-    the framework_provider_aspect aspect.
+    This bundling task propagates framework import file bundle locations. The files are collected
+    through the framework_provider_aspect aspect.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -319,10 +315,9 @@ def framework_import_partial(
             to be used when deduplicating frameworks already bundled.
 
     Returns:
-        A partial that returns the bundle location of the framework import files.
+        A bundling task that returns the bundle location of the framework import files.
     """
-    return partial.make(
-        _framework_import_partial_impl,
+    return lambda *args, **kwargs: _framework_import_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         cc_configured_features = cc_configured_features,
@@ -334,4 +329,6 @@ def framework_import_partial(
         rule_descriptor = rule_descriptor,
         targets = targets,
         targets_to_avoid = targets_to_avoid,
+        *args,
+        **kwargs
     )

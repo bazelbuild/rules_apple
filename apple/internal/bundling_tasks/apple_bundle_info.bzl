@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for the AppleBundleInfo provider."""
+"""Bundling Task implementation for the AppleBundleInfo provider."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
@@ -33,7 +29,7 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _apple_bundle_info_partial_impl(
+def _apple_bundle_info_bundling_task_impl(
         *,
         actions,
         bundle_id,
@@ -46,7 +42,7 @@ def _apple_bundle_info_partial_impl(
         platform_prerequisites,
         predeclared_outputs,
         product_type):
-    """Implementation for the AppleBundleInfo processing partial."""
+    """Implementation for the AppleBundleInfo processing bundling task."""
 
     archive = outputs.archive(
         actions = actions,
@@ -96,7 +92,7 @@ def _apple_bundle_info_partial_impl(
         ],
     )
 
-def apple_bundle_info_partial(
+def apple_bundle_info_bundling_task(
         *,
         actions,
         bundle_id = None,
@@ -109,9 +105,9 @@ def apple_bundle_info_partial(
         platform_prerequisites,
         predeclared_outputs,
         product_type):
-    """Constructor for the AppleBundleInfo processing partial.
+    """Constructor for the AppleBundleInfo processing bundling task.
 
-    This partial propagates the AppleBundleInfo provider for this target.
+    This bundling task propagates the AppleBundleInfo provider for this target.
 
     Args:
       actions: The actions provider from ctx.actions.
@@ -129,10 +125,9 @@ def apple_bundle_info_partial(
       product_type: Product type identifier used to describe the current bundle type.
 
     Returns:
-      A partial that returns the AppleBundleInfo provider.
+      A bundling task that returns the AppleBundleInfo provider.
     """
-    return partial.make(
-        _apple_bundle_info_partial_impl,
+    return lambda *args, **kwargs: _apple_bundle_info_bundling_task_impl(
         actions = actions,
         bundle_id = bundle_id,
         bundle_extension = bundle_extension,
@@ -144,4 +139,6 @@ def apple_bundle_info_partial(
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         product_type = product_type,
+        *args,
+        **kwargs
     )

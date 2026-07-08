@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for Swift frameworks with third party interfaces."""
+"""Bundling Task implementation for Swift frameworks with third party interfaces."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -41,7 +37,7 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _swift_framework_partial_impl(
+def _swift_framework_bundling_task_impl(
         *,
         actions,
         avoid_deps,
@@ -53,11 +49,11 @@ def _swift_framework_partial_impl(
         label_name,
         output_discriminator,
         swift_infos):
-    """Implementation for the Swift framework processing partial."""
+    """Implementation for the Swift framework processing bundling task."""
 
     if len(swift_infos) == 0:
         fail("""
-Internal error: Expected to find a SwiftInfo before entering this partial. Please file an \
+Internal error: Expected to find a SwiftInfo before entering this bundling task. Please file an \
 issue with a reproducible error case.
 """)
 
@@ -197,7 +193,7 @@ issue with a reproducible error case.
 
     return struct(bundle_files = bundle_files)
 
-def swift_framework_partial(
+def swift_framework_bundling_task(
         *,
         actions,
         avoid_deps = [],
@@ -209,9 +205,9 @@ def swift_framework_partial(
         label_name,
         output_discriminator = None,
         swift_infos):
-    """Constructor for the Swift framework processing partial.
+    """Constructor for the Swift framework processing bundling task.
 
-    This partial collects and bundles the necessary files to construct a Swift based static
+    This bundling task collects and bundles the necessary files to construct a Swift based static
     framework.
 
     Args:
@@ -234,12 +230,12 @@ def swift_framework_partial(
             the required artifacts for that architecture as values.
 
     Returns:
-        A partial that returns the bundle location of the supporting Swift artifacts needed in a
+        A bundling task that returns the bundle location of the supporting Swift artifacts needed
+        in a
         Swift based sdk framework.
     """
 
-    return partial.make(
-        _swift_framework_partial_impl,
+    return lambda *args, **kwargs: _swift_framework_bundling_task_impl(
         actions = actions,
         avoid_deps = avoid_deps,
         bundle_name = bundle_name,
@@ -250,4 +246,6 @@ def swift_framework_partial(
         label_name = label_name,
         output_discriminator = output_discriminator,
         swift_infos = swift_infos,
+        *args,
+        **kwargs
     )

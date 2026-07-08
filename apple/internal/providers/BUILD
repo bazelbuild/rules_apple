@@ -3,7 +3,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 # Internal providers.
 #
 # This file creates a package for internal providers meant to be used
-# by aspects, or partials. And not to be exposed to end users.
+# by aspects, or bundling tasks. And not to be exposed to end users.
 #
 # These providers are meant to be used only by rules_apple internal
 # implementations and implementation details may change at any time.
@@ -16,7 +16,8 @@ bzl_library(
     srcs = ["app_intents_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `app_intents_aspect` and `app_intents_metadata_bundle` partial, as well as for the
+        # by the `app_intents_aspect` and `app_intents_metadata_bundle` bundling task, as well as
+        # for the
         # App Intents aspect hint.
         "//apple/hints:__subpackages__",
         "//apple/internal:__subpackages__",
@@ -48,7 +49,7 @@ bzl_library(
     srcs = ["apple_resource_explicit_files_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used by the
-        # `resource_aspect` partial.
+        # `resource_aspect` bundling task.
         "//apple/internal:__subpackages__",
     ],
 )
@@ -58,7 +59,7 @@ bzl_library(
     srcs = ["apple_resource_validation_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `resource_aspect` and `child_bundle_info_validation` partial.
+        # by the `resource_aspect` and `child_bundle_info_validation` bundling task.
         "//apple/internal:__subpackages__",
     ],
 )
@@ -68,7 +69,7 @@ bzl_library(
     srcs = ["embeddable_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `framework_provider_aspect` and `embedded_bundles` partial.
+        # by the `framework_provider_aspect` and `embedded_bundles` bundling task.
         "//apple/internal:__subpackages__",
     ],
 )
@@ -78,7 +79,7 @@ bzl_library(
     srcs = ["swift_generated_header_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `swift_generated_header_aspect` and `swift_framework` partial.
+        # by the `swift_generated_header_aspect` and `swift_framework` bundling task.
         "//apple/internal:__subpackages__",
     ],
 )

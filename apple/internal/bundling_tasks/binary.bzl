@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for binary processing for bundles."""
+"""Bundling Task implementation for binary processing for bundles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
     "location_enum",
@@ -29,14 +25,14 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _binary_partial_impl(
+def _binary_bundling_task_impl(
         *,
         actions,
         binary_artifact,
         bundle_name,
         label_name,
         output_discriminator):
-    """Implementation for the binary processing partial."""
+    """Implementation for the binary processing bundling task."""
 
     # Create intermediate file with proper name for the binary.
     output_binary = outputs.binary(
@@ -53,16 +49,16 @@ def _binary_partial_impl(
         ],
     )
 
-def binary_partial(
+def binary_bundling_task(
         *,
         actions,
         binary_artifact,
         bundle_name,
         label_name,
         output_discriminator = None):
-    """Constructor for the binary processing partial.
+    """Constructor for the binary processing bundling task.
 
-    This partial propagates the bundle location for the main binary artifact for the target.
+    This bundling task propagates the bundle location for the main binary artifact for the target.
 
     Args:
       actions: The actions provider from ctx.actions.
@@ -73,13 +69,14 @@ def binary_partial(
           or `None`.
 
     Returns:
-      A partial that returns the bundle location of the binary artifact.
+      A bundling task that returns the bundle location of the binary artifact.
     """
-    return partial.make(
-        _binary_partial_impl,
+    return lambda *args, **kwargs: _binary_bundling_task_impl(
         actions = actions,
         binary_artifact = binary_artifact,
         bundle_name = bundle_name,
         label_name = label_name,
         output_discriminator = output_discriminator,
+        *args,
+        **kwargs
     )

@@ -22,9 +22,10 @@ All methods in this file follow this convention:
     presence of kwargs is only necessary to ignore unused keywords.
   - They all return a struct with the following optional fields:
       - files: A list of tuples with the following structure:
-          - Processor location: The location type in the archive where these files should be placed.
+          - Apple bundler location: The location type in the archive where these files should be
+            placed.
           - Parent directory: The structured path on where the files should be placed, within the
-            processor location.
+            Apple bundler location.
           - Files: Depset of files to be placed in the location described, under the name described
             by their basenames.
       - infoplists: A list of files representing plist files that will be merged to compose the main
@@ -352,7 +353,7 @@ def _infoplists(
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
-        A struct containing a `files` field with tuples as described in processor.bzl, and an
+        A struct containing a `files` field with tuples as described in apple_bundler.bzl, and an
         `infoplists` field with the plists that need to be merged for the root Info.plist
     """
     if parent_dir:
@@ -466,7 +467,7 @@ def _plists_and_strings(
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
-        A struct containing a `files` field with tuples as described in processor.bzl.
+        A struct containing a `files` field with tuples as described in apple_bundler.bzl.
     """
 
     # If this is not an optimized build, then just copy the files
@@ -525,7 +526,7 @@ def _pngs(
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
-        A struct containing a `files` field with tuples as described in processor.bzl.
+        A struct containing a `files` field with tuples as described in apple_bundler.bzl.
     """
     png_files = []
     processed_origins = {}

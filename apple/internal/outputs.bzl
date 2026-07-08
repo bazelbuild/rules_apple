@@ -91,11 +91,11 @@ def _executable(*, actions, label_name):
     """Returns a file reference for the executable that would be invoked with `bazel run`."""
     return actions.declare_file(label_name)
 
-def _dsyms(*, processor_result):
+def _dsyms(*, bundler_result):
     """Returns a depset of all of the dsyms from the result."""
     direct_dsyms = []
     transitive_dsyms = []
-    for provider in processor_result.providers:
+    for provider in bundler_result.providers:
         # Sourcing fields from the public AppleDsymBundleInfo provider.
         if getattr(provider, "direct_dsyms", None):
             direct_dsyms.extend(provider.direct_dsyms)
@@ -112,11 +112,11 @@ def _infoplist(*, actions, label_name, output_discriminator):
         file_name = "Info.plist",
     )
 
-def _linkmaps(*, processor_result):
+def _linkmaps(*, bundler_result):
     """Returns a depset of all of the linkmaps from the result."""
     direct_linkmaps = []
     transitive_linkmaps = []
-    for provider in processor_result.providers:
+    for provider in bundler_result.providers:
         # Sourcing fields from the public AppleLinkmapInfo provider.
         if getattr(provider, "direct_linkmaps", None):
             direct_linkmaps.extend(provider.direct_linkmaps)
@@ -157,9 +157,10 @@ def _merge_output_groups(*output_groups_list):
     """Merges a list of output group dictionaries into a single dictionary.
 
     In order to properly support use cases such as validation actions, which are represented as a
-    uniquely named output group, partials or other parts of the build should propagate their output
-    groups as raw dictionaries and collect them as lists of dictionaries and not wrap them into the
-    `OutputGroupInfo` provider until the very end of the rule or aspect implementation function.
+    uniquely named output group, bundling tasks or other parts of the build should propagate their
+    output groups as raw dictionaries and collect them as lists of dictionaries and not wrap them
+    into the `OutputGroupInfo` provider until the very end of the rule or aspect implementation
+    function.
 
     In order to support this, this function merges these lists of output group dictionaries so that
     the final dictionary contains the keys from all of the dictionaries that were given to it, and

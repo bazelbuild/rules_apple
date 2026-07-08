@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for codesigning dossier file generation."""
+"""Bundling Task implementation for codesigning dossier file generation."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -69,7 +65,7 @@ fields:
 # All locations are expected to be relative to the bundle contents directory, which is "Contents" on
 # macOS for all but frameworks, "Versions/A" for macOS frameworks, and the bundle root on iOS
 # derived platforms. If this assumption does not hold, then this set and "_location_map" below must
-# be updated to take the full bundle location into account, like processor.bzl does.
+# be updated to take the full bundle location into account, like apple_bundler.bzl does.
 _VALID_LOCATIONS_RELATIVE_CONTENTS = set([
     location_enum.app_clip,
     location_enum.binary,
@@ -191,7 +187,7 @@ def _create_combined_zip_artifact(
         xplat_exec_group = xplat_exec_group,
     )
 
-def _codesigning_dossier_partial_impl(
+def _codesigning_dossier_bundling_task_impl(
         *,
         actions,
         additional_contents = {},
@@ -211,7 +207,7 @@ def _codesigning_dossier_partial_impl(
         rule_descriptor,
         rule_label,
         xplat_exec_group):
-    """Implementation of codesigning_dossier_partial"""
+    """Implementation of codesigning_dossier_bundling task"""
 
     if bundle_location and bundle_location not in _VALID_LOCATIONS_RELATIVE_CONTENTS:
         fail(("Internal Error: Bundle location %s is not a valid location to embed a signed " +
@@ -324,7 +320,7 @@ def _codesigning_dossier_partial_impl(
         providers = providers,
     )
 
-def codesigning_dossier_partial(
+def codesigning_dossier_bundling_task(
         *,
         actions,
         additional_contents = {},
@@ -370,11 +366,10 @@ def codesigning_dossier_partial(
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
 
     Returns:
-      A partial that returns the codesigning dossier, if one was requested.
+      A bundling task that returns the codesigning dossier, if one was requested.
     """
 
-    return partial.make(
-        _codesigning_dossier_partial_impl,
+    return lambda *args, **kwargs: _codesigning_dossier_bundling_task_impl(
         actions = actions,
         additional_contents = additional_contents,
         allow_combined_zip_output = allow_combined_zip_output,
@@ -393,4 +388,6 @@ def codesigning_dossier_partial(
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
         xplat_exec_group = xplat_exec_group,
+        *args,
+        **kwargs
     )

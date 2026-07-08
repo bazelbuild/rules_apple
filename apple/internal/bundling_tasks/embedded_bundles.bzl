@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for processing embeddadable bundles."""
+"""Bundling Task implementation for processing embeddadable bundles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
     "location_enum",
@@ -29,14 +25,14 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _embedded_bundles_partial_impl(
+def _embedded_bundles_bundling_task_impl(
         *,
         bundle_embedded_bundles,
         embeddable_targets,
         platform_prerequisites,
         signed_frameworks,
         **input_bundles_by_type):
-    """Implementation for the embedded bundles processing partial."""
+    """Implementation for the embedded bundles processing bundling task."""
 
     # Collect all _AppleEmbeddableInfo providers from the embeddable targets.
     embeddable_providers = [
@@ -70,8 +66,8 @@ def _embedded_bundles_partial_impl(
                 ).append(getattr(provider, bundle_type))
 
         if bundle_embedded_bundles:
-            # If this partial is configured to embed the transitive embeddable partials, collect
-            # them into a list to be returned by this partial.
+            # If this bundling task is configured to embed the transitive embeddable bundling tasks,
+            # collect them into a list to be returned by this bundling task.
             if bundle_type in transitive_bundles:
                 transitive_depset = depset(transitive = transitive_bundles.get(bundle_type, []))
 
@@ -86,11 +82,12 @@ def _embedded_bundles_partial_impl(
                     bundles_to_embed.append((bundle_location, None, transitive_depset))
 
             # Clear the transitive list of bundles for this bundle type since they will be packaged
-            # in the bundle processing this partial and do not need to be propagated.
+            # in the bundle processing this bundling task and do not need to be propagated.
             transitive_bundles[bundle_type] = []
 
         # Construct the AppleEmbeddableInfo provider field for the bundle type being processed.
-        # At this step, we inject the bundles that are inputs to this partial, since that propagates
+        # At this step, we inject the bundles that are inputs to this bundling task, since that
+        # propagates
         # the info for a higher level bundle to embed this bundle.
         if input_bundles_by_type.get(bundle_type) or transitive_bundles.get(bundle_type):
             embeddedable_info_fields[bundle_type] = depset(
@@ -101,11 +98,11 @@ def _embedded_bundles_partial_impl(
     # Construct the output files fields. If tree artifacts is enabled, propagate the bundles to
     # package into bundle_files. Otherwise, propagate through bundle_zips so that they can be
     # extracted.
-    partial_output_fields = {}
+    task_output_fields = {}
     if tree_artifact_enabled:
-        partial_output_fields["bundle_files"] = bundles_to_embed
+        task_output_fields["bundle_files"] = bundles_to_embed
     else:
-        partial_output_fields["bundle_zips"] = bundles_to_embed
+        task_output_fields["bundle_zips"] = bundles_to_embed
 
     # Construct a transitive depset of signed paths, indicating files that we expect to have
     # already been code signed by past targets.
@@ -117,12 +114,12 @@ def _embedded_bundles_partial_impl(
             transitive_signed_framework_depsets.append(provider.signed_frameworks)
 
     if transitive_signed_framework_depsets:
-        # Output the existing, propagated signed_frameworks as an output of this partial.
+        # Output the existing, propagated signed_frameworks as an output of this bundling task.
         #
         # NOTE: We avoid passing this target's additional depset of signed_frameworks to the code
         # signing phase to avoid suggesting to this target's code signing phase that files that
         # will be code signed in this target have already been code signed.
-        partial_output_fields["signed_frameworks"] = depset(
+        task_output_fields["signed_frameworks"] = depset(
             transitive = transitive_signed_framework_depsets,
         )
 
@@ -136,10 +133,10 @@ def _embedded_bundles_partial_impl(
 
     return struct(
         providers = [AppleEmbeddableInfo(**embeddedable_info_fields)],
-        **partial_output_fields
+        **task_output_fields
     )
 
-def embedded_bundles_partial(
+def embedded_bundles_bundling_task(
         *,
         app_clips = [],
         bundle_embedded_bundles = False,
@@ -151,9 +148,10 @@ def embedded_bundles_partial(
         signed_frameworks = depset(),
         watch_bundles = [],
         xpc_services = []):
-    """Constructor for the embedded bundles processing partial.
+    """Constructor for the embedded bundles processing bundling task.
 
-    This partial is used to propagate and package embedded bundles into their respective locations
+    This bundling task is used to propagate and package embedded bundles into their respective
+    locations
     inside top level bundling targets. Embeddable bundles are considered to be extensions (i.e.
     ExtensionKit extensions), frameworks, plugins (i.e. NSExtension extensions) and watchOS
     applications in the case of ios_application.
@@ -181,10 +179,9 @@ def embedded_bundles_partial(
             a top level target to bundle inside `XPCServices`.
 
     Returns:
-          A partial that propagates and/or packages embeddable bundles.
+          A bundling task that propagates and/or packages embeddable bundles.
     """
-    return partial.make(
-        _embedded_bundles_partial_impl,
+    return lambda *args, **kwargs: _embedded_bundles_bundling_task_impl(
         app_clips = app_clips,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
@@ -195,4 +192,6 @@ def embedded_bundles_partial(
         signed_frameworks = signed_frameworks,
         watch_bundles = watch_bundles,
         xpc_services = xpc_services,
+        *args,
+        **kwargs
     )

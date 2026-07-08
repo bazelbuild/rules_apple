@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for embedding provisioning profiles."""
+"""Bundling Task implementation for embedding provisioning profiles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
     "location_enum",
@@ -25,26 +21,27 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _framework_headers_partial_impl(*, hdrs):
-    """Implementation for the framework headers partial."""
+def _framework_headers_bundling_task_impl(*, hdrs):
+    """Implementation for the framework headers bundling task."""
     return struct(
         bundle_files = [
             (location_enum.bundle, "Headers", depset(hdrs)),
         ],
     )
 
-def framework_headers_partial(*, hdrs):
-    """Constructor for the framework headers partial.
+def framework_headers_bundling_task(*, hdrs):
+    """Constructor for the framework headers bundling task.
 
-    This partial bundles the headers for dynamic frameworks.
+    This bundling task bundles the headers for dynamic frameworks.
 
     Args:
       hdrs: The list of headers to bundle.
 
     Returns:
-      A partial that returns the bundle location of the framework header artifacts.
+      A bundling task that returns the bundle location of the framework header artifacts.
     """
-    return partial.make(
-        _framework_headers_partial_impl,
+    return lambda *args, **kwargs: _framework_headers_bundling_task_impl(
         hdrs = hdrs,
+        *args,
+        **kwargs
     )

@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for processing the settings bundle for iOS apps."""
+"""Bundling Task implementation for processing the settings bundle for iOS apps."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleResourceInfo",
@@ -37,10 +33,10 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _settings_bundle_partial_impl(
+def _settings_bundle_bundling_task_impl(
         *,
         settings_bundle):
-    """Implementation for the settings bundle processing partial."""
+    """Implementation for the settings bundle processing bundling task."""
 
     if not settings_bundle:
         return struct()
@@ -56,15 +52,15 @@ def _settings_bundle_partial_impl(
 
     return struct(bundle_files = bundle_files)
 
-def settings_bundle_partial(
+def settings_bundle_bundling_task(
         *,
         actions,
         platform_prerequisites,
         rule_label,
         settings_bundle):
-    """Constructor for the settings bundles processing partial.
+    """Constructor for the settings bundles processing bundling task.
 
-    This partial processes the settings bundle for Apple applications.
+    This bundling task processes the settings bundle for Apple applications.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -74,11 +70,13 @@ def settings_bundle_partial(
             files that make up the application's settings bundle.
 
     Returns:
-        A partial that returns the bundle location of the settings bundle, if any were configured.
+        A bundling task that returns the bundle location of the settings bundle, if any were
+        configured.
     """
     _unused = (actions, platform_prerequisites, rule_label)  # @unused
 
-    return partial.make(
-        _settings_bundle_partial_impl,
+    return lambda *args, **kwargs: _settings_bundle_bundling_task_impl(
         settings_bundle = settings_bundle,
+        *args,
+        **kwargs
     )

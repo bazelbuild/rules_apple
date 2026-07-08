@@ -24,6 +24,10 @@ load(
     "ApplePlatformInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
+    "apple_bundler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -31,6 +35,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
@@ -61,16 +69,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -275,13 +275,13 @@ def _tvos_application_impl(ctx):
         platform_prerequisites = platform_prerequisites,
     )
 
-    processor_partials = [
-        partials.app_assets_validation_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.app_assets_validation(
             app_icons = ctx.files.app_icons,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
         ),
-        partials.app_intents_metadata_bundle_partial(
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -293,7 +293,7 @@ def _tvos_application_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_bundle_info_partial(
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -305,20 +305,20 @@ def _tvos_application_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -328,7 +328,7 @@ def _tvos_application_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -344,7 +344,7 @@ def _tvos_application_impl(ctx):
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -353,12 +353,12 @@ def _tvos_application_impl(ctx):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.framework_import_partial(
+        bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             cc_configured_features = cc_configured_features,
@@ -369,7 +369,7 @@ def _tvos_application_impl(ctx):
             rule_descriptor = rule_descriptor,
             targets = ctx.attr.deps + embeddable_targets,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             additional_forced_root_infoplist_values = launch_screen_values.forced_plists,
             additional_overridable_root_infoplist_values = launch_screen_values.overridable_plists,
@@ -393,13 +393,13 @@ def _tvos_application_impl(ctx):
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.settings_bundle_partial(
+        bundling_tasks.settings_bundle(
             actions = actions,
             platform_prerequisites = platform_prerequisites,
             rule_label = label,
             settings_bundle = ctx.attr.settings_bundle,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -415,25 +415,25 @@ def _tvos_application_impl(ctx):
     ]
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -470,7 +470,7 @@ def _tvos_application_impl(ctx):
     return [
         DefaultInfo(
             executable = executable,
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
             ),
@@ -478,7 +478,7 @@ def _tvos_application_impl(ctx):
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_tvosapplicationbundleinfo(),
@@ -488,7 +488,7 @@ def _tvos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _tvos_framework_impl(ctx):
     """Implementation of tvos_framework."""
@@ -590,8 +590,8 @@ def _tvos_framework_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
-    processor_partials = [
-        partials.app_intents_metadata_bundle_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -603,7 +603,7 @@ def _tvos_framework_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_bundle_info_partial(
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -614,20 +614,20 @@ def _tvos_framework_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -636,19 +636,19 @@ def _tvos_framework_impl(ctx):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             frameworks = [archive],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             signed_frameworks = depset(signed_frameworks),
         ),
-        partials.extension_safe_validation_partial(
+        bundling_tasks.extension_safe_validation(
             is_extension_safe = ctx.attr.extension_safe,
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.framework_headers_partial(hdrs = ctx.files.hdrs),
-        partials.framework_provider_partial(
+        bundling_tasks.framework_headers(hdrs = ctx.files.hdrs),
+        bundling_tasks.framework_provider(
             actions = actions,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
@@ -656,7 +656,7 @@ def _tvos_framework_impl(ctx):
             cc_toolchain = find_cpp_toolchain(ctx),
             rule_label = label,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -677,7 +677,7 @@ def _tvos_framework_impl(ctx):
             version_keys_required = False,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -690,15 +690,15 @@ def _tvos_framework_impl(ctx):
         ),
     ]
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -709,16 +709,16 @@ def _tvos_framework_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = processor_result.output_files),
+        DefaultInfo(files = bundler_result.output_files),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_appleframeworkbundleinfo(),
         new_tvosframeworkbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _tvos_extension_impl(ctx):
     """Implementation of tvos_extension."""
@@ -852,8 +852,8 @@ def _tvos_extension_impl(ctx):
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
-    processor_partials = [
-        partials.app_intents_metadata_bundle_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -865,7 +865,7 @@ def _tvos_extension_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_bundle_info_partial(
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -877,20 +877,20 @@ def _tvos_extension_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -900,7 +900,7 @@ def _tvos_extension_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -917,7 +917,7 @@ def _tvos_extension_impl(ctx):
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -926,17 +926,17 @@ def _tvos_extension_impl(ctx):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
-        partials.extension_safe_validation_partial(
+        bundling_tasks.extension_safe_validation(
             is_extension_safe = True,
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -957,7 +957,7 @@ def _tvos_extension_impl(ctx):
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -971,24 +971,24 @@ def _tvos_extension_impl(ctx):
     ]
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1000,16 +1000,16 @@ def _tvos_extension_impl(ctx):
 
     return [
         DefaultInfo(
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_tvosextensionbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _tvos_static_framework_impl(ctx):
     """Implementation of tvos_static_framework."""
@@ -1075,8 +1075,8 @@ def _tvos_static_framework_impl(ctx):
     )
     binary_artifact = archive_result.library
 
-    processor_partials = [
-        partials.apple_bundle_info_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1086,7 +1086,7 @@ def _tvos_static_framework_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
@@ -1109,8 +1109,8 @@ def _tvos_static_framework_impl(ctx):
     # If there's any Swift dependencies on the static framework rule, treat it as a Swift static
     # framework.
     if swift_infos:
-        processor_partials.append(
-            partials.swift_framework_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.swift_framework(
                 actions = actions,
                 avoid_deps = avoid_deps,
                 bundle_name = bundle_name,
@@ -1121,8 +1121,8 @@ def _tvos_static_framework_impl(ctx):
             ),
         )
     else:
-        processor_partials.append(
-            partials.framework_header_modulemap_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.framework_header_modulemap(
                 actions = actions,
                 bundle_name = bundle_name,
                 hdrs = ctx.files.hdrs,
@@ -1134,7 +1134,7 @@ def _tvos_static_framework_impl(ctx):
         )
 
     if not ctx.attr.exclude_resources:
-        processor_partials.append(partials.resources_partial(
+        pending_bundling_tasks.append(bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1152,15 +1152,15 @@ def _tvos_static_framework_impl(ctx):
             xplat_exec_group = xplat_exec_group,
         ))
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1170,10 +1170,10 @@ def _tvos_static_framework_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = processor_result.output_files),
-        OutputGroupInfo(**processor_result.output_groups),
+        DefaultInfo(files = bundler_result.output_files),
+        OutputGroupInfo(**bundler_result.output_groups),
         new_tvosstaticframeworkbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 tvos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,

@@ -49,7 +49,6 @@ bzl_library(
         "//apple/internal/providers:apple_resource_validation_info",
         "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:collections",
-        "@bazel_skylib//lib:partial",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_rules_swift//swift:providers",
     ],

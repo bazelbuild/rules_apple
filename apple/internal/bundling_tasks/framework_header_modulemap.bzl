@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for bundling header and modulemaps for external-facing frameworks."""
+"""Bundling Task implementation for bundling header and modulemaps for external-facing frameworks."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:clang_modulemap_support.bzl",
     "clang_modulemap_support",
@@ -33,7 +29,7 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _framework_header_modulemap_partial_impl(
+def _framework_header_modulemap_bundling_task_impl(
         *,
         actions,
         bundle_name,
@@ -45,7 +41,7 @@ def _framework_header_modulemap_partial_impl(
         output_discriminator,
         sdk_dylibs,
         sdk_frameworks):
-    """Implementation for the sdk framework headers and modulemaps partial."""
+    """Implementation for the sdk framework headers and modulemaps bundling task."""
     bundle_files = []
 
     header_files, umbrella_header_filename = clang_modulemap_support.process_headers(
@@ -89,7 +85,7 @@ def _framework_header_modulemap_partial_impl(
         bundle_files = bundle_files,
     )
 
-def framework_header_modulemap_partial(
+def framework_header_modulemap_bundling_task(
         *,
         actions,
         bundle_name,
@@ -101,9 +97,9 @@ def framework_header_modulemap_partial(
         output_discriminator = None,
         sdk_dylibs = [],
         sdk_frameworks = []):
-    """Constructor for the framework headers and modulemaps partial.
+    """Constructor for the framework headers and modulemaps bundling task.
 
-    This partial bundles the headers and modulemaps for sdk frameworks.
+    This bundling task bundles the headers and modulemaps for sdk frameworks.
 
     Args:
       actions: The actions provider from `ctx.actions`.
@@ -122,11 +118,10 @@ def framework_header_modulemap_partial(
       sdk_frameworks: A list of frameworks referenced by this framework.
 
     Returns:
-      A partial that returns the bundle location of the sdk framework header and modulemap
+      A bundling task that returns the bundle location of the sdk framework header and modulemap
       artifacts.
     """
-    return partial.make(
-        _framework_header_modulemap_partial_impl,
+    return lambda *args, **kwargs: _framework_header_modulemap_bundling_task_impl(
         actions = actions,
         bundle_name = bundle_name,
         framework_deps_names = framework_deps_names,
@@ -137,4 +132,6 @@ def framework_header_modulemap_partial(
         output_discriminator = output_discriminator,
         sdk_dylibs = sdk_dylibs,
         sdk_frameworks = sdk_frameworks,
+        *args,
+        **kwargs
     )

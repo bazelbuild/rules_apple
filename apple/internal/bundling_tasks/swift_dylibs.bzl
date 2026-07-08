@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for Swift dylib processing for bundles."""
+"""Bundling Task implementation for Swift dylib processing for bundles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -168,7 +164,7 @@ def _generate_swift_support_dylibs(
 
     return output_dir
 
-def _swift_dylibs_partial_impl(
+def _swift_dylibs_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -182,7 +178,7 @@ def _swift_dylibs_partial_impl(
         package_swift_support_if_needed,
         platform_prerequisites,
         xplat_exec_group):
-    """Implementation for the Swift dylibs processing partial."""
+    """Implementation for the Swift dylibs processing bundling task."""
 
     generate_stubs_for_swift_support_inputs = (
         apple_xplat_toolchain_info.build_settings.generate_stubs_for_swift_support_inputs
@@ -276,7 +272,7 @@ def _swift_dylibs_partial_impl(
         )],
     )
 
-def swift_dylibs_partial(
+def swift_dylibs_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -290,35 +286,34 @@ def swift_dylibs_partial(
         package_swift_support_if_needed = False,
         platform_prerequisites,
         xplat_exec_group):
-    """Constructor for the Swift dylibs processing partial.
+    """Constructor for the Swift dylibs processing bundling task.
 
-    This partial handles the Swift dylibs that may need to be packaged or propagated.
+    This bundling task handles the Swift dylibs that may need to be packaged or propagated.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       apple_xplat_toolchain_info: `struct` of tools from the Apple cross-platform toolchain.
       binary_artifact: The main binary artifact for this target.
-      bundle_dylibs: Whether the partial should return the Swift files to be bundled inside the
-        target's bundle.
+      bundle_dylibs: Whether the bundling task should return the Swift files to be bundled
+        inside the target's bundle.
       dependency_targets: List of targets that should be checked for binaries that might contain
         Swift, so that the Swift dylibs can be collected.
       label_name: Name of the target being built.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for
-        each dependency platform into the SwiftSupport directory at the root of the archive. It
-        might still not be included depending on what it is being built for.
+      package_swift_support_if_needed: Whether the bundling task should also bundle the Swift
+        dylib for each dependency platform into the SwiftSupport directory at the root of the
+        archive. It might still not be included depending on what it is being built for.
       platform_prerequisites: Struct containing information on the platform being targeted.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
-      A partial that returns the bundle location of the Swift dylibs and propagates dylib
+      A bundling task that returns the bundle location of the Swift dylibs and propagates dylib
       information for upstream packaging.
     """
-    return partial.make(
-        _swift_dylibs_partial_impl,
+    return lambda *args, **kwargs: _swift_dylibs_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -331,4 +326,6 @@ def swift_dylibs_partial(
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
         xplat_exec_group = xplat_exec_group,
+        *args,
+        **kwargs
     )

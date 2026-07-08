@@ -25,7 +25,7 @@ bundling rule from the resource aspect.
         "direct_target_bundle_infos": """
 A List of structs with the following fields, which represent providers from targets that have
 providers that must be validated at the top level bundling rule through the
-`child_bundle_info_validation` partial:
+`child_bundle_info_validation` bundling task:
 
 *   `apple_bundle_info`: An `AppleBundleInfo` provider from the target propagated from the resource
     aspect.
@@ -36,7 +36,7 @@ providers that must be validated at the top level bundling rule through the
         "transitive_target_bundle_infos": """
 A depset of structs with the following fields, which represent providers from targets that have
 providers that must be validated at the top level bundling rule through the
-`child_bundle_info_validation` partial:
+`child_bundle_info_validation` bundling task:
 
 *   `apple_bundle_info`: An `AppleBundleInfo` provider from the target propagated from the resource
     aspect.

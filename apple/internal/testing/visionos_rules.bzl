@@ -86,7 +86,7 @@ _visionos_internal_unit_test_bundle = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,
     doc = "Builds and bundles a visionOS Unit Test Bundle. Internal target not to be depended on.",
     implementation = _visionos_unit_test_bundle_impl,
-    # Need to supply a "dummy archive" for the tree artifact processor at this time.
+    # Need to supply a "dummy archive" for the tree artifact Apple bundler at this time.
     predeclared_outputs = {"archive": "%{name}.zip"},
     attrs = [
         apple_support.platform_constraint_attrs(),

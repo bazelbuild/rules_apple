@@ -105,7 +105,7 @@ def _cc_configured_features(
 
     Args:
       ctx: The rule context, expected to be captured directly in the rule context and NOT within a
-        partial or helper method.
+        bundling task or helper method.
       extra_requested_features: An optional list of additional features requested.
       extra_disabled_features: An optional list of additional features to disable.
 

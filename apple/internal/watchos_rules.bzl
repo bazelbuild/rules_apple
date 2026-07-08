@@ -27,6 +27,10 @@ load(
     "ApplePlatformInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
+    "apple_bundler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
@@ -34,6 +38,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundle_id_suffix_default",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
@@ -56,16 +64,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -338,8 +338,8 @@ reproducible error case.".format(
         predeclared_outputs = predeclared_outputs,
     )
 
-    processor_partials = [
-        partials.apple_bundle_info_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -351,7 +351,7 @@ reproducible error case.".format(
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.app_intents_metadata_bundle_partial(
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -362,13 +362,13 @@ reproducible error case.".format(
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -385,20 +385,20 @@ reproducible error case.".format(
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             debug_dependencies = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -418,7 +418,7 @@ reproducible error case.".format(
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -430,7 +430,7 @@ reproducible error case.".format(
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.watchos_stub_partial(
+        bundling_tasks.watchos_stub(
             actions = actions,
             binary_artifact = binary_artifact,
             label_name = label.name,
@@ -438,25 +438,25 @@ reproducible error case.".format(
     ]
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -484,14 +484,14 @@ reproducible error case.".format(
     return [
         DefaultInfo(
             executable = executable,
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
             ),
         ),
-        OutputGroupInfo(**processor_result.output_groups),
+        OutputGroupInfo(**bundler_result.output_groups),
         new_watchosapplicationbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
@@ -664,8 +664,8 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
-    processor_partials = [
-        partials.apple_bundle_info_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -677,7 +677,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.app_intents_metadata_bundle_partial(
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -689,20 +689,20 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -712,7 +712,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -729,7 +729,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -738,17 +738,17 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
-        partials.extension_safe_validation_partial(
+        bundling_tasks.extension_safe_validation(
             is_extension_safe = True,
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -769,7 +769,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -785,8 +785,8 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     if rule_descriptor.product_type == apple_product_type.watch2_extension:
         # Leave "imported" frameworks to the bundle with the main app delegate, as we do for other
         # Apple platforms.
-        processor_partials.append(
-            partials.framework_import_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.framework_import(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 cc_configured_features = cc_configured_features,
@@ -800,25 +800,25 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         )
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -830,16 +830,16 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     return [
         DefaultInfo(
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_watchosextensionbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
@@ -965,8 +965,8 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         predeclared_outputs = predeclared_outputs,
     )
 
-    processor_partials = [
-        partials.apple_bundle_info_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -978,7 +978,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.app_intents_metadata_bundle_partial(
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -990,13 +990,13 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -1006,14 +1006,14 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1030,7 +1030,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1039,13 +1039,13 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
             platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
-        partials.framework_import_partial(
+        bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             cc_configured_features = cc_configured_features,
@@ -1056,7 +1056,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             rule_descriptor = rule_descriptor,
             targets = ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1077,7 +1077,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1092,25 +1092,25 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     ]
 
     if platform_prerequisites.platform.is_device:
-        processor_partials.append(
-            partials.provisioning_profile_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.provisioning_profile(
                 actions = actions,
                 profile_artifact = provisioning_profile,
                 rule_label = label,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         entitlements = entitlements,
         ipa_post_processor = ctx.executable.ipa_post_processor,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1138,7 +1138,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     return [
         DefaultInfo(
             executable = executable,
-            files = processor_result.output_files,
+            files = bundler_result.output_files,
             runfiles = ctx.runfiles(
                 files = [archive],
             ),
@@ -1146,11 +1146,11 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
         new_watchosapplicationbundleinfo(),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 def _watchos_framework_impl(ctx):
     """Implementation of the watchos_framework rule."""
@@ -1254,8 +1254,8 @@ def _watchos_framework_impl(ctx):
         predeclared_outputs = predeclared_outputs,
     )
 
-    processor_partials = [
-        partials.app_intents_metadata_bundle_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -1267,7 +1267,7 @@ def _watchos_framework_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.apple_bundle_info_partial(
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -1278,20 +1278,20 @@ def _watchos_framework_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.child_bundle_info_validation_partial(
+        bundling_tasks.child_bundle_info_validation(
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
             resource_validation_infos = ctx.attr.deps,
             rule_label = label,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -1300,18 +1300,18 @@ def _watchos_framework_impl(ctx):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             frameworks = [archive_for_embedding],
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             signed_frameworks = depset(signed_frameworks),
         ),
-        partials.extension_safe_validation_partial(
+        bundling_tasks.extension_safe_validation(
             is_extension_safe = ctx.attr.extension_safe,
             rule_label = label,
             targets_to_validate = ctx.attr.frameworks,
         ),
-        partials.framework_provider_partial(
+        bundling_tasks.framework_provider(
             actions = actions,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
@@ -1319,7 +1319,7 @@ def _watchos_framework_impl(ctx):
             cc_toolchain = find_cpp_toolchain(ctx),
             rule_label = label,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1340,7 +1340,7 @@ def _watchos_framework_impl(ctx):
             version_keys_required = False,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -1353,15 +1353,15 @@ def _watchos_framework_impl(ctx):
         ),
     ]
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
         mac_exec_group = mac_exec_group,
-        partials = processor_partials,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -1372,16 +1372,16 @@ def _watchos_framework_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = processor_result.output_files),
+        DefaultInfo(files = bundler_result.output_files),
         new_appleframeworkbundleinfo(),
         new_watchosframeworkbundleinfo(),
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
-    ] + processor_result.providers
+    ] + bundler_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,

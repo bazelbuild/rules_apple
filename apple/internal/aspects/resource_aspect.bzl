@@ -19,10 +19,6 @@ load(
     "collections",
 )
 load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -253,13 +249,19 @@ def _apple_resource_aspect_impl(target, ctx):
         )
         if structured_files:
             if bundle_name:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
-                    parent_dir = bundle_name,
+                structured_parent_dir_param = (
+                    lambda *args, **kwargs: resources.structured_resources_parent_dir(
+                        parent_dir = bundle_name,
+                        *args,
+                        **kwargs
+                    )
                 )
             else:
-                structured_parent_dir_param = partial.make(
-                    resources.structured_resources_parent_dir,
+                structured_parent_dir_param = (
+                    lambda *args, **kwargs: resources.structured_resources_parent_dir(
+                        *args,
+                        **kwargs
+                    )
                 )
 
             # Avoid processing PNG files that are referenced through the structured_resources
@@ -289,9 +291,12 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_bundle_imports_args
         )
         if bundle_imports_files:
-            bundle_imports_parent_dir_param = partial.make(
-                resources.bundle_relative_parent_dir,
-                extension = "bundle",
+            bundle_imports_parent_dir_param = (
+                lambda *args, **kwargs: resources.bundle_relative_parent_dir(
+                    extension = "bundle",
+                    *args,
+                    **kwargs
+                )
             )
 
             apple_resource_infos.append(
@@ -354,8 +359,8 @@ App Intents are not supported within frameworks that aren't directly loaded by a
                     inherited_apple_resource_infos.append(target[AppleResourceInfo])
 
                 # Propagate AppleLinkMapInfo and AppleDsymBundleInfo providers from deps/resources
-                # referenced dependencies required for the debug_symbols partial. This will often
-                # start from frameworks.
+                # referenced dependencies required for the debug_symbols bundling task. This will
+                # often start from frameworks.
                 if AppleLinkmapInfo in target:
                     apple_linkmap_infos.append(target[AppleLinkmapInfo])
 

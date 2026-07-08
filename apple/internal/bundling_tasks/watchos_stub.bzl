@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for placing the watchOS stub file in the archive."""
+"""Bundling Task implementation for placing the watchOS stub file in the archive."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
@@ -41,14 +37,14 @@ archive.
     },
 )
 
-def _watchos_stub_partial_impl(
+def _watchos_stub_bundling_task_impl(
         *,
         actions,
         binary_artifact,
         label_name,
         output_discriminator,
         watch_application):
-    """Implementation for the watchOS stub processing partial."""
+    """Implementation for the watchOS stub processing bundling task."""
 
     bundle_files = []
     providers = []
@@ -80,18 +76,19 @@ def _watchos_stub_partial_impl(
         providers = providers,
     )
 
-def watchos_stub_partial(
+def watchos_stub_bundling_task(
         *,
         actions,
         binary_artifact = None,
         label_name,
         output_discriminator = None,
         watch_application = None):
-    """Constructor for the watchOS stub processing partial.
+    """Constructor for the watchOS stub processing bundling task.
 
-    This partial copies the WatchKit stub into the expected location inside the watchOS bundle.
-    This partial only applies to the watchos_application rule for bundling the WK stub binary, and
-    to the ios_application rule for packaging the stub in the WatchKitSupport2 root directory.
+    This bundling task copies the WatchKit stub into the expected location inside the watchOS
+    bundle. This bundling task only applies to the watchos_application rule for bundling the WK stub
+    binary, and to the ios_application rule for packaging the stub in the WatchKitSupport2 root
+    directory.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -100,16 +97,17 @@ def watchos_stub_partial(
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         watch_application: Optional. A reference to the watch application associated with the rule.
-            If defined, this partial will package the watchOS stub binary in the archive root.
+            If defined, this bundling task will package the watchOS stub binary in the archive root.
 
     Returns:
-      A partial that returns the bundle location of the stub binary.
+      A bundling task that returns the bundle location of the stub binary.
     """
-    return partial.make(
-        _watchos_stub_partial_impl,
+    return lambda *args, **kwargs: _watchos_stub_bundling_task_impl(
         actions = actions,
         binary_artifact = binary_artifact,
         label_name = label_name,
         output_discriminator = output_discriminator,
         watch_application = watch_application,
+        *args,
+        **kwargs
     )

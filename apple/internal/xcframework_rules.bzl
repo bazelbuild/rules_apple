@@ -14,7 +14,6 @@
 
 """Implementation of the xcframework rules."""
 
-load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
@@ -25,12 +24,20 @@ load(
     "ApplePlatformInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
+    "apple_bundler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
@@ -57,16 +64,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -464,7 +463,7 @@ def _group_link_outputs_by_library_identifier(
             architectures.append(link_output.architecture)
             split_attr_keys.append(split_attr_key)
 
-            # Determine up front if the given dep references any SwiftUsageInfo, for partial
+            # Determine up front if the given dep references any SwiftUsageInfo, for bundling task
             # processing.
             if swift_support.uses_swift(deps[split_attr_key]):
                 uses_swift = True
@@ -847,8 +846,8 @@ bundle_id on the target.
             files = environment_plist_files,
         )
 
-        processor_partials = [
-            partials.apple_bundle_info_partial(
+        pending_bundling_tasks = [
+            bundling_tasks.apple_bundle_info(
                 actions = actions,
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
@@ -861,14 +860,14 @@ bundle_id on the target.
                 predeclared_outputs = overridden_predeclared_outputs,
                 product_type = rule_descriptor.product_type,
             ),
-            partials.binary_partial(
+            bundling_tasks.binary(
                 actions = actions,
                 binary_artifact = binary_artifact,
                 bundle_name = bundle_name,
                 label_name = rule_label.name,
                 output_discriminator = library_identifier,
             ),
-            partials.resources_partial(
+            bundling_tasks.resources(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -908,8 +907,8 @@ Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCF
 ignored. Use the "hdrs" attribute on the swift_library defining the module instead.
 """)
 
-            processor_partials.append(
-                partials.swift_framework_partial(
+            pending_bundling_tasks.append(
+                bundling_tasks.swift_framework(
                     actions = actions,
                     avoid_deps = split_avoid_deps,
                     bundle_name = bundle_name,
@@ -921,8 +920,8 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 ),
             )
         else:
-            processor_partials.append(
-                partials.framework_header_modulemap_partial(
+            pending_bundling_tasks.append(
+                bundling_tasks.framework_header_modulemap(
                     actions = actions,
                     bundle_name = bundle_name,
                     framework_deps_names = framework_deps_names,
@@ -933,8 +932,8 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             )
 
         if library_type == _LIBRARY_TYPE.dynamic:
-            processor_partials.extend([
-                partials.debug_symbols_partial(
+            pending_bundling_tasks.extend([
+                bundling_tasks.debug_symbols(
                     actions = actions,
                     bundle_extension = nested_bundle_extension,
                     bundle_name = bundle_name,
@@ -947,7 +946,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                     output_discriminator = library_identifier,
                     platform_prerequisites = platform_prerequisites,
                 ),
-                partials.framework_provider_partial(
+                bundling_tasks.framework_provider(
                     actions = actions,
                     binary_artifact = binary_artifact,
                     cc_configured_features = cc_configured_features,
@@ -957,18 +956,18 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 ),
             ])
 
-        processor_result = processor.process(
+        bundler_result = apple_bundler.process(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = nested_bundle_extension,
             bundle_name = bundle_name,
+            bundling_tasks = pending_bundling_tasks,
             cc_configured_features = cc_configured_features,
             entitlements = None,
             ipa_post_processor = None,
             mac_exec_group = mac_exec_group,
             output_discriminator = library_identifier,
-            partials = processor_partials,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = overridden_predeclared_outputs,
             process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -984,7 +983,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         direct_dynamic_framework_info = None
         direct_resource_info = None
 
-        for provider in processor_result.providers:
+        for provider in bundler_result.providers:
             # Save the framework archive.
             if getattr(provider, "archive", None):
                 # Repackage every archive found for bundle_merge_files or bundle_merge_zips in the
@@ -1023,13 +1022,13 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         if library_type == _LIBRARY_TYPE.dynamic:
             # Save the dSYMs.
             dsyms = outputs.dsyms(
-                processor_result = processor_result,
+                bundler_result = bundler_result,
             )
             if dsyms:
                 framework_output_files.append(depset(transitive = [dsyms]))
                 framework_output_groups.append({"dsyms": dsyms})
             linkmaps = outputs.linkmaps(
-                processor_result = processor_result,
+                bundler_result = bundler_result,
             )
             if linkmaps:
                 framework_output_files.append(depset(transitive = [linkmaps]))
@@ -1645,7 +1644,8 @@ Error: When building a Swift XCFramework, the "public_hdrs" attribute on the XCF
 ignored. Use the "hdrs" attribute on the swift_library defining the module instead.
 """)
 
-            # Generated Swift interfaces have to be Files to be considered by the resources partial,
+            # Generated Swift interfaces have to be Files to be considered by the resources
+            # bundling task,
             # so we can collect them similarly to frameworks and other Apple bundle artifacts to
             # generate the list of Files to determine if any need to be excluded.
             split_avoid_deps = resources.collect(
@@ -1656,18 +1656,16 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             )
 
             # Generate headers, modulemaps, and swiftmodules
-            interface_artifacts = partial.call(
-                partials.swift_framework_partial(
-                    actions = actions,
-                    avoid_deps = split_avoid_deps,
-                    bundle_name = bundle_name,
-                    framework_modulemap = False,
-                    generated_headers = link_output.framework_swift_generated_headers,
-                    label_name = rule_label.name,
-                    output_discriminator = library_identifier,
-                    swift_infos = link_output.framework_swift_infos,
-                ),
-            )
+            interface_artifacts = bundling_tasks.swift_framework(
+                actions = actions,
+                avoid_deps = split_avoid_deps,
+                bundle_name = bundle_name,
+                framework_modulemap = False,
+                generated_headers = link_output.framework_swift_generated_headers,
+                label_name = rule_label.name,
+                output_discriminator = library_identifier,
+                swift_infos = link_output.framework_swift_infos,
+            )()
         else:
             # Generate headers, and modulemaps
             sdk_frameworks = cc_info_support.get_sdk_frameworks(
@@ -1678,7 +1676,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 deps = deps,
                 split_deps_keys = link_output.split_attr_keys,
             )
-            interface_artifacts = partial.call(partials.framework_header_modulemap_partial(
+            interface_artifacts = bundling_tasks.framework_header_modulemap(
                 actions = actions,
                 bundle_name = bundle_name,
                 framework_modulemap = False,
@@ -1687,12 +1685,12 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 output_discriminator = library_identifier,
                 sdk_frameworks = sdk_frameworks,
                 sdk_dylibs = sdk_dylibs,
-            ))
+            )()
 
         # An XCFramework with static libraries can include Objective-C(++) headers from
         # the `public_hdrs` rule attribute or generated headers from a Swift module.
         # This boolean is required to add/omit headers from the Info.plist accordingly,
-        # through the inspection of the partial outputs for both Objective-C(++)/Swift.
+        # through the inspection of the bundling task outputs for both Objective-C(++)/Swift.
         found_header_files = False
 
         # Bundle headers & modulemaps (and swiftmodules if available)

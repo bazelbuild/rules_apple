@@ -14,12 +14,12 @@
 
 """Core bundling logic.
 
-The processor module handles the execution of logic for different parts of the
+The Apple bundler module handles the execution of logic for different parts of the
 bundling process. This logic is encapsulated into blocks of code called
-partials. Each partial will then process a specific aspect of the build process
+bundling tasks. Each bundling task will then process a specific aspect of the build process
 and will return information on how the bundles should be built.
 
-All partials handled by this processor must follow this API:
+All bundling tasks handled by this Apple bundler must follow this API:
 
   - The expected output is a struct with the following optional fields:
     * bundle_files: Contains tuples of the format
@@ -55,18 +55,14 @@ For iOS, tvOS and watchOS, binary, content and resources all refer to the same
 location. Only in macOS these paths differ.
 
 All the files given will be symlinked into their expected location in the
-bundle, and once complete, the processor will codesign and compress the bundle
+bundle, and once complete, the Apple bundler will codesign and compress the bundle
 into a zip file.
 
-The processor will output a single file, which is the final compressed and
+The Apple bundler will output a single file, which is the final compressed and
 code-signed bundle, and a list of providers that need to be propagated from the
 rule.
 """
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -203,7 +199,7 @@ def _archive_paths(
         ),
     }
 
-def _bundle_partial_outputs_files(
+def _bundle_task_output_files(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -217,12 +213,12 @@ def _bundle_partial_outputs_files(
         mac_exec_group,
         output_discriminator,
         output_file,
-        partial_outputs,
         platform_prerequisites,
         rule_descriptor,
         rule_label,
+        task_outputs,
         xplat_exec_group):
-    """Invokes bundletool to bundle the files specified by the partial outputs.
+    """Invokes bundletool to bundle the files specified by the bundling task outputs.
 
     Args:
       actions: The actions provider from `ctx.actions`.
@@ -239,11 +235,11 @@ def _bundle_partial_outputs_files(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_file: The file where the final zipped bundle should be created.
-      partial_outputs: List of partial outputs from which to collect the files
-        that will be bundled inside the final archive.
       platform_prerequisites: Struct containing information on the platform being targeted.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the rule.
+      task_outputs: List of bundling task outputs from which to collect the files
+        that will be bundled inside the final archive.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
 
@@ -269,8 +265,8 @@ def _bundle_partial_outputs_files(
     )
 
     processed_file_target_paths = {}
-    for partial_output in partial_outputs:
-        for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
+    for task_output in task_outputs:
+        for location, parent_dir, files in getattr(task_output, "bundle_files", []):
             if tree_artifact_is_enabled and location == location_enum.archive:
                 # These files get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
@@ -302,7 +298,7 @@ def _bundle_partial_outputs_files(
                     processed_file_target_paths[target_path] = source.path
                 control_files.append(struct(src = source.path, dest = target_path))
 
-        for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
+        for location, parent_dir, zip_files in getattr(task_output, "bundle_zips", []):
             if tree_artifact_is_enabled and location == location_enum.archive:
                 # These zips get relayed via AppleBundleArchiveSupportInfo instead.
                 continue
@@ -391,15 +387,15 @@ def _bundle_post_process_and_sign(
         mac_exec_group,
         output_archive,
         output_discriminator,
-        partial_outputs,
         platform_prerequisites,
         predeclared_outputs,
         process_and_sign_template,
         provisioning_profile,
         rule_descriptor,
         rule_label,
+        task_outputs,
         xplat_exec_group):
-    """Bundles, post-processes and signs the files in partial_outputs.
+    """Bundles, post-processes and signs the files in task_outputs.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -415,13 +411,13 @@ def _bundle_post_process_and_sign(
         output_archive: The file representing the final bundled, post-processed and signed archive.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
-        partial_outputs: The outputs of the partials used to process this target's bundle.
         platform_prerequisites: Struct containing information on the platform being targeted.
         predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
         process_and_sign_template: A template for a shell script to process and sign as a file.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
+        task_outputs: The outputs of the bundling tasks used to process this target's bundle.
         xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
@@ -436,21 +432,21 @@ def _bundle_post_process_and_sign(
     )
     bundling_providers = []
     signed_frameworks_depsets = []
-    for partial_output in partial_outputs:
-        if hasattr(partial_output, "signed_frameworks"):
-            signed_frameworks_depsets.append(partial_output.signed_frameworks)
+    for task_output in task_outputs:
+        if hasattr(task_output, "signed_frameworks"):
+            signed_frameworks_depsets.append(task_output.signed_frameworks)
     transitive_signed_frameworks = depset(transitive = signed_frameworks_depsets)
 
     if tree_artifact_is_enabled:
         bundle_files_for_xcarchive = []
         bundle_zips_for_xcarchive = []
 
-        for partial_output in partial_outputs:
-            for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
+        for task_output in task_outputs:
+            for location, parent_dir, files in getattr(task_output, "bundle_files", []):
                 if location == location_enum.archive:
                     bundle_files_for_xcarchive.append((parent_dir, files))
 
-            for location, parent_dir, zip_files in getattr(partial_output, "bundle_zips", []):
+            for location, parent_dir, zip_files in getattr(task_output, "bundle_zips", []):
                 if location == location_enum.archive:
                     bundle_zips_for_xcarchive.append((parent_dir, zip_files))
 
@@ -480,7 +476,7 @@ def _bundle_post_process_and_sign(
             signed_frameworks = transitive_signed_frameworks,
         )
 
-        _bundle_partial_outputs_files(
+        _bundle_task_output_files(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -492,7 +488,7 @@ def _bundle_post_process_and_sign(
             mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = output_archive,
-            partial_outputs = partial_outputs,
+            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
@@ -512,7 +508,7 @@ def _bundle_post_process_and_sign(
             output_discriminator = output_discriminator,
             file_name = "unprocessed_archive.zip",
         )
-        _bundle_partial_outputs_files(
+        _bundle_task_output_files(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -523,7 +519,7 @@ def _bundle_post_process_and_sign(
             ipa_post_processor = ipa_post_processor,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
-            partial_outputs = partial_outputs,
+            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
             rule_label = rule_label,
             rule_descriptor = rule_descriptor,
@@ -588,7 +584,7 @@ def _bundle_post_process_and_sign(
                 output_discriminator = output_discriminator,
                 file_name = "unprocessed_embedded_archive.zip",
             )
-            _bundle_partial_outputs_files(
+            _bundle_task_output_files(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -599,7 +595,7 @@ def _bundle_post_process_and_sign(
                 mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
-                partial_outputs = partial_outputs,
+                task_outputs = task_outputs,
                 platform_prerequisites = platform_prerequisites,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
@@ -638,12 +634,12 @@ def _process(
         bundle_extension,
         bundle_name,
         bundle_post_process_and_sign = True,
+        bundling_tasks,
         cc_configured_features,
         entitlements = None,
         ipa_post_processor = None,
         mac_exec_group,
         output_discriminator = None,
-        partials,
         platform_prerequisites,
         predeclared_outputs,
         process_and_sign_template,
@@ -651,7 +647,7 @@ def _process(
         rule_descriptor,
         rule_label,
         xplat_exec_group):
-    """Processes a list of partials that provide the files to be bundled.
+    """Processes a list of bundling tasks that provide the files to be bundled.
 
     Args:
       actions: The actions provider from `ctx.actions`.
@@ -660,7 +656,8 @@ def _process(
       bundle_extension: The extension for the bundle.
       bundle_name: The name of the output bundle.
       bundle_post_process_and_sign: If the process action should also post process and sign after
-          calling the implementation of every partial. Defaults to True.
+          calling the implementation of every bundling task. Defaults to True.
+      bundling_tasks: The list of bundling tasks to process to construct the complete bundle.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
@@ -668,7 +665,6 @@ def _process(
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      partials: The list of partials to process to construct the complete bundle.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       process_and_sign_template: A template for a shell script to process and sign as a file.
@@ -684,7 +680,7 @@ def _process(
       any additional output groups is in the `output_groups` field.
     """
 
-    partial_outputs = [partial.call(p) for p in partials]
+    task_outputs = [p() for p in bundling_tasks]
     providers = []
 
     if bundle_post_process_and_sign:
@@ -708,7 +704,7 @@ def _process(
             mac_exec_group = mac_exec_group,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
-            partial_outputs = partial_outputs,
+            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             process_and_sign_template = process_and_sign_template,
@@ -723,13 +719,13 @@ def _process(
         transitive_output_files = []
 
     output_group_dicts = []
-    for partial_output in partial_outputs:
-        if hasattr(partial_output, "providers"):
-            providers.extend(partial_output.providers)
-        if hasattr(partial_output, "output_files"):
-            transitive_output_files.append(partial_output.output_files)
-        if hasattr(partial_output, "output_groups"):
-            output_group_dicts.append(partial_output.output_groups)
+    for task_output in task_outputs:
+        if hasattr(task_output, "providers"):
+            providers.extend(task_output.providers)
+        if hasattr(task_output, "output_files"):
+            transitive_output_files.append(task_output.output_files)
+        if hasattr(task_output, "output_groups"):
+            output_group_dicts.append(task_output.output_groups)
 
     return struct(
         output_files = depset(transitive = transitive_output_files),
@@ -737,6 +733,6 @@ def _process(
         providers = providers,
     )
 
-processor = struct(
+apple_bundler = struct(
     process = _process,
 )

@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for processing additional contents for macOS apps."""
+"""Bundling Task implementation for processing additional contents for macOS apps."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
@@ -38,8 +34,8 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _macos_additional_contents_partial_impl(*, additional_contents):
-    """Implementation for the additional contents processing partial."""
+def _macos_additional_contents_bundling_task_impl(*, additional_contents):
+    """Implementation for the additional contents processing bundling task."""
 
     if not additional_contents:
         return struct()
@@ -96,20 +92,21 @@ def _macos_additional_contents_partial_impl(*, additional_contents):
         bundle_zips = bundle_zips,
     )
 
-def macos_additional_contents_partial(*, additional_contents):
-    """Constructor for the macOS additional contents processing partial.
+def macos_additional_contents_bundling_task(*, additional_contents):
+    """Constructor for the macOS additional contents processing bundling task.
 
-    This partial processes additional contents for macOS applications.
+    This bundling task processes additional contents for macOS applications.
 
     Args:
         additional_contents: A dictionary of labels to strings representing files that should be
             copied into specific subdirectories of the `Contents` folder in the bundle.
 
     Returns:
-        A partial that returns the bundle location of the additional contents bundle, if any were
-        configured.
+        A bundling task that returns the bundle location of the additional contents bundle, if any
+        were configured.
     """
-    return partial.make(
-        _macos_additional_contents_partial_impl,
+    return lambda *args, **kwargs: _macos_additional_contents_bundling_task_impl(
         additional_contents = additional_contents,
+        *args,
+        **kwargs
     )

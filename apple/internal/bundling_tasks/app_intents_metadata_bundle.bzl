@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for processing AppIntents metadata bundle."""
+"""Bundling Task implementation for processing AppIntents metadata bundle."""
 
-load("@bazel_skylib//lib:partial.bzl", "partial")
 load(
     "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
     "location_enum",
@@ -188,7 +187,7 @@ using the {shared_library_app_intents_hint_target} aspect hint.
 
     return main_owned_metadata_bundle_inputs[0], static_metadata_owned_bundle_inputs
 
-def _app_intents_metadata_bundle_partial_impl(
+def _app_intents_metadata_bundle_bundling_task_impl(
         *,
         actions,
         app_intents,
@@ -200,7 +199,7 @@ def _app_intents_metadata_bundle_partial_impl(
         label,
         mac_exec_group,
         platform_prerequisites):
-    """Implementation of the AppIntents metadata bundle partial."""
+    """Implementation of the AppIntents metadata bundle bundling task."""
 
     owned_embedded_metadata_bundles = [
         x[AppIntentsBundleInfo].owned_metadata_bundles
@@ -329,7 +328,7 @@ def _app_intents_metadata_bundle_partial_impl(
         providers = providers,
     )
 
-def app_intents_metadata_bundle_partial(
+def app_intents_metadata_bundle_bundling_task(
         *,
         actions,
         app_intents,
@@ -341,9 +340,10 @@ def app_intents_metadata_bundle_partial(
         label,
         mac_exec_group,
         platform_prerequisites):
-    """Constructor for the AppIntents metadata bundle processing partial.
+    """Constructor for the AppIntents metadata bundle processing bundling task.
 
-    This partial generates the Metadata.appintents bundle required for AppIntents functionality.
+    This bundling task generates the Metadata.appintents bundle required for AppIntents
+    functionality.
 
     Args:
         actions: The actions provider from ctx.actions.
@@ -360,10 +360,9 @@ def app_intents_metadata_bundle_partial(
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
     Returns:
-        A partial that generates the Metadata.appintents bundle.
+        A bundling task that generates the Metadata.appintents bundle.
     """
-    return partial.make(
-        _app_intents_metadata_bundle_partial_impl,
+    return lambda *args, **kwargs: _app_intents_metadata_bundle_bundling_task_impl(
         actions = actions,
         app_intents = app_intents,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -374,4 +373,6 @@ def app_intents_metadata_bundle_partial(
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
+        *args,
+        **kwargs
     )

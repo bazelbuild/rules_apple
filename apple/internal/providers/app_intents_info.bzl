@@ -38,7 +38,7 @@ AppIntentsInfo = provider(
         "metadata_bundle_inputs": """
 A depset of structs with the following fields, which represent providers from targets that have
 providers that must be processed at the top level bundling rule through the
-`app_intents_metadata_bundle` partial:
+`app_intents_metadata_bundle` bundling task:
 
 *   `direct_app_intents_modules`: A list of String-based module_name-s that must be included as
     dependencies in the generated App Intents metadata bundle.

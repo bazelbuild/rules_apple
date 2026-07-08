@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for Clang runtime libraries processing."""
+"""Bundling Task implementation for Clang runtime libraries processing."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
@@ -41,7 +37,7 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _clang_rt_dylibs_partial_impl(
+def _clang_rt_dylibs_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -52,7 +48,7 @@ def _clang_rt_dylibs_partial_impl(
         output_discriminator,
         platform_prerequisites,
         dylibs):
-    """Implementation for the Clang runtime dylibs processing partial."""
+    """Implementation for the Clang runtime dylibs processing bundling task."""
     bundle_zips = []
     if clang_rt_dylibs.should_package_clang_runtime(
         cc_configured_features = cc_configured_features,
@@ -91,7 +87,7 @@ def _clang_rt_dylibs_partial_impl(
         bundle_zips = bundle_zips,
     )
 
-def clang_rt_dylibs_partial(
+def clang_rt_dylibs_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
@@ -102,7 +98,7 @@ def clang_rt_dylibs_partial(
         mac_exec_group,
         output_discriminator = None,
         platform_prerequisites):
-    """Constructor for the Clang runtime dylibs processing partial.
+    """Constructor for the Clang runtime dylibs processing bundling task.
 
     Args:
       actions: The actions provider from `ctx.actions`.
@@ -118,11 +114,10 @@ def clang_rt_dylibs_partial(
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
-      A partial that returns the bundle location of the Clang runtime dylibs, if there were any to
-      bundle.
+      A bundling task that returns the bundle location of the Clang runtime dylibs, if there were
+      any to bundle.
     """
-    return partial.make(
-        _clang_rt_dylibs_partial_impl,
+    return lambda *args, **kwargs: _clang_rt_dylibs_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         binary_artifact = binary_artifact,
@@ -132,4 +127,6 @@ def clang_rt_dylibs_partial(
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         dylibs = dylibs,
+        *args,
+        **kwargs
     )

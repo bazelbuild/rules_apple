@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for extension safety validation."""
-
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
+"""Bundling Task implementation for extension safety validation."""
 
 _AppleExtensionSafeValidationInfo = provider(
     doc = "Private provider that propagates whether the target is marked as extension safe or not.",
@@ -28,12 +23,12 @@ _AppleExtensionSafeValidationInfo = provider(
 
 visibility("@build_bazel_rules_apple//apple/...")
 
-def _extension_safe_validation_partial_impl(
+def _extension_safe_validation_bundling_task_impl(
         *,
         is_extension_safe,
         rule_label,
         targets_to_validate):
-    """Implementation for the extension safety validation partial."""
+    """Implementation for the extension safety validation bundling task."""
 
     if is_extension_safe:
         for target in targets_to_validate:
@@ -50,15 +45,15 @@ def _extension_safe_validation_partial_impl(
         providers = [_AppleExtensionSafeValidationInfo(is_extension_safe = is_extension_safe)],
     )
 
-def extension_safe_validation_partial(
+def extension_safe_validation_bundling_task(
         *,
         is_extension_safe,
         rule_label,
         targets_to_validate):
-    """Constructor for the extension safety validation partial.
+    """Constructor for the extension safety validation bundling task.
 
-    This partial validates that the framework dependencies are extension safe iff the current target
-    is also extension safe.
+    This bundling task validates that the framework dependencies are extension safe iff the current
+    target is also extension safe.
 
     Args:
         is_extension_safe: Boolean indicating that the current target is extension safe or not.
@@ -66,11 +61,12 @@ def extension_safe_validation_partial(
         targets_to_validate: List of targets to validate for extension safe code.
 
     Returns:
-        A partial that validates extension safety.
+        A bundling task that validates extension safety.
     """
-    return partial.make(
-        _extension_safe_validation_partial_impl,
+    return lambda *args, **kwargs: _extension_safe_validation_bundling_task_impl(
         is_extension_safe = is_extension_safe,
         rule_label = rule_label,
         targets_to_validate = targets_to_validate,
+        *args,
+        **kwargs
     )

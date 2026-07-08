@@ -28,7 +28,7 @@ bzl_library(
     name = "app_intents",
     srcs = ["app_intents.bzl"],
     visibility = [
-        "//apple/internal/partials:__pkg__",
+        "//apple/internal/bundling_tasks:__pkg__",
     ],
     deps = [
         "//apple/internal:intermediates",

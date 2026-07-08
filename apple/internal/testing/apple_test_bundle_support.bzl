@@ -19,12 +19,20 @@ load(
     "types",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
+    "apple_bundler",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:bundling_support.bzl",
     "bundling_support",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal:bundling_tasks.bzl",
+    "bundling_tasks",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:features_support.bzl",
@@ -39,16 +47,8 @@ load(
     "outputs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:partials.bzl",
-    "partials",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal:processor.bzl",
-    "processor",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
@@ -476,8 +476,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 
-    processor_partials = [
-        partials.apple_bundle_info_partial(
+    pending_bundling_tasks = [
+        bundling_tasks.apple_bundle_info(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
@@ -488,13 +488,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
         ),
-        partials.binary_partial(
+        bundling_tasks.binary(
             actions = actions,
             binary_artifact = binary_artifact,
             bundle_name = bundle_name,
             label_name = label.name,
         ),
-        partials.clang_rt_dylibs_partial(
+        bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -504,7 +504,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
-        partials.codesigning_dossier_partial(
+        bundling_tasks.codesigning_dossier(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -519,7 +519,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             rule_descriptor = rule_descriptor,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.debug_symbols_partial(
+        bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
@@ -528,12 +528,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.embedded_bundles_partial(
+        bundling_tasks.embedded_bundles(
             bundle_embedded_bundles = True,
             embeddable_targets = getattr(ctx.attr, "frameworks", []),
             platform_prerequisites = platform_prerequisites,
         ),
-        partials.framework_import_partial(
+        bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             cc_configured_features = cc_configured_features,
@@ -545,7 +545,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             targets = ctx.attr.deps,
             targets_to_avoid = targets_to_avoid,
         ),
-        partials.resources_partial(
+        bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -566,7 +566,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             version_keys_required = False,
             xplat_exec_group = xplat_exec_group,
         ),
-        partials.swift_dylibs_partial(
+        bundling_tasks.swift_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -580,21 +580,21 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     ]
 
     if platform_prerequisites.platform_type == "macos":
-        processor_partials.append(
-            partials.macos_additional_contents_partial(
+        pending_bundling_tasks.append(
+            bundling_tasks.macos_additional_contents(
                 additional_contents = ctx.attr.additional_contents,
             ),
         )
 
-    processor_result = processor.process(
+    bundler_result = apple_bundler.process(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        mac_exec_group = mac_exec_group,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
+        bundling_tasks = pending_bundling_tasks,
         cc_configured_features = cc_configured_features,
-        partials = processor_partials,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
@@ -613,21 +613,22 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     )
 
     dsyms = outputs.dsyms(
-        processor_result = processor_result,
+        bundler_result = bundler_result,
     )
 
-    # The processor outputs has all the extra outputs like dSYM files that we want to propagate, but
+    # The Apple bundler outputs has all the extra outputs like dSYM files that we want to
+    # propagate, but
     # it also includes the archive artifact. This collects all the files that should be output from
     # the rule (except the archive) so that they're propagated and can be returned by the test
     # target.
     filtered_outputs = [
         x
-        for x in processor_result.output_files.to_list()
+        for x in bundler_result.output_files.to_list()
         if x != archive
     ]
 
-    providers = processor_result.providers
-    output_files = processor_result.output_files
+    providers = bundler_result.providers
+    output_files = bundler_result.output_files
 
     # Symlink the test bundle archive to the output attribute. This is used when having a test such
     # as `ios_unit_test(name = "Foo")` to declare a `:Foo.zip` target.
@@ -665,7 +666,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         OutputGroupInfo(
             **outputs.merge_output_groups(
                 link_result.output_groups,
-                processor_result.output_groups,
+                bundler_result.output_groups,
             )
         ),
     ])

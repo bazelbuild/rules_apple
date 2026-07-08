@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Partial implementation for validating the AppleBundleInfo providers found in child bundles."""
+"""Bundling Task implementation for validating the AppleBundleInfo providers found in child bundles."""
 
-load(
-    "@bazel_skylib//lib:partial.bzl",
-    "partial",
-)
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
@@ -85,14 +81,14 @@ Consider addressing the minimum_os_version on {target_type} {target_label} to ma
             rule_label = rule_label,
         ))
 
-def _child_bundle_info_validation_partial_impl(
+def _child_bundle_info_validation_bundling_task_impl(
         *,
         frameworks,
         platform_prerequisites,
         product_type,
         resource_validation_infos,
         rule_label):
-    """Implementation for the child bundle info validation partial."""
+    """Implementation for the child bundle info validation bundling task."""
 
     if frameworks or resource_validation_infos:
         target_type = "framework"
@@ -128,18 +124,18 @@ def _child_bundle_info_validation_partial_impl(
 
     return struct()
 
-def child_bundle_info_validation_partial(
+def child_bundle_info_validation_bundling_task(
         *,
         frameworks,
         platform_prerequisites,
         product_type,
         resource_validation_infos,
         rule_label):
-    """Constructor for the child bundle info validation partial.
+    """Constructor for the child bundle info validation bundling task.
 
-    This partial validates that the bundle info found within child bundles aligns with the current
-    target. A common validation is to check for minimum OS version to make sure that the framework
-    version is not less than the current target.
+    This bundling task validates that the bundle info found within child bundles aligns with the
+    current target. A common validation is to check for minimum OS version to make sure that the
+    framework version is not less than the current target.
 
     Some exceptional cases may temporarily exist for bundles that have minimum OS versions that
     must be higher than the given framework, i.e. extensions sharing a framework with applications.
@@ -158,13 +154,14 @@ def child_bundle_info_validation_partial(
         rule_label: The label of the target being analyzed.
 
     Returns:
-        A partial that validates the AppleBundleInfo of all child bundles against its parent.
+        A bundling task that validates the AppleBundleInfo of all child bundles against its parent.
     """
-    return partial.make(
-        _child_bundle_info_validation_partial_impl,
+    return lambda *args, **kwargs: _child_bundle_info_validation_bundling_task_impl(
         frameworks = frameworks,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
         resource_validation_infos = resource_validation_infos,
         rule_label = rule_label,
+        *args,
+        **kwargs
     )
