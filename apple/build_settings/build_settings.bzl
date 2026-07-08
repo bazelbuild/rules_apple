@@ -64,7 +64,7 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
         doc = """
 Whether to recursively merge CFBundleIcons and CFBundleIcons~* sub-dictionaries in Info.plist files instead of failing on conflicts.
 """,
-        default = False,
+        default = True,
     ),
 }
 
