@@ -41,7 +41,6 @@ extensions, and frameworks) and for running unit tests and UI tests.
         <code><a href="rules-ios.md#ios_ui_test">ios_ui_test</a></code><br/>
         <code><a href="rules-ios.md#ios_unit_test_suite">ios_unit_test_suite</a></code><br/>
         <code><a href="rules-ios.md#ios_unit_test">ios_unit_test</a></code><br/>
-        <code><a href="rules-ios.md#ios_xctestrun_runner">ios_xctestrun_runner</a></code><br/>
       </td>
     </tr>
     <tr>
@@ -118,6 +117,7 @@ below.
           <code><a href="rules-apple.md#apple_static_xcframework_import">apple_static_xcframework_import</a></code><br/>
           <code><a href="rules-apple.md#apple_static_xcframework">apple_static_xcframework</a></code><br/>
           <code><a href="rules-apple.md#apple_universal_binary">apple_universal_binary</a></code><br/>
+          <code><a href="rules-apple.md#apple_xctestrun_runner">apple_xctestrun_runner</a></code><br/>
           <code><a href="rules-apple.md#apple_xcframework">apple_xcframework</a></code><br/>
           <code><a href="rules-apple.md#local_provisioning_profile">local_provisioning_profile</a></code><br/>
           <code><a href="rules-apple.md#provisioning_profile_repository_extension">provisioning_profile_repository_extension</a></code><br/>

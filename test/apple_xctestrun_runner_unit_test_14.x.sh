@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS test runner.
+# Integration tests for the Apple xctestrun runner on iOS 14.x.
 
 function set_up() {
   mkdir -p ios
@@ -35,12 +35,12 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:ios_test_runner.bzl",
-    "ios_test_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
-ios_test_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner_14",
     device_type = "iPhone 8",
     os_version = "14.5",
@@ -139,4 +139,4 @@ function test_ios_unit_test_pass() {
   expect_log "Executed 4 tests, with 0 failures"
 }
 
-run_suite "ios_unit_test with iOS 14.x test runner bundling tests"
+run_suite "ios_unit_test with Apple xctestrun runner on iOS 14.x"
