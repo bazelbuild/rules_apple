@@ -458,6 +458,7 @@ def _generate_tree_artifact_bundle_action(
         output = output_archive.path,
         code_signing_commands = code_signing_commands,
         post_processor = post_processor.path if post_processor else "",
+        use_latest_apple_bundler = True,
     )
     actions.write(
         output = bundletool_control_file,
