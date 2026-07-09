@@ -66,6 +66,12 @@ Whether to recursively merge CFBundleIcons and CFBundleIcons~* sub-dictionaries 
 """,
         default = True,
     ),
+    "warnings_as_errors": struct(
+        doc = """
+Elevates Apple rule compiler and validation warnings to errors.
+""",
+        default = False,
+    ),
 }
 
 # List of all registered build settings without command line flags at

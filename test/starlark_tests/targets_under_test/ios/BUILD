@@ -270,6 +270,24 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_empty_xcassets",
+    app_icons = [
+        "//test/starlark_tests/resources:empty.xcassets",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app",
     app_icons = ["//test/starlark_tests/resources:app_icons_ios"],
     bundle_id = "com.google.example",

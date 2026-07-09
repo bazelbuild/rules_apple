@@ -722,6 +722,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "warning_support",
+    srcs = ["warning_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "watchos_rules",
     srcs = ["watchos_rules.bzl"],
     visibility = [

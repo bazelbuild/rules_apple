@@ -66,6 +66,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:warning_support",
         "//apple/internal/providers:apple_feature_allowlist_info",
         "@bazel_skylib//rules:common_settings",
     ],

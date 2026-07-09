@@ -16,6 +16,10 @@
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
+    "@build_bazel_rules_apple//apple/internal:warning_support.bzl",
+    "warning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_feature_allowlist_info.bzl",
     "AppleFeatureAllowlistInfo",
 )
@@ -132,6 +136,9 @@ A tool to extract version info from builds.
 """,
         "versiontool_swift": """\
 A Swift tool to extract version info from builds.
+""",
+        "warning_handler": """\
+A function (`def warning_handler(*args, **kwargs)`) that emits warnings or errors based on `build_settings`.
 """,
     },
 )
@@ -267,13 +274,14 @@ APPLE_MAC_EXEC_GROUP = "_mac_tool_group"
 APPLE_XPLAT_EXEC_GROUP = "_xplat_tool_group"
 
 def _apple_xplat_tools_toolchain_impl(ctx):
+    build_settings_struct = struct(
+        **{
+            build_setting.label.name: build_setting[BuildSettingInfo].value
+            for build_setting in ctx.attr.build_settings
+        }
+    )
     xplat_info = AppleXPlatToolsToolchainInfo(
-        build_settings = struct(
-            **{
-                build_setting.label.name: build_setting[BuildSettingInfo].value
-                for build_setting in ctx.attr.build_settings
-            }
-        ),
+        build_settings = build_settings_struct,
         bundletool_swift = ctx.attr.bundletool_swift,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
@@ -281,6 +289,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         verifystringstool = ctx.attr.verifystringstool.files_to_run,
         versiontool = ctx.attr.versiontool,
         versiontool_swift = ctx.attr.versiontool_swift,
+        warning_handler = warning_support.make_warning_handler(build_settings_struct),
     )
 
     return [

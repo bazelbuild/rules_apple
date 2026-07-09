@@ -455,6 +455,11 @@ filegroup(
 )
 
 filegroup(
+    name = "empty.xcassets",
+    srcs = ["empty.xcassets/Contents.json"],
+)
+
+filegroup(
     name = "all_nested",
     srcs = [
         "nested/nested.txt",

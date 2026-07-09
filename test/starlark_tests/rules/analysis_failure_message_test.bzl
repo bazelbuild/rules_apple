@@ -83,3 +83,10 @@ analysis_failure_message_with_wip_features_test = make_analysis_failure_message_
         "//command_line_option:macos_cpus": "arm64",
     },
 )
+
+analysis_failure_message_with_warnings_as_errors_test = make_analysis_failure_message_test(
+    config_settings = {
+        build_settings_labels.warnings_as_errors: True,
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+    },
+)

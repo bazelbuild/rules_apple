@@ -17,6 +17,7 @@
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_warnings_as_errors_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
@@ -825,6 +826,21 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
             "$BUNDLE_ROOT/shared_res.strings",
             "$BUNDLE_ROOT/ownerless_chain_res.strings",
         ],
+        tags = [name],
+    )
+
+    analysis_failure_message_with_warnings_as_errors_test(
+        name = "{}_empty_xcassets_warning_as_error_test".format(name),
+        expected_error = "No assets to compile for //test/starlark_tests/targets_under_test/ios:app_with_empty_xcassets even though an asset catalog (.xcassets directory) was declared. Skipping asset catalog compilation.",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_empty_xcassets",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_empty_xcassets_warning_only_test".format(name),
+        build_type = "device",
+        contains = ["$BUNDLE_ROOT/Info.plist"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_empty_xcassets",
         tags = [name],
     )
 

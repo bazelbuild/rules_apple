@@ -159,6 +159,7 @@ def _asset_catalogs(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         files,
         mac_exec_group,
@@ -191,12 +192,12 @@ def _asset_catalogs(
         contains_assets_to_compile = True
         break
     if not contains_assets_to_compile:
-        # There is no other way to issue a warning, so print is the only way to message.
-        # buildifier: disable=print
-        print("""
-WARNING: No assets to compile for {rule_label} even though an asset catalog (.xcassets directory) \
-was declared. Skipping asset catalog compilation.
-""".format(rule_label = str(rule_label)))
+        apple_xplat_toolchain_info.warning_handler(
+            """\
+No assets to compile for {rule_label} even though an asset catalog (.xcassets directory) \
+was declared. Skipping asset catalog compilation.\
+""".format(rule_label = str(rule_label)),
+        )
         return struct(files = [], infoplists = [])
 
     # Only merge the resulting plist for the top level bundle. For resource
