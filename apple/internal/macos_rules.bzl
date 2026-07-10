@@ -23,6 +23,7 @@ load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
     "apple_bundler",
@@ -167,7 +168,7 @@ def _macos_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -215,7 +216,7 @@ def _macos_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -484,7 +485,7 @@ def _macos_bundle_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -524,7 +525,7 @@ def _macos_bundle_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -729,7 +730,7 @@ def _macos_framework_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -768,7 +769,7 @@ def _macos_framework_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -967,7 +968,7 @@ def _macos_extension_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     product_type = apple_product_type.app_extension
@@ -1010,7 +1011,7 @@ def _macos_extension_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -1261,7 +1262,7 @@ def _macos_xpc_service_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1300,7 +1301,7 @@ def _macos_xpc_service_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -1493,7 +1494,7 @@ def _macos_command_line_application_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1535,7 +1536,7 @@ def _macos_command_line_application_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
@@ -1771,7 +1772,7 @@ def _macos_dylib_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1803,7 +1804,7 @@ def _macos_dylib_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile

@@ -18,6 +18,7 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
     "apple_bundler",
@@ -343,7 +344,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
@@ -396,7 +397,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     _validate_test_host_shared_attributes(

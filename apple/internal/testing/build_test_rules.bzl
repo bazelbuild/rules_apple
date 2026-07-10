@@ -18,6 +18,7 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
@@ -93,7 +94,7 @@ def _apple_build_test_rule_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     if ctx.attr.platform_type != ctx.attr._platform_type:
         fail((
@@ -140,7 +141,7 @@ def _apple_build_test_rule_impl(ctx):
         explicit_minimum_os = ctx.attr.minimum_os_version,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.targets),
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     resource_artifacts = bundling_tasks.resources(

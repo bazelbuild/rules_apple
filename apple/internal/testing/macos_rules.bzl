@@ -18,6 +18,7 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
@@ -76,7 +77,7 @@ def _macos_ui_test_bundle_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,
@@ -92,7 +93,7 @@ def _macos_unit_test_bundle_impl(ctx):
         minimum_os_version = ctx.attr.minimum_os_version,
         platform_type = ctx.attr.platform_type,
         rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,

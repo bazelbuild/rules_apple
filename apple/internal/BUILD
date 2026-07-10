@@ -44,6 +44,7 @@ bzl_library(
         ":transition_support",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:lipo",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -78,6 +79,7 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
         "@rules_cc//cc/common",
@@ -301,6 +303,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
     ],
@@ -324,6 +327,7 @@ bzl_library(
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:lipo",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
         "@rules_cc//cc/common",
         "@rules_cc//cc/private/rules_impl:objc_compilation_support_bzl",
     ],
@@ -376,6 +380,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
         "@rules_cc//cc/common",
     ],
 )
@@ -764,6 +769,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -805,6 +811,7 @@ bzl_library(
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
     ],

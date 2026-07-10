@@ -496,7 +496,7 @@ def _generate_dossier_file(
       rule_label: The label of the rule being built.
       target_signs_with_entitlements: Whether the target platform needs signing with entitlements,
           which is true for non-simulator builds.
-      xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+      xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
       The `File` representing the generated dossier zip file.

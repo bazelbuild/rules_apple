@@ -50,6 +50,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )

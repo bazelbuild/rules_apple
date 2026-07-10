@@ -17,6 +17,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:cc_toolchain_info_support.bzl",
     "cc_toolchain_info_support",
@@ -205,7 +206,7 @@ def _get_xcframework_library_with_xcframework_processor(
         mac_exec_group: The exec_group associated with apple_mac_toolchain
         target_triplet: Struct referring a Clang target triplet.
         xcframework: Struct containing imported XCFramework details.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         A struct containing processed XCFramework files:
             binary: File referencing the XCFramework library binary.
@@ -531,7 +532,7 @@ def _collect_signature_from_xcframework(
         mac_exec_group: The exec_group associated with apple_mac_toolchain.
         platform_type: Platform to report in metadata.
         xcframework_info_plist: The root Info.plist file of the XCFramework.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         A File representing a generated signatures XML plist if one is necessary or None.
     """
@@ -631,7 +632,7 @@ def _generate_empty_dylib(
         label: Label of the target being built.
         mac_exec_group: The exec_group associated with apple_mac_toolchain.
         target_triplet: The target triplet to use for the empty dylib.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
         An empty dylib suitable for embedding within a static framework bundle for a shipping app in
@@ -721,7 +722,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     label = ctx.label
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xcframework_imports = ctx.files.xcframework_imports
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
 
     secure_features_support.validate_expected_secure_features(
@@ -857,7 +858,7 @@ def _apple_static_xcframework_import_impl(ctx):
     linkopts = ctx.attr.linkopts
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     xcframework_imports = ctx.files.xcframework_imports
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
 
     secure_features_support.validate_expected_secure_features(
         cc_configured_features = cc_configured_features,

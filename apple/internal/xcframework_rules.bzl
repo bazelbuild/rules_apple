@@ -23,6 +23,7 @@ load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
     "apple_bundler",
@@ -388,7 +389,7 @@ def _group_link_outputs_by_library_identifier(
         label_name: Name of the target being built.
         link_result: The struct returned by `linking_support.register_binary_linking_action`.
         minimum_os_versions: A dictionary of minimum OS versions for each platform type.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
         A list of structs with the following fields; `architectures` containing a list of the
@@ -709,7 +710,7 @@ def _create_framework_outputs(
         xcframework_deps: A list of `XCFrameworkDepsInfo` providers from the XCFramework's
             dependencies, which will be used to determine binary and resource dependencies that
             should be avoided in the frameworks within the bundle.
-        xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current
+        xcode_version_config: The `XcodeVersionInfo` provider from the current
             context.
         xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
@@ -1164,7 +1165,7 @@ def _create_xcframework_bundle(
         output_archive: The file representing the final bundled archive.
         root_info_plist: A `File` representing a fully formed root Info.plist for this XCFramework.
         tree_artifact_is_enabled: Whether tree artifacts are enabled for the target.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
         xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     control_file_name = "xcframework_bundletool_control.json"
@@ -1292,7 +1293,7 @@ def _apple_xcframework_impl(ctx):
     objc_fragment = ctx.fragments.objc
     rule_label = ctx.label
     version = ctx.attr.version
-    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
     build_settings = apple_xplat_toolchain_info.build_settings
@@ -1769,7 +1770,7 @@ def _apple_static_xcframework_impl(ctx):
     objc_fragment = ctx.fragments.objc
     rule_label = ctx.label
     version = ctx.attr.version
-    xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
 
     build_settings = apple_xplat_toolchain_info.build_settings

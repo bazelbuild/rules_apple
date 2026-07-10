@@ -436,7 +436,7 @@ def _generate_tree_artifact_bundle_action(
       post_processor: A File referencing the post processor tool to use, or None if no post
           processor should be used.
       progress_message: A String. The progress message to use for the action.
-      xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+      xcode_config: The `XcodeVersionInfo` provider from the context.
     """
 
     additional_bundling_tools = []

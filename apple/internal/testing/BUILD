@@ -39,6 +39,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
     ],
@@ -52,6 +53,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:providers",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -76,6 +78,7 @@ bzl_library(
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -119,6 +122,7 @@ bzl_library(
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 

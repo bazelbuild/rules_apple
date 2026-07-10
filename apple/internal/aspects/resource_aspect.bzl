@@ -22,6 +22,7 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
@@ -93,7 +94,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
         explicit_minimum_os = cpp_fragment.minimum_os_version(),
         objc_fragment = None,
         uses_swift = uses_swift,
-        xcode_version_config = aspect_ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = aspect_ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
 def _apple_resource_aspect_impl(target, ctx):

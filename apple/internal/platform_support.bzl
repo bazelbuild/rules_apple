@@ -96,7 +96,7 @@ def _platform_prerequisites(
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
       objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
-      xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+      xcode_version_config: The `XcodeVersionInfo` provider from the current context.
 
     Returns:
       A struct representing the collected platform information.

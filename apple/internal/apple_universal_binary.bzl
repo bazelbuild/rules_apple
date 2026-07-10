@@ -19,6 +19,7 @@ load(
     "apple_support",
 )
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebinaryinfo",
@@ -66,7 +67,7 @@ def _apple_universal_binary_impl(ctx):
         inputs = inputs,
         output = universal_binary,
         apple_platform_info = apple_platform_info,
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     # The apple_universal_binary doesn't have its own `data` attribute, so there's no runfiles to

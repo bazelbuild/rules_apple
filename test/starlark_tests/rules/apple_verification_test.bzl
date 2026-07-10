@@ -23,6 +23,7 @@ load(
     "paths",
 )
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBinaryInfo",
@@ -235,7 +236,7 @@ def _apple_verification_test_impl(ctx):
         for num, value in enumerate(ctx.attr.env[key]):
             test_env["APPLE_TEST_ENV_{}_{}".format(key, num)] = value
 
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),

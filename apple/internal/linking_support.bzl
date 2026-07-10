@@ -23,6 +23,7 @@ load(
     "@build_bazel_apple_support//lib:providers.bzl",
     "ApplePlatformInfo",
 )
+load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:compilation_support.bzl",
     "compilation_support",
@@ -659,7 +660,7 @@ def _register_binary_linking_action(
         inputs = [output.binary for output in linking_outputs.outputs],
         output = universal_binary,
         apple_platform_info = apple_platform_info,
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     return struct(
@@ -715,7 +716,7 @@ def _register_static_library_archive_action(
         inputs = [output.library for output in archive_outputs.outputs],
         output = universal_library,
         apple_platform_info = apple_platform_info,
-        xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
     return struct(
@@ -733,7 +734,7 @@ def _lipo_or_symlink_inputs(*, actions, inputs, output, apple_platform_info, xco
       output: Binary output for universal binary or symlink.
       apple_platform_info: The ApplePlatformInfo provider used to configure
                       the action environment.
-      xcode_config: The `apple_common.XcodeVersionConfig` provider used to
+      xcode_config: The `XcodeVersionInfo` provider used to
                     configure the action environment.
     """
     if len(inputs) > 1:
