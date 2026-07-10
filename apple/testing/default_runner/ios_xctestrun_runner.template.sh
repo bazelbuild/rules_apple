@@ -335,6 +335,105 @@ if [[ -n "$main_thread_checker_dyld_env" ]]; then
   fi
 fi
 
+# Emits the inner body of a `[Skip|Only]TestingIdentifiers` <dict> for the given
+# "Class/method" identifiers: a `suites` bucket (Swift Testing) and an
+# `xctestClasses` bucket (XCTest), grouping every method under a single entry per
+# class. Each identifier is placed in both buckets; the bucket that doesn't match
+# the test's framework is a no-op at runtime.
+#
+# Example: `testing_identifiers_dict_body FooTests/testA FooTests/testB` emits
+#
+#       <key>suites</key>
+#       <array>
+#         <dict>
+#           <key>name</key>
+#           <string>FooTests</string>
+#           <key>testFunctions</key>
+#           <array>
+#             <string>testA</string>
+#             <string>testB</string>
+#           </array>
+#         </dict>
+#       </array>
+#       <key>xctestClasses</key>
+#       <array>
+#         <dict>
+#           <key>name</key>
+#           <string>FooTests</string>
+#           <key>xctestMethods</key>
+#           <array>
+#             <string>testA</string>
+#             <string>testB</string>
+#           </array>
+#         </dict>
+#       </array>
+function testing_identifiers_dict_body() {
+  local -a class_names=()    # ordered, unique class names
+  local -a class_methods=()  # parallel: newline-joined methods per class
+  local identifier class method index i
+
+  # Group the test identifiers into the class names array and the parallel class methods array
+  for identifier in "$@"; do
+    if [[ -z "$identifier" ]]; then
+      continue;
+    fi
+
+    if [[ "$identifier" == */* ]]; then
+      class="${identifier%%/*}"
+      method="${identifier#*/}"
+    else
+      class="$identifier"
+      method=""
+    fi
+
+    # Find this class's index, or append a new slot.
+    index=-1
+    for (( i = 0; i < ${#class_names[@]}; i++ )); do
+      if [[ "${class_names[$i]}" == "$class" ]]; then
+        index=$i
+        break
+      fi
+    done
+    if (( index < 0 )); then
+      class_names+=("$class")
+      class_methods+=("")
+      index=$(( ${#class_names[@]} - 1 ))
+    fi
+
+    # Append the method to this class's list.
+    if [[ -n "$method" ]]; then
+      class_methods[$index]="${class_methods[$index]}${method}"$'\n'
+    fi
+  done
+
+  # Render the shared list of <dict> entries once. The two buckets are identical
+  # apart from the per-method key name, so emit it as a placeholder here and
+  # substitute the real key when wrapping each bucket below.
+  local dicts=""
+  local -a method_names
+  for (( i = 0; i < ${#class_names[@]}; i++ )); do
+    dicts="${dicts}        <dict>\n          <key>name</key>\n          <string>${class_names[$i]}</string>\n"
+    if [[ -n "${class_methods[$i]}" ]]; then
+      # Split this class's newline-joined methods into an array so they can be
+      # printed with a single printf.
+      local saved_IFS=$IFS
+      IFS=$'\n'
+      method_names=(${class_methods[$i]})
+      IFS=$saved_IFS
+
+      dicts="${dicts}          <key>@METHOD_KEY@</key>\n          <array>\n"
+      dicts="${dicts}$(printf '            <string>%s</string>\\n' "${method_names[@]}")"
+      dicts="${dicts}          </array>\n"
+    fi
+    dicts="${dicts}        </dict>\n"
+  done
+
+  # Wrap the shared entries in each bucket, substituting the per-method key
+  printf '%s' \
+    "      <key>suites</key>\n      <array>\n${dicts//@METHOD_KEY@/testFunctions}      </array>\n" \
+    "      <key>xctestClasses</key>\n      <array>\n${dicts//@METHOD_KEY@/xctestMethods}      </array>\n"
+}
+
 TEST_FILTER="%(test_filter)s"
 xctestrun_skip_test_section=""
 xctestrun_only_test_section=""
@@ -365,12 +464,18 @@ if [[ -n "${TESTBRIDGE_TEST_ONLY:-}" || -n "${TEST_FILTER:-}" ]]; then
   done
   IFS=$saved_IFS
 
+  # Starting with Xcode 26.4, Swift Testing tests are only filtered when using the
+  # newer `[Skip|Only]TestingIdentifiers` dicts. Emit both the newer format and
+  # the legacy `[Skip|Only]TestIdentifiers` arrays. When the dictionary entries
+  # are present, Xcode ignores the legacy flat arrays.
   if (( ${#SKIP_TESTS_ARRAY[@]} )); then
     xctestrun_skip_test_section="    <key>SkipTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${SKIP_TESTS_ARRAY[@]}")    </array>"
+    xctestrun_skip_test_section="$xctestrun_skip_test_section\n    <key>SkipTestingIdentifiers</key>\n    <dict>\n$(testing_identifiers_dict_body "${SKIP_TESTS_ARRAY[@]}")    </dict>"
   fi
 
   if (( ${#ONLY_TESTS_ARRAY[@]} )); then
     xctestrun_only_test_section="    <key>OnlyTestIdentifiers</key>\n    <array>\n$(printf '      <string>%s</string>\\n' "${ONLY_TESTS_ARRAY[@]}")    </array>"
+    xctestrun_only_test_section="$xctestrun_only_test_section\n    <key>OnlyTestingIdentifiers</key>\n    <dict>\n$(testing_identifiers_dict_body "${ONLY_TESTS_ARRAY[@]}")    </dict>"
   fi
 fi
 
