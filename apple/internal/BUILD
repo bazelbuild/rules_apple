@@ -99,6 +99,31 @@ bzl_library(
 )
 
 bzl_library(
+    name = "xcode_developer_framework_import",
+    srcs = ["xcode_developer_framework_import.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":apple_toolchains",
+        ":cc_toolchain_info_support",
+        ":framework_import_support",
+        ":rule_attrs",
+        "//apple:providers",
+        "//apple:utils",
+        "//apple/internal/providers:developer_framework_import_info",
+        "//apple/internal/utils:bundle_paths",
+        "@bazel_skylib//lib:collections",
+        "@bazel_skylib//lib:dicts",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//lib:sets",
+        "@build_bazel_rules_swift//swift",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
+    ],
+)
+
+bzl_library(
     name = "apple_product_type",
     srcs = ["apple_product_type.bzl"],
     visibility = [
@@ -430,6 +455,7 @@ bzl_library(
         "//apple/internal/aspects:framework_provider_aspect",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:resource_aspect_hint",
+        "//apple/internal/providers:developer_framework_import_info",
         "//apple/internal/utils:clang_rt_dylibs",
         "//apple/internal/utils:main_thread_checker_dylibs",
         "@apple_support//lib:apple_support",

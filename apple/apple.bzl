@@ -43,6 +43,10 @@ load(
     _apple_static_xcframework = "apple_static_xcframework",
     _apple_xcframework = "apple_xcframework",
 )
+load(
+    "//apple/internal:xcode_developer_framework_import.bzl",
+    _xcode_developer_framework_import = "xcode_developer_framework_import",
+)
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
@@ -55,3 +59,4 @@ apple_xcframework = _apple_xcframework
 local_provisioning_profile = _local_provisioning_profile
 provisioning_profile_repository = _provisioning_profile_repository
 provisioning_profile_repository_extension = _provisioning_profile_repository_extension
+xcode_developer_framework_import = _xcode_developer_framework_import

@@ -21,6 +21,7 @@ filegroup(
         "//tools/versiontool:for_bazel_tests",
         "//tools/wrapper_common:for_bazel_tests",
         "//tools/xcframework_processor_tool:for_bazel_tests",
+        "//tools/xcode_developer_frameworks:for_bazel_tests",
         "//tools/xctoolrunner:for_bazel_tests",
     ],
     visibility = [
