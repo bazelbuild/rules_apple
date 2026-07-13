@@ -14,10 +14,6 @@
 
 """Implementation of the aspect that propagates AppIntentsInfo providers."""
 
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
 load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
@@ -52,7 +48,7 @@ def _find_valid_module_name(*, label, target):
         The module name of the target, if one can be found. If not, or if multiple were found, raise
         a user-actionable error.
     """
-    module_names = collections.uniq([x.name for x in target[SwiftInfo].direct_modules if x.swift])
+    module_names = set([x.name for x in target[SwiftInfo].direct_modules if x.swift])
     if len(module_names) > 1:
         fail("""
 Found the following module names in the swift_library target {label} defining App Intents: \
@@ -70,7 +66,7 @@ metadata generation.
 """.format(
             label = str(label),
         ))
-    return module_names[0]
+    return module_names.pop()
 
 def _generate_metadata_bundle_inputs(
         *,

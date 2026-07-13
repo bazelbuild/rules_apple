@@ -15,10 +15,6 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -143,10 +139,10 @@ def _apple_resource_aspect_impl(target, ctx):
                 owner = str(ctx.label)
 
     elif SwiftInfo in target:
-        module_names = collections.uniq(
+        module_names = set(
             [x.name for x in target[SwiftInfo].direct_modules if x.swift],
         )
-        bucketize_args["swift_module"] = module_names[0] if module_names else None
+        bucketize_args["swift_module"] = module_names.pop() if module_names else None
         collect_args["res_attrs"] = ["data"]
         owner = str(ctx.label)
 

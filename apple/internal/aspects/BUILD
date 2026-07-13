@@ -16,7 +16,6 @@ bzl_library(
     deps = [
         "//apple/internal:cc_info_support",
         "//apple/internal/providers:app_intents_info",
-        "@bazel_skylib//lib:collections",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
@@ -48,7 +47,6 @@ bzl_library(
         "//apple/internal/providers:apple_resource_explicit_files_info",
         "//apple/internal/providers:apple_resource_validation_info",
         "//apple/internal/toolchains:apple_toolchains",
-        "@bazel_skylib//lib:collections",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
