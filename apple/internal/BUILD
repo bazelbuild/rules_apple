@@ -231,6 +231,7 @@ bzl_library(
         ":shared_environment",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
     ],
 )
 
@@ -711,6 +712,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
+        "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",
         "@rules_cc//cc/common",
     ],
@@ -745,6 +747,7 @@ bzl_library(
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
         "@build_bazel_apple_support//lib:apple_support",
+        "@build_bazel_apple_support//xcode:providers",
         "@rules_cc//cc/common",
     ],
 )

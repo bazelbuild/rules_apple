@@ -21,6 +21,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_apple_support//xcode:providers.bzl",
+    "XcodeVersionInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
     "platform_support",
 )
@@ -53,7 +57,7 @@ def _environment_plist_impl(ctx):
         explicit_minimum_os = None,
         objc_fragment = None,
         uses_swift = False,
-        xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     environment_plist_tool = apple_mac_toolchain_info.environment_plist_tool

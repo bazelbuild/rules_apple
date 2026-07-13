@@ -17,6 +17,10 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
+    "@build_bazel_apple_support//xcode:providers.bzl",
+    "XcodeVersionInfo",
+)
+load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",
 )
@@ -88,7 +92,7 @@ def _create_xcframework(
         libraries: A list of files referencing static libraries.
         module_interfaces: List of files referencing Swift module interface files.
         target_dir: Path referencing directory of the current target.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
         List of generated XCFramework files.
@@ -193,7 +197,7 @@ def _generate_static_library_xcframework_files(
         srcs: A list of files referencing source code.
         swift_library: A list, which if not empty will contain files from a swift_library target.
         target_dir: Path referencing directory of the current target.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
         List of generated XCFramework files.
@@ -387,7 +391,7 @@ def _generate_framework_xcframework_files(
         platforms: The ctx.platforms attribute from the rule.
         srcs: A list of files referencing source code.
         target_dir: Path referencing directory of the current target.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
 
     Returns:
         List of generated XCFramework files.
@@ -486,7 +490,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     actions = ctx.actions
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     if not apple_support.target_os_from_rule_ctx(ctx, fail_on_missing_constraint = False):
         return []
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
@@ -526,7 +530,7 @@ def _generate_static_xcframework_impl(ctx):
     bundle_format = ctx.attr.bundle_format
     label = ctx.label
     target_dir = paths.join(ctx.bin_dir.path, label.package)
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     if not apple_support.target_os_from_rule_ctx(ctx, fail_on_missing_constraint = False):
         return []
 

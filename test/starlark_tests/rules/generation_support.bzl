@@ -118,7 +118,7 @@ def _compile_binary(
         minimum_os_version: Dotted version string for minimum OS version supported by the target.
         sdk: A string representing an Apple SDK.
         srcs: List of source files to compile.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         A compiled binary file.
     """
@@ -180,7 +180,7 @@ def _create_static_library(
         binary: A binary file to use for the archive file.
         label: Label of the target being built.
         parent_dir: Optional parent directory name for the generated archive file.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         A static library (archive) file.
     """
@@ -226,7 +226,7 @@ def _create_dynamic_library(
         label: Label of the target being built.
         minimum_os_version: Dotted version string for minimum OS version supported by the target.
         sdk: A string representing an Apple SDK.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         A dynamic library file.
     """
@@ -307,7 +307,7 @@ def _create_framework(
             versions of the framework under the Versions directory.
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
         target_os: The target Apple OS for the generated framework bundle.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         List of files for a .framework bundle.
     """
@@ -443,7 +443,7 @@ def _copy_framework_library(
             string.
         label: Label of the target being built.
         library: The library for the framework bundle.
-        xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
+        xcode_config: The `XcodeVersionInfo` provider from the context.
     Returns:
         File referencing copied framework library.
     """

@@ -23,6 +23,10 @@ that may change at any time. Please do not depend on this rule.
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
+    "@build_bazel_apple_support//xcode:providers.bzl",
+    "XcodeVersionInfo",
+)
+load(
     "@build_bazel_rules_apple//apple:providers.bzl",
     "AppleBundleInfo",
 )
@@ -105,7 +109,7 @@ def _infoplist_contents_test_impl(ctx):
     test_script = ctx.actions.declare_file("{}_test_script".format(ctx.label.name))
     ctx.actions.write(test_script, "\n".join(test_lines), is_executable = True)
 
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
 
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),

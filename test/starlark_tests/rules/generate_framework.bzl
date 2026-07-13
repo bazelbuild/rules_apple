@@ -16,6 +16,10 @@
 
 load("@build_bazel_apple_support//lib:apple_support.bzl", "apple_support")
 load(
+    "@build_bazel_apple_support//xcode:providers.bzl",
+    "XcodeVersionInfo",
+)
+load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:generation_support.bzl",
     "generation_support",
 )
@@ -36,7 +40,7 @@ _SDK_TO_OS = {
 def _generate_import_framework_impl(ctx):
     actions = ctx.actions
     label = ctx.label
-    xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     if not apple_support.target_os_from_rule_ctx(ctx, fail_on_missing_constraint = False):
         return []
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
