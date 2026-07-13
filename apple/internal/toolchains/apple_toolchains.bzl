@@ -131,9 +131,6 @@ A tool that creates a stub binary for the swift_stdlib_tool, as a smaller artifa
         "verifystringstool": """\
 The files_to_run for a tool to verify that all strings files have the same top-level keys.
 """,
-        "versiontool": """\
-A tool to extract version info from builds.
-""",
         "versiontool_swift": """\
 A Swift tool to extract version info from builds.
 """,
@@ -287,7 +284,6 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         plisttool = ctx.attr.plisttool.files_to_run,
         swiftstdlibstubtool = ctx.attr.swiftstdlibstubtool.files_to_run,
         verifystringstool = ctx.attr.verifystringstool.files_to_run,
-        versiontool = ctx.attr.versiontool,
         versiontool_swift = ctx.attr.versiontool_swift,
         warning_handler = warning_support.make_warning_handler(build_settings_struct),
     )
@@ -342,13 +338,6 @@ artifact.
             executable = True,
             doc = """
 A `File` referencing a tool for verifying that all strings files have the same top-level keys.
-""",
-        ),
-        "versiontool": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = """
-A `File` referencing a tool for extracting version info from builds.
 """,
         ),
         "versiontool_swift": attr.label(

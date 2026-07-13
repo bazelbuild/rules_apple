@@ -135,13 +135,8 @@ def _apple_bundle_version_impl(ctx):
     inputs.append(control_file)
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    if apple_xplat_toolchain_info.build_settings.force_python_versiontool:
-        versiontool = apple_xplat_toolchain_info.versiontool
-    else:
-        versiontool = apple_xplat_toolchain_info.versiontool_swift
-
     ctx.actions.run(
-        executable = versiontool.files_to_run,
+        executable = apple_xplat_toolchain_info.versiontool_swift.files_to_run,
         arguments = [control_file.path, bundle_version_file.path],
         env = shared_environment.default_env,
         inputs = inputs,

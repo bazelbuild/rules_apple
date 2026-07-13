@@ -55,7 +55,6 @@ apple_xplat_tools_toolchain(
     plisttool = "//tools:prebuilt_plisttool",
     swiftstdlibstubtool = "//tools:prebuilt_swiftstdlibstubtool",
     verifystringstool = "//tools:prebuilt_verifystringstool_swift",
-    versiontool = "//tools/versiontool",
     versiontool_swift = "//tools:prebuilt_versiontool_swift",
 )
 
