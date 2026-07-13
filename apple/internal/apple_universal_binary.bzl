@@ -21,6 +21,10 @@ load(
 load("@build_bazel_apple_support//lib:lipo.bzl", "lipo")
 load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_universal_binary_transition.bzl",
+    "apple_universal_binary_rule_transition",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "new_applebinaryinfo",
 )
@@ -152,7 +156,7 @@ Internal attribute read by Apple rule transitions to set the
 """,
         ),
     },
-    cfg = transition_support.apple_universal_binary_rule_transition,
+    cfg = apple_universal_binary_rule_transition,
     doc = """
 This rule produces a multi-architecture (universal) binary targeting Apple
 platforms. The `lipo` tool is used to combine built binaries of multiple
