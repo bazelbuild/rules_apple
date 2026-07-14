@@ -71,10 +71,45 @@ visibility([
 
 _RESOURCE_ASPECT_BASE_ATTRS = [
     # keep sorted
+    "data",
     "deps",
     "implementation_deps",
     "private_deps",
 ]
+
+_RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS = [
+    "resources",
+    "structured_resources",
+]
+
+# A map of resource rule qualified kinds mapping the rule name to the file label defining the rule.
+_SUPPORTED_QUALIFIED_KINDS = {
+    "apple_resource_bundle": "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
+    "apple_resource_group": "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
+}
+
+# A map of resource rule qualified kinds mapping the rule name to the set of additional attrs that
+# should be propagated by the resource aspect.
+_SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS = {
+    "apple_resource_bundle": (
+        _RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS + _RESOURCE_ASPECT_BASE_ATTRS
+    ),
+    "apple_resource_group": (
+        _RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS + _RESOURCE_ASPECT_BASE_ATTRS
+    ),
+}
+
+def _propagation_attrs(ctx):
+    """Returns the set of attributes to propagate for the resource aspect."""
+
+    # The resource rules get their own handling here.
+    qualified_kind = ctx.rule.qualified_kind
+    expected_label = _SUPPORTED_QUALIFIED_KINDS.get(qualified_kind.rule_name)
+    if expected_label and str(qualified_kind.file_label) == expected_label:
+        return _SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS[qualified_kind.rule_name]
+
+    # Always support data and cc_library derived deps-like attributes for resource propagation.
+    return _RESOURCE_ASPECT_BASE_ATTRS
 
 def _platform_prerequisites_for_aspect(target, aspect_ctx):
     """Return the set of platform prerequisites that can be determined from this aspect."""
@@ -125,15 +160,13 @@ def _apple_resource_aspect_impl(target, ctx):
     # The name of the bundle directory to place resources within, if required.
     bundle_name = None
 
-    # TODO(b/520345483): Replace with a better mechanism for identifying "leaf" resource rules for
-    # propagating resource providers. The notion of "owner-less" resources is currently tied too
-    # closely to the objc_library rule itself.
     if ctx.rule.kind == "objc_library":
         collect_args["res_attrs"] = ["data"]
 
         # Only set objc_library targets as owners if they have srcs, non_arc_srcs, deps, or
         # implementation_deps. This treats objc_library targets without sources as resource
-        # aggregators.
+        # aggregators, which are functionally equivalent to "resources" on apple_resource_group
+        # targets.
         for attr in ["srcs", "non_arc_srcs", "deps", "implementation_deps"]:
             if getattr(ctx.rule.attr, attr):
                 owner = str(ctx.label)
@@ -173,7 +206,7 @@ def _apple_resource_aspect_impl(target, ctx):
         )
 
     # Assign the provider deps once we have the resource attributes sorted out.
-    provider_deps = _RESOURCE_ASPECT_BASE_ATTRS + collect_args.get("res_attrs", [])
+    provider_deps = set(_RESOURCE_ASPECT_BASE_ATTRS + collect_args.get("res_attrs", []))
 
     # Collect all resource files related to this target.
     if collect_infoplists_args:
@@ -427,12 +460,7 @@ App Intents are not supported within frameworks that aren't directly loaded by a
 
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
-    attr_aspects = _RESOURCE_ASPECT_BASE_ATTRS + [
-        # keep sorted
-        "data",
-        "resources",
-        "structured_resources",
-    ],
+    attr_aspects = _propagation_attrs,
     attrs = apple_support.action_required_attrs() |
             apple_support.platform_constraint_attrs(),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
