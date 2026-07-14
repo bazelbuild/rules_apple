@@ -170,6 +170,7 @@ def _apple_resource_aspect_impl(target, ctx):
         for attr in ["srcs", "non_arc_srcs", "deps", "implementation_deps"]:
             if getattr(ctx.rule.attr, attr):
                 owner = str(ctx.label)
+                break
 
     elif SwiftInfo in target:
         module_names = set(
