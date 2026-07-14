@@ -2554,7 +2554,7 @@ class PlistEntitlementsMerge(PlistToolTest):
 
 class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
 
-  def test_recursive_merge_when_enabled(self):
+  def test_recursive_merge(self):
     plist1 = {
         'CFBundleIcons': {
             'CFBundlePrimaryIcon': {
@@ -2574,9 +2574,6 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
     }
     control = {
         'plists': [plist1, plist2],
-        'info_plist_options': {
-            'merge_info_plist_icons': True,
-        },
     }
     expected = {
         'CFBundleIcons': {
@@ -2593,7 +2590,7 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
     }
     self._assert_plisttool_result(control, expected)
 
-  def test_recursive_merge_with_device_suffix_when_enabled(self):
+  def test_recursive_merge_with_device_suffix(self):
     plist1 = {
         'CFBundleIcons~ipad': {
             'CFBundlePrimaryIcon': {
@@ -2612,9 +2609,6 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
     }
     control = {
         'plists': [plist1, plist2],
-        'info_plist_options': {
-            'merge_info_plist_icons': True,
-        },
     }
     expected = {
         'CFBundleIcons~ipad': {
@@ -2630,7 +2624,7 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
     }
     self._assert_plisttool_result(control, expected)
 
-  def test_conflict_raises_error_when_enabled(self):
+  def test_conflict_raises_error(self):
     plist1 = {
         'CFBundleIcons': {
             'CFBundlePrimaryIcon': {
@@ -2647,9 +2641,6 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
     }
     control = {
         'plists': [plist1, plist2],
-        'info_plist_options': {
-            'merge_info_plist_icons': True,
-        },
     }
     with self.assertRaisesRegex(
         plisttool.PlistToolError,
@@ -2661,43 +2652,6 @@ class PlistToolInfoPlistIconsMergingTest(PlistToolTest):
                 'CFBundleIcons.CFBundlePrimaryIcon',
                 'DifferentIconName',
                 'AppIcon',
-            )
-        ),
-    ):
-      _plisttool_result(control)
-
-  def test_no_merge_when_disabled(self):
-    plist1 = {
-        'CFBundleIcons': {
-            'CFBundlePrimaryIcon': {
-                'CFBundleIconFiles': ['Icon-60'],
-            }
-        }
-    }
-    plist2 = {
-        'CFBundleIcons': {
-            'CFBundleAlternateIcons': {
-                'Premium': {
-                    'CFBundleIconFiles': ['Icon-Premium'],
-                }
-            }
-        }
-    }
-    control = {
-        'plists': [plist1, plist2],
-        'info_plist_options': {
-            'merge_info_plist_icons': False,
-        },
-    }
-    with self.assertRaisesRegex(
-        plisttool.PlistToolError,
-        re.escape(
-            plisttool.CONFLICTING_KEYS_MSG
-            % (
-                _testing_target,
-                'CFBundleIcons',
-                str(plist2['CFBundleIcons']),
-                str(plist1['CFBundleIcons']),
             )
         ),
     ):
