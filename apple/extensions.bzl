@@ -14,18 +14,10 @@
 
 """Definitions for bzlmod module extensions."""
 
-load("@bazel_features//:features.bzl", "bazel_features")
 load("//apple/internal:repositories.bzl", "apple_rules_dependencies")
 
 def _non_module_deps_impl(module_ctx):
     apple_rules_dependencies()
-
-    metadata_kwargs = {}
-    if bazel_features.external_deps.extension_metadata_has_reproducible:
-        metadata_kwargs["reproducible"] = True
-
-    return module_ctx.extension_metadata(
-        **metadata_kwargs
-    )
+    return module_ctx.extension_metadata(reproducible = True)
 
 non_module_deps = module_extension(implementation = _non_module_deps_impl)
