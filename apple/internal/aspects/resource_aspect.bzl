@@ -65,6 +65,9 @@ load(
     "SwiftInfo",
 )
 
+ADDITIONAL_QUALIFIED_KINDS = {}
+ADDITIONAL_PROPAGATION_ATTRS = {}
+
 visibility([
     "@build_bazel_rules_apple//apple/...",
 ])
@@ -84,12 +87,12 @@ _RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS = [
 
 # A map of resource rule qualified kinds mapping the rule name to the file label defining the rule.
 _SUPPORTED_QUALIFIED_KINDS = {
-    "apple_resource_bundle": "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl",
-    "apple_resource_group": "@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl",
-}
+    "apple_resource_bundle": Label("@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_bundle.bzl"),
+    "apple_resource_group": Label("@build_bazel_rules_apple//apple/internal/resource_rules:apple_resource_group.bzl"),
+} | ADDITIONAL_QUALIFIED_KINDS
 
-# A map of resource rule qualified kinds mapping the rule name to the set of additional attrs that
-# should be propagated by the resource aspect.
+# A map of resource rule qualified kinds mapping the rule name to the set of attrs that should be
+# propagated by the resource aspect.
 _SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS = {
     "apple_resource_bundle": (
         _RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS + _RESOURCE_ASPECT_BASE_ATTRS
@@ -97,7 +100,7 @@ _SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS = {
     "apple_resource_group": (
         _RESOURCE_ASPECT_ADDITIONAL_RESOURCE_RULE_ATTRS + _RESOURCE_ASPECT_BASE_ATTRS
     ),
-}
+} | ADDITIONAL_PROPAGATION_ATTRS
 
 def _propagation_attrs(ctx):
     """Returns the set of attributes to propagate for the resource aspect."""
@@ -105,7 +108,7 @@ def _propagation_attrs(ctx):
     # The resource rules get their own handling here.
     qualified_kind = ctx.rule.qualified_kind
     expected_label = _SUPPORTED_QUALIFIED_KINDS.get(qualified_kind.rule_name)
-    if expected_label and str(qualified_kind.file_label) == expected_label:
+    if expected_label and qualified_kind.file_label == expected_label:
         return _SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS[qualified_kind.rule_name]
 
     # Always support data and cc_library derived deps-like attributes for resource propagation.
