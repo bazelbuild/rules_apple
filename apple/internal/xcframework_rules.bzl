@@ -160,6 +160,7 @@ def _xcframework_platform_attrs():
             default = [
                 "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
+                "@build_bazel_rules_apple//apple/internal:environment_plist_watchos",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_visionos",
             ],
         ),
@@ -184,6 +185,13 @@ A dictionary of strings indicating which platform variants should be built for t
 built for those platform variants (for example, `arm64`) as their values.
 """,
         ),
+        "watchos": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the watchOS platform
+(`device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `arm64_32`) as their values.
+""",
+        ),
         "minimum_os_versions": attr.string_dict(
             doc = """
 A dictionary of strings indicating the minimum OS version supported by the target, represented as a
@@ -191,9 +199,10 @@ dotted version number (for example, "8.0") as values, with their respective plat
 or `tvos` as keys:
 
     minimum_os_versions = {
-        "ios": "13.0",
+        "ios": "15.0",
         "tvos": "15.0",
         "visionos": "1.0",
+        "watchos": "8.0",
     }
 """,
             mandatory = True,
@@ -329,7 +338,7 @@ def _validate_platform_attrs(
         rule_label: The label of the target being analyzed.
     """
 
-    supported_apple_platform_types = ["ios", "tvos", "visionos"]
+    supported_apple_platform_types = ["ios", "tvos", "visionos", "watchos"]
 
     for platform_type in all_attrs.minimum_os_versions.keys():
         if platform_type not in supported_apple_platform_types:

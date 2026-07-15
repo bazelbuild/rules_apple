@@ -373,6 +373,59 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "watchos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    watchos = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+            "arm64_32",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "watchos_static_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
+            "arm64",
+        ],
+    },
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
     name = "multiplatform_dynamic_xcframework",
     bundle_id = "com.google.example",
     infoplists = [

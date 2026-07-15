@@ -79,9 +79,10 @@ def _xcframework_split_attr_key(*, arch, environment, minimum_os_version, platfo
     ) + "_" + environment
 
 def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
+    # TODO (b/382494581): Clean up watchos_arm64 vs watchos_sim_arm64 vs watchos_device_arm64
     if arch.startswith("arm64") and environment == "simulator" and platform_type != "watchos":
         return "sim_{}".format(arch)
-    if arch.startswith("arm64") and environment == "device" and platform_type == "watchos":
+    if arch.startswith("arm64") and arch != "arm64_32" and environment == "device" and platform_type == "watchos":
         return "device_{}".format(arch)
     return arch
 

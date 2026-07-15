@@ -148,6 +148,27 @@ def apple_static_xcframework_test_suite(name):
         tags = [name],
     )
 
+    infoplist_contents_test(
+        name = "{}_watchos_static_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_static_xcframework",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "watchos-arm64_arm64_32",
+            "AvailableLibraries:0:LibraryPath": "watchos_static_xcframework.framework",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedArchitectures:1": "arm64_32",
+            "AvailableLibraries:0:SupportedPlatform": "watchos",
+            "AvailableLibraries:1:LibraryIdentifier": "watchos-arm64_x86_64-simulator",
+            "AvailableLibraries:1:LibraryPath": "watchos_static_xcframework.framework",
+            "AvailableLibraries:1:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:1:SupportedPlatform": "watchos",
+            "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_ios_root_plist_test".format(name),
         build_type = "device",
@@ -672,6 +693,70 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/tvos-x86_64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/tvos_device_dependent_text_file.bundle/tvos_foo_sim.txt",
             "$BUNDLE_ROOT/xros-arm64/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/visionos_device_dependent_text_file.bundle/visionos_foo_device.txt",
             "$BUNDLE_ROOT/xros-arm64-simulator/static_framework_xcframework_with_device_dependent_resources_in_deps_and_avoid_deps.framework/visionos_device_dependent_text_file.bundle/visionos_foo_sim.txt",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_watchos_x86_64_macho_load_cmd_for_simulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_static_xcframework",
+        binary_test_architecture = "x86_64",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_static_xcframework.framework/watchos_static_xcframework",
+        macho_load_commands_contain = [
+            "cmd LC_BUILD_VERSION",
+            "minos " + common.min_os_watchos.min_deployment_target,
+            "platform WATCHOSSIMULATOR",
+        ],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_watchos_arm64_32_macho_load_cmd_for_device".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_static_xcframework",
+        binary_test_architecture = "arm64_32",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_static_xcframework.framework/watchos_static_xcframework",
+        macho_load_commands_contain = [
+            "cmd LC_BUILD_VERSION",
+            "minos " + common.min_os_watchos.min_deployment_target,
+            "platform WATCHOS",
+        ],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_WATCHOS"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_watchos_arm64_macho_load_cmd_for_simulator".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_static_xcframework",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_static_xcframework.framework/watchos_static_xcframework",
+        macho_load_commands_contain = [
+            "cmd LC_BUILD_VERSION",
+            "minos " + common.min_os_watchos.min_deployment_target,
+            "platform WATCHOSSIMULATOR",
+        ],
+        macho_load_commands_not_contain = [
+            "cmd LC_VERSION_MIN_WATCHOS",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_watchos_arm64_macho_load_cmd_for_device".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_static_xcframework",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_static_xcframework.framework/watchos_static_xcframework",
+        macho_load_commands_contain = [
+            "cmd LC_BUILD_VERSION",
+            "platform WATCHOS",
+            "minos %s" % common.min_os_watchos.arm64_support,
+        ],
+        macho_load_commands_not_contain = [
+            "cmd LC_VERSION_MIN_WATCHOS",
         ],
         tags = [name],
     )

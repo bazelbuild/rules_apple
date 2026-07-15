@@ -72,6 +72,7 @@ _min_os_watchos = struct(
     min_deployment_target = "9.0",
     nplus1 = "10.0",
     icon_bundle_required = "26.0",
+    arm64_support = "26.0",
 )
 
 common = struct(
