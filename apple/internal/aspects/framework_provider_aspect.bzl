@@ -23,6 +23,9 @@ load(
     "merge_apple_framework_import_info",
 )
 
+ADDITIONAL_QUALIFIED_KINDS = {}
+ADDITIONAL_PROPAGATION_ATTRS = {}
+
 visibility([
     "@build_bazel_rules_apple//apple/...",
 ])
@@ -34,6 +37,21 @@ _FRAMEWORK_PROVIDERS_ASPECT_ATTRS = [
     "frameworks",
     "implementation_deps",
 ]
+
+_SUPPORTED_QUALIFIED_KINDS = ADDITIONAL_QUALIFIED_KINDS
+_SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS = ADDITIONAL_PROPAGATION_ATTRS
+
+def _propagation_attrs(ctx):
+    """Returns the set of attributes to propagate for the framework provider aspect."""
+
+    # Additional rules get their own handling here.
+    qualified_kind = ctx.rule.qualified_kind
+    expected_label = _SUPPORTED_QUALIFIED_KINDS.get(qualified_kind.rule_name)
+    if expected_label and qualified_kind.file_label == expected_label:
+        return _SUPPORTED_QUALIFIED_KINDS_PROPAGATION_ATTRS[qualified_kind.rule_name]
+
+    # Always support the standard set of deps-like attributes for framework propagation.
+    return _FRAMEWORK_PROVIDERS_ASPECT_ATTRS
 
 def _framework_provider_aspect_impl(target, ctx):
     """Implementation of the framework provider propagation aspect."""
@@ -58,7 +76,7 @@ def _framework_provider_aspect_impl(target, ctx):
 
 framework_provider_aspect = aspect(
     implementation = _framework_provider_aspect_impl,
-    attr_aspects = _FRAMEWORK_PROVIDERS_ASPECT_ATTRS,
+    attr_aspects = _propagation_attrs,
     doc = """
 Aspect that collects transitive `AppleFrameworkImportInfo` providers from non-Apple rules targets
 (e.g. `objc_library` or `swift_library`) to be packaged within the top-level application bundle.
