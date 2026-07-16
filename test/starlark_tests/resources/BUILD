@@ -980,7 +980,7 @@ swift_library(
 
 swift_library(
     name = "shared_library_widget_configuration_intent",
-    srcs = ["widget_configuration_intent.swift"],
+    srcs = ["shared_library_widget_configuration_intent.swift"],
     aspect_hints = ["//apple/hints:shared_library_app_intents_hint"],
     module_name = "FavoriteSoup",
     tags = common.fixture_tags,

@@ -16,6 +16,9 @@ import AppIntents
 import Foundation
 import StaticLibraryAppIntentsWithWidgetConfigurationDependency
 
+public struct StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency: AppIntentsPackage
+{}
+
 extension SimpleStruct {
   public var allCapsName: String {
     return name.uppercased()
