@@ -73,7 +73,7 @@ def plisttool_action(
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     control_args = actions.args()
-    if platform_prerequisites.build_settings.force_plisttool_on_mac:
+    if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac:
         control_args.add(json.encode(control))
 
         apple_support.run(
@@ -200,9 +200,9 @@ def merge_root_infoplists(
         additional_overridable_values = [],
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
-        bundle_name,
-        bundle_id = None,
         bundle_extension,
+        bundle_id = None,
+        bundle_name,
         child_plists = [],
         child_required_values = [],
         environment_plist,
@@ -210,8 +210,8 @@ def merge_root_infoplists(
         include_executable_name = True,
         input_plists,
         mac_exec_group,
-        output_plist,
         output_pkginfo,
+        output_plist,
         platform_prerequisites,
         resource_locales,
         rule_descriptor,
@@ -233,9 +233,9 @@ def merge_root_infoplists(
           plists, including user input. This allows for overridable "default" values.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
-      bundle_name: The name of the output bundle.
-      bundle_id: The bundle identifier to set in the output plist.
       bundle_extension: The extension for the bundle.
+      bundle_id: The bundle identifier to set in the output plist.
+      bundle_name: The name of the output bundle.
       child_plists: A list of plists from child targets (such as extensions
           or Watch apps) whose bundle IDs and version strings should be
           validated against the compiled plist for consistency.
@@ -337,7 +337,7 @@ def merge_root_infoplists(
     if version_keys_required:
         info_plist_options["version_keys_required"] = True
 
-    if platform_prerequisites.build_settings.merge_info_plist_icons:
+    if apple_xplat_toolchain_info.build_settings.merge_info_plist_icons:
         info_plist_options["merge_info_plist_icons"] = True
 
     # Add any UIDeviceFamily entry needed.

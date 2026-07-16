@@ -135,11 +135,9 @@ def _apple_build_test_rule_impl(ctx):
 
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_toolchain_utils.get_xplat_toolchain(ctx).build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.targets),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -224,10 +222,7 @@ this target.
             ),
         },
         doc = doc,
-        fragments = [
-            "cpp",
-            "objc",
-        ],
+        fragments = ["cpp"],
         exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
         implementation = _apple_build_test_rule_impl,
         test = True,

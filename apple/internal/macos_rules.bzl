@@ -209,12 +209,10 @@ def _macos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -285,6 +283,7 @@ def _macos_application_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -346,13 +345,14 @@ def _macos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
@@ -389,11 +389,11 @@ def _macos_application_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
             dependency_targets = embeddable_targets,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
         ),
@@ -437,9 +437,9 @@ def _macos_application_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
     dsyms = outputs.dsyms(
@@ -518,12 +518,10 @@ def _macos_bundle_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -580,15 +578,16 @@ def _macos_bundle_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -642,7 +641,7 @@ def _macos_bundle_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
-            platform_prerequisites = platform_prerequisites,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             plugins = [archive],
         ),
         bundling_tasks.macos_additional_contents(
@@ -656,8 +655,8 @@ def _macos_bundle_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            platform_prerequisites = platform_prerequisites,
             mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
@@ -671,9 +670,9 @@ def _macos_bundle_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
         ),
@@ -762,12 +761,10 @@ def _macos_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -784,7 +781,7 @@ def _macos_framework_impl(ctx):
         cc_configured_features = cc_configured_features,
         label_name = label.name,
         target_os = platform_prerequisites.platform_type,
-        tree_artifact_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs,
+        tree_artifact_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs,
     )
 
     top_level_infoplists = resources.collect(
@@ -823,12 +820,12 @@ def _macos_framework_impl(ctx):
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
-        bundle_name = bundle_name,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         label_name = label.name,
-        rule_descriptor = rule_descriptor,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
 
     pending_bundling_tasks = [
@@ -846,6 +843,7 @@ def _macos_framework_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -878,9 +876,9 @@ def _macos_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
-            frameworks = [archive_for_embedding],
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
+            frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
         bundling_tasks.extension_safe_validation(
@@ -1004,12 +1002,10 @@ def _macos_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1073,9 +1069,9 @@ def _macos_extension_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
-        bundle_name = bundle_name,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
-        platform_prerequisites = platform_prerequisites,
+        bundle_name = bundle_name,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -1105,6 +1101,7 @@ def _macos_extension_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1166,8 +1163,8 @@ def _macos_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(
@@ -1203,10 +1200,10 @@ def _macos_extension_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
         ),
@@ -1294,12 +1291,10 @@ def _macos_xpc_service_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1346,18 +1341,19 @@ def _macos_xpc_service_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
@@ -1408,7 +1404,7 @@ def _macos_xpc_service_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
-            platform_prerequisites = platform_prerequisites,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             xpc_services = [archive],
         ),
         bundling_tasks.macos_additional_contents(
@@ -1436,9 +1432,9 @@ def _macos_xpc_service_impl(ctx):
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
             binary_artifact = binary_artifact,
             label_name = label.name,
+            mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             xplat_exec_group = xplat_exec_group,
         ),
@@ -1529,12 +1525,10 @@ def _macos_command_line_application_impl(ctx):
     launchdplists = ctx.files.launchdplists
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1700,13 +1694,14 @@ def _macos_command_line_application_impl(ctx):
     if "disable_legacy_signing" not in cc_configured_features.enabled_features:
         codesigning_support.sign_binary_action(
             actions = actions,
+            build_settings = apple_xplat_toolchain_info.build_settings,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             entitlements = entitlements,
             input_binary = binary_artifact,
             mac_exec_group = mac_exec_group,
             output_binary = output_file,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             rule_descriptor = rule_descriptor,
         )
     else:
@@ -1797,12 +1792,10 @@ def _macos_dylib_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1894,13 +1887,14 @@ def _macos_dylib_impl(ctx):
     if "disable_legacy_signing" not in cc_configured_features.enabled_features:
         codesigning_support.sign_binary_action(
             actions = actions,
+            build_settings = apple_xplat_toolchain_info.build_settings,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             entitlements = None,
             input_binary = binary_artifact,
             mac_exec_group = mac_exec_group,
             output_binary = output_file,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             rule_descriptor = rule_descriptor,
         )
     else:

@@ -243,7 +243,7 @@ def _codesigning_dossier_bundling_task_impl(
     )
 
     codesign_identity = codesigning_support.preferred_codesigning_identity(
-        build_settings = platform_prerequisites.build_settings,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
 
@@ -280,7 +280,7 @@ def _codesigning_dossier_bundling_task_impl(
             ),
         ))
 
-    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
+    tree_artifact_is_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
 
     combined_zip_files = []
 
@@ -292,10 +292,10 @@ def _codesigning_dossier_bundling_task_impl(
 
         output_archive = outputs.archive(
             actions = actions,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             output_discriminator = output_discriminator,
-            platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
         )
 
@@ -333,12 +333,12 @@ def codesigning_dossier_bundling_task(
         embedded_targets = [],
         entitlements = None,
         mac_exec_group,
-        rule_descriptor,
-        rule_label,
         output_discriminator = None,
         platform_prerequisites,
         predeclared_outputs,
         provisioning_profile = None,
+        rule_descriptor,
+        rule_label,
         xplat_exec_group):
     """Creates a struct containing information for a codesigning dossier.
 
@@ -358,8 +358,8 @@ def codesigning_dossier_bundling_task(
       mac_exec_group: The exec_group associated with apple_mac_toolchain
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
-      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       provisioning_profile: Optional File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       rule_label: The label of the rule being built.

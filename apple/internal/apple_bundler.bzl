@@ -249,7 +249,7 @@ def _bundle_task_output_files(
     control_zips = []
     input_files = []
 
-    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
+    tree_artifact_is_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
 
     location_to_paths = _archive_paths(
         bundle_extension = bundle_extension,
@@ -423,7 +423,7 @@ def _bundle_post_process_and_sign(
     Returns:
         A List of providers if any were created during bundling. Can be an empty List.
     """
-    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
+    tree_artifact_is_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs
     archive_paths = _archive_paths(
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
@@ -466,6 +466,7 @@ def _bundle_post_process_and_sign(
             extra_input_files.append(provisioning_profile)
 
         codesigning_command = codesigning_support.codesigning_command(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
@@ -488,10 +489,10 @@ def _bundle_post_process_and_sign(
             mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = output_archive,
-            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
+            task_outputs = task_outputs,
             xplat_exec_group = xplat_exec_group,
         )
 
@@ -512,17 +513,17 @@ def _bundle_post_process_and_sign(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            mac_exec_group = mac_exec_group,
-            xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             ipa_post_processor = ipa_post_processor,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
-            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
-            rule_label = rule_label,
             rule_descriptor = rule_descriptor,
+            rule_label = rule_label,
+            task_outputs = task_outputs,
+            xplat_exec_group = xplat_exec_group,
         )
 
         archive_codesigning_path = archive_paths[location_enum.bundle]
@@ -533,38 +534,39 @@ def _bundle_post_process_and_sign(
         codesigning_support.post_process_and_sign_archive_action(
             actions = actions,
             archive_codesigning_path = archive_codesigning_path,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             mac_exec_group = mac_exec_group,
-            xplat_exec_group = xplat_exec_group,
             output_archive = output_archive,
             output_archive_root_path = output_archive_root_path,
             output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
+            xplat_exec_group = xplat_exec_group,
         )
 
         has_different_embedding_archive = outputs.has_different_embedding_archive(
-            platform_prerequisites = platform_prerequisites,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             rule_descriptor = rule_descriptor,
         )
         if has_different_embedding_archive:
             embedding_archive = outputs.archive_for_embedding(
                 actions = actions,
+                build_settings = apple_xplat_toolchain_info.build_settings,
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
                 label_name = rule_label.name,
-                rule_descriptor = rule_descriptor,
-                platform_prerequisites = platform_prerequisites,
                 predeclared_outputs = predeclared_outputs,
+                rule_descriptor = rule_descriptor,
             )
             embedding_archive_paths = _archive_paths(
                 bundle_extension = bundle_extension,
@@ -595,33 +597,34 @@ def _bundle_post_process_and_sign(
                 mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
-                task_outputs = task_outputs,
                 platform_prerequisites = platform_prerequisites,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
+                task_outputs = task_outputs,
                 xplat_exec_group = xplat_exec_group,
             )
 
             codesigning_support.post_process_and_sign_archive_action(
                 actions = actions,
                 archive_codesigning_path = embedding_archive_codesigning_path,
+                build_settings = apple_xplat_toolchain_info.build_settings,
                 cc_configured_features = cc_configured_features,
+                codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 entitlements = entitlements,
                 frameworks_path = embedding_frameworks_path,
                 input_archive = unprocessed_embedded_archive,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
                 mac_exec_group = mac_exec_group,
-                xplat_exec_group = xplat_exec_group,
                 output_archive = embedding_archive,
                 output_archive_root_path = embedding_archive_root_path,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
-                codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 rule_descriptor = rule_descriptor,
                 signed_frameworks = transitive_signed_frameworks,
+                xplat_exec_group = xplat_exec_group,
             )
 
     return bundling_providers
@@ -686,10 +689,10 @@ def _process(
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(
             actions = actions,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             output_discriminator = output_discriminator,
-            platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
         )
         bundling_providers = _bundle_post_process_and_sign(
@@ -704,13 +707,13 @@ def _process(
             mac_exec_group = mac_exec_group,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
-            task_outputs = task_outputs,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
             rule_label = rule_label,
+            task_outputs = task_outputs,
             xplat_exec_group = xplat_exec_group,
         )
         providers.extend(bundling_providers)

@@ -76,25 +76,21 @@ def _ui_device_family_plist_value(*, platform_prerequisites):
 def _platform_prerequisites(
         *,
         apple_platform_info,
-        build_settings,
         config_vars,
         cpp_fragment = None,
         device_families = None,
         explicit_minimum_os,
-        objc_fragment = None,
         uses_swift,
         xcode_version_config):
     """Returns a struct containing information on the platform being targeted.
 
     Args:
       apple_platform_info: An ApplePlatformInfo provider to determine the platform.
-      build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
       config_vars: A reference to configuration variables, typically from `ctx.var`.
       cpp_fragment: An cpp fragment (ctx.fragments.cpp), if it is present. Optional.
       device_families: The list of device families that apply to the target being built. If not
           specified, the default for the platform will be used.
       explicit_minimum_os: A dotted version string indicating minimum OS desired.
-      objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
       uses_swift: Boolean value to indicate if this target uses Swift.
       xcode_version_config: The `XcodeVersionInfo` provider from the current context.
 
@@ -110,14 +106,12 @@ def _platform_prerequisites(
 
     return struct(
         apple_platform_info = apple_platform_info,
-        build_settings = build_settings,
         config_vars = config_vars,
         cpp_fragment = cpp_fragment,
         device_families = sorted(device_families, reverse = True),
         minimum_os = explicit_minimum_os,
         platform = platform,
         platform_type = target_os,
-        objc_fragment = objc_fragment,
         sdk_version = sdk_version,
         target_environment = apple_platform_info.target_environment,
         uses_swift = uses_swift,

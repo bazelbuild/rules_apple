@@ -670,7 +670,6 @@ def _create_framework_outputs(
         mac_exec_group,
         minimum_os_versions,
         nested_bundle_id,
-        objc_fragment,
         resource_split_attrs,
         rule_label,
         targets_to_avoid_attr_name = None,
@@ -704,7 +703,6 @@ def _create_framework_outputs(
         minimum_os_versions: A dictionary of Strings indicating the minimum OS version supported by
             this nested framework for a given platform type.
         nested_bundle_id: The bundle ID to configure for this nested framework.
-        objc_fragment: An Objective-C fragment (ctx.fragments.objc), if it is present. Optional.
         resource_split_attrs: A split_attrs interface to retrieve resource attributes from.
         rule_label: The label of the target being analyzed.
         targets_to_avoid_attr_name: String. The name of the attribute to retrieve targets to avoid
@@ -789,7 +787,6 @@ bundle_id on the target.
         apple_platform_info = cc_toolchain[ApplePlatformInfo]
         platform_prerequisites = platform_support.platform_prerequisites(
             apple_platform_info = apple_platform_info,
-            build_settings = apple_xplat_toolchain_info.build_settings,
             config_vars = config_vars,
             cpp_fragment = cpp_fragment,
             device_families = families_required.get(
@@ -797,7 +794,6 @@ bundle_id on the target.
                 default = rule_descriptor.allowed_device_families,
             ),
             explicit_minimum_os = minimum_os_versions.get(link_output.platform),
-            objc_fragment = objc_fragment,
             uses_swift = link_output.uses_swift,
             xcode_version_config = xcode_version_config,
         )
@@ -859,6 +855,7 @@ bundle_id on the target.
         pending_bundling_tasks = [
             bundling_tasks.apple_bundle_info(
                 actions = actions,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
@@ -1136,8 +1133,8 @@ def _create_xcframework_root_infoplist(
 def _create_xcframework_bundle(
         *,
         actions,
-        apple_platform_info,
         apple_mac_toolchain_info,
+        apple_platform_info,
         apple_xplat_toolchain_info,
         bundle_name,
         framework_archive_files,
@@ -1299,7 +1296,6 @@ def _apple_xcframework_impl(ctx):
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
-    objc_fragment = ctx.fragments.objc
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
@@ -1438,7 +1434,6 @@ def _apple_xcframework_impl(ctx):
         mac_exec_group = mac_exec_group,
         minimum_os_versions = minimum_os_versions,
         nested_bundle_id = nested_bundle_id,
-        objc_fragment = objc_fragment,
         resource_split_attrs = ctx.split_attr,
         rule_label = rule_label,
         tree_artifact_is_enabled = tree_artifact_is_enabled,
@@ -1464,8 +1459,8 @@ def _apple_xcframework_impl(ctx):
 
     _create_xcframework_bundle(
         actions = actions,
-        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_platform_info = apple_platform_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
         framework_archive_files = bundled_artifacts.framework_archive_files,
@@ -1776,7 +1771,6 @@ def _apple_static_xcframework_impl(ctx):
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
-    objc_fragment = ctx.fragments.objc
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
@@ -1871,7 +1865,6 @@ def _apple_static_xcframework_impl(ctx):
             nested_bundle_id = nested_bundle_id,
             resource_split_attrs = ctx.split_attr,
             rule_label = rule_label,
-            objc_fragment = objc_fragment,
             targets_to_avoid_attr_name = "avoid_deps",
             targets_to_avoid_must_be_owned = False,
             tree_artifact_is_enabled = tree_artifact_is_enabled,
@@ -1896,8 +1889,8 @@ def _apple_static_xcframework_impl(ctx):
 
     _create_xcframework_bundle(
         actions = actions,
-        apple_platform_info = apple_platform_info,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_platform_info = apple_platform_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_name = bundle_name,
         framework_archive_files = bundled_artifacts.framework_archive_files,

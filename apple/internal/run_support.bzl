@@ -27,6 +27,7 @@ visibility([
 def _register_simulator_executable(
         *,
         actions,
+        apple_xplat_toolchain_info,
         bundle_extension,
         bundle_name,
         output,
@@ -37,6 +38,7 @@ def _register_simulator_executable(
 
     Args:
       actions: The actions provider from ctx.actions.
+      apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_name: The name of the output bundle.
       output: The `File` representing where the executable should be generated.
@@ -49,9 +51,9 @@ def _register_simulator_executable(
     platform_type = platform_prerequisites.platform_type
     archive = outputs.archive(
         actions = actions,
-        bundle_name = bundle_name,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
-        platform_prerequisites = platform_prerequisites,
+        bundle_name = bundle_name,
         predeclared_outputs = predeclared_outputs,
     )
 

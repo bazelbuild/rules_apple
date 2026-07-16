@@ -32,8 +32,9 @@ visibility("@build_bazel_rules_apple//apple/...")
 def _apple_bundle_info_bundling_task_impl(
         *,
         actions,
-        bundle_id,
+        apple_xplat_toolchain_info,
         bundle_extension,
+        bundle_id,
         bundle_name,
         cc_toolchains,
         entitlements,
@@ -46,10 +47,10 @@ def _apple_bundle_info_bundling_task_impl(
 
     archive = outputs.archive(
         actions = actions,
-        bundle_name = bundle_name,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         output_discriminator = output_discriminator,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
     archive_root = outputs.root_path_from_archive(archive = archive)
@@ -95,8 +96,9 @@ def _apple_bundle_info_bundling_task_impl(
 def apple_bundle_info_bundling_task(
         *,
         actions,
-        bundle_id = None,
+        apple_xplat_toolchain_info,
         bundle_extension,
+        bundle_id = None,
         bundle_name,
         cc_toolchains,
         entitlements = None,
@@ -111,8 +113,9 @@ def apple_bundle_info_bundling_task(
 
     Args:
       actions: The actions provider from ctx.actions.
-      bundle_id: The bundle ID to configure for this target.
+      apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       bundle_extension: Extension for the Apple bundle inside the archive.
+      bundle_id: The bundle ID to configure for this target.
       bundle_name: The name of the output bundle.
       cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
           transition to relay target platform information for related deps.
@@ -129,8 +132,9 @@ def apple_bundle_info_bundling_task(
     """
     return lambda *args, **kwargs: _apple_bundle_info_bundling_task_impl(
         actions = actions,
-        bundle_id = bundle_id,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
+        bundle_id = bundle_id,
         bundle_name = bundle_name,
         cc_toolchains = cc_toolchains,
         entitlements = entitlements,

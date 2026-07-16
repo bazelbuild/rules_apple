@@ -388,14 +388,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         # iOS test bundles set `families` as a mandatory attr, other Apple OS test bundles do not
         # have a `families` rule attr.
         device_families = getattr(ctx.attr, "families", rule_descriptor.allowed_device_families),
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -480,6 +478,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -516,8 +515,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
-            rule_label = label,
             rule_descriptor = rule_descriptor,
+            rule_label = label,
             xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.debug_symbols(
@@ -530,13 +529,14 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = getattr(ctx.attr, "frameworks", []),
-            platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
@@ -607,9 +607,9 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -638,7 +638,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         output = ctx.outputs.test_bundle_output,
     )
 
-    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
+    if apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs:
         test_runner_bundle_output = archive
     else:
         test_runner_bundle_output = ctx.outputs.test_bundle_output

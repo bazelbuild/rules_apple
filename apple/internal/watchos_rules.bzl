@@ -254,12 +254,10 @@ watchos_application's `deps`.
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = False,  # No binary deps to check.
         xcode_version_config = xcode_version_config,
     )
@@ -333,18 +331,19 @@ reproducible error case.".format(
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
@@ -394,9 +393,9 @@ reproducible error case.".format(
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
         bundling_tasks.resources(
@@ -474,6 +473,7 @@ reproducible error case.".format(
 
     run_support.register_simulator_executable(
         actions = actions,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         output = executable,
@@ -551,12 +551,10 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -647,9 +645,9 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -668,9 +666,10 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
@@ -740,8 +739,8 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(
@@ -790,6 +789,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             bundling_tasks.framework_import(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
+                build_settings = apple_xplat_toolchain_info.build_settings,
                 cc_configured_features = cc_configured_features,
                 label_name = label.name,
                 mac_exec_group = mac_exec_group,
@@ -896,12 +896,10 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -960,18 +958,19 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
@@ -1041,14 +1040,15 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
             watch_bundles = [archive],
         ),
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
@@ -1128,6 +1128,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
 
     run_support.register_simulator_executable(
         actions = actions,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         output = executable,
@@ -1193,12 +1194,10 @@ def _watchos_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = ctx.attr.families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1247,12 +1246,12 @@ def _watchos_framework_impl(ctx):
 
     archive_for_embedding = outputs.archive_for_embedding(
         actions = actions,
-        bundle_name = bundle_name,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
+        bundle_name = bundle_name,
         label_name = label.name,
-        rule_descriptor = rule_descriptor,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
+        rule_descriptor = rule_descriptor,
     )
 
     pending_bundling_tasks = [
@@ -1270,6 +1269,7 @@ def _watchos_framework_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -1302,9 +1302,9 @@ def _watchos_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
-            frameworks = [archive_for_embedding],
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
+            frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
         bundling_tasks.extension_safe_validation(

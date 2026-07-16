@@ -162,12 +162,10 @@ def _visionos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = xcode_version_config,
     )
@@ -230,6 +228,7 @@ def _visionos_application_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -349,6 +348,7 @@ def _visionos_application_impl(ctx):
 
     run_support.register_simulator_executable(
         actions = actions,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         output = executable,
@@ -359,9 +359,9 @@ def _visionos_application_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 

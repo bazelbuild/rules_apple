@@ -89,6 +89,7 @@ def _preferred_codesigning_identity(
 
 def _codesign_args_for_path(
         *,
+        build_settings,
         entitlements_file,
         path_to_sign,
         platform_prerequisites,
@@ -97,6 +98,7 @@ def _codesign_args_for_path(
     """Returns a command line for the codesigning tool wrapper script.
 
     Args:
+      build_settings: A `dict`-like struct describing build settings.
       entitlements_file: The entitlements file to pass to codesign. May be `None`
           for non-app binaries (e.g. test bundles).
       path_to_sign: A struct indicating the path that should be signed and its
@@ -130,7 +132,7 @@ def _codesign_args_for_path(
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
     # use an ad hoc identity.
     identity = _preferred_codesigning_identity(
-        build_settings = platform_prerequisites.build_settings,
+        build_settings = build_settings,
         requires_adhoc_signing = not platform_prerequisites.platform.is_device,
     )
     if not identity:
@@ -222,6 +224,7 @@ def _validate_provisioning_profile(
 
 def _signing_command_lines(
         *,
+        build_settings,
         codesigningtool,
         entitlements_file,
         paths_to_sign,
@@ -234,6 +237,7 @@ def _signing_command_lines(
     used for signing for any reason.
 
     Args:
+      build_settings: A `dict`-like struct describing build settings.
       codesigningtool: The executable `File` representing the code signing tool.
       entitlements_file: The entitlements file to pass to codesign.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
@@ -252,6 +256,7 @@ def _signing_command_lines(
     for path_to_sign in paths_to_sign:
         codesign_command = [codesigningtool.path]
         codesign_command.extend(_codesign_args_for_path(
+            build_settings = build_settings,
             entitlements_file = entitlements_file,
             path_to_sign = path_to_sign,
             platform_prerequisites = platform_prerequisites,
@@ -307,6 +312,7 @@ def _should_sign_bundles(*, cc_configured_features, provisioning_profile, rule_d
 
 def _codesigning_args(
         *,
+        build_settings,
         cc_configured_features,
         entitlements,
         full_archive_path,
@@ -317,6 +323,7 @@ def _codesigning_args(
     """Returns a set of codesigning arguments to be passed to the codesigning tool.
 
     Args:
+      build_settings: A `dict`-like struct describing build settings.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
         to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       entitlements: The entitlements file to sign with. Can be None.
@@ -352,6 +359,7 @@ def _codesigning_args(
     )
 
     return _codesign_args_for_path(
+        build_settings = build_settings,
         entitlements_file = entitlements,
         path_to_sign = _path_to_sign(path = full_archive_path),
         platform_prerequisites = platform_prerequisites,
@@ -361,6 +369,7 @@ def _codesigning_args(
 
 def _codesigning_command(
         *,
+        build_settings,
         bundle_path = "",
         cc_configured_features,
         codesigningtool,
@@ -373,6 +382,7 @@ def _codesigning_command(
     """Returns a codesigning command that includes framework embedded bundles.
 
     Args:
+      build_settings: A `dict`-like struct describing build settings.
       bundle_path: The location of the bundle, relative to the archive.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
@@ -455,6 +465,7 @@ def _codesigning_command(
             )
 
         signing_commands = _signing_command_lines(
+            build_settings = build_settings,
             codesigningtool = codesigningtool,
             entitlements_file = entitlements,
             paths_to_sign = paths_to_sign,
@@ -569,8 +580,10 @@ def _generate_dossier_file(
 def _post_process_and_sign_archive_action(
         *,
         actions,
+        build_settings,
         archive_codesigning_path,
         cc_configured_features,
+        codesigningtool,
         entitlements = None,
         frameworks_path,
         input_archive,
@@ -583,7 +596,6 @@ def _post_process_and_sign_archive_action(
         platform_prerequisites,
         process_and_sign_template,
         provisioning_profile,
-        codesigningtool,
         rule_descriptor,
         signed_frameworks,
         xplat_exec_group):
@@ -591,6 +603,7 @@ def _post_process_and_sign_archive_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      build_settings: A `dict`-like struct describing build settings.
       archive_codesigning_path: The codesigning path relative to the archive.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
@@ -618,6 +631,7 @@ def _post_process_and_sign_archive_action(
     processing_tools = []
 
     signing_command_lines = _codesigning_command(
+        build_settings = build_settings,
         bundle_path = archive_codesigning_path,
         cc_configured_features = cc_configured_features,
         codesigningtool = codesigningtool.executable,
@@ -737,18 +751,20 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
+        build_settings,
+        codesigningtool,
         entitlements,
         input_binary,
         mac_exec_group,
         output_binary,
         platform_prerequisites,
         provisioning_profile,
-        codesigningtool,
         rule_descriptor):
     """Signs the input binary file, copying it into the given output binary file.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      build_settings: A `dict`-like struct describing build settings.
       entitlements: The `File` representing entitlements to use for signing. May be `None`.
       input_binary: The `File` representing the binary to be signed.
       mac_exec_group: The exec group associated with apple_mac_toolchain.
@@ -769,6 +785,7 @@ def _sign_binary_action(
     # code signing commands on that copy in the same action.
     path_to_sign = _path_to_sign(path = output_binary.path)
     signing_commands = _signing_command_lines(
+        build_settings = build_settings,
         codesigningtool = codesigningtool.executable,
         entitlements_file = entitlements,
         paths_to_sign = [path_to_sign],

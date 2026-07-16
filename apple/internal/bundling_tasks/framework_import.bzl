@@ -109,6 +109,7 @@ def _framework_import_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        build_settings,
         cc_configured_features,
         label_name,
         mac_exec_group,
@@ -177,7 +178,7 @@ def _framework_import_bundling_task_impl(
 
         framework_binaries_by_framework[framework_basename].append(file)
 
-    tree_artifact_is_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
+    tree_artifact_is_enabled = build_settings.use_tree_artifacts_outputs
     for framework_basename in files_by_framework.keys():
         # Create a temporary path for intermediate files and the anticipated zip output.
 
@@ -224,6 +225,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
         args.add_all(files_by_framework[framework_basename], before_each = "--framework-file-paths")
 
         codesign_args = codesigning_support.codesigning_args(
+            build_settings = build_settings,
             cc_configured_features = cc_configured_features,
             entitlements = None,
             full_archive_path = framework_bundle_path,
@@ -284,6 +286,7 @@ def framework_import_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
+        build_settings,
         cc_configured_features,
         label_name,
         mac_exec_group,
@@ -301,6 +304,7 @@ def framework_import_bundling_task(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: tools from the shared Apple toolchain.
+        build_settings: A `dict`-like struct describing build settings.
         cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
             to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         label_name: Name of the target being built.
@@ -320,6 +324,7 @@ def framework_import_bundling_task(
     return lambda *args, **kwargs: _framework_import_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        build_settings = build_settings,
         cc_configured_features = cc_configured_features,
         label_name = label_name,
         mac_exec_group = mac_exec_group,

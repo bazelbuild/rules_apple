@@ -48,5 +48,4 @@ dummy_test_runner = rule(
     outputs = {
         "test_runner_template": "%{name}.sh",
     },
-    fragments = ["objc"],
 )

@@ -726,12 +726,12 @@ def _apple_bundle(bundle_type):
     if not hasattr(location_enum, bundle_type):
         fail("Bundle type location not supported: ", bundle_type)
 
-    def _bundle_at_location(*, files, platform_prerequisites, **_kwargs):
+    def _bundle_at_location(*, files, apple_xplat_toolchain_info, **_kwargs):
         location = getattr(location_enum, bundle_type)
 
         # If tree artifacts are enabled, iterate each bundle and set the bundle name
         # as the parent directory. Otherwise, let bundletool unzip the bundle as is.
-        if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
+        if apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs:
             bundle_files = []
             for bundle in files.to_list():
                 basename = paths.basename(bundle.short_path)

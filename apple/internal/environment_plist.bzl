@@ -51,11 +51,9 @@ def _environment_plist_impl(ctx):
     # processing.
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = None,
         config_vars = ctx.var,
         device_families = None,
         explicit_minimum_os = None,
-        objc_fragment = None,
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )

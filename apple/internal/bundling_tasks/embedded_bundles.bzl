@@ -27,9 +27,9 @@ visibility("@build_bazel_rules_apple//apple/...")
 
 def _embedded_bundles_bundling_task_impl(
         *,
+        build_settings,
         bundle_embedded_bundles,
         embeddable_targets,
-        platform_prerequisites,
         signed_frameworks,
         **input_bundles_by_type):
     """Implementation for the embedded bundles processing bundling task."""
@@ -55,7 +55,7 @@ def _embedded_bundles_bundling_task_impl(
     bundles_to_embed = []
     embeddedable_info_fields = {}
 
-    tree_artifact_enabled = platform_prerequisites.build_settings.use_tree_artifacts_outputs
+    tree_artifact_enabled = build_settings.use_tree_artifacts_outputs
 
     for bundle_type, bundle_location in bundle_type_to_location.items():
         for provider in embeddable_providers:
@@ -139,11 +139,11 @@ def _embedded_bundles_bundling_task_impl(
 def embedded_bundles_bundling_task(
         *,
         app_clips = [],
+        build_settings,
         bundle_embedded_bundles = False,
         embeddable_targets = [],
         extensions = [],
         frameworks = [],
-        platform_prerequisites,
         plugins = [],
         signed_frameworks = depset(),
         watch_bundles = [],
@@ -159,6 +159,7 @@ def embedded_bundles_bundling_task(
     Args:
         app_clips: List of plugin bundles that should be propagated downstream for a top level
             target to bundle inside `AppClips`.
+        build_settings: A `dict`-like struct describing build settings.
         bundle_embedded_bundles: If True, this target will embed all transitive embeddable_bundles
             _only_ propagated through the targets given in embeddable_targets. If False, the
             embeddable bundles will be propagated downstream for a top level target to bundle them.
@@ -168,7 +169,6 @@ def embedded_bundles_bundling_task(
             a top level target to bundle inside `Extensions`.
         frameworks: List of framework bundles that should be propagated downstream for a top level
             target to bundle inside `Frameworks`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
         plugins: List of plugin bundles that should be propagated downstream for a top level
             target to bundle inside `PlugIns`.
         signed_frameworks: A depset of strings referencing frameworks that have already been
@@ -183,11 +183,11 @@ def embedded_bundles_bundling_task(
     """
     return lambda *args, **kwargs: _embedded_bundles_bundling_task_impl(
         app_clips = app_clips,
+        build_settings = build_settings,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
         extensions = extensions,
         frameworks = frameworks,
-        platform_prerequisites = platform_prerequisites,
         plugins = plugins,
         signed_frameworks = signed_frameworks,
         watch_bundles = watch_bundles,

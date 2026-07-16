@@ -210,12 +210,10 @@ def _tvos_application_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -299,6 +297,7 @@ def _tvos_application_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -358,13 +357,14 @@ def _tvos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
@@ -452,9 +452,9 @@ def _tvos_application_impl(ctx):
         label_name = label.name,
     )
 
-    # TODO(b/254511920): Consider creating a custom build config for tvOS simulator device/version.
     run_support.register_simulator_executable(
         actions = actions,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
         output = executable,
@@ -465,9 +465,9 @@ def _tvos_application_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -534,12 +534,10 @@ def _tvos_framework_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -588,9 +586,9 @@ def _tvos_framework_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -609,6 +607,7 @@ def _tvos_framework_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
@@ -641,9 +640,9 @@ def _tvos_framework_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
-            frameworks = [archive],
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
+            frameworks = [archive],
             signed_frameworks = depset(signed_frameworks),
         ),
         bundling_tasks.extension_safe_validation(
@@ -768,12 +767,10 @@ def _tvos_extension_impl(ctx):
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -839,9 +836,9 @@ def _tvos_extension_impl(ctx):
 
     archive = outputs.archive(
         actions = actions,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
     )
 
@@ -871,9 +868,10 @@ def _tvos_extension_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
             bundle_id = bundle_id,
+            bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             label_name = label.name,
@@ -931,8 +929,8 @@ def _tvos_extension_impl(ctx):
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
+            build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
-            platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(
@@ -1051,12 +1049,10 @@ def _tvos_static_framework_impl(ctx):
     )
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         device_families = rule_descriptor.allowed_device_families,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
@@ -1082,6 +1078,7 @@ def _tvos_static_framework_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,

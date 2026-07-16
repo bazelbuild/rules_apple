@@ -35,15 +35,15 @@ visibility([
 def _archive(
         *,
         actions,
+        build_settings,
         bundle_extension,
         bundle_name,
         output_discriminator = "",
-        platform_prerequisites,
         predeclared_outputs):
     """Returns a file reference for this target's archive."""
     bundle_name_with_extension = bundle_name + bundle_extension
 
-    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
+    if build_settings.use_tree_artifacts_outputs:
         if output_discriminator:
             return actions.declare_directory(paths.join(
                 output_discriminator,
@@ -55,15 +55,15 @@ def _archive(
 def _archive_for_embedding(
         *,
         actions,
-        bundle_name,
+        build_settings,
         bundle_extension,
+        bundle_name,
         label_name,
-        platform_prerequisites,
         predeclared_outputs,
         rule_descriptor):
     """Returns a files reference for this target's archive, when embedded in another target."""
     has_different_embedding_archive = _has_different_embedding_archive(
-        platform_prerequisites = platform_prerequisites,
+        build_settings = build_settings,
         rule_descriptor = rule_descriptor,
     )
 
@@ -72,9 +72,9 @@ def _archive_for_embedding(
     else:
         return _archive(
             actions = actions,
+            build_settings = build_settings,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
         )
 
@@ -144,9 +144,9 @@ def _main_binary_basename(bundle_name):
     """Returns the basename of the main binary that gets linked."""
     return bundle_name + "_bin"
 
-def _has_different_embedding_archive(*, platform_prerequisites, rule_descriptor):
+def _has_different_embedding_archive(*, build_settings, rule_descriptor):
     """Returns True if this target exposes a different archive when embedded in another target."""
-    if platform_prerequisites.build_settings.use_tree_artifacts_outputs:
+    if build_settings.use_tree_artifacts_outputs:
         return False
     return (
         rule_descriptor.bundle_locations.archive_relative != "" and
