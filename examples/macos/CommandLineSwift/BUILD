@@ -28,7 +28,7 @@ macos_command_line_application(
     name = "CommandLineSwift",
     bundle_id = "com.example.command-line-swift",
     infoplists = [":Info.plist"],
-    minimum_os_version = "10.13",
+    minimum_os_version = "12.0",
     version = ":CommandLineSwiftVersion",
     deps = [":Sources"],
 )

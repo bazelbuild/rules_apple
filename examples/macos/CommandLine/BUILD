@@ -25,7 +25,7 @@ macos_command_line_application(
     name = "CommandLine",
     bundle_id = "com.example.command-line",
     infoplists = [":Info.plist"],
-    minimum_os_version = "10.13",
+    minimum_os_version = "12.0",
     version = ":CommandLineVersion",
     deps = [":Sources"],
 )
