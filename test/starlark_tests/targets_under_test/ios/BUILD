@@ -415,10 +415,7 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags + [
-        "manual",
-        "needs-latest-apple-tools",
-    ],
+    tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],

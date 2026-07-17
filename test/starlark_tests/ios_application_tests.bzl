@@ -615,7 +615,7 @@ All requested architectures must be either device or simulator architectures."""
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "AppIcon",
             "CFBundleIcons:CFBundleAlternateIcons:Premium:CFBundleIconFiles:0": "Icon-Premium",
         },
-        tags = [name, "manual", "needs-latest-apple-tools"],
+        tags = [name],
     )
 
     infoplist_contents_test(
