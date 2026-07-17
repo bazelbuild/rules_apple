@@ -245,13 +245,6 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
-    analysis_failure_message_test(
-        name = "{}_test_bundle_min_os_different_from_test_host_error".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_different_min_os",
-        expected_error = "ERROR: The test at //test/starlark_tests/targets_under_test/ios:unit_test_different_min_os does not support the exact same minimum_os_version as its test host at //test/starlark_tests/targets_under_test/ios:app. These must match for correctness.",
-        tags = [name],
-    )
-
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_with_pointer_authentication_test".format(name),
         build_type = "device",

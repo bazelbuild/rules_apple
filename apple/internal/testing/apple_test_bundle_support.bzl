@@ -103,13 +103,6 @@ _DEFAULT_TEST_BUNDLE_ID = "com.bazelbuild.rulesapple.Tests"
 # visible error messaging.
 _TEST_BUNDLE_NAME_SUFFIX = ".__internal__.__test_bundle"
 
-# The highest minimum OS version that can be used for the test mismatch warning. Higher versions
-# will be "fail"ed instead of issuing a warning to help enforce the minimum OS version to be the
-# same between the test bundle and test host to avoid debugging issues and redundant build activity.
-_HIGHEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING = "16.4"
-
-_ERROR_ON_IOS_TEST_BUNDLE_MISMATCH_PACKAGE_PREFIXES = []
-
 def _collect_files(rule_attr, attr_names):
     """Collects files from given attr_names (when present) into a depset."""
     transitive_files = []
@@ -308,33 +301,6 @@ Please assign "{rule_attribute_name}" a value of {test_host_rule_attribute} on t
             test_host_label = str(test_host.label),
             test_host_label_name = test_host.label.name,
         ))
-    if platform_prerequisites.minimum_os != test_host_bundle_info.minimum_os_version:
-        test_min_os = platform_prerequisites.minimum_os
-        test_attribute_min_os_mismatch_message = test_attribute_mismatch_message.format(
-            rule_attribute_name = "minimum_os_version",
-            test_rule_attribute = test_min_os,
-            test_host_rule_attribute = test_host_bundle_info.minimum_os_version,
-            test_label = test_bundle_label_no_internal,
-            test_label_name = test_bundle_label_name_no_internal,
-            test_host_label = str(test_host.label),
-            test_host_label_name = test_host.label.name,
-        )
-
-        test_label_package_name = label.package
-
-        if platform_prerequisites.platform_type != "ios" or (
-            apple_common.dotted_version(test_min_os) > apple_common.dotted_version(
-                _HIGHEST_MINIMUM_OS_VERSION_FOR_TEST_MISMATCH_WARNING,
-            ) or any([
-                test_label_package_name.startswith(package_prefix)
-                for package_prefix in _ERROR_ON_IOS_TEST_BUNDLE_MISMATCH_PACKAGE_PREFIXES
-            ])
-        ):
-            fail("\nERROR: " + test_attribute_min_os_mismatch_message)
-
-        # There is no other way to issue a warning, so print is the only way to message.
-        # buildifier: disable=print
-        print("\nWARNING: " + test_attribute_min_os_mismatch_message)
 
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles."""
