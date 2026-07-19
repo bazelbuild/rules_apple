@@ -480,7 +480,7 @@ function test_ios_ui_test_attachment_lifetime_arg() {
     expect_log "<string>deleteOnSuccess</string>"
 }
 
-function test_ios_ui_test_default_screen_recording_arg() {
+function test_ios_ui_test_default_screen_capture_format_arg() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
@@ -494,39 +494,24 @@ function test_ios_ui_test_default_screen_recording_arg() {
     expect_not_log "<key>PreferredScreenCaptureFormat</key>"
 }
 
-function test_ios_ui_test_screen_recording_arg() {
+function test_ios_ui_test_screen_capture_format_arg() {
   create_sim_runners
   create_ios_app
   create_ios_ui_tests
-  # Screen recordings are system attachments, so attachment_lifetime must not
-  # be "keepNever" or the recording is discarded before landing in .xcresult.
+  # Screen captures are system attachments, so attachment_lifetime must not
+  # be "keepNever" or the capture is discarded before landing in .xcresult.
   do_ios_test \
     --test_env=DEBUG_XCTESTRUNNER=1 \
     --test_filter=PassingUITest/testPass2 \
-    --test_arg=--xctestrun_screen_recording=screenRecording \
+    --test_arg=--xctestrun_screen_capture_format=screenRecording \
     --test_arg=--xctestrun_attachment_lifetime=keepAlways \
     //ios:PassingUITest || fail "should pass"
 
-    expect_log "note: Using 'xcodebuild' because screen recording was requested"
+    expect_log "note: Using 'xcodebuild' because a screen capture format was requested"
     expect_log "<key>PreferredScreenCaptureFormat</key>"
     expect_log "<string>screenRecording</string>"
     expect_log "<key>SystemAttachmentLifetime</key>"
     expect_log "<string>keepAlways</string>"
-}
-
-function test_ios_ui_test_screen_recording_screenshots_arg() {
-  create_sim_runners
-  create_ios_app
-  create_ios_ui_tests
-  do_ios_test \
-    --test_env=DEBUG_XCTESTRUNNER=1 \
-    --test_filter=PassingUITest/testPass2 \
-    --test_arg=--xctestrun_screen_recording=screenshots \
-    //ios:PassingUITest || fail "should pass"
-
-    expect_log "note: Using 'xcodebuild' because screen recording was requested"
-    expect_log "<key>PreferredScreenCaptureFormat</key>"
-    expect_log "<string>screenshots</string>"
 }
 
 run_suite "ios_ui_test with iOS xctestrun runner bundling tests"
