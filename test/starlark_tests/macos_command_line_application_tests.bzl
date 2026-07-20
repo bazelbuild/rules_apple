@@ -205,24 +205,24 @@ def macos_command_line_application_test_suite(name):
     )
 
     _action_macos_x86_64_test(
-        name = "{}_empty_exported_symbols_lists_uses_dev_null_test".format(name),
+        name = "{}_empty_exported_symbols_lists_uses_no_exported_symbols_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         mnemonic = "ObjcLink",
         expected_argv = [
-            "-Wl,-exported_symbols_list,/dev/null",
+            "-Wl,-no_exported_symbols",
         ],
         tags = [name],
     )
 
     _action_macos_x86_64_test(
-        name = "{}_exported_symbols_lists_skips_dev_null_test".format(name),
+        name = "{}_exported_symbols_lists_skips_no_exported_symbols_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_dead_stripped",
         mnemonic = "ObjcLink",
         expected_argv = [
             "-Wl,-exported_symbols_list,test/starlark_tests/resources/ExportAnotherFunctionMain.exp",
         ],
         not_expected_argv = [
-            "-Wl,-exported_symbols_list,/dev/null",
+            "-Wl,-no_exported_symbols",
         ],
         tags = [name],
     )

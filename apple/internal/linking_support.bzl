@@ -486,14 +486,15 @@ def _register_binary_linking_action(
     link_inputs = []
 
     # Add linkopts/linker inputs that are common to all the rules.
+    is_shared_library = "-dynamiclib" in extra_linkopts
     if exported_symbols_lists:
         for exported_symbols_list in exported_symbols_lists:
             linkopts.append(
                 "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
             )
             link_inputs.append(exported_symbols_list)
-    else:
-        linkopts.append("-Wl,-exported_symbols_list,/dev/null")
+    elif not is_shared_library:
+        linkopts.append("-Wl,-no_exported_symbols")
 
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device and rule_descriptor and rule_descriptor.product_type != apple_product_type.kernel_extension:
