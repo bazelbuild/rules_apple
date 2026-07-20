@@ -179,6 +179,7 @@ def _group_link_outputs_by_library_identifier(
         deps,
         label_name,
         link_result,
+        minimum_os_versions,
         xcode_config):
     """Groups linking outputs by library identifier with additional platform information.
 
@@ -190,6 +191,7 @@ def _group_link_outputs_by_library_identifier(
         deps: Label list of dependencies from rule context (ctx.split_attr.deps).
         label_name: Name of the target being built.
         link_result: The struct returned by `linking_support.register_binary_linking_action`.
+        minimum_os_versions: A dictionary of minimum OS versions for each platform type.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
 
     Returns:
@@ -253,6 +255,7 @@ def _group_link_outputs_by_library_identifier(
             split_attr_key = transition_support.xcframework_split_attr_key(
                 arch = link_output.architecture,
                 environment = link_output.environment,
+                minimum_os_version = minimum_os_versions.get(link_output.platform),
                 platform_type = link_output.platform,
             )
 
@@ -631,6 +634,7 @@ def _apple_xcframework_impl(ctx):
         deps = deps,
         label_name = label.name,
         link_result = link_result,
+        minimum_os_versions = ctx.attr.minimum_os_versions,
         xcode_config = xcode_config,
     )
 
@@ -1103,6 +1107,7 @@ def _apple_static_xcframework_impl(ctx):
         deps = deps,
         label_name = bundle_name,
         link_result = archive_result,
+        minimum_os_versions = ctx.attr.minimum_os_versions,
         xcode_config = xcode_config,
     )
 
