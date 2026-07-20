@@ -486,11 +486,14 @@ def _register_binary_linking_action(
     link_inputs = []
 
     # Add linkopts/linker inputs that are common to all the rules.
-    for exported_symbols_list in exported_symbols_lists:
-        linkopts.append(
-            "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
-        )
-        link_inputs.append(exported_symbols_list)
+    if exported_symbols_lists:
+        for exported_symbols_list in exported_symbols_lists:
+            linkopts.append(
+                "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
+            )
+            link_inputs.append(exported_symbols_list)
+    else:
+        linkopts.append("-Wl,-exported_symbols_list,/dev/null")
 
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device and rule_descriptor and rule_descriptor.product_type != apple_product_type.kernel_extension:
