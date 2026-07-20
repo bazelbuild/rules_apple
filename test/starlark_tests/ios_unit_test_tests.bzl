@@ -247,6 +247,9 @@ def ios_unit_test_test_suite(name):
             "app_lipobin",
             "-framework CoreMotion",
         ],
+        not_expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
         mnemonic = "ObjcLink",
         tags = [name],
     )

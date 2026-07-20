@@ -493,7 +493,7 @@ def _register_binary_linking_action(
                 "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
             )
             link_inputs.append(exported_symbols_list)
-    elif not is_shared_library:
+    elif not is_shared_library and not bundle_loader:
         linkopts.append("-Wl,-no_exported_symbols")
 
     if entitlements:
