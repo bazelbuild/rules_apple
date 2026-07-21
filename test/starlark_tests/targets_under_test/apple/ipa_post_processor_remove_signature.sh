@@ -42,6 +42,7 @@ for app in \
   if [[ -d "$FRAMEWORK_DIR" ]]; then
     for fmwk in \
         $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
+      /usr/bin/codesign --verify "$fmwk"
       /usr/bin/codesign --remove-signature "$fmwk"
     done
   fi
