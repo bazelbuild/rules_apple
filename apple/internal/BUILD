@@ -178,6 +178,7 @@ bzl_library(
     ],
     deps = [
         ":apple_product_type",
+        ":features_support",
         ":intermediates",
         ":rule_support",
         ":shared_environment",

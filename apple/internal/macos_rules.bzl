@@ -777,13 +777,6 @@ def _macos_framework_impl(ctx):
             bundle_name + rule_descriptor.bundle_extension,
         ]
 
-    features_support.validate_framework_legacy_signing(
-        cc_configured_features = cc_configured_features,
-        label_name = label.name,
-        target_os = platform_prerequisites.platform_type,
-        tree_artifact_enabled = apple_xplat_toolchain_info.build_settings.use_tree_artifacts_outputs,
-    )
-
     top_level_infoplists = resources.collect(
         attr = ctx.attr,
         res_attrs = ["infoplists"],

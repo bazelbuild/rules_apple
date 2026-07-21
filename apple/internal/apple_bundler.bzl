@@ -471,6 +471,7 @@ def _bundle_post_process_and_sign(
             codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
             entitlements = entitlements,
             frameworks_path = archive_paths[location_enum.framework],
+            label_name = rule_label.name,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,

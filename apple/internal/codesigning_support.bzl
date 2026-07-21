@@ -31,6 +31,10 @@ load(
     "apple_product_type",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:features_support.bzl",
+    "features_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -375,6 +379,7 @@ def _codesigning_command(
         codesigningtool,
         entitlements,
         frameworks_path,
+        label_name,
         platform_prerequisites,
         provisioning_profile,
         rule_descriptor,
@@ -389,6 +394,7 @@ def _codesigning_command(
       codesigningtool: The executable `File` representing the code signing tool.
       entitlements: The entitlements file to sign with. Can be None.
       frameworks_path: The location of the Frameworks directory, relative to the archive.
+      label_name: Name of the target being built.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: File for the provisioning profile.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
@@ -401,27 +407,43 @@ def _codesigning_command(
 
     # Generate macOS framework symlinks if needed, supporting legacy code signing.
     if (platform_prerequisites.platform_type == "macos" and
-        rule_descriptor.product_type == apple_product_type.framework and
-        "disable_legacy_signing" not in cc_configured_features.enabled_features):
-        target_dir = "$WORK_DIR"
-        if bundle_path:
-            target_dir = paths.join("$WORK_DIR", bundle_path)
+        rule_descriptor.product_type == apple_product_type.framework):
+        features_support.validate_framework_legacy_signing(
+            cc_configured_features = cc_configured_features,
+            label_name = label_name,
+            target_os = platform_prerequisites.platform_type,
+            tree_artifact_enabled = build_settings.use_tree_artifacts_outputs,
+        )
 
-        # Following the exact parameters required by
-        # https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle#Support-a-single-framework-version-on-macOS
-        commands.extend([
-            # Create a symlink to the framework content at Versions/A from Versions/Current.
-            "ln -sfh A {target_dir}/Versions/Current".format(target_dir = target_dir),
-            # Create symlinks for all contents of the framework root to the corresponding content as
-            # resolved through the Versions/Current symlink. This covers files and folders.
-            "for content_path in {target_dir}/Versions/A/* ; ".format(target_dir = target_dir) +
-            # Use `##*/` to slice off the parent, leaving only the last path component.
-            "do content=\"${content_path##*/}\"; " +
-            "ln -sfh Versions/Current/\"${{content}}\" {target_dir}/\"${{content}}\"; ".format(
-                target_dir = target_dir,
-            ) +
-            "done",
-        ])
+        # features_support.validate_framework_legacy_signing will fail if tree artifacts are
+        # enabled and disable_legacy_signing is not included in the enabled features.
+        #
+        # We still check for it again so that we don't create extra macOS code signing actions for
+        # unsigned frameworks in an archive. These would be better handled via xplat actions.
+        #
+        # TODO(b/520059769): Create a dedicated bundling API for symlink generation and management
+        # to avoid the need to tie this functionality into the macOS codesigning commands.
+        if "disable_legacy_signing" not in cc_configured_features.enabled_features:
+            target_dir = "$WORK_DIR"
+            if bundle_path:
+                target_dir = paths.join("$WORK_DIR", bundle_path)
+
+            # Following the exact parameters required by
+            # https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle#Support-a-single-framework-version-on-macOS
+            commands.extend([
+                # Create a symlink to the framework content at Versions/A from Versions/Current.
+                "ln -sfh A {target_dir}/Versions/Current".format(target_dir = target_dir),
+                # Create symlinks for all contents of the framework root to the corresponding
+                # content as resolved through the Versions/Current symlink. This covers files and
+                # folders.
+                "for content_path in {target_dir}/Versions/A/* ; ".format(target_dir = target_dir) +
+                # Use `##*/` to slice off the parent, leaving only the last path component.
+                "do content=\"${content_path##*/}\"; " +
+                "ln -sfh Versions/Current/\"${{content}}\" {target_dir}/\"${{content}}\"; ".format(
+                    target_dir = target_dir,
+                ) +
+                "done",
+            ])
 
     should_sign_bundles = _should_sign_bundles(
         cc_configured_features = cc_configured_features,
@@ -637,6 +659,7 @@ def _post_process_and_sign_archive_action(
         codesigningtool = codesigningtool.executable,
         entitlements = entitlements,
         frameworks_path = frameworks_path,
+        label_name = label_name,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
