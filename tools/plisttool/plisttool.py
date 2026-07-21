@@ -400,7 +400,6 @@ _INFO_PLIST_OPTIONS_KEYS = frozenset([
     'version_file',
     'version_keys_required',
     'extensionkit_keys_required',
-    'merge_info_plist_icons',  # TODO(b/458103313): Remove when cleaned up.
 ])
 
 # All valid keys in the entitlements_options control structure.
