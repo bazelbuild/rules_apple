@@ -154,6 +154,7 @@ def tvos_application_test_suite(name):
         codesign_info_contains = [
             "Identifier=com.google.example.framework",
         ],
+        target_features = ["apple.codesign_frameworks_without_provisioning_profile"],
         tags = [name],
     )
 
