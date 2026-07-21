@@ -255,6 +255,19 @@ def ios_unit_test_test_suite(name):
     )
 
     action_command_line_test(
+        name = "{}_bundle_loader_host_exported_symbols_list_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_for_bundle_loader",
+        expected_argv = [
+            "-Wl,-exported_symbols_list,test/starlark_tests/resources/ExportObjectiveCCommonClass.exp",
+        ],
+        not_expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
+        mnemonic = "ObjcLink",
+        tags = [name],
+    )
+
+    action_command_line_test(
         name = "{}_no_bundle_loader_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_no_bundle_loader.__internal__.__test_bundle",
         not_expected_argv = [
