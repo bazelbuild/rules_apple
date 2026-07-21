@@ -230,6 +230,14 @@ sh_binary(
     tags = ["requires-darwin"],
 )
 
+sh_binary(
+    name = "ipa_post_processor_remove_signature",
+    srcs = [
+        "ipa_post_processor_remove_signature.sh",
+    ],
+    tags = ["requires-darwin"],
+)
+
 apple_core_data_model(
     name = "swift_data_model",
     srcs = [

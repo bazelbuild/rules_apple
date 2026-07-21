@@ -144,6 +144,19 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Tests that a framework whose signature was invalidated by a post-processor
+    # (via codesign --remove-signature) is properly re-signed.
+    archive_contents_test(
+        name = "{}_fmwk_post_processor_removes_signature_codesign_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_post_processor_removes_signature",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        codesign_info_contains = [
+            "Identifier=com.google.example.framework",
+        ],
+        tags = [name],
+    )
+
     # Tests that Swift standard libraries bundled in SwiftSupport have the code
     # signature from Apple.
     archive_contents_test(
