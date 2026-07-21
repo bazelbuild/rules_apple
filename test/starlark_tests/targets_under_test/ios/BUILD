@@ -4811,6 +4811,9 @@ swift_library(
 ios_application(
     name = "coverage_app",
     bundle_id = "my.bundle.id",
+    exported_symbols_lists = [
+        ":ExportCoverageFoo.exp",
+    ],
     families = ["iphone"],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",

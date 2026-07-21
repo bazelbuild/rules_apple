@@ -413,6 +413,7 @@ def _contains_exported_symbol_linkopts(linkopts):
     """Returns whether linkopts already control exported symbols."""
     for linkopt in linkopts:
         for exported_symbols_linkopt in [
+            "-alias",
             "-exported_symbol",
             "-exported_symbols_list",
             "-no_exported_symbols",
