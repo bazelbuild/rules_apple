@@ -453,6 +453,21 @@ tvos_application(
 )
 
 tvos_application(
+    name = "app_with_fmwk_post_processor_removes_signature",
+    bundle_id = "com.google.example",
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ipa_post_processor = "//test/starlark_tests/targets_under_test/apple:ipa_post_processor_remove_signature",
+    minimum_os_version = common.min_os_tvos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+tvos_application(
     name = "app_structured_resources_and_fmwk_with_structured_resources",
     bundle_id = "com.google.example",
     frameworks = [":fmwk_with_structured_resources"],

@@ -331,7 +331,8 @@ def _all_paths_to_sign(targets_to_sign, directories_to_sign):
   return all_paths_to_sign
 
 
-def _filter_paths_already_signed(all_paths_to_sign, signed_paths):
+def _filter_paths_already_signed(all_paths_to_sign, signed_paths,
+                                  codesign_path):
   if set(signed_paths) - set(all_paths_to_sign):
     # TODO(b/151635856): Turn this condition into an error when clang_rt libs
     # for the sanitizers are properly scoped to only the *_application
@@ -339,7 +340,27 @@ def _filter_paths_already_signed(all_paths_to_sign, signed_paths):
     print("WARNING: From the set of all paths to sign, signed frameworks were "
           "not found: %s" % (set(signed_paths) - set(all_paths_to_sign)))
     print("Set of all paths to sign contains: %s" % all_paths_to_sign)
-  return [p for p in all_paths_to_sign if p not in signed_paths]
+
+  # Verify that each signed framework's signature is still valid. A
+  # post-processor (e.g. ipa_post_processor) may have modified the binary
+  # after it was signed, invalidating the signature. Such frameworks need to
+  # be re-signed with the correct identity instead of being skipped.
+  # See: https://github.com/bazelbuild/rules_apple/issues/1953
+  verified_signed_paths = set()
+  for signed_path in signed_paths:
+    if signed_path not in all_paths_to_sign:
+      continue
+    result = subprocess.run(
+        [codesign_path, "--verify", signed_path],
+        capture_output=True,
+    )
+    if result.returncode == 0:
+      verified_signed_paths.add(signed_path)
+    else:
+      print("Re-signing %s (existing signature is invalid, likely modified "
+            "by a post-processor)" % signed_path)
+
+  return [p for p in all_paths_to_sign if p not in verified_signed_paths]
 
 
 def add_parser_arguments(
@@ -431,7 +452,8 @@ def find_identity_and_sign_bundle_paths(args: argparse.Namespace) -> int:
   signed_path = args.signed_path
   if signed_path:
     all_paths_to_sign = _filter_paths_already_signed(all_paths_to_sign,
-                                                     signed_path)
+                                                     signed_path,
+                                                     args.codesign)
 
   for path_to_sign in all_paths_to_sign:
     invoke_codesign(
