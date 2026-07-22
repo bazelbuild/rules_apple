@@ -494,6 +494,21 @@ function test_ios_ui_test_default_screen_capture_format_arg() {
     expect_not_log "<key>PreferredScreenCaptureFormat</key>"
 }
 
+function test_ios_ui_test_screen_capture_format_keep_never_fails() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  # Screen captures are system attachments; with the default
+  # attachment_lifetime of "keepNever" the capture would be silently
+  # discarded, so the runner must fail instead.
+  ! do_ios_test \
+    --test_filter=PassingUITest/testPass2 \
+    --test_arg=--xctestrun_screen_capture_format=screenRecording \
+    //ios:PassingUITest || fail "should fail"
+
+    expect_log "error: 'screen_capture_format' requires 'attachment_lifetime' to be 'keepAlways' or 'deleteOnSuccess'"
+}
+
 function test_ios_ui_test_screen_capture_format_arg() {
   create_sim_runners
   create_ios_app

@@ -264,7 +264,7 @@ Controls the `PreferredScreenCaptureFormat` written into the generated xctestrun
 
 Setting a non-empty value forces the runner onto the `xcodebuild test-without-building` path (the direct `xctest` path does not read the xctestrun file and cannot capture the screen) and forces an `.xcresult` bundle to be produced (the capture is only observable there). This attribute is only meaningful for UI tests.
 
-Screen captures are system attachments, so `attachment_lifetime` must be `"keepAlways"` (or `"deleteOnSuccess"`) for the capture to survive into the `.xcresult` — the default `"keepNever"` discards it.
+Screen captures are system attachments, so setting this attribute requires `attachment_lifetime` to be `"keepAlways"` or `"deleteOnSuccess"` — with the default `"keepNever"` the capture would be discarded before it reaches the `.xcresult`, so the runner fails with an error.
 """,
         ),
         "xcodebuild_args": attr.string_list(

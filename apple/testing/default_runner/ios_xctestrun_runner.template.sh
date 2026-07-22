@@ -548,7 +548,8 @@ if [[ -n "$screen_capture_format" ]]; then
   # The capture is only observable in the XCResult bundle, so force one.
   create_xcresult_bundle=true
   if [[ "$attachment_lifetime" == "keepNever" ]]; then
-    echo "warning: 'screen_capture_format' is set but 'attachment_lifetime' is 'keepNever'; the capture will be discarded before it reaches the .xcresult bundle" >&2
+    echo "error: 'screen_capture_format' requires 'attachment_lifetime' to be 'keepAlways' or 'deleteOnSuccess'; with 'keepNever' the capture would be discarded before it reaches the .xcresult bundle" >&2
+    exit 1
   fi
 fi
 
