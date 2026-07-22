@@ -187,18 +187,95 @@ using the {shared_library_app_intents_hint_target} aspect hint.
 
     return main_owned_metadata_bundle_inputs[0], static_metadata_owned_bundle_inputs
 
+def _validate_app_intents_conformances(
+        *,
+        actions,
+        app_intents_infos,
+        frameworks,
+        label,
+        main_metadata_bundle_input,
+        static_metadata_bundle_inputs,
+        swift_const_values_validation_tool,
+        xplat_exec_group):
+    """Validates the App Intents conformances via an executable validation action.
+
+    Args:
+        actions: The actions object from the rule context.
+        app_intents_infos: List of AppIntentsInfo providers from dependencies.
+        frameworks: A list of framework targets that are dependencies of the current target.
+        label: The label of the target being built.
+        main_metadata_bundle_input: The MetadataBundleInput for the main application bundle.
+        static_metadata_bundle_inputs: A list of MetadataBundleInputs for static library bundles.
+        swift_const_values_validation_tool: The executable validation tool.
+        xplat_exec_group: The execution group for cross-platform validation actions.
+
+    Returns:
+        The App Intents conformances validation output file.
+    """
+    avoid_owners = [
+        p.owner
+        for x in frameworks
+        if AppIntentsBundleInfo in x
+        for p in x[AppIntentsBundleInfo].owned_metadata_bundles.to_list()
+    ]
+
+    framework_typename_files = set()
+    for info in app_intents_infos:
+        for input in info.metadata_bundle_inputs.to_list():
+            if input.owner in avoid_owners and getattr(input, "framework_typename_file", None):
+                framework_typename_files.add(input.framework_typename_file)
+
+    validation_output = actions.declare_file(
+        "%s_app_intents_conformances_validation.txt" % label.name,
+    )
+    validation_args = actions.args()
+    validation_args.add("check-conformances")
+    validation_args.add("--required-conformance", "AppIntents.AppIntentsPackage")
+
+    for input in static_metadata_bundle_inputs:
+        for f in input.swiftconstvalues_files:
+            validation_args.add("--static-module-swiftconstvalues", f)
+
+    for f in main_metadata_bundle_input.swiftconstvalues_files:
+        validation_args.add("--main-module-swiftconstvalues", f)
+
+    for f in framework_typename_files:
+        validation_args.add("--framework-typename-file", f)
+
+    validation_args.add("--output", validation_output)
+
+    inputs = (
+        [f for input in static_metadata_bundle_inputs for f in input.swiftconstvalues_files] +
+        main_metadata_bundle_input.swiftconstvalues_files +
+        list(framework_typename_files)
+    )
+
+    actions.run(
+        executable = swift_const_values_validation_tool,
+        arguments = [validation_args],
+        inputs = inputs,
+        outputs = [validation_output],
+        exec_group = xplat_exec_group,
+        mnemonic = "AppIntentsConformanceValidation",
+        progress_message = "Validating App Intents conformances for %s" % label,
+    )
+
+    return validation_output
+
 def _app_intents_metadata_bundle_bundling_task_impl(
         *,
         actions,
         app_intents,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
-        frameworks,
         embedded_bundles,
+        frameworks,
         label,
         mac_exec_group,
-        platform_prerequisites):
+        platform_prerequisites,
+        xplat_exec_group):
     """Implementation of the AppIntents metadata bundle bundling task."""
 
     owned_embedded_metadata_bundles = [
@@ -251,6 +328,20 @@ def _app_intents_metadata_bundle_bundling_task_impl(
             ],
         )
     )
+
+    validation_outputs = []
+    if apple_xplat_toolchain_info.build_settings.validate_app_intents:
+        validation_output = _validate_app_intents_conformances(
+            actions = actions,
+            app_intents_infos = app_intents_infos,
+            frameworks = frameworks,
+            label = label,
+            main_metadata_bundle_input = main_metadata_bundle_input,
+            static_metadata_bundle_inputs = static_metadata_bundle_inputs,
+            swift_const_values_validation_tool = apple_xplat_toolchain_info.swift_const_values_validation_tool,
+            xplat_exec_group = xplat_exec_group,
+        )
+        validation_outputs.append(validation_output)
 
     target_triples = [
         cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
@@ -319,12 +410,17 @@ def _app_intents_metadata_bundle_bundling_task_impl(
         ),
     )]
 
+    output_groups = {}
+    if validation_outputs:
+        output_groups["_validation"] = depset(validation_outputs)
+
     return struct(
         bundle_files = [(
             bundle_location,
             "Metadata.appintents",
             depset(direct = [metadata_bundle_output.bundle]),
         )],
+        output_groups = output_groups,
         providers = providers,
     )
 
@@ -333,13 +429,15 @@ def app_intents_metadata_bundle_bundling_task(
         actions,
         app_intents,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         bundle_id,
         cc_toolchains,
         embedded_bundles,
         frameworks = [],
         label,
         mac_exec_group,
-        platform_prerequisites):
+        platform_prerequisites,
+        xplat_exec_group):
     """Constructor for the AppIntents metadata bundle processing bundling task.
 
     This bundling task generates the Metadata.appintents bundle required for AppIntents
@@ -350,6 +448,7 @@ def app_intents_metadata_bundle_bundling_task(
         app_intents: A list of dictionaries for targets under a split transition providing
             AppIntentsInfo.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
+        apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
         bundle_id: The bundle ID to configure for this target.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
@@ -359,6 +458,7 @@ def app_intents_metadata_bundle_bundling_task(
         label: Label of the target being built.
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
+        xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     Returns:
         A bundling task that generates the Metadata.appintents bundle.
     """
@@ -366,13 +466,15 @@ def app_intents_metadata_bundle_bundling_task(
         actions = actions,
         app_intents = app_intents,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
+        cc_toolchains = cc_toolchains,
         embedded_bundles = embedded_bundles,
         frameworks = frameworks,
-        cc_toolchains = cc_toolchains,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
+        xplat_exec_group = xplat_exec_group,
         *args,
         **kwargs
     )

@@ -1,9 +1,15 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//apple/internal/aspects:apple_swift_const_values_json.bzl", "apple_swift_const_values_json")
+
+package(
+    default_visibility = [
+        "//apple:__subpackages__",
+    ],
+)
 
 # Aspects.
 
-# This file exists to create a package under which to load the aspect
-# bzl files.
+# This file exists to create a package under which to load the aspect bzl files.
 
 licenses(["notice"])
 
@@ -16,6 +22,29 @@ bzl_library(
     deps = [
         "//apple/internal:cc_info_support",
         "//apple/internal/providers:app_intents_info",
+        "//apple/internal/toolchains:apple_toolchains",
+        "@build_bazel_rules_swift//swift:providers",
+    ],
+)
+
+filegroup(
+    name = "app_intents_fallback_json",
+    srcs = ["AppIntents.json"],
+)
+
+# TODO(b/527923227): Remove the need for this by sourcing the Swift const values from the module
+# directly via arguments, possibly even JSON in the action arguments, instead of through a file.
+apple_swift_const_values_json(
+    name = "app_intents_sdk_json",
+)
+
+bzl_library(
+    name = "apple_swift_const_values_json",
+    srcs = ["apple_swift_const_values_json.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
         "@build_bazel_rules_swift//swift:providers",
     ],
 )
