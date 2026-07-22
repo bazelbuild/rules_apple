@@ -64,13 +64,6 @@ Elevates Apple rule compiler and validation warnings to errors.
 """,
         default = False,
     ),
-    "validate_app_intents": struct(
-        doc = """
-Enables App Intents validation to verify that all necessary targets correctly
-advertise their required App Intents aspect hints.
-""",
-        default = False,
-    ),
 }
 
 # List of all registered build settings without command line flags at

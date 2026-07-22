@@ -125,9 +125,6 @@ from requesting or disabling features.
 The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
 """,
-        "swift_const_values_validation_tool": """\
-A `File` referencing a tool to validate Swift const values conformances.
-""",
         "swiftstdlibstubtool": """\
 A tool that creates a stub binary for the swift_stdlib_tool, as a smaller artifact.
 """,
@@ -285,7 +282,6 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         bundletool_swift = ctx.attr.bundletool_swift,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
-        swift_const_values_validation_tool = ctx.attr.swift_const_values_validation_tool.files_to_run,
         swiftstdlibstubtool = ctx.attr.swiftstdlibstubtool.files_to_run,
         verifystringstool = ctx.attr.verifystringstool.files_to_run,
         versiontool_swift = ctx.attr.versiontool_swift,
@@ -328,11 +324,6 @@ requesting or disabling features.
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
 conversion of plist files to binary format.
 """,
-        ),
-        "swift_const_values_validation_tool": attr.label(
-            cfg = "exec",
-            executable = True,
-            doc = "A `File` referencing a tool to validate App Intents conformances.",
         ),
         "swiftstdlibstubtool": attr.label(
             cfg = "exec",

@@ -19,8 +19,7 @@ apple_xplat_tools_toolchain(
     build_settings = build_settings_labels.all_labels,
     bundletool_swift = "//tools/bundletool:bundletool_exec",
     plisttool = "//tools/plisttool:plisttool.par",
-    swift_const_values_validation_tool = "//tools/swift_const_values_validation:swift_const_values_validation",
-    swiftstdlibstubtool = "//tools/swiftstdlibstubtool:swiftstdlibstubtool",
+    swiftstdlibstubtool = "//tools/swiftstdlibstubtool",
     verifystringstool = "//tools/verifystringstool",
     versiontool_swift = "//tools/versiontool",
 )

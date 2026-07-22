@@ -14,27 +14,18 @@
 
 """Implementation of the aspect that propagates AppIntentsInfo providers."""
 
-load(
-    "@build_bazel_rules_apple//apple/internal:cc_info_support.bzl",
-    "cc_info_support",
-)
+load("@build_bazel_rules_apple//apple/internal:cc_info_support.bzl", "cc_info_support")
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsHintInfo",
     "AppIntentsInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
-    "apple_toolchain_utils",
-)
-load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
 
-visibility([
-    "@build_bazel_rules_apple//apple/internal/...",
-])
+visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _verify_app_intents_dependency(*, target):
     """Verifies that the target has a dependency on the AppIntents framework."""
@@ -81,7 +72,6 @@ def _generate_metadata_bundle_inputs(
         *,
         direct_app_intents_modules,
         files,
-        framework_typename_file,
         is_static_metadata,
         label,
         module_name,
@@ -92,8 +82,6 @@ def _generate_metadata_bundle_inputs(
         direct_app_intents_modules: The direct module dependencies with other App Intents hinted
             modules that were found on this target.
         files: The files from the rule being evaluated by the aspect.
-        framework_typename_file: File handle to the validated framework typename output for this
-            target.
         is_static_metadata: Whether the target provides static metadata App Intents, rather than act
             as a "main" metadata App Intents target owned exclusively by a single bundle rule.
         label: The label of the target.
@@ -106,16 +94,11 @@ def _generate_metadata_bundle_inputs(
     """
     return struct(
         direct_app_intents_modules = direct_app_intents_modules,
-        framework_typename_file = framework_typename_file,
         module_name = module_name,
         is_static_metadata = is_static_metadata,
         owner = str(label),
         swift_source_files = [f for f in files.srcs if f.extension == "swift"],
-        swiftconstvalues_files = getattr(
-            target[OutputGroupInfo],
-            "const_values",
-            depset(),
-        ).to_list() if OutputGroupInfo in target else [],
+        swiftconstvalues_files = target[OutputGroupInfo]["const_values"].to_list(),
     )
 
 _APP_INTENTS_ASPECT_ATTRS = [
@@ -139,101 +122,14 @@ def _app_intents_hint_info(aspect_hints):
             app_intents_hint_target = hint
     return app_intents_hint_target[AppIntentsHintInfo] if app_intents_hint_target else None
 
-def _validate_app_intents_aspect_hints(
-        *,
-        actions,
-        app_intents_hint_info,
-        const_values,
-        protocol_json,
-        swift_const_values_validation_tool,
-        target_label,
-        target_name,
-        xplat_exec_group):
-    """Validates the App Intents aspect hints via an action.
-
-    Args:
-        actions: The actions object from the rule context.
-        app_intents_hint_info: The AppIntentsHintInfo provider, if any.
-        const_values: The depset of swiftconstvalues files.
-        protocol_json: The JSON file containing Apple SDK App Intents protocols.
-        swift_const_values_validation_tool: The executable validation tool.
-        target_label: The label of the target being validated.
-        target_name: The name of the target being validated.
-        xplat_exec_group: The execution group for cross-platform validation actions.
-
-    Returns:
-        The framework typename validation output file.
-    """
-    framework_typename_file = actions.declare_file(
-        "%s_swift_const_values_validation.txt" % target_name,
-    )
-
-    swiftconstvalues_files = const_values.to_list()
-    validation_inputs = list(swiftconstvalues_files)
-
-    args = actions.args()
-    args.add("check-aspect-hints")
-    for f in swiftconstvalues_files:
-        args.add("--swiftconstvalues-file", f)
-    args.add("--output-path", framework_typename_file)
-
-    args.add(
-        "--sdk-const-values-file",
-        protocol_json,
-    )
-    validation_inputs.append(protocol_json)
-
-    args.add("--required-conformance", "AppIntents.AppIntentsPackage")
-
-    if app_intents_hint_info:
-        args.add("--has-aspect-hint")
-
-    actions.run(
-        executable = swift_const_values_validation_tool,
-        arguments = [args],
-        inputs = validation_inputs,
-        outputs = [framework_typename_file],
-        exec_group = xplat_exec_group,
-        mnemonic = "AppIntentsValidation",
-        progress_message = (
-            "Validating App Intents metadata extraction aspect hint for {target_label}".format(
-                target_label = target_label,
-            )
-        ),
-    )
-
-    return framework_typename_file
-
 def _app_intents_aspect_impl(target, ctx):
     """Implementation of the App Intents aspect for transitive App Intents processing."""
 
     app_intents_hint_info = None
-    validation_outputs = []
-    framework_typename_file = None
     if SwiftInfo in target:
         app_intents_hint_info = _app_intents_hint_info(ctx.rule.attr.aspect_hints)
         if app_intents_hint_info:
             _verify_app_intents_dependency(target = target)
-
-        const_values = None
-        if OutputGroupInfo in target:
-            const_values = getattr(target[OutputGroupInfo], "const_values", None)
-
-        sdk_frameworks = cc_info_support.get_sdk_frameworks(deps = [target], include_weak = True)
-        if const_values and "AppIntents" in sdk_frameworks.to_list():
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-            if apple_xplat_toolchain_info.build_settings.validate_app_intents:
-                framework_typename_file = _validate_app_intents_aspect_hints(
-                    actions = ctx.actions,
-                    app_intents_hint_info = app_intents_hint_info,
-                    const_values = const_values,
-                    protocol_json = ctx.attr._app_intents_sdk_json.files.to_list()[0],
-                    swift_const_values_validation_tool = apple_xplat_toolchain_info.swift_const_values_validation_tool,
-                    target_label = target.label,
-                    target_name = target.label.name,
-                    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
-                )
-                validation_outputs.append(framework_typename_file)
 
     transitive_metadata_bundle_inputs = []
 
@@ -271,51 +167,38 @@ def _app_intents_aspect_impl(target, ctx):
 
     # If this target is a swift_library with the App Intents hint, verify it's correct and generate
     # a provider to define required dependencies to generate a metadata bundle for this target.
-    providers = []
     if app_intents_hint_info:
         label = ctx.label
         module_name = _find_valid_module_name(label = label, target = target)
         direct_metadata_bundle_input = _generate_metadata_bundle_inputs(
             direct_app_intents_modules = direct_app_intents_modules,
             files = ctx.rule.files,
-            framework_typename_file = framework_typename_file,
             is_static_metadata = app_intents_hint_info.static_metadata,
             label = label,
             module_name = module_name,
             target = target,
         )
-        providers.append(AppIntentsInfo(
+        return [AppIntentsInfo(
             metadata_bundle_inputs = depset(
                 [direct_metadata_bundle_input],
                 transitive = transitive_metadata_bundle_inputs,
                 order = "postorder",
             ),
-        ))
-    elif transitive_metadata_bundle_inputs:
-        # If we only have transitive inputs, propagate them up the graph.
-        providers.append(AppIntentsInfo(
+        )]
+
+    # If we only have transitive inputs, propagate them up the graph.
+    if transitive_metadata_bundle_inputs:
+        return [AppIntentsInfo(
             metadata_bundle_inputs = depset(
                 transitive = transitive_metadata_bundle_inputs,
                 order = "postorder",
             ),
-        ))
+        )]
 
-    if validation_outputs:
-        providers.append(OutputGroupInfo(_validation = depset(validation_outputs)))
-
-    return providers
+    return []
 
 app_intents_aspect = aspect(
     implementation = _app_intents_aspect_impl,
     attr_aspects = _APP_INTENTS_ASPECT_ATTRS,
-    attrs = (
-        {
-            "_app_intents_sdk_json": attr.label(
-                allow_single_file = True,
-                default = Label("@build_bazel_rules_apple//apple/internal/aspects:app_intents_sdk_json"),
-            ),
-        }
-    ),
-    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     doc = "Collects App Intents metadata dependencies from swift_library targets.",
 )
