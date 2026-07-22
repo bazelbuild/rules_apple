@@ -99,7 +99,7 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
     )
 
 def _apple_resource_aspect_impl(target, ctx):
-    """Implementation of the resource propation aspect."""
+    """Implementation of the resource propagation aspect."""
 
     # If the target already propagates a AppleResourceInfo, do nothing.
     if AppleResourceInfo in target:
