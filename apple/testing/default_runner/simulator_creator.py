@@ -61,7 +61,22 @@ def _boot_gate() -> Iterator[None]:
                 "note: waiting for another test to finish booting a simulator",
                 file=sys.stderr,
             )
-            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            # Bound the wait: a hung boot elsewhere must not consume this
+            # test's whole timeout. Booting ungated is a better outcome than
+            # timing out in the queue.
+            deadline = time.time() + 120
+            while True:
+                try:
+                    fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    if time.time() > deadline:
+                        print(
+                            "note: boot gate still held after 120s; proceeding without it",
+                            file=sys.stderr,
+                        )
+                        break
+                    time.sleep(5)
         yield
 
 
@@ -177,6 +192,24 @@ def _default_device_name(device_type: str, os_version: str, pool_slot: str) -> s
     return name
 
 
+def _simulator_is_healthy(simulator_id: str) -> bool:
+    # A simulator can report state "booted" while actually being unusable:
+    # if the test that started its initial boot was killed partway through
+    # (e.g. by a test timeout), the device stays "booted" but never becomes
+    # able to run tests, and every later test reusing it hangs. SpringBoard
+    # being up is the reliable readiness signal.
+    try:
+        services = subprocess.check_output(
+            ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "list"],
+            text=True,
+            timeout=30,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+    return "com.apple.SpringBoard" in services
+
+
 def _create_and_boot_simulator(
     device_name: str,
     device_type: str,
@@ -202,6 +235,19 @@ def _create_and_boot_simulator(
         print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
         if state != "booted":
             with _boot_gate():
+                _boot_simulator(simulator_id)
+        elif not _simulator_is_healthy(simulator_id):
+            print(
+                f"Simulator '{name}' ({simulator_id}) is booted but not "
+                "responding; shutting it down and rebooting",
+                file=sys.stderr,
+            )
+            with _boot_gate():
+                subprocess.run(
+                    ["xcrun", "simctl", "shutdown", simulator_id],
+                    check=False,
+                    capture_output=True,
+                )
                 _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:
