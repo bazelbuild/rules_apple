@@ -37,7 +37,7 @@ load(
 )
 
 def _app_intents_aspect_impl(target, ctx):
-    """Implementation of the swift source files propation aspect."""
+    """Implementation of the swift source files propagation aspect."""
     if ctx.rule.kind != "swift_library":
         return []
 
