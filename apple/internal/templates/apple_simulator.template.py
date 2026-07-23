@@ -463,20 +463,74 @@ def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
     Exception: if the simulator did not launch within 60 seconds.
   """
   logger.info("Launching simulator with udid: %s", udid)
-  # Using subprocess.Popen() to launch Simulator.app and then
-  # `osascript -e "tell application \"Simulator\" to activate" is racy
-  # and can fail with:
-  #
-  #   Simulator got an error: Connection is invalid. (-609)
-  #
-  # This is likely because the newly-spawned Simulator.app process
-  # hasn't had time to connect to the Apple Events system which
-  # `osascript` relies on.
-  simulator_path = os.path.join(developer_path, "Applications/Simulator.app")
-  subprocess.run(
-      ["open", "-a", simulator_path, "--args", "-CurrentDeviceUDID", udid],
-      check=True,
+
+  # Boot the device explicitly via simctl. Historically the boot was a side
+  # effect of launching Simulator.app with `-CurrentDeviceUDID`, but Simulator.app
+  # was removed from the Xcode bundle in favor of DeviceHub.app (Xcode 27), which
+  # does not boot a device on launch. Booting via simctl works on every Xcode
+  # version.
+  try:
+    subprocess.run([simctl_path, "boot", udid], check=True)
+  except subprocess.CalledProcessError as e:
+    # `simctl boot` errors out if the device is already booted, exiting 149
+    # with "Unable to boot device in current state: Booted". Since our goal is
+    # simply for the device to be booted, that case is already satisfied and we
+    # can carry on. But 149 is not unique to "already booted" -- other states
+    # like "Shutting Down" report it too -- so, as simulator_creator.py does, we
+    # only ignore it after confirming via `simctl list` that the device really
+    # is booted. Every other failure propagates.
+    already_booted = False
+    if e.returncode == 149:
+      list_result = subprocess.run(
+          [simctl_path, "list", "devices", "-j", udid],
+          encoding="utf-8",
+          stdout=subprocess.PIPE,
+          check=True,
+      )
+      devices = json.loads(list_result.stdout)["devices"]
+      device = next(
+          (
+              blob
+              for devices_for_os in devices.values()
+              for blob in devices_for_os
+              if blob["udid"] == udid
+          ),
+          None,
+      )
+      already_booted = bool(device) and device["state"].lower() == "booted"
+    if not already_booted:
+      raise
+    logger.debug("Simulator %s is already booted", udid)
+
+  # Bring up a GUI window so the running app is visible. This is purely cosmetic
+  # for `bazel run` -- the device is already booted above -- so it is best-effort:
+  # a missing or failing GUI app must not fail the run. Prefer the legacy
+  # Simulator.app and fall back to DeviceHub.app (under Contents/Applications) on
+  # newer Xcodes.
+  legacy_simulator = os.path.join(developer_path, "Applications", "Simulator.app")
+  device_hub = os.path.join(
+      developer_path, os.pardir, "Applications", "DeviceHub.app"
   )
+  if os.path.exists(legacy_simulator):
+    # Using subprocess.Popen() to launch Simulator.app and then
+    # `osascript -e "tell application \"Simulator\" to activate"` is racy and can
+    # fail with "Simulator got an error: Connection is invalid. (-609)", likely
+    # because the newly-spawned process has not yet connected to the Apple Events
+    # system that `osascript` relies on. Launching the booted device directly via
+    # `open --args -CurrentDeviceUDID` avoids that race.
+    subprocess.run(
+        ["open", "-a", legacy_simulator, "--args", "-CurrentDeviceUDID", udid],
+        check=False,
+    )
+  elif os.path.exists(device_hub):
+    subprocess.run(["open", "-a", device_hub], check=False)
+  else:
+    logger.warning(
+        "No simulator GUI app found under %s; the device is booted but no "
+        "window will be shown.",
+        developer_path,
+    )
+
   logger.debug("Simulator launched.")
   if not wait_for_sim_to_boot(simctl_path, udid):
     raise Exception("Failed to launch simulator with UDID: " + udid)
