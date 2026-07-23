@@ -1,0 +1,42 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: macos-26
+    timeout-minutes: 120
+    concurrency:
+      group: macos-latest-xcode-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+
+          sudo xcode-select -s /Applications/Xcode_26.4.app
+          xcode-select -p
+          xcodebuild -version
+
+      - name: Test
+        run: |
+          set -euo pipefail
+
+          developer_dir=$(xcode-select -p)
+          test_targets_file=$(mktemp)
+          trap 'rm -f "$test_targets_file"' EXIT
+
+          DEVELOPER_DIR="$developer_dir" bazel test --test_output=errors --build_tests_only //examples/multi_platform/Buttons:ButtonsMacTests
