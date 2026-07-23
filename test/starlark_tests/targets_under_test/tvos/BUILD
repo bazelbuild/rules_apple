@@ -1596,6 +1596,9 @@ tvos_extension(
     name = "ext_for_bundle_loader",
     bundle_id = "com.google.example.ext",
     entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    exported_symbols_lists = [
+        "//test/starlark_tests/resources:ExportObjectiveCCommonClass.exp",
+    ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

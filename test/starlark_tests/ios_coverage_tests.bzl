@@ -15,6 +15,10 @@
 """iOS coverage Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "action_command_line_test",
+)
+load(
     "//test/starlark_tests/rules:apple_coverage_test.bzl",
     "apple_coverage_test",
 )
@@ -88,6 +92,19 @@ def ios_coverage_test_suite(name):
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_hosted_test",
         tags = [name, "exclusive"],
+    )
+
+    action_command_line_test(
+        name = "{}_hosted_test_host_exported_symbols_list_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_app",
+        expected_argv = [
+            "-Wl,-exported_symbols_list,test/starlark_tests/targets_under_test/ios/ExportCoverageFoo.exp",
+        ],
+        not_expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
+        mnemonic = "ObjcLink",
+        tags = [name],
     )
 
     apple_coverage_test(
