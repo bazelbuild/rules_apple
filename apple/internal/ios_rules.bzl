@@ -156,6 +156,33 @@ load(
     "main_thread_checker_dylibs",
 )
 
+def _is_uuid(value):
+    """Returns True if the value looks like a UUID, False otherwise.
+
+    A UUID has the format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+    (36 characters with hyphens at specific positions)
+
+    Args:
+        value: The string value to check.
+
+    Returns:
+        True if the value appears to be a UUID, False otherwise.
+    """
+    if not value or len(value) != 36:
+        return False
+
+    # Check for hyphens at the correct positions (8, 13, 18, 23)
+    if value[8] != "-" or value[13] != "-" or value[18] != "-" or value[23] != "-":
+        return False
+
+    # Check that all other characters are hexadecimal
+    for i, char in enumerate(value):
+        if i in [8, 13, 18, 23]:
+            continue
+        if not (char.isdigit() or char.lower() in "abcdef"):
+            return False
+    return True
+
 def _ios_simulator_device(*, apple_xplat_toolchain_info, objc_fragment):
     return (apple_xplat_toolchain_info.build_settings.ios_simulator_device or
             # TODO: Remove when we drop Bazel 9.x support.
@@ -499,6 +526,27 @@ def _ios_application_impl(ctx):
             device = apple_xplat_toolchain_info.build_settings.ios_device,
         )
     else:
+        ios_device = apple_xplat_toolchain_info.build_settings.ios_device
+
+        # Determine whether ios_device is a UUID or a device name
+        # If it's a UUID, pass it as simulator_identifier
+        # If it's a device name, pass it as simulator_device (overriding the default)
+        if ios_device and _is_uuid(ios_device):
+            sim_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            )
+            sim_identifier = ios_device
+        elif ios_device:
+            sim_device = ios_device
+            sim_identifier = None
+        else:
+            sim_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            )
+            sim_identifier = None
+
         run_support.register_simulator_executable(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -509,13 +557,8 @@ def _ios_application_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
-            simulator_device = _ios_simulator_device(
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                objc_fragment = ctx.fragments.objc,
-            ),
-            simulator_identifier = (
-                apple_xplat_toolchain_info.build_settings.ios_device
-            ),
+            simulator_device = sim_device,
+            simulator_identifier = sim_identifier,
             simulator_version = _ios_simulator_version(
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 objc_fragment = ctx.fragments.objc,
@@ -842,6 +885,27 @@ def _ios_app_clip_impl(ctx):
             device = apple_xplat_toolchain_info.build_settings.ios_device,
         )
     else:
+        ios_device = apple_xplat_toolchain_info.build_settings.ios_device
+
+        # Determine whether ios_device is a UUID or a device name
+        # If it's a UUID, pass it as simulator_identifier
+        # If it's a device name, pass it as simulator_device (overriding the default)
+        if ios_device and _is_uuid(ios_device):
+            sim_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            )
+            sim_identifier = ios_device
+        elif ios_device:
+            sim_device = ios_device
+            sim_identifier = None
+        else:
+            sim_device = _ios_simulator_device(
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                objc_fragment = ctx.fragments.objc,
+            )
+            sim_identifier = None
+
         run_support.register_simulator_executable(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -852,10 +916,8 @@ def _ios_app_clip_impl(ctx):
             predeclared_outputs = predeclared_outputs,
             rule_descriptor = rule_descriptor,
             runner_template = ctx.file._simulator_runner_template,
-            simulator_device = _ios_simulator_device(
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                objc_fragment = ctx.fragments.objc,
-            ),
+            simulator_device = sim_device,
+            simulator_identifier = sim_identifier,
             simulator_version = _ios_simulator_version(
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 objc_fragment = ctx.fragments.objc,
