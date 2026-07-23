@@ -56,7 +56,7 @@ def _get_xctestrun_template_substitutions(xcode_config):
     # Xcode 26.5's LaunchServices launcher drops XCTest's dynamic environment
     # when xcodebuild is sandboxed. Select the POSIX launcher so those values
     # reach the test process.
-    if xcode_support.is_xcode_at_least_version(xcode_config, "26.5"):
+    if xcode_support.is_xcode_at_least_version(xcode_config, "26.4"):
         subs["xctestrun_use_posix_spawn"] = """<key>UseProcessLauncherKindPosixSpawn</key>
 		<true/>"""
 
