@@ -1,9 +1,14 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+package(
+    default_visibility = [
+        "//apple:__subpackages__",
+    ],
+)
+
 # Aspects.
 
-# This file exists to create a package under which to load the aspect
-# bzl files.
+# This file exists to create a package under which to load the aspect bzl files.
 
 licenses(["notice"])
 
@@ -16,6 +21,7 @@ bzl_library(
     deps = [
         "//apple/internal:cc_info_support",
         "//apple/internal/providers:app_intents_info",
+        "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_rules_swift//swift:providers",
     ],
 )

@@ -317,6 +317,7 @@ def _ios_application_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
@@ -324,6 +325,7 @@ def _ios_application_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -964,6 +966,7 @@ def _ios_framework_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -971,6 +974,7 @@ def _ios_framework_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -1235,6 +1239,7 @@ def _ios_extension_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -1242,6 +1247,7 @@ def _ios_extension_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
