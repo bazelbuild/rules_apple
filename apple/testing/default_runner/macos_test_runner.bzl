@@ -123,7 +123,13 @@ def _macos_test_runner_impl(ctx):
     return [
         apple_provider.make_apple_test_runner_info(
             test_runner_template = ctx.outputs.test_runner_template,
-            execution_requirements = {"requires-darwin": ""},
+            # xcodebuild uses LaunchServices to start macOS test hosts. On
+            # macOS 26, LaunchServices strips XCTest's dynamic environment
+            # when xcodebuild is sandboxed, leaving the test session hung.
+            execution_requirements = {
+                "no-sandbox": "1",
+                "requires-darwin": "",
+            },
             execution_environment = _get_execution_environment(xcode_config),
         ),
         DefaultInfo(runfiles = runfiles),
