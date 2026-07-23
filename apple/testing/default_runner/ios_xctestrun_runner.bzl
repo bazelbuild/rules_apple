@@ -30,6 +30,7 @@ def _get_template_substitutions(
         pre_action_binary,
         random,
         reuse_simulator,
+        screen_capture_format,
         sdk_version,
         xcodebuild_args,
         xctestrun_template,
@@ -47,6 +48,7 @@ def _get_template_substitutions(
         "post_action_determines_exit_code": post_action_determines_exit_code,
         "pre_action_binary": pre_action_binary,
         "reuse_simulator": reuse_simulator,
+        "screen_capture_format": screen_capture_format,
         "sdk_version": sdk_version,
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
@@ -120,6 +122,7 @@ def _ios_xctestrun_runner_impl(ctx):
             pre_action_binary = pre_action_binary,
             random = ctx.attr.random,
             reuse_simulator = "true" if ctx.attr.reuse_simulator else "false",
+            screen_capture_format = ctx.attr.screen_capture_format,
             sdk_version = sdk_version,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
             xctestrun_template = ctx.file._xctestrun_template.short_path,
@@ -247,6 +250,21 @@ dependencies.
             default = True,
             doc = """
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
+""",
+        ),
+        "screen_capture_format": attr.string(
+            default = "",
+            values = ["", "screenshots", "screenRecording"],
+            doc = """
+Controls the `PreferredScreenCaptureFormat` written into the generated xctestrun file (added in Xcode 15). One of:
+
+* `""` (default): do not set the key, use Xcode's platform default.
+* `"screenshots"`: capture screenshots only.
+* `"screenRecording"`: capture a full screen recording of each UI test run, attached to the resulting `.xcresult` bundle.
+
+Setting a non-empty value forces the runner onto the `xcodebuild test-without-building` path (the direct `xctest` path does not read the xctestrun file and cannot capture the screen) and forces an `.xcresult` bundle to be produced (the capture is only observable there). This attribute is only meaningful for UI tests.
+
+Screen captures are system attachments, so setting this attribute requires `attachment_lifetime` to be `"keepAlways"` or `"deleteOnSuccess"` — with the default `"keepNever"` the capture would be discarded before it reaches the `.xcresult`, so the runner fails with an error.
 """,
         ),
         "xcodebuild_args": attr.string_list(

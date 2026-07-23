@@ -21,6 +21,7 @@ custom_xcodebuild_args=(%(xcodebuild_args)s)
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
+screen_capture_format="%(screen_capture_format)s"
 destination_timeout="%(destination_timeout)s"
 while [[ $# -gt 0 ]]; do
   arg="$1"
@@ -37,6 +38,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --xctestrun_attachment_lifetime=*)
       attachment_lifetime="${arg##*=}"
+      ;;
+    --xctestrun_screen_capture_format=*)
+      screen_capture_format="${arg##*=}"
       ;;
     *)
       echo "error: Unsupported argument '${arg}'" >&2
@@ -538,6 +542,16 @@ if (( ${#custom_xcodebuild_args[@]} )); then
   echo "note: Using 'xcodebuild' because '--xcodebuild_args' was provided"
   should_use_xcodebuild=true
 fi
+if [[ -n "$screen_capture_format" ]]; then
+  echo "note: Using 'xcodebuild' because a screen capture format was requested"
+  should_use_xcodebuild=true
+  # The capture is only observable in the XCResult bundle, so force one.
+  create_xcresult_bundle=true
+  if [[ "$attachment_lifetime" == "keepNever" ]]; then
+    echo "error: 'screen_capture_format' requires 'attachment_lifetime' to be 'keepAlways' or 'deleteOnSuccess'; with 'keepNever' the capture would be discarded before it reaches the .xcresult bundle" >&2
+    exit 1
+  fi
+fi
 
 # Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
@@ -556,6 +570,14 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   xctestrun_attachment_lifetime_section+="    <key>UserAttachmentLifetime</key>\n"
   xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>"
 
+  # Set the preferred screen capture format (Xcode 15+). Left empty when the
+  # attribute is unset so we don't override Xcode's platform default.
+  xctestrun_screen_capture_format_section=""
+  if [[ -n "$screen_capture_format" ]]; then
+    xctestrun_screen_capture_format_section+="    <key>PreferredScreenCaptureFormat</key>\n"
+    xctestrun_screen_capture_format_section+="    <string>$screen_capture_format</string>"
+  fi
+
   readonly xctestrun_file="$test_tmp_dir/tests.xctestrun"
   /usr/bin/sed \
     -e "s${sed_delim}BAZEL_INSERT_LIBRARIES${sed_delim}$xctestrun_libraries${sed_delim}g" \
@@ -573,6 +595,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s${sed_delim}BAZEL_COVERAGE_OUTPUT_DIR${sed_delim}$test_tmp_dir${sed_delim}g" \
     -e "s${sed_delim}BAZEL_COMMAND_LINE_ARGS_SECTION${sed_delim}$xctestrun_cmd_line_args_section${sed_delim}g" \
     -e "s${sed_delim}BAZEL_ATTACHMENT_LIFETIME_SECTION${sed_delim}$xctestrun_attachment_lifetime_section${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_SCREEN_CAPTURE_FORMAT_SECTION${sed_delim}$xctestrun_screen_capture_format_section${sed_delim}g" \
     -e "s${sed_delim}BAZEL_SKIP_TEST_SECTION${sed_delim}$xctestrun_skip_test_section${sed_delim}g" \
     -e "s${sed_delim}BAZEL_ONLY_TEST_SECTION${sed_delim}$xctestrun_only_test_section${sed_delim}g" \
     -e "s${sed_delim}BAZEL_ARCHITECTURE${sed_delim}$architecture${sed_delim}g" \
