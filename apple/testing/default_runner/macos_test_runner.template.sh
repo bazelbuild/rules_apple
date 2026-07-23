@@ -64,6 +64,11 @@ basename_without_extension() {
 # and parameterized version of the one created by Xcode. For more information
 # about this file, check `man xcodebuild.xctestrun`.
 BAZEL_XCTESTRUN_TEMPLATE=%(xctestrun_template)s
+xcode_user_defaults_file="%(xcode_user_defaults)s"
+if [[ -n "$xcode_user_defaults_file" ]]; then
+  xcode_user_defaults_file="$PWD/$xcode_user_defaults_file"
+fi
+readonly xcode_user_defaults_file
 
 # Create a temporary folder that will contain the test bundle and potentially
 # the test host bundle as well.
@@ -248,9 +253,16 @@ if (( ${#xcodebuild_args[@]} )); then
     args+=("${xcodebuild_args[@]}")
 fi
 
-xcodebuild test-without-building "${args[@]}" \
-    2>&1 | tee -i "$testlog" \
-    || test_exit_code=$?
+if [[ -n "$xcode_user_defaults_file" ]]; then
+  XCODE_USER_DEFAULTS_FILE="$xcode_user_defaults_file" \
+    xcodebuild test-without-building "${args[@]}" \
+      2>&1 | tee -i "$testlog" \
+      || test_exit_code=$?
+else
+  xcodebuild test-without-building "${args[@]}" \
+      2>&1 | tee -i "$testlog" \
+      || test_exit_code=$?
+fi
 
 parallel_testing_enabled=false
 if grep -q "-parallel-testing-enabled YES" "$testlog"; then

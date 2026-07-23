@@ -31,6 +31,7 @@ def _get_xctestrun_template_substitutions(xcode_config):
     if not xcode_config.xcode_version():
         return {
             "%(xctestrun_insert_libraries)s": "",
+            "%(xctestrun_use_posix_spawn)s": "",
         }
 
     # Xcode 10 introduced new dylibs that are required when running unit tests, so we need to
@@ -49,19 +50,29 @@ def _get_xctestrun_template_substitutions(xcode_config):
 
     subs = {
         "xctestrun_insert_libraries": ":".join(xctestrun_insert_libraries),
+        "xctestrun_use_posix_spawn": "",
     }
+
+    # Xcode 26's LaunchServices launcher drops XCTest's dynamic environment
+    # when xcodebuild is sandboxed. Select the POSIX launcher so those values
+    # reach the test process.
+    if xcode_support.is_xcode_at_least_version(xcode_config, "26.0"):
+        subs["xctestrun_use_posix_spawn"] = """<key>UseProcessLauncherKindPosixSpawn</key>
+		<true/>"""
 
     return {"%(" + k + ")s": subs[k] for k in subs}
 
 def _get_template_substitutions(
         *,
         xctestrun_template,
+        xcode_user_defaults,
         pre_action_binary,
         post_action_binary,
         post_action_determines_exit_code):
     """Returns the template substitutions for this runner."""
     subs = {
         "xctestrun_template": xctestrun_template.short_path,
+        "xcode_user_defaults": xcode_user_defaults,
         "pre_action_binary": pre_action_binary,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
@@ -92,7 +103,20 @@ def _macos_test_runner_impl(ctx):
         substitutions = _get_xctestrun_template_substitutions(xcode_config),
     )
 
-    runfiles = ctx.runfiles(files = [preprocessed_xctestrun_template])
+    # XCODE_USER_DEFAULTS_FILE makes the launcher override process-local; it
+    # avoids changing the user's persistent Xcode preferences.
+    use_posix_spawn = (
+        xcode_config.xcode_version() and
+        xcode_support.is_xcode_at_least_version(xcode_config, "26.0")
+    )
+    xcode_user_defaults = (
+        ctx.file._xcode_user_defaults.short_path if use_posix_spawn else ""
+    )
+
+    runfiles_files = [preprocessed_xctestrun_template]
+    if use_posix_spawn:
+        runfiles_files.append(ctx.file._xcode_user_defaults)
+    runfiles = ctx.runfiles(files = runfiles_files)
 
     default_action_binary = "/usr/bin/true"
 
@@ -114,6 +138,7 @@ def _macos_test_runner_impl(ctx):
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             xctestrun_template = preprocessed_xctestrun_template,
+            xcode_user_defaults = xcode_user_defaults,
             pre_action_binary = pre_action_binary,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
@@ -161,6 +186,10 @@ When true, the exit code of the test run will be set to the exit code of the pos
                 fragment = "apple",
                 name = "xcode_config_label",
             ),
+        ),
+        "_xcode_user_defaults": attr.label(
+            default = Label("//apple/testing/default_runner:macos_test_runner.xcode_user_defaults.plist"),
+            allow_single_file = True,
         ),
         "_xctestrun_template": attr.label(
             default = Label("//apple/testing/default_runner:macos_test_runner.template.xctestrun"),
