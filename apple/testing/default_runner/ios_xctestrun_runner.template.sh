@@ -494,7 +494,31 @@ if [[ "$build_for_device" == false ]]; then
     exit 1
   fi
 
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
+  # A simulator can only service one test session at a time: when Bazel runs
+  # multiple simulator tests concurrently (--local_test_jobs) against the same
+  # reused simulator, the sessions disrupt each other, manifesting as hangs or
+  # "Failed to initialize for UI testing" errors. To let concurrent tests run
+  # in parallel, each test action claims an exclusive slot in a simulator pool
+  # keyed on (device type, OS version) before asking the simulator creator for
+  # a device: slot 0 reuses today's simulator name, higher slots (which only
+  # exist while tests actually run concurrently) get their own suffixed
+  # simulator. A claim is an atomic shlock(1) pid lockfile: it is valid only
+  # while this process is alive, so a test killed for any reason — including
+  # SIGKILL from a test timeout — never leaves a slot permanently claimed;
+  # the next prober validates the recorded pid and atomically reclaims dead
+  # slots. The lock files live in the per-user temp dir, which is shared
+  # across Bazel's sandboxed test actions. Skipped when shlock(1) is
+  # unavailable, preserving today's single-simulator behavior.
+  simulator_pool_slot=0
+  if [[ "${reuse_simulator:-}" == 1 && -x /usr/bin/shlock ]]; then
+    pool_lock_root="$(getconf DARWIN_USER_TEMP_DIR 2>/dev/null || echo /tmp)"
+    pool_lock_prefix="${pool_lock_root%/}/rules_apple_simulator_pool_$(printf '%s' "%(device_type)s_%(os_version)s" | /usr/bin/tr -C '[:alnum:]._-' '_')"
+    while ! /usr/bin/shlock -f "${pool_lock_prefix}_${simulator_pool_slot}.lock" -p $$; do
+      simulator_pool_slot=$((simulator_pool_slot + 1))
+    done
+  fi
+
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_POOL_SLOT="$simulator_pool_slot" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0

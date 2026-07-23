@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import argparse
+import contextlib
+import fcntl
 import json
 import os
 import random
@@ -22,11 +24,60 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
 
 def _simctl(extra_args: List[str]) -> str:
     return subprocess.check_output(["xcrun", "simctl", *extra_args], text=True)
+
+
+def _shared_lock_dir() -> str:
+    # The per-user temp dir is shared across Bazel's sandboxed test actions
+    # (each action gets a private $TMPDIR), so locks placed there coordinate
+    # concurrent test actions on the same machine.
+    try:
+        path = subprocess.check_output(
+            ["/usr/bin/getconf", "DARWIN_USER_TEMP_DIR"], text=True
+        ).strip()
+        if path:
+            return path
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return "/tmp"
+
+
+@contextlib.contextmanager
+def _boot_gate() -> Iterator[None]:
+    # Concurrent simulator create/boot operations starve smaller machines into
+    # test timeouts, so cold boots are serialized machine-wide. The kernel
+    # releases the lock when this process exits for any reason, and subprocess
+    # children don't inherit the fd (close_fds is the default).
+    lock_path = os.path.join(_shared_lock_dir(), "rules_apple_simulator_boot.lock")
+    with open(lock_path, "w") as lock_file:
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(
+                "note: waiting for another test to finish booting a simulator",
+                file=sys.stderr,
+            )
+            # Bound the wait: a hung boot elsewhere must not consume this
+            # test's whole timeout. Booting ungated is a better outcome than
+            # timing out in the queue.
+            deadline = time.time() + 120
+            while True:
+                try:
+                    fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    if time.time() > deadline:
+                        print(
+                            "note: boot gate still held after 120s; proceeding without it",
+                            file=sys.stderr,
+                        )
+                        break
+                    time.sleep(5)
+        yield
 
 
 def _boot_simulator(simulator_id: str) -> None:
@@ -129,8 +180,34 @@ def _selected_simulator_runtime(
     raise RuntimeError("no matching runtimes found")
 
 
-def _default_device_name(device_type: str, os_version: str) -> str:
-    return f"BAZEL_TEST_{device_type}_{os_version}"
+def _default_device_name(device_type: str, os_version: str, pool_slot: str) -> str:
+    # Each concurrent test action claims an exclusive pool slot (see the
+    # runner template) so no two running tests share a simulator. Slot 0 keeps
+    # the historical name so existing simulators are still reused; higher
+    # slots, which only exist while tests actually run concurrently, get their
+    # own suffixed simulator.
+    name = f"BAZEL_TEST_{device_type}_{os_version}"
+    if pool_slot != "0":
+        name += f"_{pool_slot}"
+    return name
+
+
+def _simulator_is_healthy(simulator_id: str) -> bool:
+    # A simulator can report state "booted" while actually being unusable:
+    # if the test that started its initial boot was killed partway through
+    # (e.g. by a test timeout), the device stays "booted" but never becomes
+    # able to run tests, and every later test reusing it hangs. SpringBoard
+    # being up is the reliable readiness signal.
+    try:
+        services = subprocess.check_output(
+            ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "list"],
+            text=True,
+            timeout=30,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+    return "com.apple.SpringBoard" in services
 
 
 def _create_and_boot_simulator(
@@ -157,7 +234,21 @@ def _create_and_boot_simulator(
         state = existing_device["state"].lower()
         print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
         if state != "booted":
-            _boot_simulator(simulator_id)
+            with _boot_gate():
+                _boot_simulator(simulator_id)
+        elif not _simulator_is_healthy(simulator_id):
+            print(
+                f"Simulator '{name}' ({simulator_id}) is booted but not "
+                "responding; shutting it down and rebooting",
+                file=sys.stderr,
+            )
+            with _boot_gate():
+                subprocess.run(
+                    ["xcrun", "simctl", "shutdown", simulator_id],
+                    check=False,
+                    capture_output=True,
+                )
+                _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:
             # Simulator reuse is based on device name, therefore we must generate a unique name to
@@ -165,11 +256,12 @@ def _create_and_boot_simulator(
             device_name_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
             device_name += f"_{device_name_suffix}"
 
-        simulator_id = _simctl(
-            ["create", device_name, device_type, runtime_identifier]
-        ).strip()
-        print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
-        _boot_simulator(simulator_id)
+        with _boot_gate():
+            simulator_id = _simctl(
+                ["create", device_name, device_type, runtime_identifier]
+            ).strip()
+            print(f"Created new simulator '{device_name}' ({simulator_id})", file=sys.stderr)
+            _boot_simulator(simulator_id)
 
     return simulator_id.strip()
 
@@ -234,9 +326,13 @@ def _main() -> None:
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
+    pool_slot = os.getenv("SIMULATOR_POOL_SLOT", "0")
+    if not pool_slot.isdigit():
+        pool_slot = "0"
+
     selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
     device_name = args.name or _default_device_name(
-        device_type, selected_runtime.version
+        device_type, selected_runtime.version, pool_slot
     )
 
     print("Selected simulator runtime", selected_runtime.identifier, file=sys.stderr)
