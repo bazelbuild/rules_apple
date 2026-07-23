@@ -34,8 +34,9 @@ which files are requested:
 *   `linkmaps`: This output group contains all linkmap files generated during
     the build, for the top level target **and** its embedded dependencies. To
     request this output group to be built, use the `--output_groups=+linkmaps`
-    flag. In order to generate the linkmap files you still need to pass the
-    `--objc_generate_linkmap` flag.
+    flag. Linkmap generation can be requested either per-target with the
+    `generate_linkmap` attribute or globally with the `--objc_generate_linkmap`
+    flag.
 
 ### dSYMs Generation {#apple_generate_dsym}
 
@@ -126,10 +127,21 @@ flags yourself.
 
 Linkmaps can be useful for figuring out how the `deps` going into a target are
 contributing to the final size of the binary. Bazel will generate a link map
-when linking by adding `--objc_generate_linkmap` to a `bazel build`.
+when linking if either the rule's `generate_linkmap` attribute is `True` or
+`--objc_generate_linkmap` is added to a `bazel build`.
 
 ```shell
 bazel build --objc_generate_linkmap //your/target
+```
+
+Or:
+
+```bzl
+ios_application(
+    name = "app",
+    generate_linkmap = True,
+    # ...
+)
 ```
 
 By default, only the top level linkmap file is built when this flag is
