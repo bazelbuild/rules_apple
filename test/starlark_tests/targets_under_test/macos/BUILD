@@ -278,9 +278,6 @@ macos_dynamic_framework(
     name = "basic_framework",
     bundle_id = "com.google.example.framework",
     bundle_name = "BasicFramework",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -1867,9 +1864,6 @@ macos_framework(
     name = "fmwk",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -2570,9 +2564,6 @@ macos_bundle(
         "//test/starlark_tests/resources:all_nested": "Nested",
     },
     bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
     deps = [

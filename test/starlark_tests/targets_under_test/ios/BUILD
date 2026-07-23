@@ -2801,9 +2801,6 @@ ios_framework(
         "iphone",
         "ipad",
     ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -4599,9 +4596,6 @@ ios_imessage_application(
         "iphone",
         "ipad",
     ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
@@ -5598,9 +5592,6 @@ ios_dynamic_framework(
     families = [
         "iphone",
         "ipad",
-    ],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     tags = common.fixture_tags,
