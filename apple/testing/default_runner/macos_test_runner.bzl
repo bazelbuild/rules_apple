@@ -53,10 +53,10 @@ def _get_xctestrun_template_substitutions(xcode_config):
         "xctestrun_use_posix_spawn": "",
     }
 
-    # Xcode 26.5's LaunchServices launcher drops XCTest's dynamic environment
+    # Xcode 26's LaunchServices launcher drops XCTest's dynamic environment
     # when xcodebuild is sandboxed. Select the POSIX launcher so those values
     # reach the test process.
-    if xcode_support.is_xcode_at_least_version(xcode_config, "26.4"):
+    if xcode_support.is_xcode_at_least_version(xcode_config, "26.0"):
         subs["xctestrun_use_posix_spawn"] = """<key>UseProcessLauncherKindPosixSpawn</key>
 		<true/>"""
 
@@ -107,7 +107,7 @@ def _macos_test_runner_impl(ctx):
     # avoids changing the user's persistent Xcode preferences.
     use_posix_spawn = (
         xcode_config.xcode_version() and
-        xcode_support.is_xcode_at_least_version(xcode_config, "26.5")
+        xcode_support.is_xcode_at_least_version(xcode_config, "26.0")
     )
     xcode_user_defaults = (
         ctx.file._xcode_user_defaults.short_path if use_posix_spawn else ""

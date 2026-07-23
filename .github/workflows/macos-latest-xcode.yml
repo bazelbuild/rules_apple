@@ -27,6 +27,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          sw_vers
           sudo xcode-select -s /Applications/Xcode_26.4.app
           xcode-select -p
           xcodebuild -version
