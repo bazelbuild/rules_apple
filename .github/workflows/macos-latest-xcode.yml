@@ -39,4 +39,4 @@ jobs:
           test_targets_file=$(mktemp)
           trap 'rm -f "$test_targets_file"' EXIT
 
-          DEVELOPER_DIR="$developer_dir" bazel test --test_output=errors --build_tests_only //examples/multi_platform/Buttons:ButtonsMacTests --spawn_strategy=standalone
+          DEVELOPER_DIR="$developer_dir" bazel test --test_output=errors --build_tests_only //examples/multi_platform/Buttons:ButtonsMacTests

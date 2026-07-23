@@ -10,6 +10,7 @@
 		<string>BAZEL_TEST_BUNDLE_PATH</string>
 		<key>TestHostPath</key>
 		<string>BAZEL_TEST_HOST_PATH</string>
+		%(xctestrun_use_posix_spawn)s
 		BAZEL_COMMAND_LINE_ARGS
 		BAZEL_SKIP_TEST_SECTION
 		BAZEL_ONLY_TEST_SECTION
