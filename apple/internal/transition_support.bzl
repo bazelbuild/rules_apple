@@ -542,15 +542,52 @@ def _command_line_options_for_xcframework_platform(
 
     return output_dictionary
 
+def _options_preserving_declared_constraints(*, options, settings, attr):
+    """Preserves the incoming `--platforms` for constraint-declaring targets.
+
+    Incoming rule transitions run before Bazel evaluates a target's
+    `target_compatible_with`, so forcing `--platforms` to a default Apple
+    platform makes an explicit constraint such as `["@platforms//os:macos"]`
+    match vacuously. The target is then analyzed (instead of skipped as
+    incompatible) on host platforms that cannot build it, and analysis fails
+    during C++ toolchain resolution. Preserving the incoming `--platforms`
+    lets Bazel's incompatible-target skipping evaluate the constraints the
+    target actually declared: incompatible targets are silently skipped by
+    wildcard builds and report `<target> is incompatible and cannot be
+    built, but was explicitly requested` when requested directly.
+
+    See https://github.com/bazelbuild/rules_apple/issues/2442.
+
+    Note: an attribute configured with `select()` is not readable from a
+    transition (it reads as `None`), in which case the transition behaves
+    as it did before this change.
+
+    Args:
+        options: The `"//command_line_option"`s dictionary computed for the
+            current target, which this function may modify.
+        settings: The transition's incoming settings dictionary.
+        attr: The attributes of the current target.
+
+    Returns:
+        The (possibly modified) `options` dictionary.
+    """
+    if getattr(attr, "target_compatible_with", None):
+        options["//command_line_option:platforms"] = settings["//command_line_option:platforms"]
+    return options
+
 def _apple_rule_base_transition_impl(settings, attr):
     """Rule transition for Apple rules using Bazel CPUs and a valid Apple split transition."""
     minimum_os_version = attr.minimum_os_version
     platform_type = attr.platform_type
-    return _command_line_options(
-        environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
-        minimum_os_version = minimum_os_version,
-        platform_type = platform_type,
+    return _options_preserving_declared_constraints(
+        options = _command_line_options(
+            environment_arch = _environment_archs(platform_type, minimum_os_version, settings)[0],
+            minimum_os_version = minimum_os_version,
+            platform_type = platform_type,
+            settings = settings,
+        ),
         settings = settings,
+        attr = attr,
     )
 
 # These flags are a mix of options defined in native Bazel from the following fragments:
@@ -605,12 +642,16 @@ def _apple_platforms_rule_bundle_output_base_transition_impl(settings, attr):
         settings = settings,
         minimum_os_version = minimum_os_version,
     )
-    return _command_line_options(
-        environment_arch = environment_archs[0],
-        force_bundle_outputs = True,
-        minimum_os_version = minimum_os_version,
-        platform_type = platform_type,
+    return _options_preserving_declared_constraints(
+        options = _command_line_options(
+            environment_arch = environment_archs[0],
+            force_bundle_outputs = True,
+            minimum_os_version = minimum_os_version,
+            platform_type = platform_type,
+            settings = settings,
+        ),
         settings = settings,
+        attr = attr,
     )
 
 _apple_platforms_rule_bundle_output_base_transition = transition(
