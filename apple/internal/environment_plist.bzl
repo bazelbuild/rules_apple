@@ -65,6 +65,7 @@ def _environment_plist_impl(ctx):
         objc_fragment = None,
         uses_swift = False,
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
+        environment = getattr(ctx.fragments.apple.single_arch_platform, "get_target_environment", None),
     )
     environment_plist_tool = apple_toolchain_utils.get_mac_toolchain(ctx).environment_plist_tool
     platform = platform_prerequisites.platform
