@@ -126,6 +126,9 @@ def docc_test_suite(name):
     )
 
     # Verifying multiple symbol graph conversion via transitive dependencies.
+    #
+    # Transitive dependencies should be present in addition to the `dep` target
+    # ("TransitiveDependencyTest" in this case)
     archive_contents_test(
         name = "{}_contains_doccarchive_with_transitive_dependencies".format(name),
         build_type = "simulator",
@@ -133,6 +136,8 @@ def docc_test_suite(name):
         contains = [
             "$BUNDLE_ROOT/index.html",
             "$BUNDLE_ROOT/documentation/transitivedependencytest/index.html",
+            "$BUNDLE_ROOT/documentation/directdependencytest/index.html",
+            "$BUNDLE_ROOT/documentation/basicframework/index.html",
         ],
         tags = [name],
     )
