@@ -48,8 +48,8 @@ _IOS_ARCH_TO_EARLIEST_WATCHOS = {
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "x86_64": "x86_64",
     "sim_arm64": "arm64",
-    "arm64": "arm64_32",
-    "arm64e": "arm64_32",
+    "arm64": "device_arm64",
+    "arm64e": "device_arm64",
 }
 
 # Following map provides and ad-hoc platform mapping
@@ -156,7 +156,7 @@ def _watchos_environment_archs_from_ios(*, platform, minimum_os_version, setting
     if ios_archs:
         # Make sure to return a fallback compatible with the rule's assigned minimum OS.
         ios_to_watchos_arch_dict = _IOS_ARCH_TO_64_BIT_WATCHOS
-        if apple_common.dotted_version(minimum_os_version) < apple_common.dotted_version("9.0"):
+        if apple_common.dotted_version(minimum_os_version) < apple_common.dotted_version("27.0"):
             ios_to_watchos_arch_dict = _IOS_ARCH_TO_EARLIEST_WATCHOS
         environment_archs = [
             ios_to_watchos_arch_dict[arch]
@@ -314,6 +314,10 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 
     if (environment_arch == "armv7k" and platform_type == "watchos" and
         dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
+        return False
+
+    if (environment_arch == "arm64_32" and platform_type == "watchos" and
+        dotted_minimum_os_version >= apple_common.dotted_version("27.0")):
         return False
 
     return True
