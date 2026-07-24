@@ -1904,3 +1904,14 @@ macos_bundle(
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )
+
+macos_application(
+    name = "app_minimum_os_intel_deprecation",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.os_27_mandates,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)

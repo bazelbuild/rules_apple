@@ -1,4 +1,4 @@
-# Copyright 2021 The Bazel Authors. All rights reserved.
+# Copyright 2022 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""watchos_ui_test Starlark tests leveraging watchos_application."""
+"""watchos_ui_test Starlark tests leveraging watchos_single_target_application."""
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -46,37 +46,38 @@ def watchos_ui_test_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
-        tags = [name],
+        tags = [
+            name,
+        ],
     )
 
     analysis_output_group_info_files_test(
-        name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
+        name = "{}_dsyms_output_group_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext.appex.dSYM",
-            "ui_test.xctest.dSYM",
+            "single_target_ui_test.xctest.dSYM",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
-        name = "{}_apple_dsym_bundle_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
-        expected_direct_dsyms = ["ui_test.xctest.dSYM"],
-        expected_transitive_dsyms = ["ext.appex.dSYM", "ui_test.xctest.dSYM"],
+        name = "{}_dsym_bundle_info_dsymutil_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
+        expected_direct_dsyms = ["single_target_ui_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["single_target_ui_test.xctest.dSYM"],
         tags = [name],
     )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test",
         expected_values = {
             "BuildMachineOSBuild": "*",
-            "CFBundleExecutable": "ui_test",
+            "CFBundleExecutable": "single_target_ui_test",
             "CFBundleIdentifier": "com.google.exampleTests",
-            "CFBundleName": "ui_test",
+            "CFBundleName": "single_target_ui_test",
             "CFBundlePackageType": "BNDL",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
@@ -90,19 +91,23 @@ def watchos_ui_test_test_suite(name):
             "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
             "UIDeviceFamily:0": "4",
         },
-        tags = [name],
+        tags = [
+            name,
+        ],
     )
 
     infoplist_contents_test(
         name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ui_test_with_base_bundle_id_derived_bundle_id",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_ui_test_with_base_bundle_id_derived_bundle_id",
         expected_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.ui-test-with-base-bundle-id-derived-bundle-id",
+            "CFBundleIdentifier": "com.bazel.app.example.single-target-ui-test-with-base-bundle-id-derived-bundle-id",
         },
         tags = [name],
     )
 
     native.test_suite(
         name = name,
-        tags = [name],
+        tags = [
+            name,
+        ],
     )

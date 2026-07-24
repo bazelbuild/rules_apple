@@ -22,6 +22,7 @@ load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "analysis_failure_message_with_tree_artifact_outputs_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -61,6 +62,13 @@ load(
 )
 
 visibility("private")
+
+analysis_failure_message_with_intel_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_x86_64",
+    },
+)
 
 def macos_application_test_suite(name):
     """Test suite for macos_application.
@@ -567,6 +575,28 @@ def macos_application_test_suite(name):
             "^post-processed$",
         ],
         tags = [name],
+    )
+
+    analysis_failure_message_with_intel_test(
+        name = "{}_x86_64_macos_27_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_minimum_os_intel_deprecation",
+        expected_error = "macOS 27.0 and later is Apple Silicon only, and has no Intel native counterpart.",
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_defaults_to_arm64_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_minimum_os_intel_deprecation",
+        binary_test_file = "$CONTENT_ROOT/MacOS/app_minimum_os_intel_deprecation",
+        binary_test_architecture = "arm64",
+        cpus = {"macos_cpus": []},
+        binary_contains_symbols = ["_main"],
+        tags = [
+            name,
+        ],
     )
 
     native.test_suite(

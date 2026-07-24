@@ -131,6 +131,11 @@ watchos_extension(
     ],
     minimum_os_version = common.min_os_watchos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:Another.plist",
+        "//test/starlark_tests/resources:localization",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
@@ -670,4 +675,16 @@ watchos_ui_test(
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],
+)
+
+watchos_application(
+    name = "app_minimum_os_27",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.os_27_mandates,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
 )

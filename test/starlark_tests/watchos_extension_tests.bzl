@@ -15,10 +15,6 @@
 """watchos_extension Starlark tests."""
 
 load(
-    "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
-    "analysis_failure_message_test",
-)
-load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -59,7 +55,7 @@ def watchos_extension_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -67,7 +63,7 @@ def watchos_extension_test_suite(name):
     apple_verification_test(
         name = "{}_entitlements_simulator_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],
     )
@@ -75,7 +71,7 @@ def watchos_extension_test_suite(name):
     apple_verification_test(
         name = "{}_entitlements_device_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],
     )
@@ -87,14 +83,14 @@ def watchos_extension_test_suite(name):
             "$RESOURCE_ROOT/resource_bundle.bundle/Info.plist",
             "$RESOURCE_ROOT/Another.plist",
         ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         tags = [name],
     )
 
     archive_contents_test(
         name = "{}_strings_simulator_test".format(name),
         build_type = "simulator",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         contains = [
             "$RESOURCE_ROOT/localization.bundle/en.lproj/files.stringsdict",
             "$RESOURCE_ROOT/localization.bundle/en.lproj/greetings.strings",
@@ -102,42 +98,31 @@ def watchos_extension_test_suite(name):
         tags = [name],
     )
 
-    archive_contents_test(
-        name = "{}_imported_fmwk_simulator_test".format(name),
-        build_type = "simulator",
-        contains = [
-            "$BUNDLE_ROOT/PlugIns/ext_with_imported_fmwk.appex/Frameworks/generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
-            "$BUNDLE_ROOT/PlugIns/ext_with_imported_fmwk.appex/Frameworks/generated_watchos_dynamic_fmwk.framework/Info.plist",
-        ],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_imported_fmwk",
-        tags = [name],
-    )
-
     analysis_output_group_info_files_test(
         name = "{}_dsyms_output_group_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         output_group_name = "dsyms",
         expected_outputs = [
-            "ext.appex.dSYM",
+            "generic_ext.appex.dSYM",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_dsym_bundle_info_files_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
-        expected_direct_dsyms = ["ext.appex.dSYM"],
-        expected_transitive_dsyms = ["ext.appex.dSYM"],
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
+        expected_direct_dsyms = ["generic_ext.appex.dSYM"],
+        expected_transitive_dsyms = ["generic_ext.appex.dSYM"],
         tags = [name],
     )
 
     infoplist_contents_test(
         name = "{}_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         expected_values = {
             "BuildMachineOSBuild": "*",
-            "CFBundleExecutable": "ext",
+            "CFBundleExecutable": "generic_ext",
             "CFBundleIdentifier": "com.google.example.ext",
-            "CFBundleName": "ext",
+            "CFBundleName": "generic_ext",
             "CFBundlePackageType": "XPC!",
             "CFBundleSupportedPlatforms:0": "WatchSimulator*",
             "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
@@ -149,8 +134,6 @@ def watchos_extension_test_suite(name):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
             "MinimumOSVersion": common.min_os_watchos.min_deployment_target,
-            "NSExtension:NSExtensionAttributes:WKAppBundleIdentifier": "com.google.example",
-            "NSExtension:NSExtensionPointIdentifier": "com.apple.watchkit",
             "UIDeviceFamily:0": "4",
         },
         tags = [name],
@@ -179,16 +162,16 @@ def watchos_extension_test_suite(name):
     # is present.
     linkmap_test(
         name = "{}_linkmap_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         tags = [name],
     )
     analysis_output_group_info_files_test(
         name = "{}_linkmaps_output_group_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         output_group_name = "linkmaps",
         expected_outputs = [
-            "ext_x86_64.linkmap",
-            "ext_arm64.linkmap",
+            "generic_ext_x86_64.linkmap",
+            "generic_ext_arm64.linkmap",
         ],
         tags = [name],
     )
@@ -197,19 +180,10 @@ def watchos_extension_test_suite(name):
     archive_contents_test(
         name = "{}_contains_provisioning_profile_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         contains = [
             "$BUNDLE_ROOT/embedded.mobileprovision",
         ],
-        tags = [name],
-    )
-
-    infoplist_contents_test(
-        name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext_with_capability_set_derived_bundle_id",
-        expected_values = {
-            "CFBundleIdentifier": "com.bazel.app.example.watchkitapp.watchkitextension",
-        },
         tags = [name],
     )
 
@@ -217,7 +191,7 @@ def watchos_extension_test_suite(name):
         name = "{}_entry_point_nsextensionmain_standalone_test".format(name),
         build_type = "simulator",
         entry_point = "_NSExtensionMain",
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:ext",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:generic_ext",
         tags = [name],
     )
 
@@ -258,20 +232,6 @@ def watchos_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_extensionkit_ext",
         contains = ["$BUNDLE_ROOT/Extensions/extensionkit_ext.appex/extensionkit_ext"],
         not_contains = ["$BUNDLE_ROOT/PlugIns/extensionkit_ext.appex/extensionkit_ext"],
-        tags = [name],
-    )
-
-    analysis_failure_message_test(
-        name = "{}_test_watchos2_app_has_generic_extensions_error".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_generic_ext",
-        expected_error = "Error: Multiple extensions specified for a watchOS 2 extension-based application.",
-        tags = [name],
-    )
-
-    analysis_failure_message_test(
-        name = "{}_test_watchos2_app_extension_is_extensionkit_extension_error".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_watchos2_delegate_extensionkit_ext",
-        expected_error = "Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not possible.",
         tags = [name],
     )
 
