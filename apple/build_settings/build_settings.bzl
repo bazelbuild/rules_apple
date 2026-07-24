@@ -52,12 +52,6 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),
-    "merge_info_plist_icons": struct(
-        doc = """
-Whether to recursively merge CFBundleIcons and CFBundleIcons~* sub-dictionaries in Info.plist files instead of failing on conflicts.
-""",
-        default = True,
-    ),
     "warnings_as_errors": struct(
         doc = """
 Elevates Apple rule compiler and validation warnings to errors.

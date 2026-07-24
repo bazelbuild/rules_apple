@@ -608,9 +608,6 @@ All requested architectures must be either device or simulator architectures."""
     infoplist_contents_test(
         name = "{}_merge_info_plist_icons_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_overlapping_icons",
-        build_settings = {
-            build_settings_labels.merge_info_plist_icons: "True",
-        },
         expected_values = {
             "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName": "AppIcon",
             "CFBundleIcons:CFBundleAlternateIcons:Premium:CFBundleIconFiles:0": "Icon-Premium",
