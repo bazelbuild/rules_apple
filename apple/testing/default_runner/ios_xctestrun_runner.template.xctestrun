@@ -38,6 +38,7 @@
       <string>/DUMMY_SRCROOT/</string>
       BAZEL_TEST_ENVIRONMENT
     </dict>
+BAZEL_UI_TARGET_APP_ENVIRONMENT_SECTION
 BAZEL_ATTACHMENT_LIFETIME_SECTION
     <key>ClangProfileDataDirectoryPath</key>
     <string>BAZEL_COVERAGE_OUTPUT_DIR</string>

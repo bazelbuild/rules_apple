@@ -679,6 +679,60 @@ If you would like this test runner to generate xcresult bundles for your tests,
 pass `--test_env=CREATE_XCRESULT_BUNDLE=1`. It is preferable to use the
 `create_xcresult_bundle` on the test runner itself instead of this parameter.
 
+For an instrumented UI test host app, pass
+`--test_env=LLVM_PROFILE_FILE_FOR_TARGET_APP=%t/<name>-%p.profraw` to collect
+normal-mode profiles from the target app. `%t` resolves to the target app's
+temporary directory and `%p` gives each process a unique file. The app must
+exit normally or explicitly flush its profile. The profile runtime registers
+an automatic writer for normal process exit, so an explicit call is not
+mandatory when that writer runs and produces a fresh profile. To guarantee that
+the profile is committed at the end of a journey, before XCTest terminates the
+app or before a later crash or forced termination, call
+`__llvm_profile_write_file()` from the instrumented target app.
+
+Objective-C can use Apple Clang's instrumentation define:
+
+```objective-c
+#if __LLVM_INSTR_PROFILE_GENERATE
+extern int __llvm_profile_write_file(void);
+#endif
+
+BOOL WriteLLVMProfile(void) {
+#if __LLVM_INSTR_PROFILE_GENERATE
+  return __llvm_profile_write_file() == 0;
+#else
+  return NO;
+#endif
+}
+```
+
+Swift can import the Objective-C helper above, or declare the runtime entry
+point directly. The latter uses the underscored `@_silgen_name` attribute;
+define `LLVM_PROFILE_GENERATION` with `swiftc -D` only for the instrumented
+collection build:
+
+```swift
+#if LLVM_PROFILE_GENERATION
+@_silgen_name("__llvm_profile_write_file")
+private func llvmProfileWriteFile() -> Int32
+
+func writeLLVMProfile() -> Bool {
+  llvmProfileWriteFile() == 0
+}
+#endif
+```
+
+The call must run in the target app process because that process owns the
+profile counters and value records. A call or swizzle in the XCTest runner
+cannot directly flush another process. The runner enforces the observable
+contract: it fails when neither normal exit nor an explicit flush writes a
+fresh target-app profile, and `llvm-profdata merge` fails for invalid profiles.
+It cannot require a particular app method when the normal-exit writer already
+produced valid output. The runner preserves the raw files under
+`target-app-profraw` in the test's undeclared outputs and merges them into
+`Coverage.profdata`. Target app profile collection is only supported on
+simulators.
+
 This rule automatically handles running x86_64 tests on arm64 hosts. The only
 exception is that if you want to generate xcresult bundles or run tests in
 random order, the test must have a test host. This is because of a limitation

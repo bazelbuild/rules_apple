@@ -296,6 +296,59 @@ else
   xctestrun_test_host_based=false
 fi
 
+target_app_profile_file="${LLVM_PROFILE_FILE_FOR_TARGET_APP:-}"
+target_app_profile_glob=""
+target_app_profile_start=""
+xctestrun_ui_target_app_environment_section=""
+if [[ -n "$target_app_profile_file" ]]; then
+  if [[ "$build_for_device" == true ]]; then
+    echo "error: target app profile collection is only supported on simulators" >&2
+    exit 1
+  fi
+  if [[ "$test_type" != "XCUITEST" || -z "$test_host_path" ]]; then
+    echo "error: target app profile collection requires an XCUITest host app" >&2
+    exit 1
+  fi
+  if [[ "$target_app_profile_file" != "%t/"* ]]; then
+    echo "error: LLVM_PROFILE_FILE_FOR_TARGET_APP must start with %t/" >&2
+    exit 1
+  fi
+
+  target_app_profile_basename="${target_app_profile_file#"%t/"}"
+  if [[
+    -z "$target_app_profile_basename" ||
+      "$target_app_profile_basename" == */*
+  ]]; then
+    echo "error: LLVM_PROFILE_FILE_FOR_TARGET_APP must name a file directly under %t" >&2
+    exit 1
+  fi
+  if [[ "$target_app_profile_basename" != *"%p"* ]]; then
+    echo "error: LLVM_PROFILE_FILE_FOR_TARGET_APP must contain %p" >&2
+    exit 1
+  fi
+  if [[
+    "$target_app_profile_basename" == *"*"* ||
+      "$target_app_profile_basename" == *"?"* ||
+      "$target_app_profile_basename" == *"["*
+  ]]; then
+    echo "error: LLVM_PROFILE_FILE_FOR_TARGET_APP cannot contain glob characters" >&2
+    exit 1
+  fi
+
+  target_app_profile_glob="${target_app_profile_basename//%p/*}"
+  if [[ "$target_app_profile_glob" == *"%"* ]]; then
+    echo "error: LLVM_PROFILE_FILE_FOR_TARGET_APP only supports %t and %p substitutions" >&2
+    exit 1
+  fi
+
+  escaped_target_app_profile_file=$(escape "$target_app_profile_file")
+  xctestrun_ui_target_app_environment_section="    <key>UITargetAppEnvironmentVariables</key>\n"
+  xctestrun_ui_target_app_environment_section+="    <dict>\n"
+  xctestrun_ui_target_app_environment_section+="      <key>LLVM_PROFILE_FILE</key>\n"
+  xctestrun_ui_target_app_environment_section+="      <string>$escaped_target_app_profile_file</string>\n"
+  xctestrun_ui_target_app_environment_section+="    </dict>"
+fi
+
 sanitizer_dyld_env=""
 readonly sanitizer_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
@@ -561,6 +614,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s${sed_delim}BAZEL_INSERT_LIBRARIES${sed_delim}$xctestrun_libraries${sed_delim}g" \
     -e "s${sed_delim}BAZEL_TEST_BUNDLE_PATH${sed_delim}$xcrun_test_bundle_path${sed_delim}g" \
     -e "s${sed_delim}BAZEL_TEST_ENVIRONMENT${sed_delim}$xctestrun_env${sed_delim}g" \
+    -e "s${sed_delim}BAZEL_UI_TARGET_APP_ENVIRONMENT_SECTION${sed_delim}$xctestrun_ui_target_app_environment_section${sed_delim}g" \
     -e "s${sed_delim}BAZEL_TEST_HOST_BASED${sed_delim}$xctestrun_test_host_based${sed_delim}g" \
     -e "s${sed_delim}BAZEL_TEST_HOST_PATH${sed_delim}$xctestrun_test_host_path${sed_delim}g" \
     -e "s${sed_delim}BAZEL_TEST_HOST_BUNDLE_IDENTIFIER${sed_delim}$xcrun_test_host_bundle_identifier${sed_delim}g" \
@@ -580,6 +634,16 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s${sed_delim}BAZEL_PRODUCT_PATH${sed_delim}$xcrun_test_bundle_path${sed_delim}g" \
     "%(xctestrun_template)s" \
     > "$xctestrun_file"
+
+  if [[ -n "$target_app_profile_file" ]]; then
+    test_product_module_name="${test_bundle_name//-/_}"
+    # These keys make Xcode select continuous mode, which cannot write LLVM
+    # value profile data. Xcode also requires that they be removed together.
+    /usr/libexec/PlistBuddy \
+      -c "Delete :$test_product_module_name:ClangProfileDataDirectoryPath" \
+      -c "Delete :__xctestrun_metadata__:CodeCoverageBuildableInfos" \
+      "$xctestrun_file"
+  fi
 
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo
@@ -611,6 +675,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
 
   if (( ${#custom_xcodebuild_args[@]} )); then
     args+=("${custom_xcodebuild_args[@]}")
+  fi
+
+  if [[ -n "$target_app_profile_file" ]]; then
+    # Ignore profile files left behind when a reusable simulator is selected.
+    target_app_profile_start="$test_tmp_dir/target-app-profile-start"
+    touch "$target_app_profile_start"
   fi
 
   xcodebuild test-without-building "${args[@]}" \
@@ -645,7 +715,63 @@ if [[ "$should_use_xcodebuild" == false ]]; then
   profdata="$test_tmp_dir/coverage.profdata"
 fi
 
-if [[ "${COLLECT_PROFDATA:-0}" == "1" && -f "$profdata" ]]; then
+if [[ -n "$target_app_profile_file" ]]; then
+  target_app_info_plist="$test_tmp_dir/$test_host_name.app/Info.plist"
+  target_app_bundle_identifier=$(
+    /usr/libexec/PlistBuddy \
+      -c "Print :CFBundleIdentifier" \
+      "$target_app_info_plist"
+  )
+  target_app_container=$(
+    xcrun simctl get_app_container \
+      "$simulator_id" \
+      "$target_app_bundle_identifier" \
+      data
+  )
+
+  target_app_profraws=()
+  while IFS= read -r target_app_profraw; do
+    target_app_profraws+=("$target_app_profraw")
+  done < <(
+    find \
+      "$target_app_container" \
+      -type f \
+      -name "$target_app_profile_glob" \
+      -newer "$target_app_profile_start" \
+      -print \
+      | sort
+  )
+
+  if (( ${#target_app_profraws[@]} == 0 )); then
+    echo \
+      "error: no fresh target app profiles matched $target_app_profile_glob;" \
+      "let the target app exit normally or call __llvm_profile_write_file()" \
+      "in the target app before XCTest terminates it" \
+      >&2
+    exit 1
+  fi
+
+  target_app_profraw_output_dir="$TEST_UNDECLARED_OUTPUTS_DIR/target-app-profraw"
+  mkdir -p "$target_app_profraw_output_dir"
+  for target_app_profraw in "${target_app_profraws[@]}"; do
+    cp "$target_app_profraw" "$target_app_profraw_output_dir/"
+  done
+
+  mkdir -p "$(dirname "$profdata")"
+  xcrun llvm-profdata \
+    merge \
+    "${target_app_profraws[@]}" \
+    --output "$profdata"
+  echo "Collected ${#target_app_profraws[@]} target app profile(s)"
+fi
+
+if [[
+  (
+    "${COLLECT_PROFDATA:-0}" == "1" ||
+      -n "$target_app_profile_file"
+  ) &&
+    -f "$profdata"
+]]; then
   cp -R "$profdata" "$TEST_UNDECLARED_OUTPUTS_DIR"
 fi
 
