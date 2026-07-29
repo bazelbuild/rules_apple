@@ -134,14 +134,39 @@ def _docc_archive_impl(ctx):
     if hosting_base_path:
         arguments.add("--hosting-base-path", hosting_base_path)
 
-    # Add symbol graphs
+    # Add symbol graphs.
+    #
+    # `docc convert` only honors a single `--additional-symbol-graph-dir`
+    # argument, silently ignoring all but one when it is repeated. Collect
+    # every module's symbol graphs into one directory and pass that single
+    # directory instead; docc discovers symbol graph files in it recursively.
+    combined_symbol_graphs = None
     if symbol_graphs_info:
-        arguments.add_all(
-            symbol_graphs,
-            before_each = "--additional-symbol-graph-dir",
-            expand_directories = False,
+        combined_symbol_graphs = ctx.actions.declare_directory(
+            "%s_combined_symbol_graphs" % ctx.attr.name,
         )
-        docc_build_inputs.extend(symbol_graphs)
+        combine_arguments = ctx.actions.args()
+        combine_arguments.add(combined_symbol_graphs.path)
+        combine_arguments.add_all(symbol_graphs, expand_directories = False)
+        ctx.actions.run_shell(
+            inputs = symbol_graphs,
+            outputs = [combined_symbol_graphs],
+            mnemonic = "DocCCollectSymbolGraphs",
+            progress_message = "Collecting symbol graphs for %{label}",
+            command = """\
+set -eu
+output_dir="$1"
+shift
+index=0
+for symbol_graph_dir in "$@"; do
+    cp -R "$symbol_graph_dir" "$output_dir/$index"
+    index=$((index + 1))
+done
+""",
+            arguments = [combine_arguments],
+        )
+        arguments.add("--additional-symbol-graph-dir", combined_symbol_graphs.path)
+        docc_build_inputs.append(combined_symbol_graphs)
 
     # The .docc bundle (if provided, only one is allowed)
     if docc_bundle_info:
@@ -177,7 +202,7 @@ def _docc_archive_impl(ctx):
             "{fallback_display_name}": fallback_display_name,
             "{platform}": platform.name_in_plist,
             "{sdk_version}": str(xcode_config.sdk_version_for_platform(platform)),
-            "{symbol_graph_dirs}": " ".join([f.path for f in symbol_graphs]) if symbol_graphs else "",
+            "{symbol_graph_dirs}": combined_symbol_graphs.path if combined_symbol_graphs else "",
             "{target_name}": ctx.attr.name,
             "{xcode_version}": str(xcode_config.xcode_version()),
         },
