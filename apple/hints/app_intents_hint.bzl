@@ -42,4 +42,5 @@ main source of truth for the App Intents metadata.
         ),
     },
     implementation = _app_intents_hint_impl,
+    provides = [AppIntentsHintInfo],
 )

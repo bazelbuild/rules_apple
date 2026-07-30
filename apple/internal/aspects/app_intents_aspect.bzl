@@ -317,5 +317,6 @@ app_intents_aspect = aspect(
     attrs = {
     },
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
+    required_aspect_hints_providers = [AppIntentsHintInfo],
     doc = "Collects App Intents metadata dependencies from swift_library targets.",
 )
