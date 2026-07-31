@@ -33,6 +33,7 @@ def macos_build_test_test_suite(name):
     macos_build_test(
         name = "{}_builds_simple_library".format(name),
         minimum_os_version = common.min_os_macos.baseline,
+        target_compatible_with = ["@platforms//os:macos"],
         targets = [
             "//test/starlark_tests/resources:objc_lib_with_sdk_dylibs",
         ],
