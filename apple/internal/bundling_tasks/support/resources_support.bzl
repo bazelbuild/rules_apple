@@ -224,6 +224,7 @@ was declared. Skipping asset catalog compilation.\
     resource_actions.compile_asset_catalog(
         actions = actions,
         asset_files = asset_files,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         bundle_id = bundle_id,
         mac_exec_group = mac_exec_group,
         output_dir = assets_dir,
