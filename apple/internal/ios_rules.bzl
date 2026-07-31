@@ -268,14 +268,16 @@ def _ios_application_impl(ctx):
     binary_artifact = link_result.binary
     debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
-    if ctx.attr.watch_application:
-        watch_app = ctx.attr.watch_application
+    watch_app_to_bundle = (
+        apple_xplat_toolchain_info.build_settings.bundle_watch_apps and ctx.attr.watch_application
+    )
 
-        embeddable_targets.append(watch_app)
+    if watch_app_to_bundle:
+        embeddable_targets.append(watch_app_to_bundle)
 
         bundle_verification_targets.append(
             struct(
-                target = watch_app,
+                target = watch_app_to_bundle,
                 parent_bundle_id_reference = ["WKCompanionAppBundleIdentifier"],
             ),
         )
@@ -426,15 +428,15 @@ def _ios_application_impl(ctx):
         ),
     ]
 
-    if ctx.attr.watch_application:
+    if watch_app_to_bundle:
         # Add the stub binary if the associated watchOS application is a watchOS 2 application.
-        watch_bundle_info = ctx.attr.watch_application[AppleBundleInfo]
+        watch_bundle_info = watch_app_to_bundle[AppleBundleInfo]
         if watch_bundle_info.product_type == apple_product_type.watch2_application:
             processor_partials.append(
                 partials.watchos_stub_partial(
                     actions = actions,
                     label_name = label.name,
-                    watch_application = ctx.attr.watch_application,
+                    watch_application = watch_app_to_bundle,
                 ),
             )
 

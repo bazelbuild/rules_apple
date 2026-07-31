@@ -245,6 +245,7 @@ was declared. Skipping asset catalog compilation.
         alternate_icons = alternate_icons,
         alticonstool = apple_mac_toolchain_info.alticonstool,
         asset_files = asset_files,
+        build_settings = platform_prerequisites.build_settings,
         bundle_id = bundle_id,
         output_dir = assets_dir,
         output_plist = assets_plist,

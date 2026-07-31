@@ -663,11 +663,16 @@ def _post_process_and_sign_archive_action(
     # Compress the IPA when requested. By default, enable compression for optimized (release) builds
     # to reduce file size, and disable compression for debug builds to speed up the build.
     config_vars = platform_prerequisites.config_vars
-    should_compress = defines.bool_value(
-        config_vars = config_vars,
-        define_name = "apple.compress_ipa",
-        default = (config_vars["COMPILATION_MODE"] == "opt"),
-    )
+    if platform_prerequisites.build_settings.compress_zip == "true":
+        should_compress = True
+    elif platform_prerequisites.build_settings.compress_zip == "false":
+        should_compress = False
+    else:
+        should_compress = defines.bool_value(
+            config_vars = config_vars,
+            define_name = "apple.compress_ipa",
+            default = (config_vars["COMPILATION_MODE"] == "opt"),
+        )
 
     # TODO(b/163217926): These are kept the same for the three different actions
     # that could be run to ensure anything keying off these values continues to

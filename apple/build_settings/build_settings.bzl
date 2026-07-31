@@ -115,6 +115,31 @@ functionality that is never intended to be production-ready but is required of a
 """,
         default = False,
     ),
+    "thin_for_device_model": struct(
+        doc = """
+A target device model string (e.g. 'iPhone14,6') used to thin the application via actool.
+""",
+        default = "",
+    ),
+    "thin_for_os_version": struct(
+        doc = """
+A target OS version string (e.g. '15.0') used to thin the application via actool.
+""",
+        default = "",
+    ),
+    "bundle_watch_apps": struct(
+        doc = """
+Toggle whether to bundle included watchOS applications within an iOS application.
+""",
+        default = True,
+    ),
+    "compress_zip": struct(
+        doc = """
+Tri-state string ('true', 'false', or '') to force zip compression on or off, overrides standard define behaviour.
+""",
+        default = "",
+        values = ["true", "false", ""],
+    ),
 }
 
 _all_build_settings = dicts.add(build_settings, build_flags)
