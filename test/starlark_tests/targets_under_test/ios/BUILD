@@ -33,6 +33,7 @@ load(
 )
 load(
     "//apple:linker.bzl",
+    "apple_exported_symbols_list",
     "apple_order_file",
 )
 load(
@@ -76,6 +77,106 @@ licenses(["notice"])
 package(
     default_testonly = True,
     default_visibility = ["//test/starlark_tests:__subpackages__"],
+)
+
+# A private framework fixture with one Swift API used by a declared client and
+# one API that is public in Swift but not part of the app's runtime ABI.
+write_file(
+    name = "client_export_framework_src",
+    out = "ClientExportFramework.swift",
+    content = [
+        "@inline(never) public func retainedFrameworkExport() -> Int { 42 }",
+        "@inline(never) public func unusedFrameworkExport() -> Int { 7 }",
+    ],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "client_export_framework_lib",
+    srcs = [":client_export_framework_src"],
+    module_name = "ClientExportFramework",
+    tags = common.fixture_tags,
+)
+
+# This C entry point has no static client reference. It represents conservative
+# runtime discovery through Objective-C or dlsym and must remain exported.
+write_file(
+    name = "client_export_runtime_src",
+    out = "ClientExportRuntime.m",
+    content = ["int runtimeDiscoveredEntry(void) { return 1; }"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "client_export_runtime_lib",
+    srcs = [":client_export_runtime_src"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "client_export_client_src",
+    out = "ClientExportClient.swift",
+    content = [
+        "import ClientExportFramework",
+        "@inline(never) public func usePrivateFramework() -> Int {",
+        "    retainedFrameworkExport()",
+        "}",
+    ],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "client_export_client_lib",
+    srcs = [":client_export_client_src"],
+    module_name = "ClientExportClient",
+    tags = common.fixture_tags,
+    deps = [":client_export_framework_lib"],
+)
+
+apple_exported_symbols_list(
+    name = "client_export_framework_exports",
+    clients = [":client_export_client_lib"],
+    tags = common.fixture_tags,
+    deps = [
+        ":client_export_framework_lib",
+        ":client_export_runtime_lib",
+    ],
+)
+
+ios_framework(
+    name = "client_export_framework",
+    bundle_id = "com.google.example.client-export-framework",
+    exported_symbols_lists = [":client_export_framework_exports"],
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-x"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":client_export_framework_lib",
+        ":client_export_runtime_lib",
+    ],
+)
+
+# Same inputs as client_export_framework, without a generated export policy.
+# This is the negative control proving the unused public Swift API would
+# otherwise remain externally visible.
+ios_framework(
+    name = "client_export_framework_unrestricted",
+    bundle_id = "com.google.example.client-export-framework-unrestricted",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-x"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":client_export_framework_lib",
+        ":client_export_runtime_lib",
+    ],
 )
 
 # This is a list of iOS targets to be used for Starlark unit tests. These may not build correctly
