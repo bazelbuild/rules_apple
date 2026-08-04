@@ -394,6 +394,38 @@ requirement.
     init = make_banned_init(provider_name = "AppleResourceBundleInfo"),
 )
 
+AppleResourceExplicitFilesInfo, new_appleresourceexplicitfilesinfo = provider(
+    doc = "Provides a set of explicit files that should be bundled as resources.",
+    fields = {
+        "files": """\
+Required. A `list` or `depset` of `File`s that should be bundled. These files will \
+bypass any resource processing logic and be copied as-is directly into the bundle.
+""",
+    },
+    init = make_banned_init(
+        provider_name = "AppleResourceExplicitFilesInfo",
+        preferred_public_factory = "make_apple_resource_explicit_files_info(...)",
+    ),
+)
+
+def make_apple_resource_explicit_files_info(*, files):
+    """Creates a new instance of the `AppleResourceExplicitFilesInfo` provider.
+
+    Args:
+        files: Required. See the docs on `AppleResourceExplicitFilesInfo` for more details.
+
+    Returns:
+        A new `AppleResourceExplicitFilesInfo` provider based on the supplied arguments.
+    """
+    if type(files) != "list" and type(files) != "depset":
+        fail("""
+Error: Expected "files" to be of type "list" or "depset".
+
+Received unexpected type "{actual_type}".
+""".format(actual_type = type(files)))
+
+    return new_appleresourceexplicitfilesinfo(files = files)
+
 AppleResourceInfo, new_appleresourceinfo = provider(
     doc = "Provider that propagates buckets of resources that are differentiated by type.",
     # @unsorted-dict-items

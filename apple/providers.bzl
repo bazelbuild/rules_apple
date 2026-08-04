@@ -39,6 +39,7 @@ load(
     _AppleFrameworkImportInfo = "AppleFrameworkImportInfo",
     _AppleLinkmapInfo = "AppleLinkmapInfo",
     _AppleResourceBundleInfo = "AppleResourceBundleInfo",
+    _AppleResourceExplicitFilesInfo = "AppleResourceExplicitFilesInfo",
     _AppleResourceGroupInfo = "AppleResourceGroupInfo",
     _AppleResourceInfo = "AppleResourceInfo",
     _AppleResourceLocalesInfo = "AppleResourceLocalesInfo",
@@ -72,6 +73,7 @@ load(
     _WatchosFrameworkBundleInfo = "WatchosFrameworkBundleInfo",
     _WatchosXcTestBundleInfo = "WatchosXcTestBundleInfo",
     _make_apple_bundle_version_info = "make_apple_bundle_version_info",
+    _make_apple_resource_explicit_files_info = "make_apple_resource_explicit_files_info",
     _make_apple_test_runner_info = "make_apple_test_runner_info",
 )
 
@@ -91,6 +93,7 @@ AppleFrameworkBundleInfo = _AppleFrameworkBundleInfo
 AppleLinkmapInfo = _AppleLinkmapInfo
 AppleFrameworkImportInfo = _AppleFrameworkImportInfo
 AppleResourceBundleInfo = _AppleResourceBundleInfo
+AppleResourceExplicitFilesInfo = _AppleResourceExplicitFilesInfo
 AppleResourceInfo = _AppleResourceInfo
 AppleResourceGroupInfo = _AppleResourceGroupInfo
 AppleResourceLocalesInfo = _AppleResourceLocalesInfo
@@ -126,5 +129,6 @@ WatchosXcTestBundleInfo = _WatchosXcTestBundleInfo
 
 apple_provider = struct(
     make_apple_bundle_version_info = _make_apple_bundle_version_info,
+    make_apple_resource_explicit_files_info = _make_apple_resource_explicit_files_info,
     make_apple_test_runner_info = _make_apple_test_runner_info,
 )

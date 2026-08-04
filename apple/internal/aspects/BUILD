@@ -50,7 +50,6 @@ bzl_library(
         "//apple/internal:resources",
         "//apple/internal:swift_support",
         "//apple/internal/providers:app_intents_info",
-        "//apple/internal/providers:apple_resource_explicit_files_info",
         "//apple/internal/providers:apple_resource_validation_info",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",

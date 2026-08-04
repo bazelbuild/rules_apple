@@ -68,6 +68,7 @@ bzl_library(
         "//apple/internal:rule_factory",
         "//apple/internal:secure_features_support",
         "//apple/internal:transition_support",
+        "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:providers",
         "@rules_cc//cc/common",
     ],
@@ -122,7 +123,6 @@ bzl_library(
     name = "macos",
     srcs = ["macos.bzl"],
     deps = [
-        "//apple/internal:capabilities_rules",
         "//apple/internal:macos_rules",
         "//apple/internal/testing:apple_test_assembler",
         "//apple/internal/testing:build_test_rules",

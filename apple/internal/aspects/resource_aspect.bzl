@@ -31,6 +31,7 @@ load(
     "AppleFrameworkBundleInfo",
     "AppleLinkmapInfo",
     "AppleResourceBundleInfo",
+    "AppleResourceExplicitFilesInfo",
     "AppleResourceGroupInfo",
     "AppleResourceInfo",
     "new_appledsymbundleinfo",
@@ -47,10 +48,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_explicit_files_info.bzl",
-    "AppleResourceExplicitFilesInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
