@@ -36,6 +36,7 @@ def ios_build_test_test_suite(name):
         targets = [
             "//test/starlark_tests/resources:objc_lib_with_sdk_dylibs",
         ],
+        target_compatible_with = ["@platforms//os:macos"],
         tags = [name],
     )
 

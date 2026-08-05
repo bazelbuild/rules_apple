@@ -24,6 +24,9 @@ load(
     "transition_support",
 )
 
+# TODO: Remove when we drop 8.x
+_CAN_CHAIN_TRANSITIONS = hasattr(transition_support.apple_rule_transition, "and_then")
+
 _PASSING_TEST_SCRIPT = """\
 #!/bin/bash
 exit 0
@@ -107,7 +110,7 @@ number (for example, `"9.0"`).
             ),
             "targets": attr.label_list(
                 allow_empty = False,
-                cfg = transition_support.apple_platform_split_transition,
+                cfg = transition_support.apple_rule_transition.and_then(transition_support.apple_platform_split_transition) if _CAN_CHAIN_TRANSITIONS else transition_support.apple_platform_split_transition,
                 doc = "The targets to check for successful build.",
             ),
             # This is a public attribute due to an implementation detail of
@@ -118,10 +121,6 @@ number (for example, `"9.0"`).
             "_platform_type": attr.string(default = platform_type),
         },
         doc = doc,
-        exec_groups = {
-            "test": exec_group(),
-        },
         implementation = _apple_build_test_rule_impl,
         test = True,
-        cfg = transition_support.apple_rule_transition,
     )
