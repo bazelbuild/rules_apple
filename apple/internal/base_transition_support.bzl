@@ -30,6 +30,20 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+_STARLARK_FLAGS = struct(
+    apple_platform_type = "@build_bazel_apple_support//xcode:apple_platform_type",
+    apple_split_cpu = "@build_bazel_apple_support//xcode:apple_split_cpu",
+    ios_minimum_os = "@build_bazel_apple_support//xcode:ios_minimum_os",
+    ios_multi_cpus = "@build_bazel_apple_support//xcode:ios_multi_cpus",
+    macos_minimum_os = "@build_bazel_apple_support//xcode:macos_minimum_os",
+    macos_cpus = "@build_bazel_apple_support//xcode:macos_cpus",
+    tvos_minimum_os = "@build_bazel_apple_support//xcode:tvos_minimum_os",
+    tvos_cpus = "@build_bazel_apple_support//xcode:tvos_cpus",
+    visionos_cpus = "@build_bazel_apple_support//xcode:visionos_cpus",
+    watchos_minimum_os = "@build_bazel_apple_support//xcode:watchos_minimum_os",
+    watchos_cpus = "@build_bazel_apple_support//xcode:watchos_cpus",
+)
+
 _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "ios": "//command_line_option:ios_multi_cpus",
     "macos": "//command_line_option:macos_cpus",
@@ -37,6 +51,61 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
     "visionos": "//command_line_option:visionos_cpus",
     "watchos": "//command_line_option:watchos_cpus",
 }
+
+_PLATFORM_TYPE_TO_STARLARK_CPUS_FLAG = {
+    "ios": _STARLARK_FLAGS.ios_multi_cpus,
+    "macos": _STARLARK_FLAGS.macos_cpus,
+    "tvos": _STARLARK_FLAGS.tvos_cpus,
+    "visionos": _STARLARK_FLAGS.visionos_cpus,
+    "watchos": _STARLARK_FLAGS.watchos_cpus,
+}
+
+_NATIVE_TO_STARLARK_FLAG = {
+    "//command_line_option:apple_split_cpu": _STARLARK_FLAGS.apple_split_cpu,
+    "//command_line_option:ios_multi_cpus": _STARLARK_FLAGS.ios_multi_cpus,
+    "//command_line_option:macos_cpus": _STARLARK_FLAGS.macos_cpus,
+    "//command_line_option:tvos_cpus": _STARLARK_FLAGS.tvos_cpus,
+    "//command_line_option:visionos_cpus": _STARLARK_FLAGS.visionos_cpus,
+    "//command_line_option:watchos_cpus": _STARLARK_FLAGS.watchos_cpus,
+    "//command_line_option:ios_minimum_os": _STARLARK_FLAGS.ios_minimum_os,
+    "//command_line_option:macos_minimum_os": _STARLARK_FLAGS.macos_minimum_os,
+    "//command_line_option:tvos_minimum_os": _STARLARK_FLAGS.tvos_minimum_os,
+    "//command_line_option:watchos_minimum_os": _STARLARK_FLAGS.watchos_minimum_os,
+}
+
+def _read_possibly_native_cpu_flag(settings, flag_or_platform_type):
+    """Reads a flag or platform-specific CPU flag from settings, supporting Starlark migration.
+
+    Checking for the presence/truthiness of the Starlark flag first and falling back to the native
+    flag is safe because all CPU and minimum OS build settings defined in this migration have
+    empty/falsy default values ("" or []). When the Starlark flag is unset at its default value,
+    `if val:` evaluates to False and cleanly falls back to the native flag. When explicitly set,
+    the Starlark value takes precedence over the native flag.
+
+    Args:
+        settings: A dictionary whose set of keys is defined by the inputs parameter, typically from
+            the settings argument found on the implementation function of the current Starlark
+            transition.
+        flag_or_platform_type: The Apple platform for which the rule should build its targets (`"ios"`,
+            `"macos"`, `"tvos"`, `"visionos"`, or `"watchos"`), or a native command line option
+            key string.
+
+    Returns:
+        The value of the flag, or None if not set.
+    """
+    native_flag = _PLATFORM_TYPE_TO_CPUS_FLAG.get(flag_or_platform_type, flag_or_platform_type)
+    starlark_flag = _PLATFORM_TYPE_TO_STARLARK_CPUS_FLAG.get(
+        flag_or_platform_type,
+        _NATIVE_TO_STARLARK_FLAG.get(native_flag, None),
+    )
+    if starlark_flag:
+        val = settings.get(starlark_flag)
+        if val:
+            return val
+    val = settings.get(native_flag)
+    if val:
+        return val
+    return None
 
 _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "x86_64": "x86_64",
@@ -118,12 +187,12 @@ def _platform_specific_cpu_setting_name(platform_type):
 
     Args:
         platform_type: A string denoting the platform type; `"ios"`, `"macos"`, `"tvos"`,
-            "visionos", or `"watchos"`.
+            `"visionos"`, or `"watchos"`.
 
     Returns:
         The `"//command_line_option:..."` string that is used as the key for the CPUs flag of the
-            given platform in settings dictionaries. This function never returns `None`; if the
-            platform type is invalid, the build fails.
+        given platform in settings dictionaries. This function never returns `None`; if the
+        platform type is invalid, the build fails.
     """
     flag = _PLATFORM_TYPE_TO_CPUS_FLAG.get(platform_type, None)
     if not flag:
@@ -145,7 +214,7 @@ def _watchos_environment_archs_from_ios(*, platform, minimum_os_version, setting
             empty list if none were found.
     """
     environment_archs = []
-    ios_archs = settings[_platform_specific_cpu_setting_name("ios")]
+    ios_archs = _read_possibly_native_cpu_flag(settings, "ios")
     if not ios_archs:
         ios_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(platform, None)
         if ios_arch:
@@ -180,7 +249,7 @@ def _environment_archs(*, platform_type, minimum_os_version, settings):
         A list of valid Apple environments with its architecture as a string (for example
         `sim_arm64` from `ios_sim_arm64`, or `arm64` from `ios_arm64`).
     """
-    environment_archs = settings[_platform_specific_cpu_setting_name(platform_type)]
+    environment_archs = _read_possibly_native_cpu_flag(settings, platform_type)
     if not environment_archs:
         platform = settings["//command_line_option:platforms"][0]
         if platform_type == "ios":
@@ -233,7 +302,7 @@ def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings
     if platform_type == "ios":
         if environment_arch:
             return "ios_{}".format(environment_arch)
-        ios_cpus = settings["//command_line_option:ios_multi_cpus"]
+        ios_cpus = _read_possibly_native_cpu_flag(settings, "ios")
         if ios_cpus:
             return "ios_{}".format(ios_cpus[0])
         env_arch = _IOS_PLATFORM_TO_ENV_ARCH.get(
@@ -249,7 +318,7 @@ def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings
     if platform_type == "macos":
         if environment_arch:
             return "darwin_{}".format(environment_arch)
-        macos_cpus = settings["//command_line_option:macos_cpus"]
+        macos_cpus = _read_possibly_native_cpu_flag(settings, "macos")
         if macos_cpus:
             return "darwin_{}".format(macos_cpus[0])
         return "darwin_{}".format(_default_arch(
@@ -259,7 +328,7 @@ def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings
     if platform_type == "tvos":
         if environment_arch:
             return "tvos_{}".format(environment_arch)
-        tvos_cpus = settings["//command_line_option:tvos_cpus"]
+        tvos_cpus = _read_possibly_native_cpu_flag(settings, "tvos")
         if tvos_cpus:
             return "tvos_{}".format(tvos_cpus[0])
         return "tvos_{}".format(_default_arch(
@@ -269,7 +338,7 @@ def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings
     if platform_type == "visionos":
         if environment_arch:
             return "visionos_{}".format(environment_arch)
-        visionos_cpus = settings["//command_line_option:visionos_cpus"]
+        visionos_cpus = _read_possibly_native_cpu_flag(settings, "visionos")
         if visionos_cpus:
             return "visionos_{}".format(visionos_cpus[0])
         return "visionos_{}".format(_default_arch(
@@ -279,7 +348,7 @@ def _cpu_string(*, environment_arch, minimum_os_version, platform_type, settings
     if platform_type == "watchos":
         if environment_arch:
             return "watchos_{}".format(environment_arch)
-        watchos_cpus = settings["//command_line_option:watchos_cpus"]
+        watchos_cpus = _read_possibly_native_cpu_flag(settings, "watchos")
         if watchos_cpus:
             return "watchos_{}".format(watchos_cpus[0])
         return "watchos_{}".format(_default_arch(
@@ -293,6 +362,17 @@ def _min_os_version_or_none(*, minimum_os_version, platform, platform_type):
     if platform_type == platform:
         return minimum_os_version
     return None
+
+def _min_os_version_or_empty(*, minimum_os_version, platform, platform_type):
+    """Returns minimum_os_version for matching platform, or an empty string.
+
+    A separate return value ("" instead of None) is needed for Starlark string build settings
+    because Starlark string flags require a string value, whereas native Bazel command line options
+    use None to signify that the option is unset/unmodified in the transition.
+    """
+    if platform_type == platform and minimum_os_version:
+        return minimum_os_version
+    return ""
 
 def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version, platform_type):
     """Indicates if the environment_arch selected is supported for the given platform and min os.
@@ -366,6 +446,7 @@ def _command_line_options(
         # fragment APIs, and it's also required to keep Bazel from optimizing away splits when deps
         # are identical between platforms.
         "//command_line_option:apple_split_cpu": environment_arch if environment_arch else "",
+        _STARLARK_FLAGS.apple_split_cpu: environment_arch if environment_arch else "",
         "//command_line_option:compiler": None,
         "//command_line_option:features": (
             secure_features_support.environment_arch_specific_features(
@@ -381,7 +462,17 @@ def _command_line_options(
             platform = "ios",
             platform_type = platform_type,
         ),
+        _STARLARK_FLAGS.ios_minimum_os: _min_os_version_or_empty(
+            minimum_os_version = minimum_os_version,
+            platform = "ios",
+            platform_type = platform_type,
+        ),
         "//command_line_option:macos_minimum_os": _min_os_version_or_none(
+            minimum_os_version = minimum_os_version,
+            platform = "macos",
+            platform_type = platform_type,
+        ),
+        _STARLARK_FLAGS.macos_minimum_os: _min_os_version_or_empty(
             minimum_os_version = minimum_os_version,
             platform = "macos",
             platform_type = platform_type,
@@ -392,7 +483,17 @@ def _command_line_options(
             platform = "tvos",
             platform_type = platform_type,
         ),
+        _STARLARK_FLAGS.tvos_minimum_os: _min_os_version_or_empty(
+            minimum_os_version = minimum_os_version,
+            platform = "tvos",
+            platform_type = platform_type,
+        ),
         "//command_line_option:watchos_minimum_os": _min_os_version_or_none(
+            minimum_os_version = minimum_os_version,
+            platform = "watchos",
+            platform_type = platform_type,
+        ),
+        _STARLARK_FLAGS.watchos_minimum_os: _min_os_version_or_empty(
             minimum_os_version = minimum_os_version,
             platform = "watchos",
             platform_type = platform_type,
@@ -461,25 +562,35 @@ _apple_rule_common_transition_inputs = [
 _apple_rule_base_transition_inputs = _apple_rule_common_transition_inputs + [
     "//command_line_option:platforms",
     "//command_line_option:ios_multi_cpus",
+    _STARLARK_FLAGS.ios_multi_cpus,
     "//command_line_option:macos_cpus",
+    _STARLARK_FLAGS.macos_cpus,
     "//command_line_option:tvos_cpus",
+    _STARLARK_FLAGS.tvos_cpus,
     "//command_line_option:visionos_cpus",
+    _STARLARK_FLAGS.visionos_cpus,
     "//command_line_option:watchos_cpus",
+    _STARLARK_FLAGS.watchos_cpus,
 ]
 _apple_rule_base_transition_outputs = [
     build_settings_labels.building_apple_bundle,
     build_settings_labels.use_tree_artifacts_outputs,
     "//command_line_option:apple_split_cpu",
+    _STARLARK_FLAGS.apple_split_cpu,
     "//command_line_option:compiler",
     "//command_line_option:features",
     "//command_line_option:fission",
     "//command_line_option:grte_top",
     "//command_line_option:ios_minimum_os",
+    _STARLARK_FLAGS.ios_minimum_os,
     "//command_line_option:macos_minimum_os",
+    _STARLARK_FLAGS.macos_minimum_os,
     "//command_line_option:minimum_os_version",
     "//command_line_option:platforms",
     "//command_line_option:tvos_minimum_os",
+    _STARLARK_FLAGS.tvos_minimum_os,
     "//command_line_option:watchos_minimum_os",
+    _STARLARK_FLAGS.watchos_minimum_os,
 ]
 
 _apple_rule_base_transition = transition(
