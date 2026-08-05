@@ -230,7 +230,7 @@ def _main() -> None:
 
     os_version = args.os_version or os.getenv("SIMULATOR_OS_VERSION")
     sdk_version = args.sdk_version or os.getenv("SIMULATOR_SDK_VERSION")
-    reuse_simulator: bool = args.reuse_simulator or (
+    reuse_simulator: bool = args.reuse_simulator if args.reuse_simulator is not None else (
         os.getenv("SIMULATOR_REUSE_SIMULATOR", default = "1").lower() in ("1", "true")
     )
 
