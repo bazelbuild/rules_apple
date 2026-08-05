@@ -63,7 +63,7 @@ Elevates Apple rule compiler and validation warnings to errors.
 Enables App Intents validation to verify that all necessary targets correctly
 advertise their required App Intents aspect hints.
 """,
-        default = False,
+        default = True,
     ),
 }
 
