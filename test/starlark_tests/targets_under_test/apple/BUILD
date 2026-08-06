@@ -499,7 +499,6 @@ apple_xcframework(
     name = "ios_dynamic_lipoed_xcframework_with_disabled_features",
     bundle_id = "com.google.example",
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -522,7 +521,34 @@ apple_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_lipoed_xcframework_with_trivial_auto_var_init",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -1717,7 +1743,6 @@ apple_static_xcframework(
 apple_static_xcframework(
     name = "secure_features_ios_static_xcframework_with_rule_level_disabled_features",
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     ios = {
@@ -1736,7 +1761,30 @@ apple_static_xcframework(
         "//test/starlark_tests/resources:shared.h",
     ],
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "secure_features_ios_static_xcframework_with_trivial_auto_var_init",
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

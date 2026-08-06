@@ -101,13 +101,22 @@ apple_static_library(
 apple_static_library(
     name = "example_ios_library_with_rule_level_disabled_features",
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
     platform_type = "ios",
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [":main_lib"],
+)
+
+apple_static_library(
+    name = "example_trivial_auto_var_init_ios_library",
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    platform_type = "ios",
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

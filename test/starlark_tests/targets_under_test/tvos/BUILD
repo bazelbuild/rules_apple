@@ -1518,12 +1518,25 @@ tvos_static_framework(
         "//test/starlark_tests/resources:shared.h",
     ],
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_tvos.min_deployment_target,
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+tvos_static_framework(
+    name = "trivial_auto_var_init_static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = common.min_os_tvos.min_deployment_target,
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

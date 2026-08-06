@@ -289,6 +289,19 @@ def ios_static_framework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_trivial_auto_var_init_without_xcode_26_opt_in_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:trivial_auto_var_init_static_fmwk",
+        cpus = {
+            "ios_multi_cpus": ["arm64"],
+        },
+        binary_test_file = "$BUNDLE_ROOT/trivial_auto_var_init_static_fmwk",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

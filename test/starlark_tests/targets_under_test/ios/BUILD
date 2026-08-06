@@ -3218,7 +3218,6 @@ ios_ui_test(
         "iphone",
     ],
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -3232,7 +3231,31 @@ ios_ui_test(
     ],
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "simple_trivial_auto_var_init_ui_test",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -3516,7 +3539,6 @@ ios_unit_test(
         "iphone",
     ],
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -3530,7 +3552,31 @@ ios_unit_test(
     ],
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "simple_trivial_auto_var_init_unit_test",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:example_filegroup",
+        "//test/starlark_tests/resources:resource_bundle",
+    ],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -4794,7 +4840,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "trivial_auto_var_init",
+        "cpp_typed_allocator_support",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -4804,6 +4850,24 @@ ios_application(
 
 ios_application(
     name = "simple_enhanced_security_app_without_required_opt_in",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "cpp_typed_allocator_support",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_trivial_auto_var_init_app",
     bundle_id = "com.google.example",
     families = ["iphone"],
     infoplists = [
@@ -4825,7 +4889,6 @@ ios_application(
     bundle_id = "com.google.example",
     families = ["iphone"],
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     infoplists = [
@@ -4834,7 +4897,6 @@ ios_application(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -5010,12 +5072,25 @@ ios_static_framework(
         "//test/starlark_tests/resources:shared.h",
     ],
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_static_framework(
+    name = "trivial_auto_var_init_static_fmwk",
+    hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -5084,7 +5159,6 @@ ios_application(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,
@@ -5138,7 +5212,6 @@ ios_application(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
-        "apple.enable_enhanced_security",
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

@@ -1167,13 +1167,24 @@ macos_application(
 macos_dylib(
     name = "simple_enhanced_security_dylib_with_rule_level_disabled_features",
     features = [
-        "-apple.enable_enhanced_security",
         "-trivial_auto_var_init",
     ],
     minimum_os_version = common.min_os_macos.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
-        "apple.enable_enhanced_security",
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_dylib(
+    name = "simple_trivial_auto_var_init_dylib",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
         "trivial_auto_var_init",
     ],
     tags = common.fixture_tags,

@@ -115,6 +115,12 @@ _SECURE_FEATURES_WITHOUT_CLANG_REQUIREMENTS = set([
     _REQUIRED_XCODE_26_OPT_IN,
 ])
 
+# Features that do not require the Xcode 26 opt-in entitlement to be present in order to be enabled.
+_SECURE_FEATURES_WITHOUT_XCODE_26_OPT_IN_REQUIREMENT = set([
+    "trivial_auto_var_init",
+    _REQUIRED_XCODE_26_OPT_IN,
+])
+
 # User-disabled versions of the above.
 _POSSIBLE_DISABLED_SECURE_FEATURES = set([
     "-{}".format(x)
@@ -211,13 +217,16 @@ def _entitlements_from_secure_features(
     # Build a set of all of the entitlements that are required by the requested secure features.
     required_entitlements = dict()
     has_mandatory_xcode_26_opt_in = False
+    requires_xcode_26_opt_in = False
     for feature_name in secure_features:
         if feature_name == _REQUIRED_XCODE_26_OPT_IN:
             has_mandatory_xcode_26_opt_in = True
             continue
+        if feature_name not in _SECURE_FEATURES_WITHOUT_XCODE_26_OPT_IN_REQUIREMENT:
+            requires_xcode_26_opt_in = True
         required_entitlements |= _ENTITLEMENTS_FROM_SECURE_FEATURES[feature_name]
 
-    if not has_mandatory_xcode_26_opt_in:
+    if requires_xcode_26_opt_in and not has_mandatory_xcode_26_opt_in:
         fail("""
 Apple enhanced security features were requested, but the build is missing the required feature \
 "{required_xcode_26_opt_in}" that is needed to enable required entitlements in Xcode 26.0 or later.
