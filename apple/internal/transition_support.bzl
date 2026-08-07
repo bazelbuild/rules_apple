@@ -80,7 +80,6 @@ def _apple_platform_split_transition_impl(settings, attr):
     for environment_arch in resolved_environment_archs:
         found_cpu = base_transition_support.cpu_string(
             environment_arch = environment_arch,
-            minimum_os_version = minimum_os_version,
             platform_type = platform_type,
             settings = settings,
         )
