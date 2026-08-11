@@ -151,7 +151,12 @@ def _apple_mac_tools_toolchain_impl(ctx):
 apple_mac_tools_toolchain = rule(
     attrs = {
         "alticonstool": attr.label(
-            cfg = "exec",
+            # Like the other tools here: the toolchain is already resolved
+            # for a mac execution platform, so "target" keeps the tool in the
+            # same configuration; "exec" would re-resolve against the first
+            # execution platform (which can be non-mac in cross-compilation
+            # setups).
+            cfg = "target",
             executable = True,
             doc = """
 A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
