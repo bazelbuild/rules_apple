@@ -27,7 +27,6 @@ load(
 )
 load(
     "//apple:providers.bzl",
-    "AppleBinaryInfoplistInfo",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
     "ApplePlatformInfo",
@@ -70,6 +69,10 @@ load(
     "libraries_to_link_for_dynamic_framework",
 )
 load(
+    "//apple/internal:intermediates.bzl",
+    "intermediates",
+)
+load(
     "//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -102,6 +105,10 @@ load(
     "new_macosquicklookpluginbundleinfo",
     "new_macosspotlightimporterbundleinfo",
     "new_macosxpcservicebundleinfo",
+)
+load(
+    "//apple/internal:resource_actions.bzl",
+    "resource_actions",
 )
 load(
     "//apple/internal:resources.bzl",
@@ -2007,12 +2014,23 @@ def _macos_command_line_application_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    bundle_id = ""
+    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
+    infoplists = ctx.files.infoplists
     label = ctx.label
+    launchdplists = ctx.files.launchdplists
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -2029,6 +2047,76 @@ def _macos_command_line_application_impl(ctx):
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
+    version = ctx.attr.version
+
+    extra_link_inputs = []
+    extra_linkopts = []
+    infoplist = None
+
+    if bundle_id or infoplists or version:
+        infoplist = intermediates.file(
+            actions = actions,
+            target_name = label.name,
+            output_discriminator = None,
+            file_name = "Info.plist",
+        )
+
+        resource_actions.merge_root_infoplists(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            include_executable_name = False,
+            input_plists = infoplists,
+            launch_storyboard = None,
+            output_discriminator = None,
+            output_pkginfo = None,
+            output_plist = infoplist,
+            platform_prerequisites = platform_prerequisites,
+            plisttool = apple_mac_toolchain_info.plisttool,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            version = version,
+        )
+
+        extra_link_inputs.append(infoplist)
+        extra_linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__info_plist",
+                file = infoplist.path,
+            ),
+        )
+
+    if launchdplists:
+        merged_launchdplist = intermediates.file(
+            actions = actions,
+            target_name = label.name,
+            output_discriminator = None,
+            file_name = "Launchd.plist",
+        )
+
+        resource_actions.merge_resource_infoplists(
+            actions = actions,
+            bundle_id = None,
+            bundle_name_with_extension = bundle_name + bundle_extension,
+            input_files = launchdplists,
+            output_discriminator = None,
+            output_plist = merged_launchdplist,
+            platform_prerequisites = platform_prerequisites,
+            plisttool = apple_mac_toolchain_info.plisttool,
+            rule_label = label,
+        )
+
+        extra_link_inputs.append(merged_launchdplist)
+        extra_linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__launchd_plist",
+                file = merged_launchdplist.path,
+            ),
+        )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -2036,6 +2124,8 @@ def _macos_command_line_application_impl(ctx):
         # Command-line applications do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_link_inputs = extra_link_inputs,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -2089,15 +2179,6 @@ def _macos_command_line_application_impl(ctx):
         rule_descriptor = rule_descriptor,
     )
 
-    infoplists = [
-        x[AppleBinaryInfoplistInfo].infoplist
-        for x in getattr(ctx.attr, "deps", [])
-        if AppleBinaryInfoplistInfo in x
-    ]
-
-    # There should only be one `AppleBinaryInfoplistInfo` providing dep
-    infoplist = infoplists[0] if infoplists else None
-
     runfiles = []
     if clang_rt_dylibs.should_package_clang_runtime(features = features):
         runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
@@ -2150,11 +2231,21 @@ def _macos_dylib_impl(ctx):
         label_name = ctx.label.name,
         rule_descriptor = rule_descriptor,
     )
+    bundle_id = ""
+    if ctx.attr.bundle_id or ctx.attr.base_bundle_id:
+        bundle_id = bundling_support.bundle_full_id(
+            base_bundle_id = ctx.attr.base_bundle_id,
+            bundle_id = ctx.attr.bundle_id,
+            bundle_id_suffix = ctx.attr.bundle_id_suffix,
+            bundle_name = bundle_name,
+            suffix_default = ctx.attr._bundle_id_suffix_default,
+        )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     features = features_support.compute_enabled_features(
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
+    infoplists = ctx.files.infoplists
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -2172,6 +2263,47 @@ def _macos_dylib_impl(ctx):
     )
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
+    version = ctx.attr.version
+
+    extra_link_inputs = []
+    extra_linkopts = ["-dynamiclib"]
+    infoplist = None
+
+    if bundle_id or infoplists or version:
+        infoplist = intermediates.file(
+            actions = actions,
+            target_name = label.name,
+            output_discriminator = None,
+            file_name = "Info.plist",
+        )
+
+        resource_actions.merge_root_infoplists(
+            actions = actions,
+            bundle_extension = bundle_extension,
+            bundle_id = bundle_id,
+            bundle_name = bundle_name,
+            environment_plist = ctx.file._environment_plist,
+            include_executable_name = False,
+            input_plists = infoplists,
+            launch_storyboard = None,
+            output_discriminator = None,
+            output_pkginfo = None,
+            output_plist = infoplist,
+            platform_prerequisites = platform_prerequisites,
+            plisttool = apple_mac_toolchain_info.plisttool,
+            rule_descriptor = rule_descriptor,
+            rule_label = label,
+            version = version,
+        )
+
+        extra_link_inputs.append(infoplist)
+        extra_linkopts.append(
+            "-Wl,-sectcreate,{segment},{section},{file}".format(
+                segment = "__TEXT",
+                section = "__info_plist",
+                file = infoplist.path,
+            ),
+        )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -2179,7 +2311,8 @@ def _macos_dylib_impl(ctx):
         # Dynamic libraries do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = ["-dynamiclib"],
+        extra_link_inputs = extra_link_inputs,
+        extra_linkopts = extra_linkopts,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -2233,15 +2366,6 @@ def _macos_dylib_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
     )
-
-    infoplists = [
-        x[AppleBinaryInfoplistInfo].infoplist
-        for x in getattr(ctx.attr, "deps", [])
-        if AppleBinaryInfoplistInfo in x
-    ]
-
-    # There should only be one `AppleBinaryInfoplistInfo` providing dep
-    infoplist = infoplists[0] if infoplists else None
 
     return [
         new_applebinaryinfo(

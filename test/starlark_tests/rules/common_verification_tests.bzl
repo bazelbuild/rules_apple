@@ -258,7 +258,7 @@ def binary_contents_test(
         target_under_test: The Apple binary target whose contents are to be verified.
         binary_test_file: The binary file to test.
         binary_test_architecture: Optional, The architecture to use from `binary_test_file` for
-            symbol tests.
+            symbol, load command, and embedded plist tests.
         binary_contains_symbols: Optional, A list of symbols that should appear in the binary file
             specified in `binary_test_file`.
         binary_not_contains_architectures: Optional. A list of architectures to verify do not exist
@@ -273,8 +273,8 @@ def binary_contents_test(
             appear in the binary file specified in `binary_test_file`.
         embedded_plist_test_values: Optional, The key/value pairs to test. The test will fail
             if the key does not exist or if its value doesn't match the specified value. * can
-            be used as a wildcard value. An embedded plist will be extracted from the
-            `binary_test_file` based on the `plist_slice` for this test.
+            be used as a wildcard value. If `binary_test_architecture` is provided, the embedded
+            plist is extracted from that architecture's slice of `binary_test_file`.
         plist_section_name: Optional, The name of the plist section to test. Will be the
             identifier for the section in the `__TEXT` segment, for instance `__launchd_plist`.
             Defaults to `__info_plist`.
@@ -289,10 +289,11 @@ def binary_contents_test(
         binary_not_contains_symbols,
         macho_load_commands_contain,
         macho_load_commands_not_contain,
+        embedded_plist_test_values,
     ]):
         fail("Need at least one of (binary_contains_symbols, binary_not_contains_symbols, " +
-             "macho_load_commands_contain, macho_load_commands_not_contain) when specifying " +
-             "binary_test_architecture")
+             "macho_load_commands_contain, macho_load_commands_not_contain, " +
+             "embedded_plist_test_values) when specifying binary_test_architecture")
     elif binary_test_file and not any([
         binary_contains_symbols,
         binary_not_contains_architectures,
