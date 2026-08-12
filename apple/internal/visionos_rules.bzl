@@ -233,7 +233,7 @@ Resolved Xcode is version {xcode_version}.
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
-        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        exported_symbols_lists = ctx.split_attr.exported_symbols_lists,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -565,7 +565,7 @@ def _visionos_dynamic_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
-        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        exported_symbols_lists = ctx.split_attr.exported_symbols_lists,
         extra_linkopts = [
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
@@ -854,7 +854,7 @@ def _visionos_framework_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
-        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        exported_symbols_lists = ctx.split_attr.exported_symbols_lists,
         extra_linkopts = [
             "-dynamiclib",
             "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
@@ -1127,7 +1127,7 @@ def _visionos_extension_impl(ctx):
         cc_toolchains = cc_toolchain_forwarder,
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
-        exported_symbols_lists = ctx.files.exported_symbols_lists,
+        exported_symbols_lists = ctx.split_attr.exported_symbols_lists,
         extra_linkopts = [
             "-e",
             "_VisionExtensionMain",

@@ -109,7 +109,8 @@ def select_exports(
     """Applies the closed-world framework export policy.
 
     Returns the statically referenced exports, the conservatively retained
-    non-Swift exports, and their union with authored runtime roots.
+    non-Swift exports, and their union with authored runtime roots that are
+    defined by the framework.
     """
     statically_used = defined_exports & client_imports
     non_swift_exports = set()
@@ -119,11 +120,46 @@ def select_exports(
             for symbol in defined_exports
             if not symbol.startswith(_SWIFT_SYMBOL_PREFIX)
         }
+    defined_additional_exports = defined_exports & additional_exports
     return (
         statically_used,
         non_swift_exports,
-        statically_used | non_swift_exports | additional_exports,
+        statically_used | non_swift_exports | defined_additional_exports,
     )
+
+
+def export_report(
+    *,
+    additional_exports: set[str],
+    allowlist: list[str],
+    client_imports: set[str],
+    client_input_count: int,
+    defined_exports: set[str],
+    framework_input_count: int,
+    non_swift_exports: set[str],
+    preserve_all_non_swift_exports: bool,
+    statically_used: set[str],
+) -> dict[str, object]:
+    """Returns deterministic audit data for the selected export surface."""
+    defined_additional_exports = additional_exports & defined_exports
+    return {
+        "additional_exports": len(additional_exports),
+        "additional_export_symbols": sorted(defined_additional_exports),
+        "allowlist_exports": len(allowlist),
+        "allowlist_symbols": allowlist,
+        "client_imports": len(client_imports),
+        "client_inputs": client_input_count,
+        "defined_exports": len(defined_exports),
+        "framework_inputs": framework_input_count,
+        "missing_additional_exports": sorted(
+            additional_exports - defined_exports
+        ),
+        "non_swift_exports": len(non_swift_exports),
+        "non_swift_export_symbols": sorted(non_swift_exports),
+        "preserve_all_non_swift_exports": preserve_all_non_swift_exports,
+        "statically_used_exports": len(statically_used),
+        "statically_used_export_symbols": sorted(statically_used),
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -173,21 +209,21 @@ def main() -> None:
     )
     args.report.write_text(
         json.dumps(
-            {
-                "additional_exports": len(additional_exports),
-                "allowlist_exports": len(allowlist),
-                "client_imports": len(client_imports),
-                "client_inputs": len(_manifest_inputs(args.client_inputs)),
-                "defined_exports": len(defined_exports),
-                "framework_inputs": len(
+            export_report(
+                additional_exports=additional_exports,
+                allowlist=allowlist,
+                client_imports=client_imports,
+                client_input_count=len(_manifest_inputs(args.client_inputs)),
+                defined_exports=defined_exports,
+                framework_input_count=len(
                     _manifest_inputs(args.framework_inputs)
                 ),
-                "non_swift_exports": len(non_swift_exports),
-                "preserve_all_non_swift_exports": (
+                non_swift_exports=non_swift_exports,
+                preserve_all_non_swift_exports=(
                     args.preserve_all_non_swift_exports
                 ),
-                "statically_used_exports": len(statically_used),
-            },
+                statically_used=statically_used,
+            ),
             indent=2,
             sort_keys=True,
         )

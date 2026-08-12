@@ -103,7 +103,14 @@ swift_library(
 write_file(
     name = "client_export_runtime_src",
     out = "ClientExportRuntime.m",
-    content = ["int runtimeDiscoveredEntry(void) { return 1; }"],
+    content = [
+        "int runtimeDiscoveredEntry(void) { return 1; }",
+        "#if defined(__arm64__)",
+        "int arm64RuntimeDiscoveredEntry(void) { return 2; }",
+        "#elif defined(__x86_64__)",
+        "int x8664RuntimeDiscoveredEntry(void) { return 3; }",
+        "#endif",
+    ],
     tags = common.fixture_tags,
 )
 

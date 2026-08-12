@@ -17,6 +17,7 @@ import unittest
 from pathlib import Path
 
 from tools.exported_symbols_list.exported_symbols_list import (
+    export_report,
     parse_nm_output,
     read_additional_exports,
     select_exports,
@@ -24,6 +25,45 @@ from tools.exported_symbols_list.exported_symbols_list import (
 
 
 class ExportedSymbolsListTest(unittest.TestCase):
+    def test_export_report_lists_policy_buckets_and_missing_roots(self) -> None:
+        self.assertEqual(
+            export_report(
+                additional_exports={"_dynamic", "_missing"},
+                allowlist=["_c_entry", "_dynamic", "_$s4Test4usedyyF"],
+                client_imports={"_$s4Test4usedyyF", "_system"},
+                client_input_count=2,
+                defined_exports={
+                    "_c_entry",
+                    "_dynamic",
+                    "_$s4Test4usedyyF",
+                },
+                framework_input_count=3,
+                non_swift_exports={"_c_entry"},
+                preserve_all_non_swift_exports=True,
+                statically_used={"_$s4Test4usedyyF"},
+            ),
+            {
+                "additional_export_symbols": ["_dynamic"],
+                "additional_exports": 2,
+                "allowlist_exports": 3,
+                "allowlist_symbols": [
+                    "_c_entry",
+                    "_dynamic",
+                    "_$s4Test4usedyyF",
+                ],
+                "client_imports": 2,
+                "client_inputs": 2,
+                "defined_exports": 3,
+                "framework_inputs": 3,
+                "missing_additional_exports": ["_missing"],
+                "non_swift_export_symbols": ["_c_entry"],
+                "non_swift_exports": 1,
+                "preserve_all_non_swift_exports": True,
+                "statically_used_export_symbols": ["_$s4Test4usedyyF"],
+                "statically_used_exports": 1,
+            },
+        )
+
     def test_parse_nm_output_keeps_only_exportable_external_symbols(self) -> None:
         output = """
 _Source.swift.bc:
@@ -54,6 +94,7 @@ archive.a(member.o):
     def test_select_exports_keeps_client_swift_and_all_non_swift(self) -> None:
         defined_exports = {
             "_$s4Test4usedyyF",
+            "_$s4Test12dynamicSwiftyyF",
             "_$s4Test6unusedyyF",
             "_OBJC_CLASS_$_RuntimeDiscoveredType",
             "_c_entry_point",
@@ -66,7 +107,10 @@ archive.a(member.o):
         statically_used, non_swift_exports, allowlist = select_exports(
             defined_exports,
             client_imports,
-            {"_$s4Test12dynamicSwiftyyF"},
+            {
+                "_$s4Test12dynamicSwiftyyF",
+                "_$s4Test14missingDynamicyyF",
+            },
             preserve_all_non_swift_exports=True,
         )
 

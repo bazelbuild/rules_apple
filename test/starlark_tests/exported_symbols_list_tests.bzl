@@ -88,6 +88,31 @@ def exported_symbols_list_test_suite(name):
         tags = [name],
     )
 
+    # The generated list must be derived independently for each architecture.
+    # Otherwise one slice can receive a symbol that only exists in another
+    # slice, which makes Apple's linker reject the fat framework build.
+    for architecture, expected_symbol, other_symbol in [
+        ("arm64", "_arm64RuntimeDiscoveredEntry", "_x8664RuntimeDiscoveredEntry"),
+        ("x86_64", "_x8664RuntimeDiscoveredEntry", "_arm64RuntimeDiscoveredEntry"),
+    ]:
+        archive_contents_test(
+            name = "{}_multi_arch_{}_framework_exports_test".format(name, architecture),
+            target_under_test = "//test/starlark_tests/targets_under_test/ios:client_export_framework",
+            binary_contains_symbols = [
+                expected_symbol,
+                "_runtimeDiscoveredEntry",
+            ],
+            binary_not_contains_symbols = [other_symbol],
+            binary_test_architecture = architecture,
+            binary_test_file = "$BUNDLE_ROOT/client_export_framework",
+            build_type = "simulator",
+            compilation_mode = "opt",
+            cpus = {
+                "ios_multi_cpus": ["sim_arm64", "x86_64"],
+            },
+            tags = [name],
+        )
+
     native.test_suite(
         name = name,
         tags = [name],

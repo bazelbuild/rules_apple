@@ -21,6 +21,9 @@ lookup and `dlsym` do not necessarily leave static undefined references. That
 conservative policy can pull otherwise-unreferenced archive members into the
 framework; set `preserve_all_non_swift_exports = False` only after auditing
 runtime lookup and listing its roots in `additional_exported_symbols_lists`.
+Authored roots are validated independently for each architecture, and the
+`report` output group on this target lists selected policy buckets and missing
+entries.
 
 ```starlark
 apple_exported_symbols_list(
@@ -51,7 +54,7 @@ current consumers are not a stable public ABI contract.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="apple_exported_symbols_list-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="apple_exported_symbols_list-deps"></a>deps |  The same library roots linked into the private framework. Their transitive static definitions are the maximum possible export surface.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
-| <a id="apple_exported_symbols_list-additional_exported_symbols_lists"></a>additional_exported_symbols_lists |  Optional authored symbol lists for runtime-discovered entry points that do not appear as undefined symbols in `clients`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="apple_exported_symbols_list-additional_exported_symbols_lists"></a>additional_exported_symbols_lists |  Optional authored symbol lists for runtime-discovered entry points that do not appear as undefined symbols in `clients`. Entries are retained only when that architecture's framework inputs define them; missing entries are listed in the `report` output group on this target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="apple_exported_symbols_list-clients"></a>clients |  The complete set of application and extension link roots that may load the framework. Pass library or binary targets that provide `CcInfo`, not bundle targets that embed the framework, to avoid a dependency cycle.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="apple_exported_symbols_list-nm"></a>nm |  Optional `llvm-nm` executable. By default the selected Xcode's `llvm-nm` is used through `xcrun`. Override this when the link inputs come from another LLVM toolchain, especially when they contain LLVM bitcode.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="apple_exported_symbols_list-preserve_all_non_swift_exports"></a>preserve_all_non_swift_exports |  Whether to retain every non-Swift definition conservatively for Objective-C runtime and `dlsym` lookup. This can pull otherwise-unreferenced archive members into the framework. Set this to `False` only when all runtime-discovered entry points are absent or listed in `additional_exported_symbols_lists`.   | Boolean | optional |  `True`  |

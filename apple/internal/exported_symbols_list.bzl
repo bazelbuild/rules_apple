@@ -147,7 +147,9 @@ exported_symbols_list = rule(
             allow_files = True,
             doc = """\
 Optional authored symbol lists for runtime-discovered entry points that do not
-appear as undefined symbols in `clients`.
+appear as undefined symbols in `clients`. Entries are retained only when that
+architecture's framework inputs define them; missing entries are listed in the
+`report` output group on this target.
 """,
         ),
         "clients": attr.label_list(
@@ -202,6 +204,9 @@ lookup and `dlsym` do not necessarily leave static undefined references. That
 conservative policy can pull otherwise-unreferenced archive members into the
 framework; set `preserve_all_non_swift_exports = False` only after auditing
 runtime lookup and listing its roots in `additional_exported_symbols_lists`.
+Authored roots are validated independently for each architecture, and the
+`report` output group on this target lists selected policy buckets and missing
+entries.
 
 ```starlark
 apple_exported_symbols_list(
