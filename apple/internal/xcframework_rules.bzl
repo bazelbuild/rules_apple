@@ -110,6 +110,10 @@ load(
     "swift_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:symlink_support.bzl",
+    "symlink_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:xcframework_transition_support.bzl",
     "xcframework_transition_support",
 )
@@ -159,6 +163,7 @@ def _xcframework_platform_attrs():
         "_environment_plist_files": attr.label_list(
             default = [
                 "@build_bazel_rules_apple//apple/internal:environment_plist_ios",
+                "@build_bazel_rules_apple//apple/internal:environment_plist_macos",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_tvos",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_watchos",
                 "@build_bazel_rules_apple//apple/internal:environment_plist_visionos",
@@ -168,6 +173,13 @@ def _xcframework_platform_attrs():
             doc = """
 A dictionary of strings indicating which platform variants should be built for the iOS platform (
 `device` or `simulator`) as keys, and arrays of strings listing which architectures should be
+built for those platform variants (for example, `x86_64`, `arm64`) as their values.
+""",
+        ),
+        "macos": attr.string_list_dict(
+            doc = """
+A dictionary of strings indicating which platform variants should be built for the macOS platform (
+`device`) as keys, and arrays of strings listing which architectures should be
 built for those platform variants (for example, `x86_64`, `arm64`) as their values.
 """,
         ),
@@ -200,6 +212,7 @@ or `tvos` as keys:
 
     minimum_os_versions = {
         "ios": "15.0",
+        "macos": "12.0",
         "tvos": "15.0",
         "visionos": "1.0",
         "watchos": "8.0",
@@ -338,7 +351,7 @@ def _validate_platform_attrs(
         rule_label: The label of the target being analyzed.
     """
 
-    supported_apple_platform_types = ["ios", "tvos", "visionos", "watchos"]
+    supported_apple_platform_types = ["ios", "macos", "tvos", "visionos", "watchos"]
 
     for platform_type in all_attrs.minimum_os_versions.keys():
         if platform_type not in supported_apple_platform_types:
@@ -990,12 +1003,78 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         for provider in bundler_result.providers:
             # Save the framework archive.
             if getattr(provider, "archive", None):
+                archive_to_merge = provider.archive
+
+                if (not tree_artifact_is_enabled and
+                    link_output.platform == "macos"):
+                    # TODO(b/520059769): Create a dedicated bundling API for symlink generation
+                    # and management to avoid the need to tie this functionality into the macOS
+                    # codesigning commands. This is a stopgap to ensure that zip archives of macOS
+                    # frameworks contain the appropriate symlinks expected of macOS frameworks.
+                    patched_archive = actions.declare_file("{library}/patched_{basename}".format(
+                        library = library_identifier,
+                        basename = archive_to_merge.basename,
+                    ))
+
+                    target_dir = "$tmp_dir/{bundle_name}{bundle_extension}".format(
+                        bundle_name = bundle_name,
+                        bundle_extension = nested_bundle_extension,
+                    )
+
+                    unzip_cmds = [
+                        "set -e",
+                        "tmp_dir=$(mktemp -d)",
+                        "unzip -q \"$PWD/{input_zip}\" -d \"$tmp_dir\"".format(
+                            input_zip = archive_to_merge.path,
+                        ),
+                        "out_zip=\"$PWD/{output_zip}\"".format(
+                            output_zip = patched_archive.path,
+                        ),
+                    ]
+
+                    move_cmds = [
+                        "mkdir -p \"{target_dir}/Versions/A\"".format(target_dir = target_dir),
+                        "for item in \"{target_dir}\"/*; do".format(target_dir = target_dir),
+                        "  item_name=$(basename \"$item\")",
+                        "  if [ \"$item_name\" != \"Versions\" ]; then",
+                        "    mv \"$item\" \"{target_dir}/Versions/A/\"".format(target_dir = target_dir),
+                        "  fi",
+                        "done",
+                    ]
+
+                    symlink_cmds = symlink_support.macos_framework_symlink_commands(
+                        target_dir = target_dir,
+                        is_macos = False,
+                    )
+
+                    zip_cmds = [
+                        "pushd \"$tmp_dir\" > /dev/null",
+                        "zip -q -y -X -r \"$out_zip\" .",
+                        "popd > /dev/null",
+                        "rm -rf \"$tmp_dir\"",
+                    ]
+
+                    commands = unzip_cmds + move_cmds + symlink_cmds + zip_cmds
+                    repair_cmd = "\n".join(commands)
+
+                    actions.run_shell(
+                        inputs = [archive_to_merge],
+                        outputs = [patched_archive],
+                        command = repair_cmd,
+                        mnemonic = "PatchMacOSFrameworkSymlinks",
+                        progress_message = "Patching macOS symlinks for %s in XCFramework %s" % (
+                            link_output.platform,
+                            rule_label.name,
+                        ),
+                    )
+                    archive_to_merge = patched_archive
+
                 # Repackage every archive found for bundle_merge_files or bundle_merge_zips in the
                 # final bundler action, depending on whether tree artifacts are enabled.
                 if tree_artifact_is_enabled:
                     framework_archive_merge_files.append(
                         struct(
-                            src = provider.archive.path,
+                            src = archive_to_merge.path,
                             dest = paths.join(
                                 library_identifier,
                                 bundle_name + nested_bundle_extension,
@@ -1005,13 +1084,13 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 else:
                     framework_archive_merge_zips.append(
                         struct(
-                            src = provider.archive.path,
+                            src = archive_to_merge.path,
                             dest = library_identifier,
                         ),
                     )
 
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
-                framework_archive_files.append(depset([provider.archive]))
+                framework_archive_files.append(depset([archive_to_merge]))
 
             if library_type == _LIBRARY_TYPE.dynamic:
                 # Save the AppleDynamicFrameworkInfo, identified via the presence of the
@@ -1352,26 +1431,28 @@ def _apple_xcframework_impl(ctx):
         # results of link_multi_arch_binary(...).
         extra_linkopts.append("-Wl,-rpath,/usr/lib/swift")
 
-    extra_linkopts.extend([
-        # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
-        # Application.app/Frameworks/Framework.framework/Framework
-        # watchOS 2 extension-dependent app framework binaries live in
-        # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
-        #
-        # iOS, tvOS, visionOS and watchOS single target app frameworks are packaged in
-        # Application.app/Frameworks
-        # watchOS 2 extension-dependent app frameworks are packaged in
-        # Application.app/PlugIns/Extension.appex/Frameworks
-        #
-        # While different, these resolve to the same paths relative to their respective
-        # executables. Only macOS (which is not yet supported) is an outlier.
+    extra_linkopts_by_os = {
+        "macos": [
+            "-Wl,-rpath,@executable_path/../Frameworks",
+            "-Wl,-rpath,@loader_path/../Frameworks",
+            "-install_name",
+            "@rpath/{name}.framework/Versions/A/{name}".format(name = bundle_name),
+        ],
+    }
+
+    # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
+    # Application.app/Frameworks/Framework.framework/Framework
+    # watchOS 2 extension-dependent app framework binaries live in
+    # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
+    ios_linkopts = [
         "-Wl,-rpath,@executable_path/Frameworks",
         "-Wl,-rpath,@loader_path/Frameworks",
         "-install_name",
-        "@rpath/{name}.framework/{name}".format(
-            name = bundle_name,
-        ),
-    ])
+        "@rpath/{name}.framework/{name}".format(name = bundle_name),
+    ]
+
+    for os in ["ios", "tvos", "watchos", "visionos"]:
+        extra_linkopts_by_os[os] = ios_linkopts
 
     xcframework_transitive_deps = [
         avoid_framework[XCFrameworkDepsInfo].transitive_framework_deps
@@ -1393,6 +1474,7 @@ def _apple_xcframework_impl(ctx):
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts,
+        extra_linkopts_by_os = extra_linkopts_by_os,
         # platform_prerequisites only contains knowledge for a specific platform; as we can have
         # multiple set, we supply the platform-specific values through extra_linkopts instead.
         platform_prerequisites = None,
@@ -1503,6 +1585,9 @@ def _apple_xcframework_impl(ctx):
             files = depset(
                 [outputs_archive],
                 transitive = bundled_artifacts.framework_output_files,
+            ),
+            runfiles = ctx.runfiles(
+                transitive_files = depset([outputs_archive], transitive = bundled_artifacts.framework_output_files),
             ),
         ),
         OutputGroupInfo(
@@ -1924,6 +2009,9 @@ def _apple_static_xcframework_impl(ctx):
             files = depset(
                 [outputs_archive],
                 transitive = bundled_artifacts.framework_output_files,
+            ),
+            runfiles = ctx.runfiles(
+                transitive_files = depset([outputs_archive], transitive = bundled_artifacts.framework_output_files),
             ),
         ),
         OutputGroupInfo(

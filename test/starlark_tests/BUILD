@@ -139,5 +139,6 @@ bzl_library(
         "//test/starlark_tests/rules:test_rules",
         "//tools/build_defs/build_test",
         "//tools/build_defs/write_file:bzl_lib",
+        "@rules_shell//shell:rules_bzl",
     ],
 )

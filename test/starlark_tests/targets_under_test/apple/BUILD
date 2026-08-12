@@ -325,6 +325,60 @@ apple_xcframework(
     deps = [":fmwk_lib"],
 )
 
+apple_static_xcframework(
+    name = "macos_static_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    macos = {
+        "device": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "macos_static_library_xcframework",
+    bundle_format = "library",
+    macos = {
+        "device": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    tags = common.fixture_tags,
+    deps = [":fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "macos_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    macos = {
+        "device": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    deps = [":fmwk_lib"],
+)
+
 apple_xcframework(
     name = "tvos_dynamic_xcframework",
     bundle_id = "com.google.example",
@@ -438,10 +492,18 @@ apple_xcframework(
         ],
         "device": ["arm64"],
     },
+    macos = {
+        "device": [
+            "x86_64",
+            "arm64",
+        ],
+    },
     minimum_os_versions = {
         "tvos": common.min_os_tvos.min_deployment_target,
         "ios": common.min_os_ios.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "macos": common.min_os_macos.min_deployment_target,
+        # TODO(b/542398762): Add watchOS support to apple_xcframework tests.
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",

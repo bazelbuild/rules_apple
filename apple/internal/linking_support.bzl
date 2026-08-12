@@ -169,7 +169,8 @@ def _find_xcframework_deps_for_current_platform(
         xcframework_dep
         for xcframework_dep in xcframework_deps
         if platform_info.target_os == xcframework_dep.target_os and
-           platform_info.target_environment == xcframework_dep.target_environment
+           (platform_info.target_environment == xcframework_dep.target_environment or
+            platform_info.target_os == "macos")
     ]
 
     if xcframework_deps and not xcframework_deps_for_current_platform:
@@ -214,6 +215,7 @@ def _link_multi_arch_binary(
         cc_configured_features,
         cc_toolchains,
         extra_linkopts = [],
+        extra_linkopts_by_os = {},
         extra_link_inputs = [],
         rule_descriptor,
         stamp = -1,
@@ -234,6 +236,8 @@ def _link_multi_arch_binary(
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
+        extra_linkopts_by_os: A dictionary of OS to a list of strings: Extra linkopts to add to the
+            linking action for a given OS.
         extra_link_inputs: A list of strings: Extra files to pass to the linker action.
         rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
             will define additional parameters required for linking, such as the dSYM bundle name. If
@@ -371,6 +375,11 @@ def _link_multi_arch_binary(
 
         main_binary_basename = outputs.main_binary_basename(bundle_name)
 
+        platform_extra_linkopts = extra_linkopts + extra_linkopts_by_os.get(
+            platform_info.target_os,
+            [],
+        )
+
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,
             apple_platform_info = platform_info,
@@ -379,7 +388,7 @@ def _link_multi_arch_binary(
             common_variables = common_variables,
             cc_configured_features = cc_configured_features,
             cc_linking_context = subtracted_cc_linking_context,
-            extra_link_args = extra_linkopts,
+            extra_link_args = platform_extra_linkopts,
             extra_link_inputs = extra_link_inputs,
             name = main_binary_basename,
             stamp = stamp,
@@ -511,6 +520,7 @@ def _register_binary_linking_action(
         exported_symbols_lists = [],
         extra_link_inputs = [],
         extra_linkopts = [],
+        extra_linkopts_by_os = {},
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1,
@@ -548,6 +558,7 @@ def _register_binary_linking_action(
         extra_link_inputs: Extra Files to add to the linking action, expected to be referenced via
             extra_linkopts.
         extra_linkopts: Extra linkopts to add to the linking action.
+        extra_linkopts_by_os: Extra linkopts to add to the linking action, keyed by the OS.
         platform_prerequisites: The platform prerequisites if one exists for the given rule. This
             will define additional linking sections for entitlements. If `None`, entitlements
             sections are not included.
@@ -645,6 +656,7 @@ def _register_binary_linking_action(
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
+        extra_linkopts_by_os = extra_linkopts_by_os,
         extra_link_inputs = link_inputs,
         rule_descriptor = rule_descriptor,
         stamp = stamp,

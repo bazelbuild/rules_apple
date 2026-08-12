@@ -182,6 +182,7 @@ bzl_library(
         ":intermediates",
         ":rule_support",
         ":shared_environment",
+        ":symlink_support",
         "//apple/internal/utils:defines",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:shell",
@@ -827,6 +828,7 @@ bzl_library(
         ":rule_support",
         ":secure_features_support",
         ":swift_support",
+        ":symlink_support",
         ":xcframework_transition_support",
         "//apple/internal/aspects:resource_aspect",
         "//apple/internal/aspects:swift_generated_header_aspect",
@@ -905,4 +907,12 @@ environment_plist(
     name = "environment_plist_tvos",
     platform_type = "tvos",
     visibility = ["//apple:__subpackages__"],
+)
+
+bzl_library(
+    name = "symlink_support",
+    srcs = ["symlink_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
 )

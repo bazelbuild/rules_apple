@@ -15,6 +15,10 @@
 """xcframework Starlark tests."""
 
 load(
+    "@rules_shell//shell:sh_test.bzl",
+    "sh_test",
+)
+load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -120,6 +124,21 @@ def apple_xcframework_test_suite(name):
     )
 
     infoplist_contents_test(
+        name = "{}_macos_plist_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework",
+        expected_values = {
+            "AvailableLibraries:0:LibraryIdentifier": "macos-arm64_x86_64",
+            "AvailableLibraries:0:LibraryPath": "macos_dynamic_xcframework.framework",
+            "AvailableLibraries:0:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:0:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:0:SupportedPlatform": "macos",
+            "CFBundlePackageType": "XFWK",
+            "XCFrameworkFormatVersion": "1.0",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
         name = "{}_visionos_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:visionos_dynamic_xcframework",
         expected_values = {
@@ -173,25 +192,30 @@ def apple_xcframework_test_suite(name):
             "AvailableLibraries:1:SupportedArchitectures:1": "x86_64",
             "AvailableLibraries:1:SupportedPlatform": "ios",
             "AvailableLibraries:1:SupportedPlatformVariant": "simulator",
-            "AvailableLibraries:2:LibraryIdentifier": "tvos-arm64",
+            "AvailableLibraries:2:LibraryIdentifier": "macos-arm64_x86_64",
             "AvailableLibraries:2:LibraryPath": "multiplatform_dynamic_xcframework.framework",
             "AvailableLibraries:2:SupportedArchitectures:0": "arm64",
-            "AvailableLibraries:2:SupportedPlatform": "tvos",
-            "AvailableLibraries:3:LibraryIdentifier": "tvos-arm64_x86_64-simulator",
+            "AvailableLibraries:2:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:2:SupportedPlatform": "macos",
+            "AvailableLibraries:3:LibraryIdentifier": "tvos-arm64",
             "AvailableLibraries:3:LibraryPath": "multiplatform_dynamic_xcframework.framework",
             "AvailableLibraries:3:SupportedArchitectures:0": "arm64",
-            "AvailableLibraries:3:SupportedArchitectures:1": "x86_64",
             "AvailableLibraries:3:SupportedPlatform": "tvos",
-            "AvailableLibraries:3:SupportedPlatformVariant": "simulator",
-            "AvailableLibraries:4:LibraryIdentifier": "xros-arm64",
+            "AvailableLibraries:4:LibraryIdentifier": "tvos-arm64_x86_64-simulator",
             "AvailableLibraries:4:LibraryPath": "multiplatform_dynamic_xcframework.framework",
             "AvailableLibraries:4:SupportedArchitectures:0": "arm64",
-            "AvailableLibraries:4:SupportedPlatform": "xros",
-            "AvailableLibraries:5:LibraryIdentifier": "xros-arm64-simulator",
+            "AvailableLibraries:4:SupportedArchitectures:1": "x86_64",
+            "AvailableLibraries:4:SupportedPlatform": "tvos",
+            "AvailableLibraries:4:SupportedPlatformVariant": "simulator",
+            "AvailableLibraries:5:LibraryIdentifier": "xros-arm64",
             "AvailableLibraries:5:LibraryPath": "multiplatform_dynamic_xcframework.framework",
             "AvailableLibraries:5:SupportedArchitectures:0": "arm64",
             "AvailableLibraries:5:SupportedPlatform": "xros",
-            "AvailableLibraries:5:SupportedPlatformVariant": "simulator",
+            "AvailableLibraries:6:LibraryIdentifier": "xros-arm64-simulator",
+            "AvailableLibraries:6:LibraryPath": "multiplatform_dynamic_xcframework.framework",
+            "AvailableLibraries:6:SupportedArchitectures:0": "arm64",
+            "AvailableLibraries:6:SupportedPlatform": "xros",
+            "AvailableLibraries:6:SupportedPlatformVariant": "simulator",
             "CFBundlePackageType": "XFWK",
             "XCFrameworkFormatVersion": "1.0",
         },
@@ -295,6 +319,41 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_macos_device_arm64_binary_contains_macho_load_cmd_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/macos-arm64_x86_64/macos_dynamic_xcframework.framework/macos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_MACOSX"],
+        tags = [
+            name,
+        ],
+    )
+
+    archive_contents_test(
+        name = "{}_macos_device_x86_64_binary_contains_macho_load_cmd_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/macos-arm64_x86_64/macos_dynamic_xcframework.framework/macos_dynamic_xcframework",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        macho_load_commands_not_contain = ["cmd LC_VERSION_MIN_MACOSX"],
+        tags = [
+            name,
+        ],
+    )
+
+    # TODO(b/541269827): Replace this hardcoded bash script with a dedicated symlink verification rule.
+    sh_test(
+        name = "{}_macos_symlinks_test".format(name),
+        srcs = ["//test/starlark_tests:verifier_scripts/check_macos_symlinks.sh"],
+        args = ["$(location //test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework)"],
+        data = ["//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework"],
         tags = [name],
     )
 

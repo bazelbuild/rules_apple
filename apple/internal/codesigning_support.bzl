@@ -47,6 +47,10 @@ load(
     "shared_environment",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:symlink_support.bzl",
+    "symlink_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/utils:defines.bzl",
     "defines",
 )
@@ -430,20 +434,7 @@ def _codesigning_command(
 
             # Following the exact parameters required by
             # https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle#Support-a-single-framework-version-on-macOS
-            commands.extend([
-                # Create a symlink to the framework content at Versions/A from Versions/Current.
-                "ln -sfh A {target_dir}/Versions/Current".format(target_dir = target_dir),
-                # Create symlinks for all contents of the framework root to the corresponding
-                # content as resolved through the Versions/Current symlink. This covers files and
-                # folders.
-                "for content_path in {target_dir}/Versions/A/* ; ".format(target_dir = target_dir) +
-                # Use `##*/` to slice off the parent, leaving only the last path component.
-                "do content=\"${content_path##*/}\"; " +
-                "ln -sfh Versions/Current/\"${{content}}\" {target_dir}/\"${{content}}\"; ".format(
-                    target_dir = target_dir,
-                ) +
-                "done",
-            ])
+            commands.extend(symlink_support.macos_framework_symlink_commands(target_dir, is_macos = True))
 
     should_sign_bundles = _should_sign_bundles(
         cc_configured_features = cc_configured_features,
