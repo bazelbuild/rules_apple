@@ -503,7 +503,7 @@ apple_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
         "macos": common.min_os_macos.min_deployment_target,
-        # TODO(b/542398762): Add watchOS support to apple_xcframework tests.
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -521,6 +521,16 @@ apple_xcframework(
             "arm64",
         ],
         "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
             "arm64",
         ],
     },
@@ -726,6 +736,7 @@ apple_static_xcframework(
         "tvos": common.min_os_tvos.min_deployment_target,
         "ios": common.min_os_ios.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -743,6 +754,16 @@ apple_static_xcframework(
             "arm64",
         ],
         "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
             "arm64",
         ],
     },

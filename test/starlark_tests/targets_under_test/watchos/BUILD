@@ -10,6 +10,10 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_xcframework.bzl",
+    "apple_xcframework",
+)
+load(
     "//apple:ios.bzl",
     "ios_application",
 )
@@ -473,6 +477,97 @@ apple_dynamic_xcframework_import(
     name = "watchos_imported_dynamic_xcframework",
     tags = common.fixture_tags,
     xcframework_imports = [":generated_dynamic_watchos_xcframework"],
+)
+
+watchos_application(
+    name = "app_with_imported_multiplatform_xcframework",
+    app_icons = ["//test/starlark_tests/resources:WatchAppIcon.xcassets"],
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:WatchosAppInfo.plist",
+    ],
+    minimum_os_version = common.min_os_watchos.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":multiplatform_dynamic_xcframework_depending_lib",
+        "//test/starlark_tests/resources:watchkit_single_target_app_main_lib",
+    ],
+)
+
+objc_library(
+    name = "multiplatform_dynamic_xcframework_depending_lib",
+    tags = common.fixture_tags,
+    deps = [
+        ":watchos_imported_multiplatform_dynamic_xcframework",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "watchos_imported_multiplatform_dynamic_xcframework",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_multiplatform_dynamic_xcframework"],
+)
+
+apple_xcframework(
+    name = "multiplatform_dynamic_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_multiplatform_dynamic_xcframework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.h",
+    ],
+    tags = common.fixture_tags,
+    watchos = {
+        "device": [
+            "arm64_32",
+            "arm64",
+        ],
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    deps = [
+
+        # "//test/starlark_tests/targets_under_test/ios:xcframework_shared_class",
+    ],
+)
+
+genrule(
+    name = "generated_multiplatform_dynamic_xcframework",
+    srcs = [":multiplatform_dynamic_xcframework"],
+    outs = [
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/Info.plist",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/ios-arm64/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/ios-arm64/generated_multiplatform_dynamic_xcframework.framework/Info.plist",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/ios-arm64/generated_multiplatform_dynamic_xcframework.framework/Headers/SharedClass.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/ios-arm64/generated_multiplatform_dynamic_xcframework.framework/Headers/generated_multiplatform_dynamic_xcframework.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/ios-arm64/generated_multiplatform_dynamic_xcframework.framework/Modules/module.modulemap",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_arm64_32/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_arm64_32/generated_multiplatform_dynamic_xcframework.framework/Info.plist",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_arm64_32/generated_multiplatform_dynamic_xcframework.framework/Headers/SharedClass.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_arm64_32/generated_multiplatform_dynamic_xcframework.framework/Headers/generated_multiplatform_dynamic_xcframework.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_arm64_32/generated_multiplatform_dynamic_xcframework.framework/Modules/module.modulemap",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Info.plist",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Headers/SharedClass.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Headers/generated_multiplatform_dynamic_xcframework.h",
+        "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Modules/module.modulemap",
+    ],
+    cmd = "unzip -qq $(execpath :multiplatform_dynamic_xcframework) -d $(RULEDIR)/generated_multiplatform_dynamic_xcframework",
+    tags = common.fixture_tags,
 )
 
 generate_dynamic_xcframework(

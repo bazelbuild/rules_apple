@@ -251,6 +251,37 @@ def apple_dynamic_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_links_watchos_arm64_macho_load_cmd_for_multiplatform_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_multiplatform_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        cpus = {"watchos_cpus": ["arm64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOSSIMULATOR"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_watchos_arm64_32_macho_load_cmd_for_multiplatform_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_multiplatform_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        binary_test_architecture = "arm64_32",
+        cpus = {"watchos_cpus": ["arm64_32"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_links_watchos_arm64_macho_load_cmd_for_multiplatform_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_multiplatform_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_multiplatform_dynamic_xcframework.framework/generated_multiplatform_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        cpus = {"watchos_cpus": ["device_arm64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        tags = [name],
+    )
+
     # Verify tvos_application bundles XCFramework library for device and simulator architectures.
     archive_contents_test(
         name = "{}_bundles_imported_tvos_xcframework_to_application_device_build".format(name),
