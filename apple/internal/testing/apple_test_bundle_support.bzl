@@ -539,6 +539,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
+            dependency_targets = getattr(ctx.attr, "frameworks", []),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
