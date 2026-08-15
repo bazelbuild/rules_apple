@@ -26,6 +26,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
@@ -40,6 +41,13 @@ _locales_excludes_includes_conflict_test = make_analysis_failure_message_test(
     config_settings = {
         build_settings_labels.locales_to_exclude: "fr",
         build_settings_labels.locales_to_include: "fr,it",
+    },
+)
+
+_analysis_asset_catalog_thinning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.thin_for_device_model: "iPhone14,6",
+        build_settings_labels.thin_for_os_version: "15.0",
     },
 )
 
@@ -1173,6 +1181,17 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
             "xctoolrunner actool --compile",
             "--minimum-deployment-target " + common.min_os_ios.baseline,
             "--platform iphonesimulator",
+        ],
+        tags = [name],
+    )
+
+    _analysis_asset_catalog_thinning_test(
+        name = "{}_xcasset_actool_thinning_argv".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app",
+        target_mnemonic = "AssetCatalogCompile",
+        expected_argv = [
+            "--filter-for-device-model iPhone14,6",
+            "--filter-for-device-os-version 15.0",
         ],
         tags = [name],
     )

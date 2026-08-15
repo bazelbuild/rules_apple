@@ -51,6 +51,18 @@ Comma-separated locales to include in Apple bundle resources.
 """,
         default = "",
     ),
+    "thin_for_device_model": struct(
+        doc = """
+A target device model string (e.g. 'iPhone14,6') used to thin the application via actool.
+""",
+        default = "",
+    ),
+    "thin_for_os_version": struct(
+        doc = """
+A target OS version string (e.g. '15.0') used to thin the application via actool.
+""",
+        default = "",
+    ),
     # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
     # new custom build setting.
     "signing_certificate_name": struct(

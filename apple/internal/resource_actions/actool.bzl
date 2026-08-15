@@ -512,6 +512,7 @@ def compile_asset_catalog(
         alternate_icons,
         alticonstool,
         asset_files,
+        build_settings,
         bundle_id,
         output_dir,
         output_plist,
@@ -536,6 +537,7 @@ def compile_asset_catalog(
           dependencies (i.e., assets not just from the application target, but
           from any other library targets it depends on) as well as resources like
           app icons and launch images.
+      build_settings: The build settings configuration for this target.
       bundle_id: The bundle ID to configure for this target.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
@@ -610,6 +612,11 @@ def compile_asset_catalog(
             "--output-partial-info-plist",
             xctoolrunner_support.prefixed_path(actool_output_plist.path),
         ])
+
+    if build_settings.thin_for_device_model:
+        args.add("--filter-for-device-model", build_settings.thin_for_device_model)
+    if build_settings.thin_for_os_version:
+        args.add("--filter-for-device-os-version", build_settings.thin_for_os_version)
 
     xcassets = group_files_by_directory(
         asset_files,
