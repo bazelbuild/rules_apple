@@ -51,6 +51,22 @@ By default, only the top level dSYM bundles is built when this flag is
 specified. If you require the dSYM bundles of the top level target dependencies,
 you'll need to specify the `--output_groups=+dsyms` flag.
 
+### Asset catalog thinning {#asset_catalog_thinning}
+
+Asset catalogs can be compiled for a specific device model and OS version to
+remove asset variants that the target device cannot use, such as images for a
+different device family or display scale. This reduces the size of the compiled
+`Assets.car` and, consequently, the application archive.
+
+Pass the device's hardware model identifier and target OS version when building
+the application:
+
+```shell
+bazel build //your/target \
+  --@rules_apple//apple/build_settings:thin_for_device_model=iPhone14,6 \
+  --@rules_apple//apple/build_settings:thin_for_os_version=15.0
+```
+
 <!-- Begin-External -->
 
 ### Codesigning identity

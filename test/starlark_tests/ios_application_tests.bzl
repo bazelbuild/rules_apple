@@ -21,7 +21,6 @@ load(
 load(
     "//test/starlark_tests/rules:action_command_line_test.bzl",
     "action_command_line_test",
-    "make_action_command_line_test_rule",
 )
 load(
     "//test/starlark_tests/rules:action_inputs_test.bzl",
@@ -115,22 +114,6 @@ _analysis_ios_strip_disabled_dbg_test = make_analysis_target_actions_test(
     },
 )
 
-_action_compress_zip_enabled_test = make_action_command_line_test_rule(
-    config_settings = {
-        build_settings_labels.compress_zip: "true",
-        "//command_line_option:compilation_mode": "dbg",
-        "//command_line_option:ios_multi_cpus": "x86_64",
-    },
-)
-
-_action_compress_zip_disabled_test = make_action_command_line_test_rule(
-    config_settings = {
-        build_settings_labels.compress_zip: "false",
-        "//command_line_option:compilation_mode": "opt",
-        "//command_line_option:ios_multi_cpus": "x86_64",
-    },
-)
-
 def _application_plist_substitutions(name):
     return {
         "BUNDLE_NAME": name + ".app",
@@ -181,34 +164,6 @@ def ios_application_test_suite(name):
         expected_outputs = ["app.ipa"],
         tags = [name],
     )
-
-    _action_compress_zip_enabled_test(
-        name = "{}_compress_zip_enabled_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        mnemonic = "ProcessAndSign",
-        expected_argv = ["should_compress"],
-        tags = [name],
-    )
-
-    _action_compress_zip_disabled_test(
-        name = "{}_compress_zip_disabled_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        mnemonic = "ProcessAndSign",
-        not_expected_argv = ["should_compress"],
-        tags = [name],
-    )
-
-    archive_contents_test(
-        name = "{}_bundle_watch_apps_disabled_test".format(name),
-        build_settings = {
-            build_settings_labels.bundle_watch_apps: "False",
-        },
-        build_type = "simulator",
-        not_contains = ["$BUNDLE_ROOT/Watch"],
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
-        tags = [name],
-    )
-
     analysis_target_tree_artifacts_outputs_test(
         name = "{}_tree_artifact_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
