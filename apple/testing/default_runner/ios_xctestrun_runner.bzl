@@ -131,6 +131,7 @@ def _ios_xctestrun_runner_impl(ctx):
         apple_provider.make_apple_test_runner_info(
             execution_environment = _get_execution_environment(ctx),
             execution_requirements = {"requires-darwin": ""},
+            test_environment = ctx.attr.test_environment,
             test_runner_template = ctx.outputs.test_runner_template,
         ),
         AppleDeviceTestRunnerInfo(
@@ -247,6 +248,12 @@ dependencies.
             default = True,
             doc = """
 Toggle simulator reuse. The default behavior is to reuse an existing device of the same type and OS version. When disabled, a new simulator is created before testing starts and shutdown when the runner completes.
+""",
+        ),
+        "test_environment": attr.string_dict(
+            doc = """
+Optional dictionary with the environment variables that are to be propagated
+into the XCTest invocation.
 """,
         ),
         "xcodebuild_args": attr.string_list(
