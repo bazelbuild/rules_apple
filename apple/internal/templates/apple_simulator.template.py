@@ -452,7 +452,7 @@ def wait_for_sim_to_boot(simctl_path: str, udid: str) -> bool:
 def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
   """Launches the Apple simulator for the given identifier.
 
-  Ensures the Simulator process is in the foreground.
+  Launches the simulator GUI when available.
 
   Args:
     developer_path: The path to /Applications/Xcode.app/Contents/Developer.
@@ -472,11 +472,33 @@ def boot_simulator(*, developer_path: str, simctl_path: str, udid: str) -> None:
   # This is likely because the newly-spawned Simulator.app process
   # hasn't had time to connect to the Apple Events system which
   # `osascript` relies on.
-  simulator_path = os.path.join(developer_path, "Applications/Simulator.app")
   subprocess.run(
-      ["open", "-a", simulator_path, "--args", "-CurrentDeviceUDID", udid],
-      check=True,
+      [simctl_path, "boot", udid],
+      stdout=subprocess.DEVNULL,
+      stderr=subprocess.DEVNULL,
+      check=False,
   )
+
+  # Simulator.app was replaced by DeviceHub.app in Xcode 27. This is a
+  # non-critical step that serves only to launch the simulator GUI, so simply
+  # checking path existence is good enough.
+  legacy_simulator = os.path.join(developer_path, "Applications", "Simulator.app")
+  device_hub = os.path.join(
+      developer_path, os.pardir, "Applications", "DeviceHub.app"
+  )
+  if os.path.exists(legacy_simulator):
+    subprocess.run(
+        ["open", "-a", legacy_simulator, "--args", "-CurrentDeviceUDID", udid],
+        check=False,
+    )
+  elif os.path.exists(device_hub):
+    subprocess.run(["open", "-a", device_hub], check=False)
+  else:
+    logger.warning(
+        "No simulator GUI app found under %s; the device is booted but no "
+        "window will be shown.",
+        developer_path,
+    )
   logger.debug("Simulator launched.")
   if not wait_for_sim_to_boot(simctl_path, udid):
     raise Exception("Failed to launch simulator with UDID: " + udid)
