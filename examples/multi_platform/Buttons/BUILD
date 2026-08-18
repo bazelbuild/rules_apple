@@ -130,6 +130,7 @@ ios_framework(
 ios_application(
     name = "Buttons",
     bundle_id = "com.google.Buttons",
+    exported_symbols_lists = ["Buttons/ExportedSymbols.exp"],
     extensions = [":ButtonsExtension"],
     families = [
         "iphone",

@@ -15,6 +15,10 @@
 """macos_command_line_application Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -68,6 +72,12 @@ _analysis_macos_strip_disabled_dbg_test = make_analysis_target_actions_test(
         "//command_line_option:compilation_mode": "dbg",
         "//command_line_option:macos_cpus": "x86_64",
         "//command_line_option:objc_enable_binary_stripping": True,
+    },
+)
+
+_action_macos_x86_64_test = make_action_command_line_test_rule(
+    config_settings = {
+        "//command_line_option:macos_cpus": "x86_64",
     },
 )
 
@@ -191,6 +201,29 @@ def macos_command_line_application_test_suite(name):
         compilation_mode = "opt",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["_linkopts_test_main"],
+        tags = [name],
+    )
+
+    _action_macos_x86_64_test(
+        name = "{}_empty_exported_symbols_lists_uses_no_exported_symbols_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
+        tags = [name],
+    )
+
+    _action_macos_x86_64_test(
+        name = "{}_exported_symbols_lists_skips_no_exported_symbols_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_dead_stripped",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Wl,-exported_symbols_list,test/starlark_tests/resources/ExportAnotherFunctionMain.exp",
+        ],
+        not_expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
         tags = [name],
     )
 

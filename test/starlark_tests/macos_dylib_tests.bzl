@@ -15,6 +15,10 @@
 """macos_dylib Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
@@ -37,6 +41,12 @@ load(
 load(
     "//test/starlark_tests/rules:output_group_test.bzl",
     "output_group_test",
+)
+
+_action_macos_x86_64_test = make_action_command_line_test_rule(
+    config_settings = {
+        "//command_line_option:macos_cpus": "x86_64",
+    },
 )
 
 def macos_dylib_test_suite(name):
@@ -72,6 +82,19 @@ def macos_dylib_test_suite(name):
             "DTXcode": "*",
             "DTXcodeBuild": "*",
         },
+        tags = [name],
+    )
+
+    _action_macos_x86_64_test(
+        name = "{}_empty_exported_symbols_lists_skips_no_exported_symbols_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-dynamiclib",
+        ],
+        not_expected_argv = [
+            "-Wl,-no_exported_symbols",
+        ],
         tags = [name],
     )
 
