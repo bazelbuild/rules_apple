@@ -438,7 +438,7 @@ Please contact the owner of this target to supply a precompiled artifact (likely
 
     analysis_failure_message_test(
         name = "{}_imported_unversioned_xcframework_failure_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_xcframework",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_unversioned_xcframework",
         expected_error = "Error: The contents of macOS frameworks must be defined within a Versions/A directory.",
         tags = [name],
     )

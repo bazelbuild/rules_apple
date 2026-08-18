@@ -198,8 +198,8 @@ def ios_extension_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        is_not_binary_plist = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
-        contains = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
+        is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
     )
@@ -210,8 +210,8 @@ def ios_extension_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_dynamic_fmwk_and_ext",
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
-            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",

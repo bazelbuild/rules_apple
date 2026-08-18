@@ -1,4 +1,5 @@
 load("@build_bazel_rules_swift//swift:swift_library.bzl", "swift_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("//test/starlark_tests:common.bzl", "common")
 
 package(
@@ -41,4 +42,19 @@ exports_files(
     visibility = [
         "//test:__subpackages__",
     ],
+)
+
+swift_library(
+    name = "swift_library_without_module_interfaces",
+    srcs = [":SharedClass.swift"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "SharedClass",
+    srcs = ["SharedClass.m"],
+    hdrs = ["SharedClass.h"],
 )

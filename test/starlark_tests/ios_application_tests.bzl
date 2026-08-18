@@ -280,8 +280,8 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
-            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
@@ -296,6 +296,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_dynamic_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
         ],
         not_contains = [
@@ -315,8 +316,8 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
-            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Resources/iOSDynamicFramework.bundle/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Headers/SharedClass.h",
@@ -334,6 +335,7 @@ All requested architectures must be either device or simulator architectures."""
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_dynamic_fmwk",
         contains = [
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Info.plist",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/Another.plist",
             "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
         ],
         not_contains = [
@@ -357,8 +359,8 @@ All requested architectures must be either device or simulator architectures."""
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        is_not_binary_plist = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
-        contains = ["$BUNDLE_ROOT/iOSStaticFramework.bundle/Info.plist"],
+        is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
     )
@@ -381,7 +383,7 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = [
-            "_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass",
+            "_OBJC_CLASS_$__TtC46iOSSwiftStaticFrameworkWithoutModuleInterfaces11SharedClass",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",

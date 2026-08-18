@@ -45,10 +45,12 @@ def apple_static_xcframework_import_test_suite(name):
         expected_error = """
 Error: Unexpectedly found no root Info.plist from the non-binary files found in the XCFramework:
 
-third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/generated_static_framework_xcframework_without_root_infoplist.xcframework/ios-arm64_x86_64-simulator/generated_static_framework_xcframework_without_root_infoplist.framework/Resources/generated_static_framework_xcframework_without_root_infoplist.bundle/Info.plist
+third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/apple/generated_static_framework_xcframework_without_root_infoplist/generated_static_framework_xcframework_without_root_infoplist.xcframework/ios-arm64_x86_64-simulator/generated_static_framework_xcframework_without_root_infoplist.framework/Resources/generated_static_framework_xcframework_without_root_infoplist.bundle/Info.plist
 
 There must be one root Info.plist in the framework bundle at \
 "generated_static_framework_xcframework_without_root_infoplist.framework/Info.plist".
+
+Make sure that the precompiled XCFramework has included a root Info.plist declaring a valid minimum OS version appropriate for the given platform at the specified location.
 """,
         tags = [name],
     )
@@ -138,7 +140,7 @@ There must be one root Info.plist in the framework bundle at \
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = [
-            "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
+            "_OBJC_CLASS_$__TtC54generated_swift_static_xcframework_without_swiftmodule11SharedClass",
         ],
         not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
         tags = [name],

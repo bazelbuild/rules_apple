@@ -77,7 +77,94 @@ _min_os_watchos = struct(
     os_27_mandates = "27.0",
 )
 
+def _extract_xcframework_cmd(name):
+    cmd = """
+rm -rf $(@D)/%{name}
+mkdir -p $(@D)/%{name}
+has_zip_extracted=0
+for f in $(SRCS); do
+  if [[ "$$f" == *.xcframework.zip ]]; then
+     if unzip -tq "$$f" >&2; then
+       unzip -qq -n "$$f" -d $(@D)/%{name}
+       has_zip_extracted=1
+     else
+       echo "Error: Couldn't unzip $$f" >&2
+       exit 1
+     fi
+  fi
+done
+
+for f in $(SRCS); do
+  if [[ "$$f" == *.xcframework ]] && [ -d "$$f" ] && [ "$$has_zip_extracted" -eq 0 ]; then
+    cp -rL "$$f" $(@D)/%{name}/
+  fi
+done
+
+outs=($(OUTS))
+first_out="$${outs[0]}"
+if [[ "$$first_out" == *.xcframework/* ]]; then
+  src_xcfw=$$(find $(@D)/%{name} -name "*.xcframework" -type d | head -n 1)
+  dest_xcfw="$${first_out%%.xcframework/*}.xcframework"
+  if [ "$$src_xcfw" != "$$dest_xcfw" ]; then
+    cp -a "$$src_xcfw/." "$$dest_xcfw/"
+  fi
+  expected_arch=""
+  for out_file in $(OUTS); do
+      if [[ "$$out_file" == *.xcframework/*-*/* ]]; then
+          expected_arch=$$(echo "$$out_file" | sed -E 's|.*\\.xcframework/([^/]+)/.*|\\1|')
+          break
+      fi
+  done
+
+  if [ -n "$$expected_arch" ]; then
+      actual_arch=$$(ls "$$dest_xcfw" | grep -E "^(macos|ios|tvos|watchos|xros)-" | head -n 1)
+      if [ -n "$$actual_arch" ] && [ "$$actual_arch" != "$$expected_arch" ]; then
+          if [ ! -e "$$dest_xcfw/$$expected_arch" ]; then
+              cp -a "$$dest_xcfw/$$actual_arch" "$$dest_xcfw/$$expected_arch" || true
+          fi
+      fi
+  fi
+
+  # For macOS frameworks, tree artifact copies lose symlinks.
+  # Replace missing outs (which were symlinks) with dummy files to satisfy Bazel.
+  for out_file in $(OUTS); do
+      if [ ! -e "$$out_file" ]; then
+          mkdir -p "$$(dirname "$$out_file")"
+          echo "dummy" > "$$out_file"
+      fi
+  done
+
+elif [[ "$$first_out" == *.framework/* ]]; then
+  src_fw=$$(find $(@D)/%{name} -name "*.framework" -type d | head -n 1)
+  dest_fw="$${first_out%%.framework/*}.framework"
+  if [ "$$src_fw" != "$$dest_fw" ]; then
+    cp -a "$$src_fw/." "$$dest_fw/"
+  fi
+elif [[ "$$first_out" == *.xctest/* ]]; then
+  src_fw=$$(find $(@D)/%{name} -name "*.xctest" -type d | head -n 1)
+  dest_fw="$${first_out%%.xctest/*}.xctest"
+  if [ "$$src_fw" != "$$dest_fw" ]; then
+    cp -a "$$src_fw/." "$$dest_fw/"
+  fi
+else
+  for out_file in $(OUTS); do
+    if [ ! -f "$$out_file" ] && [ ! -d "$$out_file" ]; then
+      fname="$$(basename "$$out_file")"
+      found_file=$$(find $(@D)/%{name} -name "$$fname" \\( -type f -o -type l \\) | head -n 1)
+      if [ -n "$$found_file" ]; then
+        cp -L "$$found_file" "$$out_file"
+      else
+        echo "Error: Expected output file $$fname not found in extracted bundle %{name}" >&2
+        exit 1
+      fi
+    fi
+  done
+fi
+"""
+    return cmd.replace("%{name}", name)
+
 common = struct(
+    extract_xcframework_cmd = _extract_xcframework_cmd,
     fixture_tags = _fixture_tags,
     min_os_ios = _min_os_ios,
     min_os_macos = _min_os_macos,

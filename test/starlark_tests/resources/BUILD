@@ -241,7 +241,7 @@ swift_library(
     srcs = ["WatchKitAppMain.swift"],
     tags = common.fixture_tags,
     deps = [
-        ":hinted_app_intent",
+        ":hinted_app_intent",  # keep
     ],
 )
 
@@ -260,7 +260,7 @@ objc_library(
     srcs = ["test.m"],
     tags = common.fixture_tags,
     deps = [
-        ":swift_uikit_appdelegate",
+        ":swift_uikit_appdelegate",  # keep
     ],
 )
 
@@ -832,7 +832,7 @@ swift_library(
     ],
     tags = common.fixture_tags,
     deps = [
-        ":swift_lib_with_storyboard_b",
+        ":swift_lib_with_storyboard_b",  # keep
     ],
 )
 
@@ -853,7 +853,7 @@ swift_library(
     ],
     tags = common.fixture_tags,
     deps = [
-        ":swift_lib_with_asset_catalog_b",
+        ":swift_lib_with_asset_catalog_b",  # keep
     ],
 )
 
@@ -950,7 +950,7 @@ swift_library(
     srcs = ["AppDelegate.swift"],
     tags = common.fixture_tags,
     deps = [
-        ":hinted_app_intent",
+        ":hinted_app_intent",  # keep
     ],
 )
 
@@ -1095,4 +1095,55 @@ apple_resource_locales(
     name = "locales_it",
     default_locale = "it",
     locales_to_include = [],
+)
+
+objc_library(
+    name = "fmwk_structured_resources_lib",
+    data = [":structured_resources"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "app_structured_resources_lib",
+    data = [":structured_resources_duplicate"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "fmwk_lib",
+    srcs = [
+        ":shared.h",
+        ":shared.m",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "lib_with_structured_resources",
+    data = [
+        ":structured_resources",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "shared_lib",
+    data = [
+        ":basic_bundle",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "another_plist_lib",
+    data = [":Another.plist"],
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "swift_fmwk_lib",
+    srcs = ["//test/testdata/sources:main.swift"],
+    library_evolution = True,
+    module_name = "swift_static_fmwk",
+    tags = common.fixture_tags,
 )

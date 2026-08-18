@@ -86,7 +86,7 @@ def macos_application_test_suite(name):
 
     analysis_failure_message_test(
         name = "{}_imported_unversioned_fmwk_failure_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_fmwk",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_unversioned_fmwk",
         expected_error = "Error: The contents of macOS frameworks must be defined within a Versions/A directory.",
         tags = [name],
     )

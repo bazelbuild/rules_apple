@@ -100,8 +100,8 @@ def macos_extension_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        is_not_binary_plist = ["$BUNDLE_ROOT/Contents/Resources/macOSStaticFramework.bundle/Info.plist"],
-        contains = ["$BUNDLE_ROOT/Contents/Resources/macOSStaticFramework.bundle/Info.plist"],
+        is_binary_plist = ["$BUNDLE_ROOT/Contents/Resources/resource_bundle.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/Contents/Resources/resource_bundle.bundle/Info.plist"],
         not_contains = ["$BUNDLE_ROOT/Contents/Frameworks/macOSStaticFramework.framework"],
         tags = [name],
     )
@@ -113,8 +113,8 @@ def macos_extension_test_suite(name):
         cpus = {"macos_cpus": ["arm64"]},
         contains = [
             "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Resources/Info.plist",
+            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Resources/resource_bundle.bundle/Info.plist",
             "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/macOSDynamicFramework",
-            "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Resources/macOSDynamicFramework.bundle/Info.plist",
         ],
         not_contains = [
             "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Headers/SharedClass.h",

@@ -43,14 +43,6 @@ load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
-load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
-    "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_static_xcframework",
-)
 
 licenses(["notice"])
 
@@ -731,7 +723,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":app_structured_resources_lib",
+        "//test/starlark_tests/resources:app_structured_resources_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -749,21 +741,9 @@ ios_framework(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_structured_resources_lib",
+        "//test/starlark_tests/resources:fmwk_structured_resources_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
-)
-
-objc_library(
-    name = "fmwk_structured_resources_lib",
-    data = ["//test/starlark_tests/resources:structured_resources"],
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "app_structured_resources_lib",
-    data = ["//test/starlark_tests/resources:structured_resources_duplicate"],
-    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -892,6 +872,7 @@ ios_application(
     tags = common.fixture_tags,
     deps = [
         ":iOSImportedStaticFramework",
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -903,14 +884,49 @@ apple_static_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "iOSStaticFramework_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "iOSStaticFramework_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.iOSStaticFramework",
+    bundle_name = "iOSStaticFramework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:resource_bundle"],
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSStaticFramework_lib",
+    ],
+)
+
+genrule(
     name = "iOSStaticFramework",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "static",
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    sdk = "iphonesimulator",
+    srcs = [":iOSStaticFramework_xcframework"],
+    outs = [
+        "iOSStaticFramework.framework/Headers/SharedClass.h",
+        "iOSStaticFramework.framework/Headers/iOSStaticFramework.h",
+        "iOSStaticFramework.framework/resource_bundle.bundle/Info.plist",
+        "iOSStaticFramework.framework/Info.plist",
+        "iOSStaticFramework.framework/Modules/module.modulemap",
+        "iOSStaticFramework.framework/iOSStaticFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("iOSStaticFramework"),
     tags = common.fixture_tags,
 )
 
@@ -945,8 +961,8 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_lib",
         ":main_lib_with_fmwk_lib_dep",
+        "//test/starlark_tests/resources:fmwk_lib",
     ],
 )
 
@@ -964,8 +980,8 @@ ios_extension(
     minimum_os_version = common.min_os_ios.nplus1,
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_lib",
         ":main_lib_with_fmwk_lib_dep",
+        "//test/starlark_tests/resources:fmwk_lib",
     ],
 )
 
@@ -984,24 +1000,15 @@ ios_framework(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_lib",
+        "//test/starlark_tests/resources:fmwk_lib",
     ],
-)
-
-objc_library(
-    name = "fmwk_lib",
-    srcs = [
-        "//test/starlark_tests/resources:shared.h",
-        "//test/starlark_tests/resources:shared.m",
-    ],
-    tags = common.fixture_tags,
 )
 
 objc_library(
     name = "main_lib_with_fmwk_lib_dep",
     srcs = [":main_lib_with_fmwk_lib_dep_file"],
     tags = common.fixture_tags,
-    deps = [":fmwk_lib"],
+    deps = ["//test/starlark_tests/resources:fmwk_lib"],
 )
 
 write_file(
@@ -1163,7 +1170,7 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":lib_with_structured_resources",
+        "//test/starlark_tests/resources:lib_with_structured_resources",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1179,9 +1186,9 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
-        ":app_structured_resources_lib",
-        ":fmwk_structured_resources_lib",
-        ":lib_with_structured_resources",
+        "//test/starlark_tests/resources:app_structured_resources_lib",
+        "//test/starlark_tests/resources:fmwk_structured_resources_lib",
+        "//test/starlark_tests/resources:lib_with_structured_resources",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1233,14 +1240,6 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
-)
-
-objc_library(
-    name = "lib_with_structured_resources",
-    data = [
-        "//test/starlark_tests/resources:structured_resources",
-    ],
-    tags = common.fixture_tags,
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1419,6 +1418,7 @@ ios_extension(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1969,6 +1969,7 @@ ios_application(
 objc_library(
     name = "dynamic_fmwk_depending_lib",
     srcs = [":dynamic_fmwk_depending_lib_file"],
+    data = ["//test/starlark_tests/resources:Another.plist"],
     tags = common.fixture_tags,
     deps = [":iOSImportedDynamicFramework"],
 )
@@ -2010,6 +2011,7 @@ ios_application(
 swift_library(
     name = "dynamic_fmwk_depending_swift_lib",
     srcs = [":dynamic_fmwk_depending_swift_lib_file"],
+    data = ["//test/starlark_tests/resources:Another.plist"],
     tags = common.fixture_tags,
     deps = [":iOSImportedDynamicFramework"],
 )
@@ -2052,15 +2054,50 @@ apple_dynamic_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
-    name = "iOSDynamicFramework",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    sdk = "iphonesimulator",
+objc_library(
+    name = "iOSDynamicFramework_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "iOSDynamicFramework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "iOSDynamicFramework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":iOSDynamicFramework_lib",
+    ],
+)
+
+genrule(
+    name = "iOSDynamicFramework",
+    srcs = [":iOSDynamicFramework_xcframework"],
+    outs = [
+        "iOSDynamicFramework.framework/Headers/SharedClass.h",
+        "iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
+        "iOSDynamicFramework.framework/Another.plist",
+        "iOSDynamicFramework.framework/Info.plist",
+        "iOSDynamicFramework.framework/Modules/module.modulemap",
+        "iOSDynamicFramework.framework/iOSDynamicFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("iOSDynamicFramework"),
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
 )
 
 # --------------------------------------------------------------------------------------------------
@@ -2088,6 +2125,7 @@ ios_application(
 objc_library(
     name = "static_fmwk_depending_lib",
     srcs = [":static_fmwk_depending_lib_file"],
+    data = ["//test/starlark_tests/resources:Another.plist"],
     tags = common.fixture_tags,
     deps = [":iOSImportedStaticFramework"],
 )
@@ -2242,26 +2280,82 @@ apple_static_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+apple_static_xcframework(
+    name = "iOSSwiftStaticFramework_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.iOSSwiftStaticFramework",
+    bundle_name = "iOSSwiftStaticFramework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            # buildifier: disable=platform-specific-binaries
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources/frameworks:swift_library",
+    ],
+)
+
+genrule(
     name = "iOSSwiftStaticFramework",
+    srcs = [":iOSSwiftStaticFramework_xcframework"],
     # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    sdk = "iphonesimulator",
-    swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
+    outs = [
+        "iOSSwiftStaticFramework.framework/Headers/iOSSwiftStaticFramework.h",
+        "iOSSwiftStaticFramework.framework/Info.plist",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftdoc",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftinterface",
+        "iOSSwiftStaticFramework.framework/Modules/module.modulemap",
+        "iOSSwiftStaticFramework.framework/iOSSwiftStaticFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("iOSSwiftStaticFramework"),
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+apple_static_xcframework(
+    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    bundle_name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSSwiftStaticFrameworkWithoutModuleInterfaces_swift_lib",
+    ],
+)
+
+genrule(
     name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    srcs = [":iOSSwiftStaticFrameworkWithoutModuleInterfaces_xcframework"],
     # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_module_interface_files = False,
-    libtype = "static",
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    sdk = "iphonesimulator",
-    swift_library = "//test/starlark_tests/resources/frameworks:swift_library",
+    outs = [
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Headers/SharedObjCClass.h",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Headers/iOSSwiftStaticFrameworkWithoutModuleInterfaces-Swift.h",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Headers/iOSSwiftStaticFrameworkWithoutModuleInterfaces.h",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Info.plist",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/x86_64.swiftdoc",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/x86_64.swiftinterface",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/module.modulemap",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    ],
+    cmd = common.extract_xcframework_cmd("iOSSwiftStaticFrameworkWithoutModuleInterfaces"),
     tags = common.fixture_tags,
 )
 
@@ -2420,7 +2514,7 @@ genrule(
         "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
         "generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
     ],
-    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/ios:dynamic_xcframework_with_headers) -d $(RULEDIR)/generated_dynamic_xcframework_with_headers",
+    cmd = common.extract_xcframework_cmd("generated_dynamic_xcframework_with_headers"),
     tags = common.fixture_tags,
 )
 
@@ -2533,7 +2627,7 @@ genrule(
         "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.swiftinterface",
         "Swift3PFmwkWithGenHeader.xcframework/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/module.modulemap",
     ],
-    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header) -d $(RULEDIR)",
+    cmd = common.extract_xcframework_cmd("ios_swift_dynamic_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -2715,12 +2809,36 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_swift_static_xcframework_without_swiftmodule"],
 )
 
-generate_static_xcframework(
+apple_static_xcframework(
+    name = "generated_swift_static_xcframework_without_swiftmodule_xcframework",
+    bundle_name = "generated_swift_static_xcframework_without_swiftmodule",
+    ios = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    tags = common.fixture_tags,
+    deps = [
+        ":generated_swift_static_xcframework_without_swiftmodule_swift_lib",
+    ],
+)
+
+genrule(
     name = "generated_swift_static_xcframework_without_swiftmodule",
-    include_module_interface_files = False,
+    srcs = [":generated_swift_static_xcframework_without_swiftmodule_xcframework"],
     # buildifier: disable=platform-specific-binaries
-    platforms = {"ios_simulator": ["x86_64"]},
-    swift_library = "//test/starlark_tests/resources/frameworks:swift_lib_for_static_xcframework",
+    outs = [
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/Info.plist",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/SharedObjCClass.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule-Swift.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/module.modulemap",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework_without_swiftmodule.a",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_swift_static_xcframework_without_swiftmodule"),
     tags = common.fixture_tags,
 )
 
@@ -2769,25 +2887,54 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_static_xcframework_with_headers"],
 )
 
-generate_static_xcframework(
-    name = "generated_static_xcframework_with_headers",
+objc_library(
+    name = "generated_static_xcframework_with_headers_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.min_deployment_target,
-        "ios": common.min_os_ios.min_deployment_target,
-    },
-    platforms = {
-        "ios_simulator": [
-            # buildifier: disable=platform-specific-binaries
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_xcframework_with_headers_xcframework",
+    bundle_name = "generated_static_xcframework_with_headers",
+    ios = {
+        "simulator": [
             "x86_64",
             "arm64",
         ],
-        "ios": [
+        "device": [
             "arm64",
             "arm64e",
         ],
     },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    secure_features = [
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":generated_static_xcframework_with_headers_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_xcframework_with_headers",
+    srcs = [":generated_static_xcframework_with_headers_xcframework"],
+    outs = [
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/Info.plist",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_arm64e/Headers/generated_static_xcframework_with_headers/SharedClass.h",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_arm64e/Headers/generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.h",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_arm64e/Headers/generated_static_xcframework_with_headers/module.modulemap",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_static_xcframework_with_headers.a",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers/SharedClass.h",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.h",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers/module.modulemap",
+        "generated_static_xcframework_with_headers/generated_static_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_static_xcframework_with_headers.a",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_xcframework_with_headers"),
     tags = common.fixture_tags,
 )
 
@@ -2868,27 +3015,54 @@ genrule(
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftdoc",
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",
     ],
-    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/ios:swift_static_xcframework) -d $(RULEDIR)/generated_swift_static_xcframework",
+    cmd = common.extract_xcframework_cmd("generated_swift_static_xcframework"),
     tags = common.fixture_tags,
 )
 
-generate_static_xcframework(
-    name = "generated_static_xcframework_with_headers_and_no_modulemap",
+objc_library(
+    name = "generated_static_xcframework_with_headers_and_no_modulemap_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    generate_modulemap = False,
-    minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.min_deployment_target,
-        "ios": common.min_os_ios.min_deployment_target,
-    },
-    platforms = {
-        "ios_simulator": [
-            # buildifier: disable=platform-specific-binaries
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_xcframework_with_headers_and_no_modulemap_xcframework",
+    bundle_name = "generated_static_xcframework_with_headers_and_no_modulemap",
+    ios = {
+        "simulator": [
             "x86_64",
             "arm64",
         ],
-        "ios": ["arm64"],
+        "device": [
+            "arm64",
+        ],
     },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    deps = [
+        ":generated_static_xcframework_with_headers_and_no_modulemap_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_xcframework_with_headers_and_no_modulemap",
+    srcs = [":generated_static_xcframework_with_headers_and_no_modulemap_xcframework"],
+    outs = [
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/Info.plist",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64/Headers/generated_static_xcframework_with_headers_and_no_modulemap/SharedClass.h",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64/Headers/generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.h",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64/Headers/generated_static_xcframework_with_headers_and_no_modulemap/module.modulemap",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64/generated_static_xcframework_with_headers_and_no_modulemap.a",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers_and_no_modulemap/SharedClass.h",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.h",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64_x86_64-simulator/Headers/generated_static_xcframework_with_headers_and_no_modulemap/module.modulemap",
+        "generated_static_xcframework_with_headers_and_no_modulemap/generated_static_xcframework_with_headers_and_no_modulemap.xcframework/ios-arm64_x86_64-simulator/generated_static_xcframework_with_headers_and_no_modulemap.a",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_xcframework_with_headers_and_no_modulemap"),
     tags = common.fixture_tags,
 )
 
@@ -2980,7 +3154,7 @@ genrule(
         "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/custom_apple_resource_info.out",
         "ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/resource_bundle.bundle/Info.plist",
     ],
-    cmd = "unzip -qq $(execpath //test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle) -d $(RULEDIR)",
+    cmd = common.extract_xcframework_cmd("ios_static_framework_xcframework_with_data_resource_bundle"),
     tags = common.fixture_tags,
 )
 
@@ -3590,20 +3764,12 @@ ios_unit_test(
 # Targets for the app/test resource deduping test.
 
 objc_library(
-    name = "shared_lib",
-    data = [
-        "//test/starlark_tests/resources:basic_bundle",
-    ],
-    tags = common.fixture_tags,
-)
-
-objc_library(
     name = "app_lib",
     data = [
         "//test/starlark_tests/resources:empty.strings",
     ],
     tags = common.fixture_tags,
-    deps = [":shared_lib"],
+    deps = ["//test/starlark_tests/resources:shared_lib"],
 )
 
 objc_library(
@@ -3637,7 +3803,7 @@ ios_framework(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":shared_lib",
+        "//test/starlark_tests/resources:shared_lib",
     ],
 )
 
@@ -3803,7 +3969,7 @@ objc_library(
     sdk_frameworks = ["UIKit"],
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_lib",
+        "//test/starlark_tests/resources:fmwk_lib",
     ],
 )
 
@@ -5653,4 +5819,30 @@ apple_static_xcframework(
     deps = [
         ":xcframework_shared_class",
     ],
+)
+
+swift_library(
+    name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces_swift_lib",
+    srcs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.swift",
+        "//test/starlark_tests/resources/frameworks:SharedObjCClass.m",
+    ],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedObjCClass.h"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "iOSSwiftStaticFrameworkWithoutModuleInterfaces",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "generated_swift_static_xcframework_without_swiftmodule_swift_lib",
+    srcs = [
+        "//test/starlark_tests/resources/frameworks:SharedClass.swift",
+        "//test/starlark_tests/resources/frameworks:SharedObjCClass.m",
+    ],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedObjCClass.h"],
+    generates_header = True,
+    library_evolution = True,
+    module_name = "generated_swift_static_xcframework_without_swiftmodule",
+    tags = common.fixture_tags,
 )

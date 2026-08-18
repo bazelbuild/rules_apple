@@ -11,6 +11,11 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_xcframework.bzl",
+    "apple_static_xcframework",
+    "apple_xcframework",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_bundle",
@@ -28,15 +33,6 @@ load(
 load(
     "//test/starlark_tests:common.bzl",
     "common",
-)
-load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
-    "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
-    "generate_static_xcframework",
 )
 
 licenses(["notice"])
@@ -285,6 +281,7 @@ macos_extension(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     tags = common.fixture_tags,
     deps = [
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -321,6 +318,7 @@ macos_application(
     tags = common.fixture_tags,
     deps = [
         ":dynamic_fmwk_depending_lib",
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -337,14 +335,48 @@ apple_dynamic_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_macos_dynamic_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_macos_dynamic_fmwk_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_macos_dynamic_fmwk",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_macos_dynamic_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_macos_dynamic_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_versioned_frameworks = False,
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.min_deployment_target,
-    sdk = "macosx",
+    srcs = [
+        ":generated_macos_dynamic_fmwk_xcframework",
+    ],
+    outs = [
+        "generated_macos_dynamic_fmwk.framework/Versions/A/Headers/SharedClass.h",
+        "generated_macos_dynamic_fmwk.framework/Versions/A/Headers/generated_macos_dynamic_fmwk.h",
+        "generated_macos_dynamic_fmwk.framework/Versions/A/Modules/module.modulemap",
+        "generated_macos_dynamic_fmwk.framework/Versions/A/Resources/Info.plist",
+        "generated_macos_dynamic_fmwk.framework/Versions/A/generated_macos_dynamic_fmwk",
+        "generated_macos_dynamic_fmwk.framework/generated_macos_dynamic_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_macos_dynamic_fmwk"),
     tags = common.fixture_tags,
 )
 
@@ -375,13 +407,48 @@ apple_dynamic_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_macos_dynamic_versioned_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_macos_dynamic_versioned_fmwk_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_macos_dynamic_versioned_fmwk",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
+            "x86_64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_macos_dynamic_versioned_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_macos_dynamic_versioned_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.min_deployment_target,
-    sdk = "macosx",
+    srcs = [
+        ":generated_macos_dynamic_versioned_fmwk_xcframework",
+    ],
+    outs = [
+        "generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Headers/SharedClass.h",
+        "generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Headers/generated_macos_dynamic_versioned_fmwk.h",
+        "generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Modules/module.modulemap",
+        "generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist",
+        "generated_macos_dynamic_versioned_fmwk.framework/Versions/A/generated_macos_dynamic_versioned_fmwk",
+        "generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_macos_dynamic_versioned_fmwk"),
     tags = common.fixture_tags,
 )
 
@@ -389,7 +456,7 @@ generate_import_framework(
 # Targets for Apple dynamic XCFramework import tests.
 
 macos_application(
-    name = "app_with_imported_dynamic_xcframework",
+    name = "app_with_imported_dynamic_unversioned_xcframework",
     bundle_id = "com.google.example",
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
@@ -414,24 +481,67 @@ objc_library(
 apple_dynamic_xcframework_import(
     name = "macos_imported_dynamic_xcframework",
     tags = common.fixture_tags,
-    xcframework_imports = [":generated_dynamic_macos_xcframework"],
+    xcframework_imports = [":generated_dynamic_macos_unversioned_xcframework"],
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_macos_xcframework",
+objc_library(
+    name = "generated_dynamic_macos_unversioned_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    include_versioned_frameworks = False,
-    minimum_os_versions = {
-        "macos": common.min_os_macos.min_deployment_target,
-    },
-    platforms = {
-        "macos": [
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_dynamic_macos_unversioned_xcframework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_dynamic_macos_unversioned_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
             "arm64",
             "arm64e",
             "x86_64",
         ],
     },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    secure_features = [
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_dynamic_macos_unversioned_xcframework_lib",
+    ],
+)
+
+# This target intentionally rips out the "Versions/A/" hierarchy and flattens
+# the framework payload. This creates a deliberately corrupted macOS
+# framework struct to test the analyzer's rejection logic in
+# imported_unversioned_xcframework_failure_test.
+genrule(
+    name = "generated_dynamic_macos_unversioned_xcframework",
+    srcs = [
+        ":generated_dynamic_macos_unversioned_xcframework_xcframework",
+    ],
+    outs = [
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/Info.plist",
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework/Headers/SharedClass.h",
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework/Headers/generated_dynamic_macos_unversioned_xcframework.h",
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework/Modules/module.modulemap",
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework/Resources/Info.plist",
+        "generated_dynamic_macos_unversioned_xcframework/generated_dynamic_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework/generated_dynamic_macos_unversioned_xcframework",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_dynamic_macos_unversioned_xcframework") + """
+        FMWK="$$DEST/macos-arm64_arm64e_x86_64/generated_dynamic_macos_unversioned_xcframework.framework"
+        # Remove symlinks
+        rm -f "$$FMWK/generated_dynamic_macos_unversioned_xcframework" "$$FMWK/Headers" "$$FMWK/Modules" "$$FMWK/Resources"
+        # Move Versions/A/* out
+        mv "$$FMWK/Versions/A/"* "$$FMWK/"
+        rm -rf "$$FMWK/Versions"
+    """,
     tags = common.fixture_tags,
 )
 
@@ -471,20 +581,54 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_macos_versioned_xcframework",
+objc_library(
+    name = "generated_dynamic_macos_versioned_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    minimum_os_versions = {
-        "macos": common.min_os_macos.min_deployment_target,
-    },
-    platforms = {
-        "macos": [
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_dynamic_macos_versioned_xcframework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_dynamic_macos_versioned_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
             "arm64",
             "arm64e",
             "x86_64",
         ],
     },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    secure_features = [
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_dynamic_macos_versioned_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_dynamic_macos_versioned_xcframework",
+    srcs = [
+        ":generated_dynamic_macos_versioned_xcframework_xcframework",
+    ],
+    outs = [
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/Info.plist",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Headers/SharedClass.h",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Headers/generated_dynamic_macos_versioned_xcframework.h",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Modules/module.modulemap",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework",
+        "generated_dynamic_macos_versioned_xcframework/generated_dynamic_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_dynamic_macos_versioned_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -525,22 +669,61 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_static_macos_unversioned_xcframework"],
 )
 
-generate_static_xcframework(
-    name = "generated_static_macos_unversioned_xcframework",
+objc_library(
+    name = "generated_static_macos_unversioned_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_macos_unversioned_xcframework_xcframework",
     bundle_format = "framework",
-    include_versioned_frameworks = False,
-    minimum_os_versions = {
-        "macos": common.min_os_macos.min_deployment_target,
-    },
-    platforms = {
-        "macos": [
+    bundle_id = "com.google.mock",
+    bundle_name = "generated_static_macos_unversioned_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
             "arm64",
             "arm64e",
             "x86_64",
         ],
     },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    secure_features = [
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_static_macos_unversioned_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_macos_unversioned_xcframework",
+    srcs = [
+        ":generated_static_macos_unversioned_xcframework_xcframework",
+    ],
+    outs = [
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/Info.plist",
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework/Headers/SharedClass.h",
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework/Headers/generated_static_macos_unversioned_xcframework.h",
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework/Modules/module.modulemap",
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework/Resources/Another.plist",
+        "generated_static_macos_unversioned_xcframework/generated_static_macos_unversioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework/generated_static_macos_unversioned_xcframework",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_macos_unversioned_xcframework") + """
+        FMWK="$$DEST/macos-arm64_arm64e_x86_64/generated_static_macos_unversioned_xcframework.framework"
+        # Remove symlinks
+        rm -f "$$FMWK/generated_static_macos_unversioned_xcframework" "$$FMWK/Headers" "$$FMWK/Modules" "$$FMWK/Resources"
+        # Move Versions/A/* out
+        mv "$$FMWK/Versions/A/"* "$$FMWK/"
+        rm -rf "$$FMWK/Versions"
+    """,
     tags = common.fixture_tags,
 )
 
@@ -581,21 +764,55 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_static_macos_versioned_xcframework"],
 )
 
-generate_static_xcframework(
-    name = "generated_static_macos_versioned_xcframework",
+objc_library(
+    name = "generated_static_macos_versioned_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_macos_versioned_xcframework_xcframework",
     bundle_format = "framework",
-    minimum_os_versions = {
-        "macos": common.min_os_macos.min_deployment_target,
-    },
-    platforms = {
-        "macos": [
+    bundle_id = "com.google.macos-versioned",
+    bundle_name = "generated_static_macos_versioned_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
             "arm64",
             "arm64e",
             "x86_64",
         ],
     },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:Another.plist"],
+    secure_features = [
+        "pointer_authentication",
+    ],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":generated_static_macos_versioned_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_macos_versioned_xcframework",
+    srcs = [
+        ":generated_static_macos_versioned_xcframework_xcframework",
+    ],
+    outs = [
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/Versions/A/Modules/module.modulemap",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/Versions/A/Headers/generated_static_macos_versioned_xcframework.h",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/Versions/A/Headers/SharedClass.h",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/Versions/A/generated_static_macos_versioned_xcframework",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/macos-arm64_arm64e_x86_64/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+        "generated_static_macos_versioned_xcframework/generated_static_macos_versioned_xcframework.xcframework/Info.plist",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_macos_versioned_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -1401,25 +1618,6 @@ macos_application(
 )
 
 # Helper libraries
-objc_library(
-    name = "fmwk_structured_resources_lib",
-    data = ["//test/starlark_tests/resources:structured_resources"],
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "app_structured_resources_lib",
-    data = ["//test/starlark_tests/resources:structured_resources_duplicate"],
-    tags = common.fixture_tags,
-)
-
-objc_library(
-    name = "lib_with_structured_resources",
-    data = [
-        "//test/starlark_tests/resources:structured_resources",
-    ],
-    tags = common.fixture_tags,
-)
 
 macos_framework(
     name = "fmwk_no_version",
@@ -1458,7 +1656,7 @@ macos_framework(
     minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":fmwk_structured_resources_lib",
+        "//test/starlark_tests/resources:fmwk_structured_resources_lib",
         "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
@@ -1473,7 +1671,7 @@ macos_application(
     minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":app_structured_resources_lib",
+        "//test/starlark_tests/resources:app_structured_resources_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1529,7 +1727,7 @@ macos_application(
     minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":lib_with_structured_resources",
+        "//test/starlark_tests/resources:lib_with_structured_resources",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1681,25 +1879,102 @@ macos_application(
 )
 
 # Targets for macOS extension framework tests:
-generate_import_framework(
-    name = "macOSStaticFramework",
-    archs = ["arm64"],
-    include_resource_bundle = True,
-    include_versioned_frameworks = False,
-    libtype = "static",
-    minimum_os_version = common.min_os_macos.min_deployment_target,
-    sdk = "macosx",
+
+objc_library(
+    name = "macOSStaticFramework_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
-    name = "macOSDynamicFramework",
-    archs = ["arm64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_macos.min_deployment_target,
-    sdk = "macosx",
+apple_static_xcframework(
+    name = "macOSStaticFramework_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.macOSStaticFramework",
+    bundle_name = "macOSStaticFramework",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    macos = {
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:resource_bundle"],
+    tags = common.fixture_tags + ["requires-darwin"],
+    deps = [
+        ":macOSStaticFramework_lib",
+    ],
+)
+
+genrule(
+    name = "macOSStaticFramework",
+    srcs = [
+        ":macOSStaticFramework_xcframework",
+    ],
+    outs = [
+        "macOSStaticFramework.framework/Versions/A/Headers/SharedClass.h",
+        "macOSStaticFramework.framework/Versions/A/Headers/macOSStaticFramework.h",
+        "macOSStaticFramework.framework/Versions/A/Modules/module.modulemap",
+        "macOSStaticFramework.framework/Versions/A/Resources/Info.plist",
+        "macOSStaticFramework.framework/Versions/A/Resources/resource_bundle.bundle/Info.plist",
+        "macOSStaticFramework.framework/Versions/A/macOSStaticFramework",
+        "macOSStaticFramework.framework/macOSStaticFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("macOSStaticFramework"),
     tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "macOSDynamicFramework_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "macOSDynamicFramework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "macOSDynamicFramework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    macos = {
+        "device": [
+            "arm64",
+        ],
+    },
+    minimum_os_versions = {
+        "macos": common.min_os_macos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    resources = ["//test/starlark_tests/resources:resource_bundle"],
+    tags = common.fixture_tags + ["requires-darwin"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":macOSDynamicFramework_lib",
+    ],
+)
+
+genrule(
+    name = "macOSDynamicFramework",
+    srcs = [
+        ":macOSDynamicFramework_xcframework",
+    ],
+    outs = [
+        "macOSDynamicFramework.framework/Versions/A/Headers/SharedClass.h",
+        "macOSDynamicFramework.framework/Versions/A/Headers/macOSDynamicFramework.h",
+        "macOSDynamicFramework.framework/Versions/A/Modules/module.modulemap",
+        "macOSDynamicFramework.framework/Versions/A/Resources/Info.plist",
+        "macOSDynamicFramework.framework/Versions/A/Resources/resource_bundle.bundle/Info.plist",
+        "macOSDynamicFramework.framework/Versions/A/macOSDynamicFramework",
+        "macOSDynamicFramework.framework/macOSDynamicFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("macOSDynamicFramework"),
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
 )
 
 apple_static_framework_import(
@@ -1731,6 +2006,7 @@ macos_application(
     tags = common.fixture_tags,
     deps = [
         ":macOSImportedStaticFramework",
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1746,6 +2022,7 @@ macos_application(
     tags = common.fixture_tags,
     deps = [
         ":macOSImportedDynamicFramework",
+        "//test/starlark_tests/resources:another_plist_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1925,4 +2202,55 @@ macos_application(
     minimum_os_version = common.min_os_macos.os_27_mandates,
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Target for Unversioned Framework Failure test
+# ---------------------------------------------------------------------------------------
+
+genrule(
+    name = "generated_macos_dynamic_unversioned_fmwk",
+    srcs = [
+        ":generated_macos_dynamic_fmwk_xcframework",
+    ],
+    outs = [
+        "generated_macos_dynamic_unversioned_fmwk.framework/Headers/SharedClass.h",
+        "generated_macos_dynamic_unversioned_fmwk.framework/Headers/generated_macos_dynamic_fmwk.h",
+        "generated_macos_dynamic_unversioned_fmwk.framework/Modules/module.modulemap",
+        "generated_macos_dynamic_unversioned_fmwk.framework/Resources/Info.plist",
+        "generated_macos_dynamic_unversioned_fmwk.framework/generated_macos_dynamic_unversioned_fmwk",
+    ],
+    # Purposely un-version the framework by pulling contents out of Versions/A and putting them directly into the root.
+    # This intentionally corrupts the strict macOS framework layout to test that Starlark correctly rejects it.
+    cmd = "mkdir -p $(@D)/generated_macos_dynamic_unversioned_fmwktmp && for f in $(locations :generated_macos_dynamic_fmwk_xcframework); do if [[ \"$$f\" == *.xcframework.zip ]] && unzip -tq \"$$f\" &>/dev/null; then unzip -qq -o \"$$f\" -d $(@D)/generated_macos_dynamic_unversioned_fmwktmp; elif [[ \"$$f\" == *.xcframework ]] && [ -d \"$$f\" ]; then cp -a \"$$f\" $(@D)/generated_macos_dynamic_unversioned_fmwktmp/; fi; done && mkdir -p $(@D)/generated_macos_dynamic_unversioned_fmwk.framework && cp -a $(@D)/generated_macos_dynamic_unversioned_fmwktmp/*.xcframework/*/*.framework/Versions/A/* $(@D)/generated_macos_dynamic_unversioned_fmwk.framework/ 2>/dev/null || true ; mv $(@D)/generated_macos_dynamic_unversioned_fmwk.framework/generated_macos_dynamic_fmwk $(@D)/generated_macos_dynamic_unversioned_fmwk.framework/generated_macos_dynamic_unversioned_fmwk ; rm -rf $(@D)/generated_macos_dynamic_unversioned_fmwktmp",
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_framework_import(
+    name = "imported_macos_dynamic_unversioned_fmwk",
+    framework_imports = [":generated_macos_dynamic_unversioned_fmwk"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "dynamic_unversioned_fmwk_depending_lib",
+    tags = common.fixture_tags,
+    deps = [":imported_macos_dynamic_unversioned_fmwk"],
+)
+
+macos_application(
+    name = "app_with_imported_unversioned_fmwk",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    tags = [
+        "manual",
+        "notap",
+    ],
+    deps = [
+        ":dynamic_unversioned_fmwk_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )

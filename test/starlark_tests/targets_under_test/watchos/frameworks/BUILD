@@ -4,6 +4,10 @@ load(
     "apple_static_framework_import",
 )
 load(
+    "//apple:apple_xcframework.bzl",
+    "apple_static_xcframework",
+)
+load(
     "//apple:watchos.bzl",
     "watchos_application",
     "watchos_extension",
@@ -12,10 +16,6 @@ load(
 load(
     "//test/starlark_tests:common.bzl",
     "common",
-)
-load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
 )
 
 licenses(["notice"])
@@ -814,12 +814,46 @@ apple_static_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_watchos_static_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_watchos_static_fmwk_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.generated-watchos-static-fmwk",
+    bundle_name = "generated_watchos_static_fmwk",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    watchos = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    deps = [
+        ":generated_watchos_static_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_watchos_static_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = common.min_os_watchos.min_deployment_target,
-    sdk = "watchsimulator",
+    srcs = [":generated_watchos_static_fmwk_xcframework"],
+    outs = [
+        "generated_watchos_static_fmwk.framework/Headers/SharedClass.h",
+        "generated_watchos_static_fmwk.framework/Headers/generated_watchos_static_fmwk.h",
+        "generated_watchos_static_fmwk.framework/Info.plist",
+        "generated_watchos_static_fmwk.framework/Modules/module.modulemap",
+        "generated_watchos_static_fmwk.framework/generated_watchos_static_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_watchos_static_fmwk"),
     tags = common.fixture_tags,
 )

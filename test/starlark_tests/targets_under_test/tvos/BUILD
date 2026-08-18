@@ -12,6 +12,11 @@ load(
     "apple_static_xcframework_import",
 )
 load(
+    "//apple:apple_xcframework.bzl",
+    "apple_static_xcframework",
+    "apple_xcframework",
+)
+load(
     "//apple:tvos.bzl",
     "tvos_application",
     "tvos_extension",
@@ -23,15 +28,6 @@ load(
 load(
     "//test/starlark_tests:common.bzl",
     "common",
-)
-load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
-    "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
-    "generate_static_xcframework",
 )
 
 licenses(["notice"])
@@ -685,14 +681,44 @@ apple_dynamic_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_tvos_dynamic_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_tvos_dynamic_fmwk_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_tvos_dynamic_fmwk",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    deps = [
+        ":generated_tvos_dynamic_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_tvos_dynamic_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    sdk = "appletvsimulator",
+    srcs = [":generated_tvos_dynamic_fmwk_xcframework"],
+    outs = [
+        "generated_tvos_dynamic_fmwk.framework/Headers/SharedClass.h",
+        "generated_tvos_dynamic_fmwk.framework/Headers/generated_tvos_dynamic_fmwk.h",
+        "generated_tvos_dynamic_fmwk.framework/Info.plist",
+        "generated_tvos_dynamic_fmwk.framework/Modules/module.modulemap",
+        "generated_tvos_dynamic_fmwk.framework/generated_tvos_dynamic_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_tvos_dynamic_fmwk"),
     tags = common.fixture_tags,
 )
 
@@ -711,13 +737,47 @@ apple_static_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_tvos_static_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_tvos_static_fmwk_xcframework",
+    bundle_format = "framework",
+    bundle_id = "com.google.generated-tvos-static-fmwk",
+    bundle_name = "generated_tvos_static_fmwk",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_versions = {
+        "tvos": common.min_os_tvos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    deps = [
+        ":generated_tvos_static_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_tvos_static_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    libtype = "static",
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    sdk = "appletvsimulator",
+    srcs = [":generated_tvos_static_fmwk_xcframework"],
+    outs = [
+        "generated_tvos_static_fmwk.framework/Headers/SharedClass.h",
+        "generated_tvos_static_fmwk.framework/Headers/generated_tvos_static_fmwk.h",
+        "generated_tvos_static_fmwk.framework/Info.plist",
+        "generated_tvos_static_fmwk.framework/Modules/module.modulemap",
+        "generated_tvos_static_fmwk.framework/generated_tvos_static_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_tvos_static_fmwk"),
     tags = common.fixture_tags,
 )
 
@@ -751,23 +811,54 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":generated_dynamic_tvos_xcframework"],
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_tvos_xcframework",
+objc_library(
+    name = "generated_dynamic_tvos_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_dynamic_tvos_xcframework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_dynamic_tvos_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
     minimum_os_versions = {
         "tvos": common.min_os_tvos.min_deployment_target,
-        "tvos_simulator": common.min_os_tvos.min_deployment_target,
     },
-    platforms = {
-        "tvos": [
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    tvos = {
+        "device": [
             "arm64",
         ],
-        "tvos_simulator": [
+        "simulator": [
             "arm64",
             "x86_64",
         ],
     },
+    deps = [
+        ":generated_dynamic_tvos_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_dynamic_tvos_xcframework",
+    srcs = [":generated_dynamic_tvos_xcframework_xcframework"],
+    outs = [
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/Info.plist",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64/generated_dynamic_tvos_xcframework.framework/Headers/SharedClass.h",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64/generated_dynamic_tvos_xcframework.framework/Headers/generated_dynamic_tvos_xcframework.h",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64/generated_dynamic_tvos_xcframework.framework/Info.plist",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64/generated_dynamic_tvos_xcframework.framework/Modules/module.modulemap",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64/generated_dynamic_tvos_xcframework.framework/generated_dynamic_tvos_xcframework",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_dynamic_tvos_xcframework.framework/Headers/SharedClass.h",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_dynamic_tvos_xcframework.framework/Headers/generated_dynamic_tvos_xcframework.h",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_dynamic_tvos_xcframework.framework/Info.plist",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_dynamic_tvos_xcframework.framework/Modules/module.modulemap",
+        "generated_dynamic_tvos_xcframework/generated_dynamic_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_dynamic_tvos_xcframework.framework/generated_dynamic_tvos_xcframework",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_dynamic_tvos_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -799,23 +890,50 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_static_tvos_xcframework"],
 )
 
-generate_static_xcframework(
-    name = "generated_static_tvos_xcframework",
+objc_library(
+    name = "generated_static_tvos_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_tvos_xcframework_xcframework",
+    bundle_name = "generated_static_tvos_xcframework",
     minimum_os_versions = {
         "tvos": common.min_os_tvos.min_deployment_target,
-        "tvos_simulator": common.min_os_tvos.min_deployment_target,
     },
-    platforms = {
-        "tvos": [
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    tvos = {
+        "device": [
             "arm64",
         ],
-        "tvos_simulator": [
+        "simulator": [
             "arm64",
             "x86_64",
         ],
     },
+    deps = [
+        ":generated_static_tvos_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_tvos_xcframework",
+    srcs = [":generated_static_tvos_xcframework_xcframework"],
+    outs = [
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/Info.plist",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64/Headers/generated_static_tvos_xcframework/SharedClass.h",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64/Headers/generated_static_tvos_xcframework/generated_static_tvos_xcframework.h",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64/Headers/generated_static_tvos_xcframework/module.modulemap",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64/generated_static_tvos_xcframework.a",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/Headers/generated_static_tvos_xcframework/SharedClass.h",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/Headers/generated_static_tvos_xcframework/generated_static_tvos_xcframework.h",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/Headers/generated_static_tvos_xcframework/module.modulemap",
+        "generated_static_tvos_xcframework/generated_static_tvos_xcframework.xcframework/tvos-arm64_x86_64-simulator/generated_static_tvos_xcframework.a",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_tvos_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -838,15 +956,7 @@ tvos_static_framework(
     bundle_name = "swift_static_fmwk",
     minimum_os_version = common.min_os_tvos.min_deployment_target,
     tags = common.fixture_tags,
-    deps = [":swift_fmwk_lib"],
-)
-
-swift_library(
-    name = "swift_fmwk_lib",
-    srcs = ["//test/testdata/sources:main.swift"],
-    library_evolution = True,
-    module_name = "swift_static_fmwk",
-    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:swift_fmwk_lib"],
 )
 
 # ---------------------------------------------------------------------------------------
@@ -1059,20 +1169,12 @@ tvos_unit_test(
 # Targets for the app/test resource deduping test.
 
 objc_library(
-    name = "shared_lib",
-    data = [
-        "//test/starlark_tests/resources:basic_bundle",
-    ],
-    tags = common.fixture_tags,
-)
-
-objc_library(
     name = "app_lib",
     data = [
         "//test/starlark_tests/resources:empty.strings",
     ],
     tags = common.fixture_tags,
-    deps = [":shared_lib"],
+    deps = ["//test/starlark_tests/resources:shared_lib"],
 )
 
 objc_library(
@@ -1102,7 +1204,7 @@ tvos_framework(
     minimum_os_version = common.min_os_tvos.min_deployment_target,
     tags = common.fixture_tags,
     deps = [
-        ":shared_lib",
+        "//test/starlark_tests/resources:shared_lib",
     ],
 )
 

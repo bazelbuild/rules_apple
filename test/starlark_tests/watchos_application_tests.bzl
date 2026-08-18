@@ -92,7 +92,6 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_dynamic_framework.framework/fmwk_with_imported_dynamic_framework",
             "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_dynamic_framework.framework/Info.plist",
             "$BUNDLE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/Info.plist",
-            "$BUNDLE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/Resources/generated_watchos_dynamic_fmwk.bundle/Info.plist",
             "$BUNDLE_ROOT/Frameworks/generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
         ],
         not_contains = [

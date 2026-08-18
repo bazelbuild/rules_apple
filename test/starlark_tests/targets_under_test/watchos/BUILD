@@ -11,6 +11,7 @@ load(
 )
 load(
     "//apple:apple_xcframework.bzl",
+    "apple_static_xcframework",
     "apple_xcframework",
 )
 load(
@@ -27,15 +28,6 @@ load(
 load(
     "//test/starlark_tests:common.bzl",
     "common",
-)
-load(
-    "//test/starlark_tests/rules:generate_framework.bzl",
-    "generate_import_framework",
-)
-load(
-    "//test/starlark_tests/rules:generate_xcframework.bzl",
-    "generate_dynamic_xcframework",
-    "generate_static_xcframework",
 )
 
 licenses(["notice"])
@@ -309,14 +301,44 @@ apple_dynamic_framework_import(
     tags = common.fixture_tags,
 )
 
-generate_import_framework(
+objc_library(
+    name = "generated_watchos_dynamic_fmwk_lib",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_watchos_dynamic_fmwk_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_watchos_dynamic_fmwk",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_versions = {
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    watchos = {
+        "simulator": [
+            "x86_64",
+        ],
+    },
+    deps = [
+        ":generated_watchos_dynamic_fmwk_lib",
+    ],
+)
+
+genrule(
     name = "generated_watchos_dynamic_fmwk",
-    # buildifier: disable=platform-specific-binaries
-    archs = ["x86_64"],
-    include_resource_bundle = True,
-    libtype = "dynamic",
-    minimum_os_version = common.min_os_watchos.min_deployment_target,
-    sdk = "watchsimulator",
+    srcs = [":generated_watchos_dynamic_fmwk_xcframework"],
+    outs = [
+        "generated_watchos_dynamic_fmwk.framework/Headers/SharedClass.h",
+        "generated_watchos_dynamic_fmwk.framework/Headers/generated_watchos_dynamic_fmwk.h",
+        "generated_watchos_dynamic_fmwk.framework/Info.plist",
+        "generated_watchos_dynamic_fmwk.framework/Modules/module.modulemap",
+        "generated_watchos_dynamic_fmwk.framework/generated_watchos_dynamic_fmwk",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_watchos_dynamic_fmwk"),
     tags = common.fixture_tags,
 )
 
@@ -566,27 +588,58 @@ genrule(
         "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Headers/generated_multiplatform_dynamic_xcframework.h",
         "generated_multiplatform_dynamic_xcframework/generated_multiplatform_dynamic_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_multiplatform_dynamic_xcframework.framework/Modules/module.modulemap",
     ],
-    cmd = "unzip -qq $(execpath :multiplatform_dynamic_xcframework) -d $(RULEDIR)/generated_multiplatform_dynamic_xcframework",
+    cmd = common.extract_xcframework_cmd("generated_multiplatform_dynamic_xcframework"),
     tags = common.fixture_tags,
 )
 
-generate_dynamic_xcframework(
-    name = "generated_dynamic_watchos_xcframework",
+objc_library(
+    name = "generated_dynamic_watchos_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_xcframework(
+    name = "generated_dynamic_watchos_xcframework_xcframework",
+    bundle_id = "com.google.example",
+    bundle_name = "generated_dynamic_watchos_xcframework",
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
     minimum_os_versions = {
         "watchos": common.min_os_watchos.min_deployment_target,
-        "watchos_simulator": common.min_os_watchos.min_deployment_target,
     },
-    platforms = {
-        "watchos": [
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    watchos = {
+        "device": [
             "arm64_32",
         ],
-        "watchos_simulator": [
+        "simulator": [
             "x86_64",
             "arm64",
         ],
     },
+    deps = [
+        ":generated_dynamic_watchos_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_dynamic_watchos_xcframework",
+    srcs = [":generated_dynamic_watchos_xcframework_xcframework"],
+    outs = [
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/Info.plist",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_32/generated_dynamic_watchos_xcframework.framework/Headers/SharedClass.h",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_32/generated_dynamic_watchos_xcframework.framework/Headers/generated_dynamic_watchos_xcframework.h",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_32/generated_dynamic_watchos_xcframework.framework/Info.plist",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_32/generated_dynamic_watchos_xcframework.framework/Modules/module.modulemap",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_32/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_dynamic_watchos_xcframework.framework/Headers/SharedClass.h",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_dynamic_watchos_xcframework.framework/Headers/generated_dynamic_watchos_xcframework.h",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_dynamic_watchos_xcframework.framework/Info.plist",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_dynamic_watchos_xcframework.framework/Modules/module.modulemap",
+        "generated_dynamic_watchos_xcframework/generated_dynamic_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_dynamic_watchos_xcframework.framework/generated_dynamic_watchos_xcframework",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_dynamic_watchos_xcframework"),
     tags = common.fixture_tags,
 )
 
@@ -622,23 +675,50 @@ apple_static_xcframework_import(
     xcframework_imports = [":generated_static_watchos_xcframework"],
 )
 
-generate_static_xcframework(
-    name = "generated_static_watchos_xcframework",
+objc_library(
+    name = "generated_static_watchos_xcframework_lib",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "generated_static_watchos_xcframework_xcframework",
+    bundle_name = "generated_static_watchos_xcframework",
     minimum_os_versions = {
         "watchos": common.min_os_watchos.min_deployment_target,
-        "watchos_simulator": common.min_os_watchos.min_deployment_target,
     },
-    platforms = {
-        "watchos": [
+    public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    tags = common.fixture_tags,
+    watchos = {
+        "device": [
             "arm64_32",
         ],
-        "watchos_simulator": [
+        "simulator": [
             "x86_64",
             "arm64",
         ],
     },
+    deps = [
+        ":generated_static_watchos_xcframework_lib",
+    ],
+)
+
+genrule(
+    name = "generated_static_watchos_xcframework",
+    srcs = [":generated_static_watchos_xcframework_xcframework"],
+    outs = [
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/Info.plist",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_32/Headers/generated_static_watchos_xcframework/SharedClass.h",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_32/Headers/generated_static_watchos_xcframework/generated_static_watchos_xcframework.h",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_32/Headers/generated_static_watchos_xcframework/module.modulemap",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_32/generated_static_watchos_xcframework.a",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/Headers/generated_static_watchos_xcframework/SharedClass.h",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/Headers/generated_static_watchos_xcframework/generated_static_watchos_xcframework.h",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/Headers/generated_static_watchos_xcframework/module.modulemap",
+        "generated_static_watchos_xcframework/generated_static_watchos_xcframework.xcframework/watchos-arm64_x86_64-simulator/generated_static_watchos_xcframework.a",
+    ],
+    cmd = common.extract_xcframework_cmd("generated_static_watchos_xcframework"),
     tags = common.fixture_tags,
 )
 
