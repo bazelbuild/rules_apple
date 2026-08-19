@@ -86,6 +86,13 @@ def visionos_application_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    apple_codesigning_dossier_info_provider_test(
+        name = "{}_unit_test_bundle_codesigning_dossier_info_provider_test".format(name),
+        expected_dossier = "unit_test.__internal__.__test_bundle_dossier.zip",
+        target_under_test = "//test/starlark_tests/targets_under_test/visionos:unit_test.__internal__.__test_bundle",
+        tags = [name],
+    )
+
     analysis_target_outputs_test(
         name = "{}_default_app_bundle_outputs_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/visionos:app",

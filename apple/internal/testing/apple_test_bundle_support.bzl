@@ -128,8 +128,14 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(*, ctx, product_type):
-    """Implementation for bundling XCTest bundles."""
+def _apple_test_bundle_impl(*, ctx, product_type, requires_dossiers):
+    """Implementation for bundling XCTest bundles.
+
+    Args:
+        ctx: A rule context.
+        product_type: The product type for the test bundle.
+        requires_dossiers: Whether the platform's test runner requires codesigning dossiers.
+    """
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
 
@@ -167,6 +173,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
+    requires_dossiers = requires_dossiers or "disable_legacy_signing" in ctx.features
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -310,7 +317,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
-        partials.codesigning_dossier_partial(
+    ]
+
+    if requires_dossiers:
+        processor_partials.append(partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -324,7 +334,9 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             predeclared_outputs = predeclared_outputs,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-        ),
+        ))
+
+    processor_partials.extend([
         partials.main_thread_checker_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -397,7 +409,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             platform_prerequisites = platform_prerequisites,
         ),
-    ]
+    ])
 
     if platform_prerequisites.platform_type == apple_common.platform_type.macos:
         processor_partials.append(

@@ -289,6 +289,8 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
     direct_runfiles = [test_bundle]
     transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
 
+    requires_dossiers = requires_dossiers or "disable_legacy_signing" in ctx.features
+
     test_bundle_dossier = None
     if requires_dossiers and AppleCodesigningDossierInfo in test_bundle_target:
         test_bundle_dossier = test_bundle_target[AppleCodesigningDossierInfo].dossier
