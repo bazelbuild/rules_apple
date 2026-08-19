@@ -498,7 +498,54 @@ if [[ "$build_for_device" == false ]]; then
     exit 1
   fi
 
-  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
+  # A simulator can only service one test session at a time: when Bazel runs
+  # multiple simulator tests concurrently (--local_test_jobs) against the same
+  # reused simulator, the sessions disrupt each other, manifesting as hangs or
+  # "Failed to initialize for UI testing" errors. To let concurrent tests run
+  # in parallel, each test action claims an exclusive slot in a machine-wide
+  # simulator pool before asking the simulator creator for a device: slot 0
+  # reuses today's simulator name, higher slots (which only exist while tests
+  # actually run concurrently) get their own suffixed simulator. Slots are not
+  # keyed on device type or OS version, so a single invocation running tests
+  # across several simulator types still hands every concurrent test its own
+  # device. A claim is an atomic shlock(1) pid lockfile: it is valid only
+  # while this process is alive, so a test killed for any reason — including
+  # SIGKILL from a test timeout — never leaves a slot permanently claimed;
+  # the next prober validates the recorded pid and atomically reclaims dead
+  # slots. The lock files must live somewhere every concurrent test action on
+  # the machine can see. $TMPDIR is that by default: Bazel hands every test
+  # action of an invocation the same one and the sandbox permits writing
+  # there, unlike the per-action $TEST_TMPDIR. It is not part of the action's
+  # declared environment though, so under remote execution the worker decides
+  # what it is - and a worker handing out a per-action $TMPDIR would leave
+  # every test claiming slot 0. Set SIMULATOR_POOL_LOCK_DIR (e.g. via
+  # --test_env) to point the pool at a directory the execution environment
+  # actually shares in that case. Where no shared directory is available the
+  # pool degrades to today's single-simulator behavior, as it does on a
+  # machine without shlock(1).
+  simulator_pool_slot=0
+  pool_lock_dir="${SIMULATOR_POOL_LOCK_DIR:-${TMPDIR:-/tmp}}"
+  pool_lock_dir="${pool_lock_dir%/}"
+  if [[ -n "${SIMULATOR_POOL_LOCK_DIR:-}" && ! -w "$pool_lock_dir" ]]; then
+    echo "warning: SIMULATOR_POOL_LOCK_DIR '$pool_lock_dir' is not a writable directory; falling back to the shared simulator" >&2
+  fi
+  if [[ "${reuse_simulator:-}" == 1 && -x /usr/bin/shlock && -w "$pool_lock_dir" ]]; then
+    pool_lock_prefix="$pool_lock_dir/rules_apple_simulator_pool"
+    # shlock(1) reports "could not create the lock file" the same way it
+    # reports "this slot is taken", so bound the probe instead of spinning
+    # forever if the lock dir turns out to be unusable. No realistic
+    # --local_test_jobs comes close to the limit.
+    while (( simulator_pool_slot < 64 )) &&
+        ! /usr/bin/shlock -f "${pool_lock_prefix}_${simulator_pool_slot}.lock" -p $$; do
+      simulator_pool_slot=$((simulator_pool_slot + 1))
+    done
+    if (( simulator_pool_slot == 64 )); then
+      echo "note: could not claim a simulator pool slot in '$pool_lock_dir'; falling back to the shared simulator"
+      simulator_pool_slot=0
+    fi
+  fi
+
+  simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_POOL_SLOT="$simulator_pool_slot" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
 fi
 
 test_exit_code=0

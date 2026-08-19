@@ -129,8 +129,16 @@ def _selected_simulator_runtime(
     raise RuntimeError("no matching runtimes found")
 
 
-def _default_device_name(device_type: str, os_version: str) -> str:
-    return f"BAZEL_TEST_{device_type}_{os_version}"
+def _default_device_name(device_type: str, os_version: str, pool_slot: int) -> str:
+    # Each concurrent test action claims an exclusive pool slot (see the
+    # runner template) so no two running tests share a simulator. Slot 0 keeps
+    # the historical name so existing simulators are still reused; higher
+    # slots, which only exist while tests actually run concurrently, get their
+    # own suffixed simulator.
+    name = f"BAZEL_TEST_{device_type}_{os_version}"
+    if pool_slot != 0:
+        name += f"_{pool_slot}"
+    return name
 
 
 def _create_and_boot_simulator(
@@ -234,9 +242,11 @@ def _main() -> None:
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
+    pool_slot = int(os.getenv("SIMULATOR_POOL_SLOT", "0"))
+
     selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
     device_name = args.name or _default_device_name(
-        device_type, selected_runtime.version
+        device_type, selected_runtime.version, pool_slot
     )
 
     print("Selected simulator runtime", selected_runtime.identifier, file=sys.stderr)
