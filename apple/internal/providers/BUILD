@@ -16,9 +16,18 @@ bzl_library(
     srcs = ["app_intents_info.bzl"],
     visibility = [
         # Visibility set to subpackages since this provider is used both
-        # by the `app_intents_aspect` and `app_intents_metadata_bundle` bundling task, as well as
+        # by the `swift_const_values_aspect` and `app_intents_metadata_bundle` bundling task, as well as
         # for the
         # App Intents aspect hint.
+        "//apple/hints:__subpackages__",
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "extension_foundation_info",
+    srcs = ["extension_foundation_info.bzl"],
+    visibility = [
         "//apple/hints:__subpackages__",
         "//apple/internal:__subpackages__",
     ],
@@ -89,5 +98,14 @@ filegroup(
     srcs = glob(["**"]),
     visibility = [
         "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "app_extension_point_info",
+    srcs = ["app_extension_point_info.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+        "//apple/internal/aspects:__pkg__",
     ],
 )

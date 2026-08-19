@@ -125,16 +125,16 @@ load(
     "transition_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/aspects:app_intents_aspect.bzl",
-    "app_intents_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/aspects:framework_provider_aspect.bzl",
     "framework_provider_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:resource_aspect.bzl",
     "apple_resource_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/aspects:swift_const_values_aspect.bzl",
+    "swift_const_values_aspect",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_generated_header_aspect.bzl",
@@ -1196,7 +1196,7 @@ tvos_application = rule_factory.create_apple_rule(
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
-                app_intents_aspect,
+                swift_const_values_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
@@ -1253,7 +1253,7 @@ tvos_extension = rule_factory.create_apple_rule(
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
-                app_intents_aspect,
+                swift_const_values_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
@@ -1296,7 +1296,7 @@ tvos_framework = rule_factory.create_apple_rule(
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [
-                app_intents_aspect,
+                swift_const_values_aspect,
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],

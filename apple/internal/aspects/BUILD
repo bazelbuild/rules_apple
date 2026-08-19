@@ -13,14 +13,18 @@ package(
 licenses(["notice"])
 
 bzl_library(
-    name = "app_intents_aspect",
-    srcs = ["app_intents_aspect.bzl"],
+    name = "swift_const_values_aspect",
+    srcs = ["swift_const_values_aspect.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/hints:app_extension_point_hint_bzl",
+        "//apple/hints:extension_foundation_hint_bzl",
         "//apple/internal:cc_info_support",
+        "//apple/internal/providers:app_extension_point_info",
         "//apple/internal/providers:app_intents_info",
+        "//apple/internal/providers:extension_foundation_info",
         "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_rules_swift//swift:providers",
     ],
