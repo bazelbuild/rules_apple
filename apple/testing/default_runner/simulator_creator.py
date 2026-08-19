@@ -141,6 +141,24 @@ def _default_device_name(device_type: str, os_version: str, pool_slot: int) -> s
     return name
 
 
+def _simulator_is_healthy(simulator_id: str) -> bool:
+    # A simulator can report state "booted" while actually being unusable:
+    # if the test that started its initial boot was killed partway through
+    # (e.g. by a test timeout), the device stays "booted" but never becomes
+    # able to run tests, and every later test reusing it hangs. SpringBoard
+    # being up is the reliable readiness signal.
+    try:
+        services = subprocess.check_output(
+            ["xcrun", "simctl", "spawn", simulator_id, "launchctl", "list"],
+            text=True,
+            timeout=30,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+    return "com.apple.SpringBoard" in services
+
+
 def _create_and_boot_simulator(
     device_name: str,
     device_type: str,
@@ -159,12 +177,24 @@ def _create_and_boot_simulator(
     if existing_device:
         simulator_id = existing_device["udid"]
         name = existing_device["name"]
-        # If the device is already booted assume that it was created with this
-        # script and bootstatus has already waited for it to be in a good state
-        # once
+        # If the device is already booted it was created with this script and
+        # bootstatus has already waited for it to be in a good state once, so
+        # only its readiness needs re-checking below.
         state = existing_device["state"].lower()
         print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
         if state != "booted":
+            _boot_simulator(simulator_id)
+        elif not _simulator_is_healthy(simulator_id):
+            print(
+                f"Simulator '{name}' ({simulator_id}) is booted but not "
+                "responding; shutting it down and rebooting",
+                file=sys.stderr,
+            )
+            subprocess.run(
+                ["xcrun", "simctl", "shutdown", simulator_id],
+                check=False,
+                capture_output=True,
+            )
             _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:
