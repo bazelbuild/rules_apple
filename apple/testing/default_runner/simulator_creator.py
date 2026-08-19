@@ -25,16 +25,51 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 
-def _simctl(extra_args: List[str]) -> str:
-    return subprocess.check_output(["xcrun", "simctl", *extra_args], text=True)
+def _simctl(extra_args: List[str], timeout: Optional[float] = None) -> str:
+    return subprocess.check_output(
+        ["xcrun", "simctl", *extra_args], text=True, timeout=timeout
+    )
+
+
+def _boot_timeout() -> float:
+    # `simctl bootstatus -b` blocks until the device finishes booting, with no
+    # deadline of its own. A device wedged mid-boot therefore consumes the
+    # whole test timeout and is SIGKILLed, which leaves it wedged for the next
+    # attempt - so every retry burns its full budget the same way. Bound the
+    # wait against the test's own deadline, which Bazel exports as
+    # TEST_TIMEOUT.
+    #
+    # The bound exists to fail cleanly before the SIGKILL, not to ration boot
+    # time: legitimate boots can be slow (the first boot of a runtime migrates
+    # data and can take minutes on a loaded machine), so wait nearly the whole
+    # budget and reserve just enough to shut the device down and report a
+    # clear error.
+    try:
+        budget = float(os.environ["TEST_TIMEOUT"])
+    except (KeyError, ValueError):
+        budget = 300.0
+    return max(30.0, budget - 30.0)
 
 
 def _boot_simulator(simulator_id: str) -> None:
     # This private command boots the simulator if it isn't already, and waits
     # for the appropriate amount of time until we can actually run tests
     try:
-        output = _simctl(["bootstatus", simulator_id, "-b"])
+        output = _simctl(["bootstatus", simulator_id, "-b"], timeout=_boot_timeout())
         print(output, file=sys.stderr)
+    except subprocess.TimeoutExpired:
+        # The boot itself is owned by CoreSimulatorService and keeps making
+        # progress after this process stops waiting, so leave the device
+        # booting rather than shutting it down: a flaky-test retry (or the
+        # next test to claim this simulator) re-enters bootstatus and resumes
+        # waiting where this attempt left off, so a slow first-boot data
+        # migration completes across attempts instead of restarting from
+        # zero on each one. A boot that instead dies leaving the device
+        # falsely "booted" is caught by the readiness probe on reuse.
+        raise RuntimeError(
+            f"simulator {simulator_id} did not finish booting within "
+            f"{_boot_timeout():.0f}s; a retry will resume waiting for it"
+        ) from None
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
 
