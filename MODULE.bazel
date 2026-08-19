@@ -19,6 +19,7 @@ bazel_dep(
 )
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "xctestrunner", version = "0.2.16-20260212-4c6f493")
 
 system_sdk = use_extension("@rules_swift//swift:extensions.bzl", "system_sdk")
 system_sdk.configure_sdks(
@@ -60,9 +61,6 @@ system_sdk.configure_sdks(
 use_repo(system_sdk, "system_sdk")
 
 bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
-
-non_module_deps = use_extension("//apple:extensions.bzl", "non_module_deps")
-use_repo(non_module_deps, "xctestrunner")
 
 provisioning_profile_repository = use_extension("//apple:apple.bzl", "provisioning_profile_repository_extension")
 use_repo(provisioning_profile_repository, "local_provisioning_profiles")
