@@ -546,6 +546,19 @@ if [[ "$build_for_device" == false ]]; then
   fi
 
   simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_POOL_SLOT="$simulator_pool_slot" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
+
+  # A test terminated mid-session - e.g. by a Bazel test timeout, which
+  # delivers SIGTERM with a grace period before SIGKILL - can leave the
+  # simulator with a dead client but a live device-side test session. The
+  # device then still reports state "booted" with SpringBoard up, yet every
+  # later `xcodebuild test-without-building` against it hangs indefinitely,
+  # so the wedge repeats for each retry and for every other test reusing the
+  # device, including in later builds on machines that keep simulators
+  # booted. Shut the device down on termination so the next attempt starts
+  # from a clean boot instead.
+  if [[ -n "$simulator_id" ]]; then
+    trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true' TERM INT
+  fi
 fi
 
 test_exit_code=0
