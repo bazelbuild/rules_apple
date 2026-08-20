@@ -93,9 +93,10 @@ def _developer_frameworks_impl(module_ctx):
 
     if module_ctx.os.name != "mac os x":
         _developer_frameworks_stub_repo(name = "developer_frameworks")
-        return
+    else:
+        _generate_local_repos(module_ctx)
 
-    _generate_local_repos(module_ctx)
+    return module_ctx.extension_metadata(reproducible = True)
 
 developer_frameworks = module_extension(
     implementation = _developer_frameworks_impl,
