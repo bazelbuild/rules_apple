@@ -10,6 +10,7 @@ load(
     "apple_static_framework_import",
     "apple_static_xcframework",
     "apple_xcframework",
+    "xcode_developer_framework_import",
 )
 load(
     "//apple:macos.bzl",
@@ -2447,6 +2448,56 @@ generate_import_framework(
     minimum_os_version = common.min_os_macos.baseline,
     sdk = "macosx",
     tags = common.fixture_tags,
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for xcode_developer_framework_import tests.
+
+xcode_developer_framework_import(
+    name = "imported_macos_developer_fmwk",
+    framework_imports = [":generated_macos_developer_fmwk"],
+    tags = common.fixture_tags,
+)
+
+generate_import_framework(
+    name = "generated_macos_developer_fmwk",
+    archs = [
+        "arm64",
+        "x86_64",
+    ],
+    include_versioned_frameworks = False,
+    libtype = "dynamic",
+    minimum_os_version = common.min_os_macos.baseline,
+    sdk = "macosx",
+    tags = common.fixture_tags,
+)
+
+macos_application(
+    name = "app_with_developer_framework_in_frameworks",
+    bundle_id = "com.google.example",
+    frameworks = [":imported_macos_developer_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_extension(
+    name = "extension_with_developer_framework_in_frameworks",
+    bundle_id = "com.google.example",
+    frameworks = [":imported_macos_developer_fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 # ---------------------------------------------------------------------------------------

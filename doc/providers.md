@@ -214,6 +214,29 @@ Where `arch` is any Apple architecture such as "arm64" or "armv7".
 | <a id="AppleDebugOutputsInfo-outputs_map"></a>outputs_map |  -    |
 
 
+<a id="AppleDeveloperFrameworkImportInfo"></a>
+
+## AppleDeveloperFrameworkImportInfo
+
+<pre>
+load("@rules_apple//apple:providers.bzl", "AppleDeveloperFrameworkImportInfo")
+
+AppleDeveloperFrameworkImportInfo(<a href="#AppleDeveloperFrameworkImportInfo-framework_name">framework_name</a>, <a href="#AppleDeveloperFrameworkImportInfo-linker_imports">linker_imports</a>, <a href="#AppleDeveloperFrameworkImportInfo-linkopts">linkopts</a>)
+</pre>
+
+Provider that marks a target as an Xcode developer framework import and carries
+developer-framework-specific link metadata that supplements the generic
+AppleFrameworkImportInfo bundling path.
+
+**FIELDS**
+
+| Name  | Description |
+| :------------- | :------------- |
+| <a id="AppleDeveloperFrameworkImportInfo-framework_name"></a>framework_name |  String. The bundle name of the .framework (e.g. "XcodeKit").    |
+| <a id="AppleDeveloperFrameworkImportInfo-linker_imports"></a>linker_imports |  Depset of additional File inputs to feed to the link action.    |
+| <a id="AppleDeveloperFrameworkImportInfo-linkopts"></a>linkopts |  Depset of additional link flag strings (e.g. extra -Wl,... options).    |
+
+
 <a id="AppleDeviceTestRunnerInfo"></a>
 
 ## AppleDeviceTestRunnerInfo

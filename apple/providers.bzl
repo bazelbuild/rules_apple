@@ -83,6 +83,10 @@ load(
     _make_apple_test_runner_info = "make_apple_test_runner_info",
     _merge_apple_framework_import_info = "merge_apple_framework_import_info",
 )
+load(
+    "//apple/internal/providers:developer_framework_import_info.bzl",
+    _AppleDeveloperFrameworkImportInfo = "AppleDeveloperFrameworkImportInfo",
+)
 
 AppleBaseBundleIdInfo = _AppleBaseBundleIdInfo
 AppleBundleInfo = _AppleBundleInfo
@@ -90,6 +94,7 @@ AppleBinaryInfo = _AppleBinaryInfo
 AppleBundleVersionInfo = _AppleBundleVersionInfo
 AppleCodesigningDossierInfo = _AppleCodesigningDossierInfo
 AppleDebugOutputsInfo = _AppleDebugOutputsInfo
+AppleDeveloperFrameworkImportInfo = _AppleDeveloperFrameworkImportInfo
 AppleDsymBundleInfo = _AppleDsymBundleInfo
 AppleDynamicFrameworkInfo = _AppleDynamicFrameworkInfo
 AppleExecutableBinaryInfo = _AppleExecutableBinaryInfo
