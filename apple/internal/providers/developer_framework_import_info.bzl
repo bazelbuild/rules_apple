@@ -23,6 +23,6 @@ AppleFrameworkImportInfo bundling path.
     fields = {
         "framework_name": "String. The bundle name of the .framework (e.g. \"XcodeKit\").",
         "linker_imports": "Depset of additional File inputs to feed to the link action.",
-        "linkopts": "Depset of additional link flag strings (e.g. extra -Wl,... options).",
+        "linkopts": "Ordered list of additional link flag strings (e.g. extra -Wl,... options).",
     },
 )

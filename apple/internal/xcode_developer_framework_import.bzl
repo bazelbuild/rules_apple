@@ -241,21 +241,17 @@ def _xcode_developer_framework_import_impl(ctx):
     providers.append(AppleDeveloperFrameworkImportInfo(
         framework_name = framework_name,
         linker_imports = depset(provider_link_inputs),
-        linkopts = depset(provider_linkopts),
+        linkopts = provider_linkopts,
     ))
 
-    swiftinterface_files = []
-    if (
-        "apple.import_framework_via_swiftinterface" not in disabled_features and
-        framework.swift_interface_imports
-    ):
-        swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
-            swift_module_files = framework.swift_interface_imports,
-            target_triplet = target_triplet,
-        )
+    swiftinterface_files = framework_import_support.get_swiftinterface_files_with_target_triplet_if_enabled(
+        swift_interface_imports = framework.swift_interface_imports,
+        target_triplet = target_triplet,
+        features = features,
+    )
 
     if swiftinterface_files:
-        swift_toolchain = swift_common.get_toolchain(ctx)
+        swift_toolchains = swift_common.find_all_toolchains(ctx)
         providers.append(
             framework_import_support.swift_info_from_module_interface(
                 actions = actions,
@@ -265,10 +261,10 @@ def _xcode_developer_framework_import_impl(ctx):
                 features = features,
                 framework_includes = framework_includes,
                 hdrs = framework.header_imports,
-                module_map = framework.module_map_imports[0] if framework.module_map_imports else None,
+                module_maps = framework.module_map_imports,
                 module_name = framework.bundle_name,
                 rule_label = label,
-                swift_toolchain = swift_toolchain,
+                swift_toolchains = swift_toolchains,
                 swiftinterface_files = swiftinterface_files,
             ),
         )

@@ -170,14 +170,14 @@ def _split_developer_framework_targets(framework_targets):
 
 def _developer_framework_link_extras(framework_targets):
     """Collects extra linkopts and extra link inputs from developer framework targets."""
-    linkopts_depsets = []
+    linkopts = []
     link_inputs_depsets = []
     for target in framework_targets:
         info = target[AppleDeveloperFrameworkImportInfo]
-        linkopts_depsets.append(info.linkopts)
+        linkopts.extend(info.linkopts)
         link_inputs_depsets.append(info.linker_imports)
     return (
-        depset(transitive = linkopts_depsets).to_list(),
+        linkopts,
         depset(transitive = link_inputs_depsets).to_list(),
     )
 
@@ -274,7 +274,7 @@ def _macos_application_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
-        avoid_deps = non_developer_framework_targets,
+        avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = developer_framework_linkopts,
@@ -763,7 +763,7 @@ def _macos_extension_impl(ctx):
         product_type = product_type,
     )
 
-    developer_framework_targets, non_developer_framework_targets = (
+    developer_framework_targets, _ = (
         _split_developer_framework_targets(ctx.attr.frameworks)
     )
     developer_framework_linkopts, developer_framework_link_inputs = (
@@ -843,7 +843,7 @@ def _macos_extension_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
-        avoid_deps = non_developer_framework_targets,
+        avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = extra_linkopts + developer_framework_linkopts,
@@ -2860,7 +2860,7 @@ def _macos_framework_impl(ctx):
         product_type = apple_product_type.framework,
     )
 
-    developer_framework_targets, non_developer_framework_targets = (
+    developer_framework_targets, _ = (
         _split_developer_framework_targets(ctx.attr.frameworks)
     )
     developer_framework_linkopts, developer_framework_link_inputs = (
@@ -2938,7 +2938,7 @@ def _macos_framework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
-        avoid_deps = non_developer_framework_targets,
+        avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
@@ -3135,7 +3135,7 @@ def _macos_dynamic_framework_impl(ctx):
         product_type = apple_product_type.framework,
     )
 
-    developer_framework_targets, non_developer_framework_targets = (
+    developer_framework_targets, _ = (
         _split_developer_framework_targets(ctx.attr.frameworks)
     )
     developer_framework_linkopts, developer_framework_link_inputs = (
@@ -3231,7 +3231,7 @@ def _macos_dynamic_framework_impl(ctx):
     link_result = linking_support.register_binary_linking_action(
         ctx,
         cc_toolchains = cc_toolchain_forwarder,
-        avoid_deps = non_developer_framework_targets,
+        avoid_deps = ctx.attr.frameworks,
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
