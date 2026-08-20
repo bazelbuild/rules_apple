@@ -176,6 +176,39 @@ def _default_device_name(device_type: str, os_version: str, pool_slot: int) -> s
     return name
 
 
+def _previous_session_died(simulator_id: str) -> bool:
+    # The runner records its pid in a session marker while it uses a
+    # simulator and removes it on any controlled exit (see the runner
+    # template). A marker with a dead pid means a test died mid-session
+    # without cleanup - including via SIGKILL, which the runner's own
+    # TERM trap cannot catch - and the device may be carrying a dead
+    # test session that hangs all future sessions, so it needs a fresh
+    # boot before reuse.
+    lock_dir = (
+        os.getenv("SIMULATOR_POOL_LOCK_DIR") or os.getenv("TMPDIR") or "/tmp"
+    ).rstrip("/")
+    marker = os.path.join(
+        lock_dir, f"rules_apple_simulator_session_{simulator_id}"
+    )
+    try:
+        with open(marker) as f:
+            pid = int(f.read().strip())
+    except (OSError, ValueError):
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        try:
+            os.remove(marker)
+        except OSError:
+            pass
+        return True
+    except PermissionError:
+        pass
+    # The recorded pid is still alive: some live test owns the session.
+    return False
+
+
 def _simulator_is_healthy(simulator_id: str) -> bool:
     # A simulator can report state "booted" while actually being unusable:
     # if the test that started its initial boot was killed partway through
@@ -219,17 +252,26 @@ def _create_and_boot_simulator(
         print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
         if state != "booted":
             _boot_simulator(simulator_id)
-        elif not _simulator_is_healthy(simulator_id):
+        elif _previous_session_died(simulator_id) or not _simulator_is_healthy(
+            simulator_id
+        ):
             print(
-                f"Simulator '{name}' ({simulator_id}) is booted but not "
-                "responding; shutting it down and rebooting",
+                f"Simulator '{name}' ({simulator_id}) may be left in a bad "
+                "state by a previous test; shutting it down and rebooting",
                 file=sys.stderr,
             )
-            subprocess.run(
-                ["xcrun", "simctl", "shutdown", simulator_id],
-                check=False,
-                capture_output=True,
-            )
+            try:
+                subprocess.run(
+                    ["xcrun", "simctl", "shutdown", simulator_id],
+                    check=False,
+                    capture_output=True,
+                    # If even the shutdown hangs, CoreSimulatorService itself
+                    # is stuck; fall through to the bounded boot, which then
+                    # fails with a clear error instead of burning the budget.
+                    timeout=60,
+                )
+            except subprocess.TimeoutExpired:
+                pass
             _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:

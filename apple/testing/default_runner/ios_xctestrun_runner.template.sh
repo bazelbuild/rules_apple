@@ -58,13 +58,18 @@ basename_without_extension() {
 }
 
 test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")"
+# session_marker (set after a simulator is claimed) records this test's pid
+# for the simulator creator: if a later test finds the marker with this pid
+# dead, this test died mid-session and the simulator needs a fresh boot.
+session_marker=""
 if [[ -z "${NO_CLEAN:-}" ]]; then
-  trap 'rm -rf "${test_tmp_dir}"' EXIT
+  trap 'rm -rf "${test_tmp_dir}"; if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' EXIT
 else
   test_tmp_dir="${TMPDIR:-/tmp}/test_tmp_dir"
   rm -rf "$test_tmp_dir"
   mkdir -p "$test_tmp_dir"
   echo "note: keeping test dir around at: $test_tmp_dir"
+  trap 'if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' EXIT
 fi
 
 test_bundle_path="%(test_bundle_path)s"
@@ -554,10 +559,21 @@ if [[ "$build_for_device" == false ]]; then
   # later `xcodebuild test-without-building` against it hangs indefinitely,
   # so the wedge repeats for each retry and for every other test reusing the
   # device, including in later builds on machines that keep simulators
-  # booted. Shut the device down on termination so the next attempt starts
-  # from a clean boot instead.
+  # booted. Two complementary defenses:
+  #
+  # 1. A session marker holding this test's pid, removed on any controlled
+  #    exit. If the simulator creator later finds the marker with its pid
+  #    dead, the session died without cleanup - however it died, SIGKILL
+  #    included - and the device is rebooted before reuse. Same pid-liveness
+  #    pattern as the pool slot locks.
+  # 2. A TERM/INT trap that shuts the device down immediately when there is
+  #    grace to do so, so the very next attempt cold-boots clean.
   if [[ -n "$simulator_id" ]]; then
-    trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true' TERM INT
+    session_marker="$pool_lock_dir/rules_apple_simulator_session_$simulator_id"
+    if ! echo "$$" > "$session_marker" 2>/dev/null; then
+      session_marker=""
+    fi
+    trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true; if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' TERM INT
   fi
 fi
 
