@@ -126,6 +126,19 @@ def _selected_simulator_runtime(
                 platform=runtime["platform"],
                 version=runtime["version"],
             )
+    if sdk_version:
+        # `chosenRuntimeBuild` is a preference and is not guaranteed to be
+        # installed. Simulator runtimes can be patched independently from
+        # Xcode, which changes their build and patch version while preserving
+        # the SDK's OS version.
+        for runtime in available_runtimes:
+            runtime_version = runtime["version"]
+            if runtime_version == sdk_version or runtime_version.startswith(f"{sdk_version}."):
+                return _Runtime(
+                    identifier=runtime["identifier"],
+                    platform=runtime["platform"],
+                    version=runtime["version"],
+                )
     raise RuntimeError("no matching runtimes found")
 
 
