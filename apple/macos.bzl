@@ -17,11 +17,6 @@
 """
 
 load(
-    "//apple/internal:macos_binary_support.bzl",
-    "macos_binary_infoplist",
-    "macos_command_line_launchdplist",
-)
-load(
     "//apple/internal:macos_rules.bzl",
     _macos_application = "macos_application",
     _macos_bundle = "macos_bundle",
@@ -116,46 +111,8 @@ Packages a macOS Kernel Extension.
 )
 
 def _macos_command_line_application_impl(name, visibility, **kwargs):
-    deps = (kwargs.pop("deps", None) or [])
-    additional_deps = []
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates CcInfo with the linkopts
-    # necessary to add the Info.plist to the binary, so it must become a
-    # dependency of the binary as well.
-    base_bundle_id = kwargs.get("base_bundle_id")
-    bundle_id = kwargs.get("bundle_id")
-    infoplists = kwargs.get("infoplists")
-    launchdplists = kwargs.get("launchdplists")
-    version = kwargs.get("version")
-
-    if base_bundle_id or bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            base_bundle_id = base_bundle_id,
-            bundle_id = bundle_id,
-            bundle_id_suffix = kwargs.get("bundle_id_suffix"),
-            infoplists = infoplists,
-            minimum_os_version = kwargs.get("minimum_os_version"),
-            version = version,
-        )
-        additional_deps.append(":" + merged_infoplist_name)
-
-    if launchdplists:
-        merged_launchdplists_name = name + ".merged_launchdplists"
-
-        macos_command_line_launchdplist(
-            name = merged_launchdplists_name,
-            launchdplists = launchdplists,
-            minimum_os_version = kwargs.get("minimum_os_version"),
-        )
-        additional_deps.append(":" + merged_launchdplists_name)
-
     _macos_command_line_application(
         name = name,
-        deps = deps + additional_deps,
         visibility = visibility,
         **kwargs
     )
@@ -178,35 +135,8 @@ def _macos_dylib_impl(name, visibility, **kwargs):
         fail("macos_dylib does not support entitlements or provisioning " +
              "profiles at this time")
 
-    deps = (kwargs.pop("deps", None) or [])
-    additional_deps = []
-
-    # If any of the Info.plist-affecting attributes is provided, create a merged
-    # Info.plist target. This target also propagates CcInfo with the linkopts
-    # necessary to add the Info.plist to the binary, so it must become a
-    # dependency of the binary as well.
-    base_bundle_id = kwargs.get("base_bundle_id")
-    bundle_id = kwargs.get("bundle_id")
-    infoplists = kwargs.get("infoplists")
-    version = kwargs.get("version")
-
-    if base_bundle_id or bundle_id or infoplists or version:
-        merged_infoplist_name = name + ".merged_infoplist"
-
-        macos_binary_infoplist(
-            name = merged_infoplist_name,
-            base_bundle_id = base_bundle_id,
-            bundle_id = bundle_id,
-            bundle_id_suffix = kwargs.get("bundle_id_suffix"),
-            infoplists = infoplists,
-            minimum_os_version = kwargs.get("minimum_os_version"),
-            version = version,
-        )
-        additional_deps.append(":" + merged_infoplist_name)
-
     _macos_dylib(
         name = name,
-        deps = deps + additional_deps,
         visibility = visibility,
         **kwargs
     )
