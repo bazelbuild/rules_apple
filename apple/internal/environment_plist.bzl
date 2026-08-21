@@ -103,6 +103,9 @@ This rule generates the plist containing the required variables about the versio
 being built for and with. This is used by Apple when submitting to the App Store. This reduces the
 amount of duplicative work done generating these plists for the same platforms.
 """,
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
     fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
     implementation = _environment_plist_impl,

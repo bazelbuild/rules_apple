@@ -275,4 +275,7 @@ Provides:
   AppleBundleVersionInfo: Contains a reference to the JSON file that holds the
       version information for a bundle.
 """,
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
 )
