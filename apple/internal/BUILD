@@ -430,6 +430,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "exported_symbols_list",
+    srcs = ["exported_symbols_list.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "@apple_support//lib:apple_support",
+        "@bazel_skylib//lib:dicts",
+        "@rules_cc//cc/common",
+    ],
+)
+
+bzl_library(
     name = "order_file",
     srcs = ["order_file.bzl"],
     visibility = [
