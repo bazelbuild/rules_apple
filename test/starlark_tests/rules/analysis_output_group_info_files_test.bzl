@@ -72,3 +72,7 @@ def make_analysis_output_group_info_files_test(config_settings = {}):
     )
 
 analysis_output_group_info_files_test = make_analysis_output_group_info_files_test()
+
+analysis_output_group_info_files_attr_test = make_analysis_output_group_info_files_test(
+    config_settings = {},
+)

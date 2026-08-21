@@ -293,7 +293,7 @@ def _link_multi_arch_binary(
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["dsym_binary"] = dsym_binary
 
         linkmap = None
-        if ctx.fragments.cpp.objc_generate_linkmap:
+        if ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap:
             linkmap = intermediates.file(
                 actions = ctx.actions,
                 target_name = ctx.label.name,
@@ -366,7 +366,8 @@ def _debug_outputs_by_architecture(link_outputs):
 
     for link_output in link_outputs:
         dsym_binaries[link_output.architecture] = link_output.dsym_binary
-        linkmaps[link_output.architecture] = link_output.linkmap
+        if link_output.linkmap:
+            linkmaps[link_output.architecture] = link_output.linkmap
 
     return struct(
         dsym_binaries = dsym_binaries,
@@ -538,13 +539,17 @@ def _register_binary_linking_action(
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
+    requested_features = list(extra_requested_features)
+    if ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap:
+        requested_features.append("generate_linkmap")
+
     linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
         cc_toolchains = cc_toolchains,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
-        extra_requested_features = extra_requested_features,
+        extra_requested_features = requested_features,
         # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
         # being routed to the wrong exec platform.
         extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
