@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(
@@ -176,4 +177,20 @@ filegroup(
     visibility = [
         "//:__subpackages__",
     ],
+)
+
+objc_library(
+    name = "attachment_payload_shim",
+    testonly = True,
+    srcs = ["attachment_payload_shim.m"],
+    visibility = ["//visibility:public"],
+    alwayslink = True,
+)
+
+objc_library(
+    name = "test_output_redirect_shim",
+    testonly = True,
+    srcs = ["test_output_redirect_shim.m"],
+    visibility = ["//visibility:public"],
+    alwayslink = True,
 )

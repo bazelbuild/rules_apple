@@ -228,6 +228,26 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     extra_link_inputs = []
 
+    # Memory shims for tests driven through `xcodebuild test-without-building`:
+    # linked the same way as the swizzle library below, activated by the
+    # environment variables the test rule sets for the matching feature.
+    shim_targets = []
+    if ("apple.test_drop_attachment_payloads" in features or
+        "apple.test_spill_attachment_payloads" in features):
+        shim_targets.append(ctx.attr._attachment_payload_shim)
+    if "apple.test_redirect_stdout" in features:
+        shim_targets.append(ctx.attr._test_output_redirect_shim)
+    for shim_target in shim_targets:
+        for linker_input in shim_target[CcInfo].linking_context.linker_inputs.to_list():
+            for library in linker_input.libraries:
+                static_library = library.static_library
+                extra_link_inputs.append(static_library)
+                extra_linkopts.append(
+                    "-Wl,-force_load,{}".format(static_library.path),
+                )
+            extra_link_inputs.extend(linker_input.additional_inputs)
+            extra_linkopts.extend(linker_input.user_link_flags)
+
     if "apple.swizzle_absolute_xcttestsourcelocation" in features:
         # `linking_support.register_binary_linking_action` uses
         # `apple_common.link_multi_arch_binary`, which doesn't allow specifying

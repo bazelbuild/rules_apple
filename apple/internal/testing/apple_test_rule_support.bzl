@@ -199,6 +199,26 @@ def _get_main_thread_checker_test_environment(*, features):
         }
     return {}
 
+def _get_test_memory_shim_environment(*, features):
+    """Returns the environment variables that activate the test memory shims.
+
+    Args:
+        features: List of features enabled by the user. Typically from `ctx.features`.
+    Returns:
+        dict: Environment variables activating the shims linked into the test
+        bundle by `apple_test_bundle_support` for the same features. See
+        `//apple/testing/default_runner:attachment_payload_shim` and
+        `:test_output_redirect_shim` for what each mode does.
+    """
+    test_env = {}
+    if "apple.test_drop_attachment_payloads" in features:
+        test_env["RULES_APPLE_ATTACHMENT_PAYLOADS"] = "drop"
+    elif "apple.test_spill_attachment_payloads" in features:
+        test_env["RULES_APPLE_ATTACHMENT_PAYLOADS"] = "spill"
+    if "apple.test_redirect_stdout" in features:
+        test_env["RULES_APPLE_REDIRECT_TEST_OUTPUT"] = "stdout"
+    return test_env
+
 def _get_simulator_test_environment(
         *,
         command_line_test_env,
@@ -258,6 +278,7 @@ def _get_simulator_test_environment(
         runner_test_env_copy,
         test_env_dyld_insert_pairs,
         _get_main_thread_checker_test_environment(features = features),
+        _get_test_memory_shim_environment(features = features),
     )
 
 def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
