@@ -31,6 +31,9 @@ def _simctl(extra_args: List[str], timeout: Optional[float] = None) -> str:
     )
 
 
+_START_TIME = time.monotonic()
+
+
 def _boot_timeout() -> float:
     # `simctl bootstatus -b` blocks until the device finishes booting, with no
     # deadline of its own. A device wedged mid-boot therefore consumes the
@@ -42,13 +45,15 @@ def _boot_timeout() -> float:
     # The bound exists to fail cleanly before the SIGKILL, not to ration boot
     # time: legitimate boots can be slow (the first boot of a runtime migrates
     # data and can take minutes on a loaded machine), so wait nearly the whole
-    # budget and reserve just enough to shut the device down and report a
-    # clear error.
+    # remaining budget - time already spent in this script (health probes,
+    # shutdowns) counts against the deadline too - reserving just enough to
+    # report a clear error before Bazel's SIGKILL.
     try:
         budget = float(os.environ["TEST_TIMEOUT"])
     except (KeyError, ValueError):
         budget = 300.0
-    return max(30.0, budget - 30.0)
+    remaining = budget - (time.monotonic() - _START_TIME)
+    return max(30.0, remaining - 10.0)
 
 
 def _boot_simulator(simulator_id: str) -> None:
@@ -176,14 +181,18 @@ def _default_device_name(device_type: str, os_version: str, pool_slot: int) -> s
     return name
 
 
-def _previous_session_died(simulator_id: str) -> bool:
+def _session_marker_state(simulator_id: str) -> str:
     # The runner records its pid in a session marker while it uses a
     # simulator and removes it on any controlled exit (see the runner
-    # template). A marker with a dead pid means a test died mid-session
-    # without cleanup - including via SIGKILL, which the runner's own
-    # TERM trap cannot catch - and the device may be carrying a dead
-    # test session that hangs all future sessions, so it needs a fresh
-    # boot before reuse.
+    # template). Three states:
+    #  - "none": no marker; nothing known against the device.
+    #  - "dead": marker names a dead pid - a test died mid-session without
+    #    cleanup (including via SIGKILL, which the runner's own TERM trap
+    #    cannot catch), so the device may carry a dead test session that
+    #    hangs all future sessions and needs a fresh boot before reuse.
+    #  - "live": marker names a live pid - another test owns the device
+    #    right now (a degraded-pool or mixed-runner overlap), and no
+    #    destructive recovery may touch it, whatever any probe says.
     lock_dir = (
         os.getenv("SIMULATOR_POOL_LOCK_DIR") or os.getenv("TMPDIR") or "/tmp"
     ).rstrip("/")
@@ -194,7 +203,7 @@ def _previous_session_died(simulator_id: str) -> bool:
         with open(marker) as f:
             pid = int(f.read().strip())
     except (OSError, ValueError):
-        return False
+        return "none"
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
@@ -202,10 +211,47 @@ def _previous_session_died(simulator_id: str) -> bool:
             os.remove(marker)
         except OSError:
             pass
-        return True
+        return "dead"
     except PermissionError:
         pass
-    # The recorded pid is still alive: some live test owns the session.
+    return "live"
+
+
+def _shutdown_and_wait(simulator_id: str) -> bool:
+    # A recycle is only real if the device actually leaves the booted state:
+    # `simctl shutdown` can fail or be ignored, and `bootstatus -b` on a
+    # still-booted device reports instant success (directly or via the
+    # exit-149 handler), which would hand the same wedged simulator back as
+    # "rebooted". Returns True only once the device reports Shutdown.
+    try:
+        subprocess.run(
+            ["xcrun", "simctl", "shutdown", simulator_id],
+            check=False,
+            capture_output=True,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        pass
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        try:
+            devices = json.loads(
+                _simctl(["list", "devices", "-j", simulator_id], timeout=15)
+            )["devices"]
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            return False
+        state = next(
+            (
+                blob["state"].lower()
+                for devices_for_os in devices.values()
+                for blob in devices_for_os
+                if blob["udid"] == simulator_id
+            ),
+            None,
+        )
+        if state == "shutdown":
+            return True
+        time.sleep(2)
     return False
 
 
@@ -250,28 +296,30 @@ def _create_and_boot_simulator(
         # only its readiness needs re-checking below.
         state = existing_device["state"].lower()
         print(f"Existing simulator '{name}' ({simulator_id}) state is: {state}", file=sys.stderr)
+        marker_state = _session_marker_state(simulator_id)
         if state != "booted":
             _boot_simulator(simulator_id)
-        elif _previous_session_died(simulator_id) or not _simulator_is_healthy(
-            simulator_id
-        ):
+        elif marker_state == "live":
+            # Another live test owns this device (degraded pool or mixed
+            # runners). Never run destructive recovery against it - a
+            # transiently failing health probe must not shut a device down
+            # under the test using it.
+            print(
+                f"Simulator '{name}' ({simulator_id}) is in use by a live "
+                "test; skipping health checks",
+                file=sys.stderr,
+            )
+        elif marker_state == "dead" or not _simulator_is_healthy(simulator_id):
             print(
                 f"Simulator '{name}' ({simulator_id}) may be left in a bad "
                 "state by a previous test; shutting it down and rebooting",
                 file=sys.stderr,
             )
-            try:
-                subprocess.run(
-                    ["xcrun", "simctl", "shutdown", simulator_id],
-                    check=False,
-                    capture_output=True,
-                    # If even the shutdown hangs, CoreSimulatorService itself
-                    # is stuck; fall through to the bounded boot, which then
-                    # fails with a clear error instead of burning the budget.
-                    timeout=60,
+            if not _shutdown_and_wait(simulator_id):
+                raise RuntimeError(
+                    f"simulator {simulator_id} did not shut down for "
+                    "recycling; CoreSimulatorService may need attention"
                 )
-            except subprocess.TimeoutExpired:
-                pass
             _boot_simulator(simulator_id)
     else:
         if not reuse_simulator:
@@ -349,7 +397,7 @@ def _main() -> None:
         os.getenv("SIMULATOR_REUSE_SIMULATOR") is not None
     )
 
-    pool_slot = int(os.getenv("SIMULATOR_POOL_SLOT", "0"))
+    pool_slot = int(os.getenv("SIMULATOR_POOL_SLOT") or "0")
 
     selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
     device_name = args.name or _default_device_name(

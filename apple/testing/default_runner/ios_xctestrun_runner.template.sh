@@ -62,14 +62,31 @@ test_tmp_dir="$(mktemp -d "${TEST_TMPDIR:-${TMPDIR:-/tmp}}/test_tmp_dir.XXXXXX")
 # for the simulator creator: if a later test finds the marker with this pid
 # dead, this test died mid-session and the simulator needs a fresh boot.
 session_marker=""
+simulator_pool_slot=0
+simulator_pool_slot_claimed=false
+
+# Runs from the EXIT trap on any controlled exit. Suffixed pool simulators
+# (slot >= 1) only exist while tests actually run concurrently; left booted
+# they would consume memory forever, since serial runs only ever touch slot 0.
+# Shutting one down while still holding its slot lock is race-free - no other
+# test can claim the slot until this process exits.
+_pool_exit_cleanup() {
+  if [[ -n "$session_marker" ]]; then
+    rm -f "$session_marker"
+  fi
+  if [[ "$simulator_pool_slot_claimed" == true && "$simulator_pool_slot" -gt 0 && -n "${simulator_id:-}" ]]; then
+    xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true
+  fi
+}
+
 if [[ -z "${NO_CLEAN:-}" ]]; then
-  trap 'rm -rf "${test_tmp_dir}"; if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' EXIT
+  trap 'rm -rf "${test_tmp_dir}"; _pool_exit_cleanup' EXIT
 else
   test_tmp_dir="${TMPDIR:-/tmp}/test_tmp_dir"
   rm -rf "$test_tmp_dir"
   mkdir -p "$test_tmp_dir"
   echo "note: keeping test dir around at: $test_tmp_dir"
-  trap 'if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' EXIT
+  trap '_pool_exit_cleanup' EXIT
 fi
 
 test_bundle_path="%(test_bundle_path)s"
@@ -528,7 +545,6 @@ if [[ "$build_for_device" == false ]]; then
   # actually shares in that case. Where no shared directory is available the
   # pool degrades to today's single-simulator behavior, as it does on a
   # machine without shlock(1).
-  simulator_pool_slot=0
   pool_lock_dir="${SIMULATOR_POOL_LOCK_DIR:-${TMPDIR:-/tmp}}"
   pool_lock_dir="${pool_lock_dir%/}"
   if [[ -n "${SIMULATOR_POOL_LOCK_DIR:-}" && ! -w "$pool_lock_dir" ]]; then
@@ -547,6 +563,8 @@ if [[ "$build_for_device" == false ]]; then
     if (( simulator_pool_slot == 64 )); then
       echo "note: could not claim a simulator pool slot in '$pool_lock_dir'; falling back to the shared simulator"
       simulator_pool_slot=0
+    else
+      simulator_pool_slot_claimed=true
     fi
   fi
 
@@ -568,14 +586,41 @@ if [[ "$build_for_device" == false ]]; then
   #    pattern as the pool slot locks.
   # 2. A TERM/INT trap that shuts the device down immediately when there is
   #    grace to do so, so the very next attempt cold-boots clean.
-  if [[ -n "$simulator_id" ]]; then
+
+  # Signal handler for the claimed-simulator trap above. Removes the session
+  # marker only when the shutdown actually took effect - a failed shutdown means
+  # the device may still carry a dead session, and the marker is exactly the
+  # evidence the next test needs to recycle it. Exits so a Bazel timeout or
+  # Ctrl-C terminates the runner instead of being swallowed: the post-test tail
+  # must not run against a stopped simulator, and Bazel's premature-exit
+  # tracking must see this run as terminated.
+  _on_termination() {
+    if [[ -n "$simulator_id" ]] && xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1; then
+      if [[ -n "$session_marker" ]]; then
+        rm -f "$session_marker"
+      fi
+    fi
+    # Keep the EXIT trap from removing a marker we deliberately preserved.
+    session_marker=""
+    trap - TERM INT
+    exit 143
+  }
+
+  # Both defenses are armed only when this test actually holds an exclusive
+  # slot: in every degraded mode (no shlock, unusable lock dir, exhausted
+  # probe) concurrent tests share the slot-0 simulator, and shutting a shared
+  # device down on one test's timeout would sabotage the tests still using
+  # it. Unclaimed means exactly today's shared-simulator behavior, destructive
+  # recovery included.
+  if [[ -n "$simulator_id" && "$simulator_pool_slot_claimed" == true ]]; then
     session_marker="$pool_lock_dir/rules_apple_simulator_session_$simulator_id"
     if ! echo "$$" > "$session_marker" 2>/dev/null; then
       session_marker=""
     fi
-    trap 'xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true; if [[ -n "$session_marker" ]]; then rm -f "$session_marker"; fi' TERM INT
+    trap '_on_termination' TERM INT
   fi
 fi
+
 
 test_exit_code=0
 readonly testlog=$test_tmp_dir/test.log
