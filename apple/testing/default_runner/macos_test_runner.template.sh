@@ -267,8 +267,16 @@ if [[ $parallel_testing_enabled == true ]]; then
 else
   echo "Testing is serialized" >&2
   xctest_target_execution_count=$(grep -e "Executed [[:digit:]]\{1,\} test.*," "$testlog" | tail -n1 || true)
-  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures"; then
-    echo "No tests ran -> count line was 0" >&2
+  swift_testing_target_execution_count=$(grep -e "Test run with [[:digit:]]\{1,\} test.*" "$testlog" | tail -n1 || true)
+  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+    [ -z "$swift_testing_target_execution_count" ] ; then
+    echo "No tests ran -> no count lines found" >&2
+    no_tests_ran=true
+  fi
+
+  if echo "$xctest_target_execution_count" | grep -q -e "Executed 0 tests, with 0 failures" && \
+    echo "$swift_testing_target_execution_count" | grep -q -e "Test run with 0 tests" ; then
+    echo "No tests ran -> count lines were 0" >&2
     no_tests_ran=true
   fi
 fi

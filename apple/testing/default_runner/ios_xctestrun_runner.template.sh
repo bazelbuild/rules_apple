@@ -615,6 +615,16 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -xctestrun "$xctestrun_file" \
   )
 
+  # Contain everything xcodebuild writes to disk. Without -derivedDataPath,
+  # every invocation creates a ~/Library/Developer/Xcode/DerivedData/
+  # temporary-<hash>/ directory that nothing ever deletes: when no result
+  # bundle path is passed it receives a full .xcresult of the run, and even
+  # with one it still leaks a bookkeeping directory per run. Pointing derived
+  # data into the test's temp dir routes all of it somewhere the runner
+  # already deletes on exit. An explicit -resultBundlePath (below, or via
+  # xcodebuild_args) still wins for the result bundle itself.
+  args+=(-derivedDataPath "$test_tmp_dir/derived_data")
+
   if [[ -n "$destination_timeout" ]]; then
     args+=(-destination-timeout "$destination_timeout")
   fi

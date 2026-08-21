@@ -40,7 +40,8 @@ newline=$'\n'
 #      supplied, will test the embedded Info.plist slice at __TEXT,__info_plist.
 #  PLIST_TEST_VALUES: Array for keys and values in the format "KEY VALUE" where
 #      the key is a string without spaces, followed by by a single space,
-#      followed by the value to test. * can be used as a wildcard value.
+#      followed by the value to test. * can be used as a wildcard value. When
+#      BINARY_TEST_ARCHITECTURE is set, the plist is read from that architecture.
 
 if [[ -n "${BINARY_TEST_FILE-}" ]]; then
   path=$(eval echo "$BINARY_TEST_FILE")
@@ -221,6 +222,11 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
 
   # Use `launchctl plist` to test for key/value pairs in an embedded plist file.
   if [[ -n "${PLIST_TEST_VALUES-}" ]]; then
+    plist_path="$path"
+    if [[ -n "${BINARY_TEST_ARCHITECTURE-}" ]]; then
+      plist_path="$TEST_TMPDIR/$(basename "$path").$arch"
+      lipo "$path" -thin "$arch" -output "$plist_path"
+    fi
     for test_values in "${PLIST_TEST_VALUES[@]}"
     do
       something_tested=true
@@ -233,11 +239,12 @@ if [[ -n "${BINARY_TEST_FILE-}" ]]; then
       plist_section_name="__TEXT,$PLIST_SECTION_NAME"
       # Replace wildcard "*" characters with a sed-friendly ".*" wildcard.
       expected_value=${expected_value/"*"/".*"}
-      value="$(launchctl plist $plist_section_name $path | sed -nE "s/.*\"$key\" = \"($expected_value)\";.*/\1/p" || true)"
+      value="$(launchctl plist "$plist_section_name" "$plist_path" | sed -nE "s/.*\"$key\" = \"($expected_value)\";.*/\1/p" || true)"
       if [[ ! -n "$value" ]]; then
         fail "Expected plist key \"$key\" to be \"$expected_value\" in plist " \
-            "embedded in \"$path\" at \"$plist_section_name\". Plist " \
-            "contents:$newline$(launchctl plist $plist_section_name $path)"
+            "embedded in \"$path\" for architecture \"${arch-}\" at " \
+            "\"$plist_section_name\". Plist contents:" \
+            "$newline$(launchctl plist "$plist_section_name" "$plist_path")"
       fi
     done
   else
