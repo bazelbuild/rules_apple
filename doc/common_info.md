@@ -529,6 +529,32 @@ have the paths made absolute via swizzling by enabling the
 set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
 
+### Reducing test harness memory
+
+`xcodebuild test-without-building` buffers two classes of test payload in its
+own memory, which for attachment- or log-heavy suites dominates the harness's
+footprint and limits how many simulators a machine can run in parallel:
+`XCTAttachment` payloads transit the client at ~1.4x their size (even under an
+attachment lifetime of `keepNever`, which discards them only after the
+transfer), and the test process's console output is captured into the
+structured session log at roughly 26x per byte.
+
+Three opt-in features link a small shim into the test bundle and activate it
+through the test environment:
+
+*   `--features=apple.test_drop_attachment_payloads`: attachment payloads over 4KB
+    are replaced with a short note before reaching XCTest. Intended for suites
+    running with `attachment_lifetime = "keepNever"`, where the payloads would
+    be discarded after transfer anyway.
+*   `--features=apple.test_spill_attachment_payloads`: payloads are written to
+    `$TEST_UNDECLARED_OUTPUTS_DIR/spilled_attachments/` (delivered in Bazel's
+    test outputs zip) and the attachment carries a note naming the file.
+*   `--features=apple.test_redirect_stdout`: the test process's standard
+    output is redirected at load time to
+    `$TEST_UNDECLARED_OUTPUTS_DIR/test_process_output.log`. Only stdout is
+    redirected: XCTest reports test results on stderr, and the test runner
+    relies on those lines to detect that tests ran.
+
 ### Xcode Version Selection and Invalidation
 
 There are a few steps required to properly make Bazel use the right Xcode version. Moreover, a few tricks are needed to make sure that the Bazel server is restarted and certain caches cleared when changing Xcode version using `xcode-select`.
