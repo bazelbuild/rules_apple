@@ -401,6 +401,89 @@ ios_application(
 | <a id="local_provisioning_profile-team_id"></a>team_id |  Team ID of the profile to find. This is useful for disambiguating between multiple profiles with the same name on different developer accounts.   | String | optional |  `""`  |
 
 
+<a id="xcode_developer_framework_import"></a>
+
+## xcode_developer_framework_import
+
+<pre>
+load("@rules_apple//apple:apple.bzl", "xcode_developer_framework_import")
+
+xcode_developer_framework_import(<a href="#xcode_developer_framework_import-name">name</a>, <a href="#xcode_developer_framework_import-deps">deps</a>, <a href="#xcode_developer_framework_import-dsym_imports">dsym_imports</a>, <a href="#xcode_developer_framework_import-framework_imports">framework_imports</a>, <a href="#xcode_developer_framework_import-framework_name">framework_name</a>,
+                                 <a href="#xcode_developer_framework_import-linker_imports">linker_imports</a>, <a href="#xcode_developer_framework_import-linkopts">linkopts</a>)
+</pre>
+
+Encapsulates an already-built Xcode developer framework (one of the frameworks shipped under
+`$DEVELOPER_DIR/Library/Frameworks`, e.g. `XcodeKit`) so it can be linked, compiled against, and
+embedded under `Contents/Frameworks` of macOS bundles. Reuses the standard imported-framework
+bundling path, including code signing.
+
+The `@developer_frameworks` repository auto-generates a minimal target per framework. For most
+frameworks you can use those targets directly:
+
+```python
+macos_extension(
+    name = "MyExtension",
+    frameworks = ["@developer_frameworks//:XcodeKit"],
+    ...
+)
+```
+
+### Companion archives (`linker_imports`)
+
+Some developer frameworks need a companion static archive from `$DEVELOPER_DIR/usr/lib` to be
+force-loaded at link time so the framework's ObjC runtime registrations happen. Apple does not
+publish this mapping in the framework metadata, so consumers wire the archives they need by
+wrapping the auto-generated target with their own `xcode_developer_framework_import` that sets
+`linker_imports`.
+
+The most common case is `XcodeKit`, which needs `libXcodeExtension.a` to register
+`XCExtensionSubsystem` and related classes — without it, Xcode source-editor / ExtensionKit
+extensions fail at runtime with `[XCExtensionSubsystem] not present; possible missing linkage`:
+
+```python
+load("@rules_apple//apple:apple.bzl", "xcode_developer_framework_import")
+
+xcode_developer_framework_import(
+    name = "XcodeKit",
+    framework_name = "XcodeKit",
+    framework_imports = ["@developer_frameworks//:XcodeKit_framework_files"],
+    linker_imports = ["@developer_frameworks//:usr/lib/libXcodeExtension.a"],
+)
+
+macos_extension(
+    name = "MyXcodeExtension",
+    extensionkit_extension = True,
+    frameworks = [":XcodeKit"],
+    ...
+)
+```
+
+The `<framework>_framework_files` filegroup and `usr/lib/**` files are exported by the
+`@developer_frameworks` hub repo so the wrapper works across Xcode versions via the same
+`--xcode_version` selection used elsewhere.
+
+### Where to find the right archive
+
+The framework-to-archive mapping is not encoded in the framework itself. To discover it, inspect
+`$DEVELOPER_DIR/usr/lib/` and use `nm -gU <archive>` to find the class/symbol your runtime is
+missing. For example, `nm -gU $DEVELOPER_DIR/usr/lib/libXcodeExtension.a` shows
+`_OBJC_CLASS_$_XCExtensionSubsystem`, confirming that's the archive needed for XcodeKit-based
+extensions.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="xcode_developer_framework_import-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="xcode_developer_framework_import-deps"></a>deps |  A list of targets that are dependencies of the target being built, which will be linked into that target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="xcode_developer_framework_import-dsym_imports"></a>dsym_imports |  The list of files under a `.dSYM` directory for the imported developer framework.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="xcode_developer_framework_import-framework_imports"></a>framework_imports |  The list of files under a single `.framework` directory that compose an Xcode developer framework.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
+| <a id="xcode_developer_framework_import-framework_name"></a>framework_name |  Optional. The framework's bundle name. If omitted, the name is inferred from `framework_imports`.   | String | optional |  `""`  |
+| <a id="xcode_developer_framework_import-linker_imports"></a>linker_imports |  List of `.a` static archives (typically from `$DEVELOPER_DIR/usr/lib`) that must be force-loaded at link time. Use this for companion archives whose ObjC `+load` registrations must run for the framework to function at runtime. These files are not embedded in the final bundle.<br><br>Common case: `XcodeKit` requires `libXcodeExtension.a` so `XCExtensionSubsystem` and related classes are registered when the extension is loaded. Without force-loading, the extension fails at runtime with messages like `[XCExtensionSubsystem] not present; possible missing linkage`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="xcode_developer_framework_import-linkopts"></a>linkopts |  Additional link flag strings propagated to the link action via `CcInfo`.   | List of strings | optional |  `[]`  |
+
+
 <a id="provisioning_profile_repository"></a>
 
 ## provisioning_profile_repository
