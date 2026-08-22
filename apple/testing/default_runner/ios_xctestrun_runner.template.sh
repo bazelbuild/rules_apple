@@ -12,6 +12,11 @@ if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
   set -x
 fi
 
+# Handle Bazel 9's `bazel run` test fast path
+if [[ -n "${BUILD_EXECROOT:-}" ]]; then
+  cd "${TEST_SRCDIR}/${TEST_WORKSPACE}"
+fi
+
 create_xcresult_bundle="%(create_xcresult_bundle)s"
 if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
   create_xcresult_bundle=true
@@ -43,6 +48,13 @@ while [[ $# -gt 0 ]]; do
       screen_capture_format="${arg##*=}"
       ;;
     *)
+      if [[ -n "${BUILD_EXECROOT:-}" && "$arg" != --* ]]; then
+        # Bazel 9's `bazel run` test fast path forwards positional helper args
+        # (for example a coverage wrapper) directly into this runner.
+        # Ignore those extra positionals, but still reject unexpected flags.
+        shift
+        continue
+      fi
       echo "error: Unsupported argument '${arg}'" >&2
       exit 1
       ;;
