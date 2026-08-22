@@ -51,9 +51,9 @@ apple_shell_test(
 )
 
 apple_shell_test(
-    name = "ios_xctestrun_runner_unit_test",
+    name = "apple_xctestrun_runner_unit_test",
     size = "large",
-    src = "ios_xctestrun_runner_unit_test.sh",
+    src = "apple_xctestrun_runner_unit_test.sh",
     args = [
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
@@ -61,9 +61,9 @@ apple_shell_test(
 )
 
 apple_shell_test(
-    name = "ios_xctestrun_runner_ui_test",
+    name = "apple_xctestrun_runner_ui_test",
     size = "large",
-    src = "ios_xctestrun_runner_ui_test.sh",
+    src = "apple_xctestrun_runner_ui_test.sh",
     args = [
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
@@ -71,20 +71,9 @@ apple_shell_test(
 )
 
 apple_shell_test(
-    name = "ios_test_runner_unit_test",
+    name = "apple_xctestrun_runner_unit_test_14.x",
     size = "large",
-    src = "ios_test_runner_unit_test.sh",
-    args = [
-        "--ios_multi_cpus=sim_arm64,x86_64",
-    ],
-    flaky = True,
-    tags = common.skip_ci_tags,
-)
-
-apple_shell_test(
-    name = "ios_test_runner_unit_test_14.x",
-    size = "large",
-    src = "ios_test_runner_unit_test_14.x.sh",
+    src = "apple_xctestrun_runner_unit_test_14.x.sh",
     args = [
         "--ios_multi_cpus=sim_arm64,x86_64",
     ],
