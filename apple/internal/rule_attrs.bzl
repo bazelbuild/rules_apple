@@ -710,7 +710,7 @@ _TEST_HOST_ASPECTS = [framework_provider_aspect]
 # Returns the default root Info.plist required to support a test bundle rule.
 _test_bundle_infoplist = "//apple/testing:DefaultTestBundlePlist"
 
-# Returns the default Info.plist for application rules.
+# Returns the default Info.plist for bundle rules that allow `infoplists` to be omitted.
 _default_infoplist = "//apple/internal/templates:default_application_infoplist"
 
 rule_attrs = struct(
@@ -744,6 +744,7 @@ rule_attrs = struct(
             visionos = ["vision"],
             watchos = ["watch"],
         ),
+        bundle_infoplist = _default_infoplist,
         test_bundle_infoplist = _test_bundle_infoplist,
         ios_application_infoplist = _default_infoplist,
         macos_application_infoplist = _default_infoplist,
