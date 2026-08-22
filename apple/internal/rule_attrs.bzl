@@ -322,6 +322,16 @@ def _test_bundle_attrs():
                 "@apple_support//lib:swizzle_absolute_xcttestsourcelocation",
             ),
         ),
+        "_attachment_payload_shim": attr.label(
+            default = Label(
+                "//apple/testing/default_runner:attachment_payload_shim",
+            ),
+        ),
+        "_test_output_redirect_shim": attr.label(
+            default = Label(
+                "//apple/testing/default_runner:test_output_redirect_shim",
+            ),
+        ),
     }
 
 def _test_host_attrs(

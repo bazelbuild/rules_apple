@@ -529,6 +529,70 @@ have the paths made absolute via swizzling by enabling the
 set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
 
+### Reducing test harness memory
+
+`xcodebuild test-without-building` buffers two classes of test payload in its
+own memory, which for attachment- or log-heavy suites dominates the harness's
+footprint and limits how many simulators a machine can run in parallel:
+`XCTAttachment` payloads transit the client at ~1.4x their size (even under an
+attachment lifetime of `keepNever`, which discards them only after the
+transfer), and the test process's console output is captured into the
+structured session log at roughly 26x per byte.
+
+Three opt-in features link a small shim into the test bundle and activate it
+through the test environment:
+
+*   `--features=apple.test_drop_attachment_payloads`: attachment payloads over 4KB
+    are replaced with a short note before reaching XCTest. Intended for suites
+    running with `attachment_lifetime = "keepNever"`, where the payloads would
+    be discarded after transfer anyway.
+*   `--features=apple.test_spill_attachment_payloads`: payloads are written to
+    `$TEST_UNDECLARED_OUTPUTS_DIR/spilled_attachments/` (delivered in Bazel's
+    test outputs zip) and the attachment carries a note naming the file.
+*   `--features=apple.test_redirect_stdout`: the test process's standard
+    output is redirected at load time to
+    `$TEST_UNDECLARED_OUTPUTS_DIR/test_process_output.log`. Only stdout is
+    redirected: XCTest reports test results on stderr, and the test runner
+    relies on those lines to detect that tests ran.
+
+#### Test binary size is a memory multiplier
+
+At session start - before any test runs, on green runs included - xcodebuild
+eagerly builds an out-of-process symbolication service
+(`XCTOutOfProcessSymbolicationService`) that reads the test bundle and every
+binary in the session into memory, alongside other whole-binary reads while
+constructing the test session. Measured on Xcode 26.2, xcodebuild's peak
+memory grows by roughly **9x the size of the test host binary**, linearly
+(a 100MB host adds ~900MB to the harness; 300MB adds ~2.7GB). Combined with
+the payload classes above, the harness peak is approximately:
+
+    ~230MB fixed + 9x host binary size + 1.4x attachment bytes + 26x console-output bytes
+
+There is no switch that disables the eager symbolication pass:
+`-collect-test-diagnostics never`, attachment lifetimes, and the
+symbolication-related environment variables XCTest consults in-process
+(`XCTDisableAggressiveSymbolication`, `XCT_IMAGE_NAMES_FOR_SYMBOLICATION`)
+were each measured to have no effect on it.
+
+The lever that works is shrinking what gets read. Unstripped Bazel-linked
+binaries carry their full symbol table and debug map in `__LINKEDIT`; on CI
+configurations where lldb-quality symbols in the built products are not
+needed, stripping them at link time is nearly free (relink only, no
+recompile) and directly reduces the multiplier's input:
+
+```
+# CI: the test harness reads test binaries into memory at ~9x their size,
+# so strip local symbols (-x) and the debug map (-S) from linked binaries.
+build:ci --linkopt=-Wl,-x --linkopt=-Wl,-S
+```
+
+Measured on a large modular app (500+ deps), this shrank the test host
+673MB -> 500MB and cut xcodebuild's peak by 26%. The trade-off: symbolicated
+backtraces for crash reports of these binaries degrade to exported symbols
+only (XCTest assertion failures are unaffected - their source locations are
+compiled into the test code, not looked up through the symbol table). Keep
+the flags out of local development configs where lldb needs the symbols.
+
 ### Xcode Version Selection and Invalidation
 
 There are a few steps required to properly make Bazel use the right Xcode version. Moreover, a few tricks are needed to make sure that the Bazel server is restarted and certain caches cleared when changing Xcode version using `xcode-select`.

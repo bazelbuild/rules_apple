@@ -1204,4 +1204,100 @@ function test_ios_unit_test_parallel_testing_no_tests_fail() {
   expect_log "Executed 1 out of 1 test: 1 fails locally."
 }
 
+function create_shim_canary_tests() {
+  cat > ios/shim_canary_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface AttachmentShimCanaryTest : XCTestCase
+@end
+
+@implementation AttachmentShimCanaryTest
+- (void)testLargePayloadIntercepted {
+  // 256KB payload: over the shim's 4KB threshold, so with
+  // RULES_APPLE_ATTACHMENT_PAYLOADS=drop the payload must be replaced before
+  // it reaches XCTest. This is the canary for a future Xcode rerouting
+  // XCTAttachment's designated initializer: if interception stops working,
+  // the expect_log assertions on the shim's output fail loudly.
+  XCTAttachment *attachment =
+      [XCTAttachment attachmentWithData:[NSMutableData dataWithLength:262144]];
+  attachment.lifetime = XCTAttachmentLifetimeKeepAlways;
+  [self addAttachment:attachment];
+  XCTAssertTrue(YES);
+}
+@end
+EOF
+
+  cat > ios/redirect_canary_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface OutputRedirectCanaryTest : XCTestCase
+@end
+
+@implementation OutputRedirectCanaryTest
+- (void)testStdoutRedirected {
+  // With RULES_APPLE_REDIRECT_TEST_OUTPUT=stdout this marker must land in
+  // test_process_output.log instead of the console; XCTest's own result
+  // lines ride stderr and must keep flowing so the runner's verdict works.
+  printf("CANARY_STDOUT_MARKER\n");
+  fflush(stdout);
+  XCTAssertTrue(YES);
+}
+@end
+EOF
+
+  cat >> ios/BUILD <<EOF
+objc_library(
+    name = "shim_canary_test_lib",
+    srcs = ["shim_canary_test.m"],
+)
+
+objc_library(
+    name = "redirect_canary_test_lib",
+    srcs = ["redirect_canary_test.m"],
+)
+
+ios_unit_test(
+    name = "AttachmentShimCanary",
+    infoplists = ["PassUnitTest-Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner",
+    test_host = ":app",
+    deps = [":shim_canary_test_lib"],
+)
+
+ios_unit_test(
+    name = "OutputRedirectShimCanary",
+    infoplists = ["PassUnitTest-Info.plist"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner",
+    test_host = ":app",
+    deps = [":redirect_canary_test_lib"],
+)
+EOF
+}
+
+function test_ios_unit_test_attachment_payload_shim_drops() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  create_shim_canary_tests
+  do_ios_test --features=apple.test_drop_attachment_payloads //ios:AttachmentShimCanary || fail "should pass"
+
+  expect_log "RulesAppleAttachmentShim: installed (drop mode)"
+  expect_log "attachment payload (262144 bytes) dropped"
+  expect_log "Test Suite 'AttachmentShimCanaryTest' passed"
+}
+
+function test_ios_unit_test_output_redirect_shim_stdout() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  create_shim_canary_tests
+  do_ios_test --features=apple.test_redirect_stdout //ios:OutputRedirectShimCanary || fail "should pass"
+
+  expect_log "RulesAppleOutputRedirect: stdout ->"
+  expect_not_log "CANARY_STDOUT_MARKER"
+  expect_log "Test Suite 'OutputRedirectCanaryTest' passed"
+}
+
 run_suite "ios_unit_test with iOS xctestrun runner bundling tests"
