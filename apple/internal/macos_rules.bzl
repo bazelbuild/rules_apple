@@ -152,6 +152,10 @@ load(
     "swift_dynamic_framework_aspect",
 )
 load(
+    "//apple/internal/providers:developer_framework_import_info.bzl",
+    "AppleDeveloperFrameworkImportInfo",
+)
+load(
     "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -160,11 +164,42 @@ load(
     "main_thread_checker_dylibs",
 )
 
+def _split_developer_framework_targets(framework_targets):
+    """Separates developer framework import targets from other framework targets."""
+    developer_targets = []
+    other_targets = []
+    for target in framework_targets:
+        if AppleDeveloperFrameworkImportInfo in target:
+            developer_targets.append(target)
+        else:
+            other_targets.append(target)
+    return developer_targets, other_targets
+
+def _developer_framework_link_extras(framework_targets):
+    """Collects extra linkopts and extra link inputs from developer framework targets."""
+    linkopts = []
+    link_inputs_depsets = []
+    for target in framework_targets:
+        info = target[AppleDeveloperFrameworkImportInfo]
+        linkopts.extend(info.linkopts)
+        link_inputs_depsets.append(info.linker_imports)
+    return (
+        linkopts,
+        depset(transitive = link_inputs_depsets).to_list(),
+    )
+
 def _macos_application_impl(ctx):
     """Implementation of macos_application."""
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
         product_type = apple_product_type.application,
+    )
+
+    developer_framework_targets, non_developer_framework_targets = (
+        _split_developer_framework_targets(ctx.attr.frameworks)
+    )
+    developer_framework_linkopts, developer_framework_link_inputs = (
+        _developer_framework_link_extras(developer_framework_targets)
     )
 
     embedded_targets = (
@@ -174,7 +209,7 @@ def _macos_application_impl(ctx):
         ctx.attr.deps
     )
     verification_targets = (
-        ctx.attr.frameworks +
+        non_developer_framework_targets +
         ctx.attr.extensions +
         ctx.attr.xpc_services
     )
@@ -249,6 +284,8 @@ def _macos_application_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
+        extra_linkopts = developer_framework_linkopts,
+        extra_link_inputs = developer_framework_link_inputs,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -733,6 +770,13 @@ def _macos_extension_impl(ctx):
         product_type = product_type,
     )
 
+    developer_framework_targets, _ = (
+        _split_developer_framework_targets(ctx.attr.frameworks)
+    )
+    developer_framework_linkopts, developer_framework_link_inputs = (
+        _developer_framework_link_extras(developer_framework_targets)
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
@@ -809,7 +853,8 @@ def _macos_extension_impl(ctx):
         avoid_deps = ctx.attr.frameworks,
         entitlements = entitlements.linking,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = extra_linkopts,
+        extra_linkopts = extra_linkopts + developer_framework_linkopts,
+        extra_link_inputs = developer_framework_link_inputs,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -911,6 +956,16 @@ def _macos_extension_impl(ctx):
             embeddable_targets = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             **embedded_bundles_args
+        ),
+        partials.framework_import_partial(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            features = features,
+            label_name = label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            targets = ctx.attr.frameworks + ctx.attr.deps,
         ),
         partials.macos_additional_contents_partial(
             additional_contents = ctx.attr.additional_contents,
@@ -2452,11 +2507,15 @@ desired Contents subdirectory.
             ),
             "frameworks": attr.label_list(
                 aspects = [framework_provider_aspect],
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
-that this target depends on.
+that this target depends on, or imported Xcode developer framework targets (see
+`xcode_developer_framework_import`).
 """,
             ),
             "xpc_services": attr.label_list(
@@ -2600,11 +2659,16 @@ desired Contents subdirectory.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                aspects = [framework_provider_aspect],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
-that this target depends on.
+that this target depends on, or imported Xcode developer framework targets (see
+`xcode_developer_framework_import`).
 """,
             ),
         },
@@ -2920,6 +2984,13 @@ def _macos_framework_impl(ctx):
         product_type = apple_product_type.framework,
     )
 
+    developer_framework_targets, _ = (
+        _split_developer_framework_targets(ctx.attr.frameworks)
+    )
+    developer_framework_linkopts, developer_framework_link_inputs = (
+        _developer_framework_link_extras(developer_framework_targets)
+    )
+
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
@@ -2995,7 +3066,8 @@ def _macos_framework_impl(ctx):
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = extra_linkopts,
+        extra_linkopts = extra_linkopts + developer_framework_linkopts,
+        extra_link_inputs = developer_framework_link_inputs,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -3187,6 +3259,13 @@ def _macos_dynamic_framework_impl(ctx):
         product_type = apple_product_type.framework,
     )
 
+    developer_framework_targets, _ = (
+        _split_developer_framework_targets(ctx.attr.frameworks)
+    )
+    developer_framework_linkopts, developer_framework_link_inputs = (
+        _developer_framework_link_extras(developer_framework_targets)
+    )
+
     # This rule should only have one swift_library dependency. This means len(ctx.attr.deps) should be 1
     swiftdeps = [x for x in ctx.attr.deps if SwiftInfo in x]
     if len(swiftdeps) != 1 or len(ctx.attr.deps) > 1:
@@ -3280,7 +3359,8 @@ def _macos_dynamic_framework_impl(ctx):
         # Frameworks do not have entitlements.
         entitlements = None,
         exported_symbols_lists = ctx.files.exported_symbols_lists,
-        extra_linkopts = extra_linkopts,
+        extra_linkopts = extra_linkopts + developer_framework_linkopts,
+        extra_link_inputs = developer_framework_link_inputs,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
@@ -3679,11 +3759,15 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
-that this target depends on.
+that this target depends on, or imported Xcode developer framework targets (see
+`xcode_developer_framework_import`).
 """,
             ),
             # TODO(b/250090851): Document this attribute and its limitations.
@@ -3743,11 +3827,15 @@ use only extension-safe APIs.
 """,
             ),
             "frameworks": attr.label_list(
-                providers = [[AppleBundleInfo, MacosFrameworkBundleInfo]],
+                providers = [
+                    [AppleBundleInfo, MacosFrameworkBundleInfo],
+                    [AppleDeveloperFrameworkImportInfo],
+                ],
                 doc = """
 A list of framework targets (see
 [`macos_framework`](https://github.com/bazelbuild/rules_apple/blob/main/doc/rules-macos.md#macos_framework))
-that this target depends on.
+that this target depends on, or imported Xcode developer framework targets (see
+`xcode_developer_framework_import`).
 """,
             ),
             # TODO(b/250090851): Document this attribute and its limitations.
