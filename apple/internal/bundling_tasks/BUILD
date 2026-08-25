@@ -118,6 +118,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "app_extension_point",
+    srcs = ["app_extension_point.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:location_enum",
+        "//apple/internal/providers:app_extension_point_info",
+        "//apple/internal/resource_actions:exutil",
+        "//apple/internal/utils:targets",
+    ],
+)
+
+bzl_library(
     name = "embedded_bundles",
     srcs = ["embedded_bundles.bzl"],
     visibility = [
@@ -300,5 +314,21 @@ filegroup(
     ],
     visibility = [
         "//apple:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "extension_point_name_validation",
+    srcs = ["extension_point_name_validation.bzl"],
+    visibility = [
+        "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:apple_product_type",
+        "//apple/internal:intermediates",
+        "//apple/internal:providers",
+        "//apple/internal/providers:app_extension_point_info",
+        "//apple/internal/providers:extension_foundation_info",
+        "//apple/internal/utils:targets",
     ],
 )

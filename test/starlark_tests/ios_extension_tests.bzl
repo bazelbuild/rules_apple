@@ -233,6 +233,17 @@ def ios_extension_test_suite(name):
         tags = [name],
     )
 
+    # Test ext with enhanced security extension compiles.
+    archive_contents_test(
+        name = "{}_enhanced_security_extension_compiles_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_enhanced_security_extension",
+        contains = [
+            "$BUNDLE_ROOT/ext_with_enhanced_security_extension",
+        ],
+        tags = [name],
+    )
+
     # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
     # at the top-level ios_extension rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.
@@ -336,6 +347,15 @@ def ios_extension_test_suite(name):
         expected_values = {
             "CFBundleVersion": "1.2.3",
             "CFBundleShortVersionString": "1.2.3",
+        },
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_exappextensionattributes_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_enhanced_security_extension",
+        expected_values = {
+            "EXAppExtensionAttributes:EXExtensionPointIdentifier": "com.apple.example.extension-point",
         },
         tags = [name],
     )

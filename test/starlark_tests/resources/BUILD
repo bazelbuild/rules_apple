@@ -973,7 +973,9 @@ objc_library(
 swift_library(
     name = "widget_configuration_intent",
     srcs = ["widget_configuration_intent.swift"],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     module_name = "FavoriteSoup",
     tags = common.fixture_tags,
 )
@@ -1000,7 +1002,9 @@ swift_library(
 swift_library(
     name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
     srcs = ["StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency.swift"],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     module_name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
     tags = common.fixture_tags,
     deps = [
@@ -1014,7 +1018,9 @@ swift_library(
         "framework_defined_app_intent.swift",
         "framework_defined_app_intent_package_without_dependencies.swift",
     ],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
 )
@@ -1025,7 +1031,9 @@ swift_library(
         "framework_app_intent_dependent_main.swift",
         "framework_app_intent_dependent_main_package.swift",
     ],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     tags = common.fixture_tags,
     deps = [
         ":framework_defined_app_intent",
@@ -1057,7 +1065,9 @@ swift_library(
         "framework_defined_app_intent.swift",
         "framework_defined_app_intent_package_with_dependency.swift",
     ],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     module_name = "FrameworkDefinedHelloWorldIntents",
     tags = common.fixture_tags,
     deps = [
@@ -1072,7 +1082,9 @@ swift_library(
         "framework_app_intent_dependent_main.swift",
         "framework_app_intent_dependent_main_package_with_shared_library_dependency.swift",
     ],
-    aspect_hints = ["//apple/hints:app_intents_hint"],
+    aspect_hints = [
+        "//apple/hints:app_intents_hint",
+    ],
     tags = common.fixture_tags,
     deps = [
         ":StaticLibraryAppIntents",
@@ -1146,4 +1158,30 @@ swift_library(
     library_evolution = True,
     module_name = "swift_static_fmwk",
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "hinted_enhanced_security_extension",
+    srcs = ["enhanced_security_extension.swift"],
+    aspect_hints = ["//apple/hints:extension_foundation_hint"],
+)
+
+swift_library(
+    name = "hinted_enhanced_security_extension_point",
+    srcs = ["enhanced_security_extension_point.swift"],
+    aspect_hints = ["//apple/hints:app_extension_point_hint"],
+    module_name = "hinted_enhanced_security_extension_point",
+)
+
+swift_library(
+    name = "second_hinted_enhanced_security_extension",
+    srcs = ["second_enhanced_security_extension.swift"],
+    aspect_hints = ["//apple/hints:extension_foundation_hint"],
+)
+
+swift_library(
+    name = "second_hinted_enhanced_security_extension_point",
+    srcs = ["second_enhanced_security_extension_point.swift"],
+    aspect_hints = ["//apple/hints:app_extension_point_hint"],
+    module_name = "second_hinted_enhanced_security_extension_point",
 )

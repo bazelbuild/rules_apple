@@ -33,6 +33,8 @@ bzl_library(
     deps = [
         "//apple/internal:intermediates",
         "//apple/internal:shared_environment",
+        "//apple/internal/utils:platform_defaults",
+        "//apple/internal/utils:xcode_support",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],
@@ -101,6 +103,24 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:shared_environment",
+        "@build_bazel_apple_support//lib:apple_support",
+    ],
+)
+
+bzl_library(
+    name = "exutil",
+    srcs = ["exutil.bzl"],
+    parse_tests = False,
+    visibility = [
+        "//apple/internal:__pkg__",
+        "//apple/internal/bundling_tasks:__pkg__",
+    ],
+    deps = [
+        "//apple/internal:intermediates",
+        "//apple/internal:resource_actions",
+        "//apple/internal:shared_environment",
+        "//apple/internal/utils:platform_defaults",
+        "//apple/internal/utils:xcode_support",
         "@build_bazel_apple_support//lib:apple_support",
     ],
 )

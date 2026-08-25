@@ -105,7 +105,7 @@ bzl_library(
     name = "app_extension_point_info",
     srcs = ["app_extension_point_info.bzl"],
     visibility = [
-        "//apple/internal:__pkg__",
-        "//apple/internal/aspects:__pkg__",
+        "//apple/hints:__subpackages__",
+        "//apple/internal:__subpackages__",
     ],
 )

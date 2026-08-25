@@ -5846,3 +5846,87 @@ swift_library(
     module_name = "generated_swift_static_xcframework_without_swiftmodule",
     tags = common.fixture_tags,
 )
+
+ios_extension(
+    name = "ext_with_enhanced_security_extension",
+    bundle_id = "com.apple.example.extension-point",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensionkit_extension = True,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:hinted_enhanced_security_extension",
+    ],
+)
+
+ios_application(
+    name = "app_with_enhanced_security_extension",
+    bundle_id = "com.apple.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensions = [":ext_with_enhanced_security_extension"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:hinted_enhanced_security_extension_point",
+    ],
+)
+
+ios_extension(
+    name = "second_ext_with_enhanced_security_extension",
+    bundle_id = "com.apple.example.second-extension-point",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensionkit_extension = True,
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:second_hinted_enhanced_security_extension",
+    ],
+)
+
+ios_application(
+    name = "app_with_multiple_enhanced_security_extensions",
+    bundle_id = "com.apple.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    extensions = [
+        ":ext_with_enhanced_security_extension",
+        ":second_ext_with_enhanced_security_extension",
+    ],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:hinted_enhanced_security_extension_point",
+        "//test/starlark_tests/resources:second_hinted_enhanced_security_extension_point",
+    ],
+)

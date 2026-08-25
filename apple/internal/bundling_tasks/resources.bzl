@@ -319,6 +319,7 @@ def _resources_bundling_task_impl(
         environment_plist,
         extensionkit_keys_required,
         mac_exec_group,
+        extra_resource_providers = [],
         output_discriminator,
         platform_prerequisites,
         primary_icon_name,
@@ -343,6 +344,9 @@ def _resources_bundling_task_impl(
             for x in resource_deps
             if AppleResourceInfo in x
         ])
+
+    if extra_resource_providers:
+        providers.extend(extra_resource_providers)
 
     if top_level_resources:
         providers.append(resources.bucketize(
@@ -638,6 +642,7 @@ def resources_bundling_task(
         bundle_verification_targets = [],
         environment_plist,
         extensionkit_keys_required = False,
+        extra_resource_providers = [],
         mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
@@ -669,6 +674,7 @@ def resources_bundling_task(
             any plists, including user input. This allows for overridable "default" values.
         apple_mac_toolchain_info: `struct` of Apple tools from the shared Apple toolchain.
         apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
+        extra_resource_providers: A list of AppleResourceInfo providers to process.
         avoid_root_infoplist: Bool. Indicates if the root Info.plist should not be generated for
             the given bundle target. In practice this only applies to a subset of Static Frameworks
             that are not compatible with Apple's Xcode 15 Static Frameworks.
@@ -729,6 +735,7 @@ def resources_bundling_task(
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         extensionkit_keys_required = extensionkit_keys_required,
+        extra_resource_providers = extra_resource_providers,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

@@ -24,10 +24,23 @@ _PLATFORM_TYPE_TO_DEVICE_FAMILIES = {
     "watchos": ["watch"],
 }
 
+_PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
+    "ios": "iOS",
+    "macos": "macOS",
+    "tvos": "tvOS",
+    "visionos": "xrOS",
+    "watchos": "watchOS",
+}
+
 def _device_families(platform_type):
     """Returns the default device families list for a given platform."""
     return _PLATFORM_TYPE_TO_DEVICE_FAMILIES[platform_type]
 
+def _platform_family(platform_type):
+    """Returns the platform family name for a given platform type."""
+    return _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type]
+
 platform_defaults = struct(
     device_families = _device_families,
+    platform_family = _platform_family,
 )

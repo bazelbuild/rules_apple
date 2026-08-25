@@ -19,6 +19,10 @@ load(
     _app_assets_validation_bundling_task = "app_assets_validation_bundling_task",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/bundling_tasks:app_extension_point.bzl",
+    _app_extension_point_bundling_task = "app_extension_point_bundling_task",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/bundling_tasks:app_intents_metadata_bundle.bzl",
     _app_intents_metadata_bundle_bundling_task = "app_intents_metadata_bundle_bundling_task",
 )
@@ -49,6 +53,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/bundling_tasks:embedded_bundles.bzl",
     _embedded_bundles_bundling_task = "embedded_bundles_bundling_task",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/bundling_tasks:extension_point_name_validation.bzl",
+    _extension_point_name_validation_bundling_task = "extension_point_name_validation_bundling_task",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/bundling_tasks:extension_safe_validation.bzl",
@@ -106,6 +114,7 @@ visibility([
 
 bundling_tasks = struct(
     app_assets_validation = _app_assets_validation_bundling_task,
+    app_extension_point = _app_extension_point_bundling_task,
     app_intents_metadata_bundle = _app_intents_metadata_bundle_bundling_task,
     apple_bundle_info = _apple_bundle_info_bundling_task,
     binary = _binary_bundling_task,
@@ -114,6 +123,7 @@ bundling_tasks = struct(
     codesigning_dossier = _codesigning_dossier_bundling_task,
     debug_symbols = _debug_symbols_bundling_task,
     embedded_bundles = _embedded_bundles_bundling_task,
+    extension_point_name_validation = _extension_point_name_validation_bundling_task,
     extension_safe_validation = _extension_safe_validation_bundling_task,
     framework_import = _framework_import_bundling_task,
     framework_header_modulemap = _framework_header_modulemap_bundling_task,

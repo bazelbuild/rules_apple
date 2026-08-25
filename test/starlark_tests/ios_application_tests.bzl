@@ -1785,6 +1785,27 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_enhanced_security_extension_app_bundle_contents_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Extensions/hinted_enhanced_security_extension_point.appexpt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_multiple_enhanced_security_extensions_app_bundle_contents_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Extensions/hinted_enhanced_security_extension_point.appexpt",
+            "$BUNDLE_ROOT/Extensions/second_hinted_enhanced_security_extension_point.appexpt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_enhanced_security_extensions",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

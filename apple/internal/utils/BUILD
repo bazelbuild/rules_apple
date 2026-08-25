@@ -52,6 +52,16 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "xcode_support",
+    srcs = ["xcode_support.bzl"],
+)
+
+bzl_library(
+    name = "targets",
+    srcs = ["targets.bzl"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

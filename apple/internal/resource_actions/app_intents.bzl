@@ -21,18 +21,16 @@ load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
     "shared_environment",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:platform_defaults.bzl",
+    "platform_defaults",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:xcode_support.bzl",
+    "xcode_support",
+)
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
-
-# Maps the strings passed in to the "families" attribute to the string representation used as an
-# input for the App Intents Metadata Processor tool.
-_PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
-    "ios": "iOS",
-    "macos": "macOS",
-    "tvos": "tvOS",
-    "watchos": "watchOS",
-    "visionos": "xrOS",
-}
 
 def _generate_intermediate_file_list(
         *,
@@ -71,19 +69,6 @@ def _generate_intermediate_file_list(
         content = file_list_args,
     )
     return file_list
-
-def _xcode_build_version(*, xcode_version_config):
-    """Read the build version from the fourth component of the Xcode version."""
-    xcode_version_split = str(xcode_version_config.xcode_version()).split(".")
-    if len(xcode_version_split) < 4:
-        fail("""\
-Internal Error: Expected xcode_config to report the Xcode version with the build version as the \
-fourth component of the full version string, but instead found {xcode_version_string}. Please file \
-an issue with the Apple BUILD rules with repro steps.
-""".format(
-            xcode_version_string = str(xcode_version_config.xcode_version()),
-        ))
-    return xcode_version_split[3]
 
 def generate_app_intents_metadata_bundle(
         *,
@@ -174,10 +159,13 @@ def generate_app_intents_metadata_bundle(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
-    args.add("--xcode-version", _xcode_build_version(xcode_version_config = xcode_version_config))
+    args.add(
+        "--xcode-version",
+        xcode_support.xcode_build_version(xcode_version_config = xcode_version_config),
+    )
     args.add(
         "--platform-family",
-        _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_prerequisites.platform_type],
+        platform_defaults.platform_family(platform_prerequisites.platform_type),
     )
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add("--bundle-identifier", bundle_id)

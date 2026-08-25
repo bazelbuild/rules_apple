@@ -54,6 +54,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:infoplist_support.bzl",
+    "infoplist_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -145,6 +149,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_const_values_aspect.bzl",
     "swift_const_values_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:extension_foundation_info.bzl",
+    "ExtensionFoundationInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
@@ -269,11 +277,31 @@ def _macos_application_impl(ctx):
     linking_contexts = [output.linking_context for output in link_result.outputs]
 
     pending_bundling_tasks = [
+        bundling_tasks.app_extension_point(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_id = bundle_id,
+            deps = ctx.attr.deps,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
+        ),
+        bundling_tasks.extension_point_name_validation(
+            actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_id = bundle_id,
+            deps = ctx.attr.deps,
+            extensions = ctx.attr.extensions,
+            label = label,
+            xplat_exec_group = xplat_exec_group,
+        ),
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
@@ -281,7 +309,7 @@ def _macos_application_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -828,7 +856,7 @@ def _macos_framework_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -836,7 +864,7 @@ def _macos_framework_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -966,8 +994,9 @@ def _macos_extension_impl(ctx):
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
 
+    is_extensionkit_extension = ctx.attr.extensionkit_extension
     product_type = apple_product_type.app_extension
-    if ctx.attr.extensionkit_extension:
+    if is_extensionkit_extension:
         product_type = apple_product_type.extensionkit_extension
 
     rule_descriptor = rule_support.rule_descriptor(
@@ -1083,12 +1112,26 @@ def _macos_extension_impl(ctx):
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
+    extension_foundation = None
+    extra_resource_providers = []
+    if is_extensionkit_extension:
+        extension_foundation = infoplist_support.extension_foundation_infoplist(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_id = bundle_id,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            split_attr_deps = ctx.split_attr.deps,
+        )
+        extra_resource_providers = extension_foundation.resource_providers
+
     pending_bundling_tasks = [
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -1096,7 +1139,7 @@ def _macos_extension_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -1182,7 +1225,8 @@ def _macos_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            extensionkit_keys_required = ctx.attr.extensionkit_extension,
+            extra_resource_providers = extra_resource_providers,
+            extensionkit_keys_required = is_extensionkit_extension,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -1235,10 +1279,10 @@ def _macos_extension_impl(ctx):
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
         rule_label = label,
-        xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        xplat_exec_group = xplat_exec_group,
     )
 
-    return [
+    result_providers = [
         DefaultInfo(
             files = bundler_result.output_files,
         ),
@@ -1250,6 +1294,13 @@ def _macos_extension_impl(ctx):
             )
         ),
     ] + bundler_result.providers
+
+    if extension_foundation and extension_foundation.swiftconstvalues_files:
+        result_providers.append(ExtensionFoundationInfo(
+            swiftconstvalues_files = depset(extension_foundation.swiftconstvalues_files),
+        ))
+
+    return result_providers
 
 def _macos_xpc_service_impl(ctx):
     """Implementation of macos_xpc_service."""

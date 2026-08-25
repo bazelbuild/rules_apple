@@ -53,6 +53,10 @@ load(
     "features_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:infoplist_support.bzl",
+    "infoplist_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:linking_support.bzl",
     "linking_support",
 )
@@ -125,6 +129,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/aspects:swift_const_values_aspect.bzl",
     "swift_const_values_aspect",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:extension_foundation_info.bzl",
+    "ExtensionFoundationInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
@@ -338,6 +346,26 @@ reproducible error case.".format(
     )
 
     pending_bundling_tasks = [
+        bundling_tasks.app_extension_point(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_id = bundle_id,
+            deps = ctx.attr.deps,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
+        ),
+        bundling_tasks.extension_point_name_validation(
+            actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_id = bundle_id,
+            deps = ctx.attr.deps,
+            extensions = ctx.attr.extensions,
+            label = label,
+            xplat_exec_group = xplat_exec_group,
+        ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -355,14 +383,14 @@ reproducible error case.".format(
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -508,9 +536,10 @@ def _watchos_extension_impl(ctx):
 
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
+    is_extensionkit_extension = ctx.attr.extensionkit_extension
     product_type = apple_product_type.app_extension
 
-    if ctx.attr.extensionkit_extension:
+    if is_extensionkit_extension:
         if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
             fail("""
 Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not \
@@ -665,6 +694,20 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
+    extension_foundation = None
+    extra_resource_providers = []
+    if is_extensionkit_extension:
+        extension_foundation = infoplist_support.extension_foundation_infoplist(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            bundle_id = bundle_id,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            platform_prerequisites = platform_prerequisites,
+            split_attr_deps = ctx.split_attr.deps,
+        )
+        extra_resource_providers = extension_foundation.resource_providers
+
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -683,7 +726,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -691,7 +734,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -760,7 +803,8 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            extensionkit_keys_required = ctx.attr.extensionkit_extension,
+            extra_resource_providers = extra_resource_providers,
+            extensionkit_keys_required = is_extensionkit_extension,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -833,7 +877,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         xplat_exec_group = xplat_exec_group,
     )
 
-    return [
+    result_providers = [
         DefaultInfo(
             files = bundler_result.output_files,
         ),
@@ -845,6 +889,13 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         ),
         new_watchosextensionbundleinfo(),
     ] + bundler_result.providers
+
+    if extension_foundation and extension_foundation.swiftconstvalues_files:
+        result_providers.append(ExtensionFoundationInfo(
+            swiftconstvalues_files = depset(extension_foundation.swiftconstvalues_files),
+        ))
+
+    return result_providers
 
 def _watchos_single_target_application_impl(ctx):
     """Implementation of watchos_application for single target watch applications."""
@@ -986,7 +1037,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = embeddable_targets,
@@ -994,7 +1045,7 @@ delegate is referenced in the single-target `watchos_application`'s `deps`.
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -1232,8 +1283,7 @@ def _watchos_framework_impl(ctx):
         bundle_name = bundle_name,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
-        # Frameworks do not have entitlements.
-        entitlements = None,
+        entitlements = None,  # Frameworks do not have entitlements.
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_linkopts = [
             "-install_name",
@@ -1265,7 +1315,7 @@ def _watchos_framework_impl(ctx):
             actions = actions,
             app_intents = [ctx.split_attr.deps],
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             embedded_bundles = ctx.attr.frameworks,
@@ -1273,7 +1323,7 @@ def _watchos_framework_impl(ctx):
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
