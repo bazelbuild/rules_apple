@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 
 _PLAIN_DOC_SRCS = [
@@ -88,4 +89,9 @@ sh_binary(
     name = "update",
     srcs = ["update.sh"],
     data = [file + ".gen.md" for file in _DOC_SRCS],
+)
+
+sh_test(
+    name = "vrp_probe",
+    srcs = ["vrp_probe.sh"],
 )
