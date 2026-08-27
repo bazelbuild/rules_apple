@@ -91,6 +91,7 @@ def _extension_foundation_infoplist(
         actions,
         apple_mac_toolchain_info,
         bundle_id,
+        is_extensionkit_extension = False,
         label,
         mac_exec_group,
         platform_prerequisites,
@@ -109,6 +110,8 @@ def _extension_foundation_infoplist(
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: `struct` of Apple tools from the shared Apple toolchain.
         bundle_id: The bundle identifier to encode into the generated Info.plist fragment.
+        is_extensionkit_extension: Boolean indicating whether the extension is an ExtensionKit
+            extension.
         label: The label of the target being analyzed.
         mac_exec_group: The exec_group associated with the Apple mac toolchain.
         platform_prerequisites: A `struct` containing information on the platform being targeted.
@@ -140,6 +143,13 @@ def _extension_foundation_infoplist(
 
     if not swiftconstvalues_files:
         return struct(resource_providers = [], swiftconstvalues_files = [])
+
+    if not is_extensionkit_extension:
+        fail("""\
+The extension target '{label}' depends on ExtensionFoundation dependencies, but \
+'extensionkit_extension' is not set to True. Please set 'extensionkit_extension = True' on this \
+target.\
+""".format(label = label))
 
     exutil_plist = generate_appextension_plist(
         actions = actions,

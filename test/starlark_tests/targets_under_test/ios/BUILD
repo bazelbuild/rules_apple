@@ -5859,7 +5859,7 @@ ios_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
+    minimum_os_version = common.min_os_ios.extension_point_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -5879,7 +5879,7 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
+    minimum_os_version = common.min_os_ios.extension_point_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -5899,7 +5899,7 @@ ios_extension(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
+    minimum_os_version = common.min_os_ios.extension_point_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
@@ -5922,11 +5922,35 @@ ios_application(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
-    minimum_os_version = common.min_os_ios.app_intents_support,
+    minimum_os_version = common.min_os_ios.extension_point_support,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:hinted_enhanced_security_extension_point",
         "//test/starlark_tests/resources:second_hinted_enhanced_security_extension_point",
+    ],
+)
+
+ios_extension(
+    name = "ext_missing_extensionkit_extension_attribute",
+    bundle_id = "com.apple.example.extension-point",
+    entitlements = (
+        "//test/starlark_tests/resources:entitlements.plist"
+    ),
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.extension_point_support,
+    provisioning_profile = (
+        "//test/testdata/provisioning:" +
+        "integration_testing_ios.mobileprovision"
+    ),
+    tags = ["manual"],
+    deps = [
+        "//test/starlark_tests/resources:hinted_enhanced_security_extension",
     ],
 )

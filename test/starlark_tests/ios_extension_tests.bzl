@@ -327,6 +327,19 @@ def ios_extension_test_suite(name):
     )
 
     analysis_failure_message_test(
+        name = "{}_missing_extensionkit_extension_attribute_test".format(name),
+        target_under_test = (
+            "//test/starlark_tests/targets_under_test/ios:" +
+            "ext_missing_extensionkit_extension_attribute"
+        ),
+        expected_error = (
+            "depends on ExtensionFoundation dependencies, but 'extensionkit_extension' is not " +
+            "set to True"
+        ),
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
         name = "{}_invalid_dep_on_extension_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_invalid_dep_on_extension",
         expected_error = "does not have mandatory providers",

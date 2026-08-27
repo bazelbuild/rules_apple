@@ -694,20 +694,17 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
     else:
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
-    extension_foundation = None
-    extra_resource_providers = []
-    if is_extensionkit_extension:
-        extension_foundation = infoplist_support.extension_foundation_infoplist(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            bundle_id = bundle_id,
-            label = label,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            split_attr_deps = ctx.split_attr.deps,
-        )
-        extra_resource_providers = extension_foundation.resource_providers
-
+    extension_foundation = infoplist_support.extension_foundation_infoplist(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        bundle_id = bundle_id,
+        is_extensionkit_extension = is_extensionkit_extension,
+        label = label,
+        mac_exec_group = mac_exec_group,
+        platform_prerequisites = platform_prerequisites,
+        split_attr_deps = ctx.split_attr.deps,
+    )
+    extra_resource_providers = extension_foundation.resource_providers
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
