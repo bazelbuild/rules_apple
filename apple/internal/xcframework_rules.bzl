@@ -655,10 +655,12 @@ def _available_library_dictionary(
 
 def _limited_platform_prerequisites(
         *,
+        apple_platform_info,
         build_settings,
         xcode_version_config):
     """Returns a limited set of platform prerequisites for generating XCFramework Info.plists."""
     return struct(
+        apple_platform_info = apple_platform_info,
         build_settings = build_settings,
         xcode_version_config = xcode_version_config,
     )
@@ -1528,6 +1530,7 @@ def _apple_xcframework_impl(ctx):
         available_libraries = bundled_artifacts.available_libraries,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = _limited_platform_prerequisites(
+            apple_platform_info = apple_platform_info,
             build_settings = build_settings,
             xcode_version_config = xcode_version_config,
         ),
@@ -1960,6 +1963,7 @@ def _apple_static_xcframework_impl(ctx):
         available_libraries = bundled_artifacts.available_libraries,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = _limited_platform_prerequisites(
+            apple_platform_info = apple_platform_info,
             build_settings = build_settings,
             xcode_version_config = xcode_version_config,
         ),

@@ -39,7 +39,7 @@ apple_mac_tools_toolchain(
     dossier_codesigningtool = "//tools/dossier_codesigning_reader:dossier_code_sign_tool_swift_osx",
     environment_plist_tool = "//tools/environment_plist",
     imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_osx",
-    plisttool = "//tools/plisttool:plisttool.par",
+    plisttool = "//tools/plist_tool:plisttool_osx",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool:provisioning_profile_tool_osx",
     signature_tool = "//tools/signaturetool:signature_tool_osx",
