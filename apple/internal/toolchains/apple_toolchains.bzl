@@ -280,6 +280,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
             for build_setting in ctx.attr.build_settings
         }
     )
+
     xplat_info = AppleXPlatToolsToolchainInfo(
         build_settings = build_settings_struct,
         bundletool_swift = ctx.attr.bundletool_swift,
