@@ -69,6 +69,10 @@ load(
     "output_group_zip_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -1803,6 +1807,36 @@ Apple enhanced security features were requested, but the build is missing the re
             "$BUNDLE_ROOT/Extensions/second_hinted_enhanced_security_extension_point.appexpt",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_enhanced_security_extensions",
+        tags = [name],
+    )
+
+    # Test that the validation action in _validation was actually executed during
+    # the build of the app and produced the expected conformance typename for the extension.
+    validation_output_contents_test(
+        name = "{}_enhanced_security_extension_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        validation_file_name = "hinted_enhanced_security_extension_extension_foundation_validation.txt",
+        expected_contents = [
+            "EnhancedSecurityExtension",
+        ],
+        tags = [name],
+    )
+
+    # Test that the extension point binding validation action executed during the build of the app.
+    validation_output_contents_test(
+        name = "{}_enhanced_security_extension_binding_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        validation_file_name = "com_apple_example_extension-point_extension_point_binding_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+
+    # Test that the extension point definition validation action executed during the build of the app.
+    validation_output_contents_test(
+        name = "{}_enhanced_security_extension_definition_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        validation_file_name = "com_apple_example_extension-point_extension_point_definition_validation.txt",
+        allow_empty = True,
         tags = [name],
     )
 

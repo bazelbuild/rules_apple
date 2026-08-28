@@ -1164,6 +1164,7 @@ swift_library(
     name = "hinted_enhanced_security_extension",
     srcs = ["enhanced_security_extension.swift"],
     aspect_hints = ["//apple/hints:extension_foundation_hint"],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -1171,12 +1172,14 @@ swift_library(
     srcs = ["enhanced_security_extension_point.swift"],
     aspect_hints = ["//apple/hints:app_extension_point_hint"],
     module_name = "hinted_enhanced_security_extension_point",
+    tags = common.fixture_tags,
 )
 
 swift_library(
     name = "second_hinted_enhanced_security_extension",
     srcs = ["second_enhanced_security_extension.swift"],
     aspect_hints = ["//apple/hints:extension_foundation_hint"],
+    tags = common.fixture_tags,
 )
 
 swift_library(
@@ -1184,4 +1187,5 @@ swift_library(
     srcs = ["second_enhanced_security_extension_point.swift"],
     aspect_hints = ["//apple/hints:app_extension_point_hint"],
     module_name = "second_hinted_enhanced_security_extension_point",
+    tags = common.fixture_tags,
 )

@@ -43,6 +43,10 @@ load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
 )
+load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
 load("//tools/build_defs/build_test:build_test.bzl", "build_test")
 load(
     ":common.bzl",
@@ -370,6 +374,18 @@ def ios_extension_test_suite(name):
         expected_values = {
             "EXAppExtensionAttributes:EXExtensionPointIdentifier": "com.apple.example.extension-point",
         },
+        tags = [name],
+    )
+
+    # Test that the validation action in _validation was actually executed during
+    # the build and produced the expected conformance typename.
+    validation_output_contents_test(
+        name = "{}_enhanced_security_extension_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_enhanced_security_extension",
+        validation_file_name = "hinted_enhanced_security_extension_extension_foundation_validation.txt",
+        expected_contents = [
+            "EnhancedSecurityExtension",
+        ],
         tags = [name],
     )
 
