@@ -480,10 +480,12 @@ def _sectcreate_cc_info(segname, sectname, file):
 
 def _validate_platform_variants(*, cc_toolchains, label):
     """Validates that all requested architectures are device or simulator."""
-    full_label_package = "//{}/".format(label.package)
-    for denied_user in _DENIED_VERIFY_PLATFORM_VARIANTS_USERS:
-        if full_label_package.startswith(denied_user):
-            return
+    full_label = "//{package}:{name}".format(
+        package = label.package,
+        name = label.name,
+    )
+    if full_label in _DENIED_VERIFY_PLATFORM_VARIANTS_USERS:
+        return
     expected_environment = None
     for split_transition_key, child_toolchain in cc_toolchains.items():
         actual_environment = child_toolchain[ApplePlatformInfo].target_environment

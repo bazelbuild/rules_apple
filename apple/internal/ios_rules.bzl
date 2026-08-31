@@ -1488,6 +1488,7 @@ def _ios_static_framework_impl(ctx):
         ctx = ctx,
         cc_configured_features = cc_configured_features,
         cc_toolchains = cc_toolchain_forwarder,
+        verify_platform_variants = False,
     )
     binary_artifact = archive_result.library
 
