@@ -476,18 +476,6 @@ def _ios_application_impl(ctx):
         ),
     ]
 
-    if watch_app_to_bundle:
-        # Add the stub binary if the associated watchOS application is a watchOS 2 application.
-        watch_bundle_info = watch_app_to_bundle[AppleBundleInfo]
-        if watch_bundle_info.product_type == apple_product_type.watch2_application:
-            pending_bundling_tasks.append(
-                bundling_tasks.watchos_stub(
-                    actions = actions,
-                    label_name = label.name,
-                    watch_application = watch_app_to_bundle,
-                ),
-            )
-
     if platform_prerequisites.platform.is_device:
         pending_bundling_tasks.append(
             bundling_tasks.provisioning_profile(
@@ -1971,9 +1959,8 @@ not in the top-level bundle.
             "watch_application": attr.label(
                 providers = [[AppleBundleInfo, WatchosApplicationBundleInfo]],
                 doc = """
-A `watchos_application` target that represents an Apple Watch application or a
-`watchos_single_target_application` target that represents a single-target Apple Watch application
-that should be embedded in the application bundle.
+A `watchos_application` target that represents an Apple Watch application that should be embedded
+in the application bundle.
 """,
             ),
         },

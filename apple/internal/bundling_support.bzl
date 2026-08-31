@@ -47,13 +47,10 @@ visibility([
 # * `bundle_name`: Source the default bundle ID suffix from the evaluated bundle name.
 # * `no_suffix`: Derive the bundle ID entirely from the base bundle ID, omitting the suffix.
 # * `watchos_app`: Predeclared string for watchOS applications. This suffix is required.
-# * `watchos2_app_extension`: Predeclared string for watchOS 2 application extensions. This suffix
-#   is required.
 bundle_id_suffix_default = struct(
     bundle_name = "bundle_name",  # Predeclared string with invalid bundle ID characters.
     no_suffix = "_",  # Predeclared string with invalid bundle ID characters.
     watchos_app = "watchkitapp",
-    watchos2_app_extension = "watchkitapp.watchkitextension",
 )
 
 def _bundle_full_name(

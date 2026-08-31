@@ -149,21 +149,8 @@ _apple_platform_split_transition = transition(
     outputs = base_transition_support.apple_rule_base_transition_outputs,
 )
 
-def _watchos2_app_extension_transition_impl(_, __):
-    """Rule transition for watchOS 2 app extensions that forces required linking options."""
-    return {
-        build_settings_labels.link_watchos_2_app_extension: True,
-    }
-
-_watchos2_app_extension_transition = transition(
-    implementation = _watchos2_app_extension_transition_impl,
-    inputs = [],
-    outputs = [build_settings_labels.link_watchos_2_app_extension],
-)
-
 transition_support = struct(
     apple_platform_split_transition = _apple_platform_split_transition,
     apple_rule_bundle_output_transition = base_transition_support.apple_rule_bundle_output_transition,
     apple_rule_transition = base_transition_support.apple_rule_base_transition,
-    watchos2_app_extension_transition = _watchos2_app_extension_transition,
 )

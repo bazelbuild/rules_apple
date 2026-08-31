@@ -73,12 +73,6 @@ visibility([
 # * `unit_test_bundle`: A unit test bundle (.xctest). This is the default product
 #   type for those targets; it does not need to be set explicitly (and cannot be
 #   changed).
-# * `watch2_application`: A watchOS 2+ application. This is the default product
-#   type for those targets; it does not need to be set explicitly (and cannot be
-#   changed).
-# * `watch2_extension`: A watchOS 2+ application extension. This is the default
-#   product type for those targets; it does not need to be set explicitly (and
-#   cannot be changed).
 # * `xpc_service`: A macOS XPC service. This product type should be used with a
 #   `macos_application` target to create such a service; the built bundle will
 #   have the extension `.xpc`.
@@ -96,7 +90,5 @@ apple_product_type = struct(
     tool = "com.apple.product-type.tool",
     ui_test_bundle = "com.apple.product-type.bundle.ui-testing",
     unit_test_bundle = "com.apple.product-type.bundle.unit-test",
-    watch2_application = "com.apple.product-type.application.watchapp2",
-    watch2_extension = "com.apple.product-type.watchkit2-extension",
     xpc_service = "com.apple.product-type.xpc-service",
 )

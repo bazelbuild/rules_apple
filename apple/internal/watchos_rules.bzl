@@ -22,10 +22,6 @@ load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
-load(
-    "@build_bazel_apple_support//lib:providers.bzl",
-    "ApplePlatformInfo",
-)
 load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
@@ -107,10 +103,6 @@ load(
     "run_support",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:stub_support.bzl",
-    "stub_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
 )
@@ -148,382 +140,6 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
-def _watchos_application_impl(ctx):
-    """Implementation of watchos_application."""
-
-    if ctx.attr.deps:
-        return _watchos_single_target_application_impl(ctx)
-    else:
-        return _watchos_extension_based_application_impl(ctx)
-
-def _watchos_extension_based_application_impl(ctx):
-    """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
-    required_minimum_os.validate(
-        cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
-        minimum_os_version = ctx.attr.minimum_os_version,
-        platform_type = ctx.attr.platform_type,
-        rule_label = ctx.label,
-        xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
-    )
-
-    xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
-    xcode_version_less_than_27 = (
-        xcode_version_config.xcode_version() < apple_common.dotted_version("27.0")
-    )
-    if not xcode_version_less_than_27:
-        fail("""
-Error: watchOS 2 extension-based applications can no longer be built with Xcode 27 or later.
-
-Please migrate {rule_label} to a single-target watchOS application by removing the assigned \
-watchOS 2 app extension and making sure a valid watchOS application delegate is referenced in this \
-watchos_application's `deps`.
-""".format(rule_label = str(ctx.label)))
-
-    minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
-    if minimum_os >= apple_common.dotted_version("9.0"):
-        fail("""
-Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
-
-watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying \
-on an app delegate via deps rather than a watchOS 2 extension.
-
-Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.0 or \
-later will be met with a rejection.
-
-Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application \
-delegate is referenced in the single-target `watchos_application`'s `deps`.
-""")
-
-    if not ctx.attr.extension or not len(ctx.attr.extension):
-        fail("""
-Error: No extension specified for a watchOS 2 extension-based application.
-
-If this is supposed to be a single-target watchOS application, please make sure that a valid \
-watchOS application delegate is referenced in this watchos_application's `deps`.
-""")
-
-    if ctx.attr.extensions:
-        fail("""
-Error: Multiple extensions specified for a watchOS 2 extension-based application.
-
-Found the following extension dependencies assigned to this app via `extensions`:
-{extensions}
-
-The Apple BUILD rules only support a single extension for a watchOS 2 extension-based application, \
-on account of regressions reported when migrating hosted extensions within watchOS 2 \
-extension-based applications to single-target watchOS applications.
-
-Consider migrating to a single-target watchOS application by removing the assigned watchOS 2 app \
-extension and making sure a valid watchOS application delegate is referenced in this \
-watchos_application's `deps`.
-""".format(extensions = " \n".join([str(x.label) for x in ctx.attr.extensions])))
-
-    if ctx.attr.frameworks:
-        fail("""
-Error: The Apple BUILD rules do not support frameworks built from source for watchOS 2 \
-extension-based applications.
-
-Found the following framework dependencies assigned to this app via `frameworks`:
-{frameworks}
-
-Consider migrating to a single-target watchOS application by removing the assigned watchOS 2 app \
-extension and making sure a valid watchOS application delegate is referenced in this \
-watchos_application's `deps`.
-""".format(frameworks = " \n".join([str(x.label) for x in ctx.attr.frameworks])))
-
-    rule_descriptor = rule_support.rule_descriptor(
-        platform_type = ctx.attr.platform_type,
-        product_type = apple_product_type.watch2_application,
-    )
-
-    actions = ctx.actions
-    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
-    bundle_name, bundle_extension = bundling_support.bundle_full_name(
-        custom_bundle_name = ctx.attr.bundle_name,
-        label_name = ctx.label.name,
-        rule_descriptor = rule_descriptor,
-    )
-
-    bundle_id = bundling_support.bundle_full_id(
-        bundle_id = ctx.attr.bundle_id,
-        bundle_id_suffix = ctx.attr.bundle_id_suffix,
-        bundle_name = bundle_name,
-        suffix_default = ctx.attr._bundle_id_suffix_default,
-        shared_capabilities = ctx.attr.shared_capabilities,
-    )
-    cc_configured_features = features_support.cc_configured_features(
-        ctx = ctx,
-    )
-    cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = [ctx.attr.extension[0]]
-    label = ctx.label
-    platform_prerequisites = platform_support.platform_prerequisites(
-        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        config_vars = ctx.var,
-        cpp_fragment = ctx.fragments.cpp,
-        device_families = rule_descriptor.allowed_device_families,
-        explicit_minimum_os = ctx.attr.minimum_os_version,
-        uses_swift = False,  # No binary deps to check.
-        xcode_version_config = xcode_version_config,
-    )
-    predeclared_outputs = ctx.outputs
-    provisioning_profile = ctx.file.provisioning_profile
-    resource_deps = ctx.attr.resources
-    top_level_infoplists = resources.collect(
-        attr = ctx.attr,
-        res_attrs = ["infoplists"],
-        rule_label = ctx.label,
-    )
-    top_level_resources = resources.collect(
-        attr = ctx.attr,
-        res_attrs = [
-            "app_icons",
-            "storyboards",
-            "strings",
-            "resources",
-        ],
-        rule_label = ctx.label,
-    )
-
-    entitlements = entitlements_support.process_entitlements(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_id = bundle_id,
-        cc_configured_features = cc_configured_features,
-        cc_toolchains = cc_toolchain_forwarder,
-        entitlements_file = ctx.file.entitlements,
-        mac_exec_group = mac_exec_group,
-        platform_prerequisites = platform_prerequisites,
-        product_type = rule_descriptor.product_type,
-        provisioning_profile = provisioning_profile,
-        rule_label = label,
-        secure_features = ctx.attr.secure_features,
-        validation_mode = ctx.attr.entitlements_validation,
-        xplat_exec_group = xplat_exec_group,
-    )
-
-    # Collect all architectures found from the cc_toolchain forwarder.
-    requested_archs = set([
-        cc_toolchain[ApplePlatformInfo].target_arch
-        for cc_toolchain in cc_toolchain_forwarder.values()
-    ])
-
-    if len(requested_archs) == 0:
-        fail("Internal Error: No architectures found for {label_name}. Please file an issue with a \
-reproducible error case.".format(
-            label_name = label.name,
-        ))
-
-    binary_artifact = stub_support.create_stub_binary(
-        actions = actions,
-        archs_for_lipo = list(requested_archs),
-        platform_prerequisites = platform_prerequisites,
-        rule_label = label,
-        xcode_stub_path = rule_descriptor.stub_binary_path,
-    )
-
-    bundle_verification_targets = [
-        struct(
-            target = ctx.attr.extension[0],
-            parent_bundle_id_reference = [
-                "NSExtension",
-                "NSExtensionAttributes",
-                "WKAppBundleIdentifier",
-            ],
-        ),
-    ]
-
-    archive = outputs.archive(
-        actions = actions,
-        build_settings = apple_xplat_toolchain_info.build_settings,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        predeclared_outputs = predeclared_outputs,
-    )
-
-    pending_bundling_tasks = [
-        bundling_tasks.app_extension_point(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_id = bundle_id,
-            deps = ctx.attr.deps,
-            label = label,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.extension_point_name_validation(
-            actions = actions,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_id = bundle_id,
-            deps = ctx.attr.deps,
-            extensions = ctx.attr.extensions,
-            label = label,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.apple_bundle_info(
-            actions = actions,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
-            entitlements = entitlements,
-            label_name = label.name,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            product_type = rule_descriptor.product_type,
-        ),
-        bundling_tasks.app_intents_metadata_bundle(
-            actions = actions,
-            app_intents = [ctx.split_attr.deps],
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_id = bundle_id,
-            cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = embeddable_targets,
-            label = label,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.binary(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
-            label_name = label.name,
-        ),
-        bundling_tasks.codesigning_dossier(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_location = location_enum.watch,
-            bundle_name = bundle_name,
-            embedded_targets = embeddable_targets,
-            entitlements = entitlements,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            predeclared_outputs = predeclared_outputs,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.debug_symbols(
-            actions = actions,
-            bundle_extension = bundle_extension,
-            bundle_name = bundle_name,
-            debug_dependencies = embeddable_targets,
-            platform_prerequisites = platform_prerequisites,
-        ),
-        bundling_tasks.embedded_bundles(
-            build_settings = apple_xplat_toolchain_info.build_settings,
-            bundle_embedded_bundles = True,
-            embeddable_targets = embeddable_targets,
-            watch_bundles = [archive],
-        ),
-        bundling_tasks.resources(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            bundle_extension = bundle_extension,
-            bundle_id = bundle_id,
-            bundle_name = bundle_name,
-            bundle_verification_targets = bundle_verification_targets,
-            environment_plist = ctx.file._environment_plist,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
-            resource_locales = ctx.attr.resource_locales,
-            rule_descriptor = rule_descriptor,
-            rule_label = label,
-            top_level_infoplists = top_level_infoplists,
-            top_level_resources = top_level_resources,
-            version = ctx.attr.version,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.swift_dylibs(
-            actions = actions,
-            apple_mac_toolchain_info = apple_mac_toolchain_info,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            binary_artifact = binary_artifact,
-            bundle_dylibs = True,
-            dependency_targets = embeddable_targets,
-            label_name = label.name,
-            mac_exec_group = mac_exec_group,
-            platform_prerequisites = platform_prerequisites,
-            xplat_exec_group = xplat_exec_group,
-        ),
-        bundling_tasks.watchos_stub(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            label_name = label.name,
-        ),
-    ]
-
-    if platform_prerequisites.platform.is_device:
-        pending_bundling_tasks.append(
-            bundling_tasks.provisioning_profile(
-                actions = actions,
-                profile_artifact = provisioning_profile,
-                rule_label = label,
-            ),
-        )
-
-    bundler_result = apple_bundler.process(
-        actions = actions,
-        apple_mac_toolchain_info = apple_mac_toolchain_info,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        bundling_tasks = pending_bundling_tasks,
-        cc_configured_features = cc_configured_features,
-        entitlements = entitlements,
-        ipa_post_processor = ctx.executable.ipa_post_processor,
-        mac_exec_group = mac_exec_group,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        process_and_sign_template = apple_mac_toolchain_info.process_and_sign_template,
-        provisioning_profile = provisioning_profile,
-        rule_descriptor = rule_descriptor,
-        rule_label = label,
-        xplat_exec_group = xplat_exec_group,
-    )
-
-    executable = outputs.executable(
-        actions = actions,
-        label_name = label.name,
-    )
-
-    run_support.register_simulator_executable(
-        actions = actions,
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        bundle_extension = bundle_extension,
-        bundle_name = bundle_name,
-        output = executable,
-        platform_prerequisites = platform_prerequisites,
-        predeclared_outputs = predeclared_outputs,
-        runner_template = ctx.file._runner_template,
-    )
-
-    return [
-        DefaultInfo(
-            executable = executable,
-            files = bundler_result.output_files,
-            runfiles = ctx.runfiles(
-                files = [archive],
-            ),
-        ),
-        OutputGroupInfo(**bundler_result.output_groups),
-        new_watchosapplicationbundleinfo(),
-    ] + bundler_result.providers
-
 def _watchos_extension_impl(ctx):
     """Implementation of watchos_extension."""
     required_minimum_os.validate(
@@ -537,20 +153,9 @@ def _watchos_extension_impl(ctx):
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
 
     is_extensionkit_extension = ctx.attr.extensionkit_extension
-    product_type = apple_product_type.app_extension
-
-    if is_extensionkit_extension:
-        if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
-            fail("""
-Error: A watchOS 2 app delegate extension was declared as an ExtensionKit extension, which is not \
-possible.
-
-Please remove the "extensionkit_extension" attribute on this watchos_extension rule.
-""")
-        product_type = apple_product_type.extensionkit_extension
-
-    if apple_xplat_toolchain_info.build_settings.link_watchos_2_app_extension:
-        product_type = apple_product_type.watch2_extension
+    product_type = (
+        apple_product_type.extensionkit_extension if is_extensionkit_extension else apple_product_type.app_extension
+    )
 
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -625,38 +230,11 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         xplat_exec_group = xplat_exec_group,
     )
 
-    extra_linkopts = ["-fapplication-extension"]
-    if product_type == apple_product_type.watch2_extension:
-        # Required for supporting minimum_os_version < 6.0.
-        extra_linkopts.extend([
-            "-e",
-            "_WKExtensionMain",
-        ])
-    else:
-        # Assuming standard extension (ExtensionKit or standard NSExtension; the former builds off
-        # of the latter). In this case WKExtensionMain is likely not available as the
-        # WatchKit.framework does not have to be referenced.
-        extra_linkopts.extend([
-            "-e",
-            "_NSExtensionMain",
-        ])
-
-    # This is required when building with watchOS SDK 6.0 or higher but with a minimum
-    # deployment version lower than 6.0. See
-    # https://developer.apple.com/documentation/xcode_release_notes/xcode_11_release_notes.
-    minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
-    if minimum_os < apple_common.dotted_version("6.0"):
-        extra_linkopts.append(
-            # The linker will search for this library relative to sysroot, which will already
-            # be the watchOS SDK directory.
-            #
-            # This is a force-load (unlike Xcode, which uses a standard `-l`) because we can't
-            # easily control where it appears in the link order relative to WatchKit.framework
-            # (where this symbol also lives, in watchOS 6+), so we need to guarantee that the
-            # linker doesn't skip the static library's implementation of `WKExtensionMain` if
-            # it already resolved the symbol from the framework.
-            "-Wl,-force_load,/usr/lib/libWKExtensionMainLegacy.a",
-        )
+    extra_linkopts = [
+        "-fapplication-extension",
+        "-e",
+        "_NSExtensionMain",
+    ]
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
@@ -684,8 +262,7 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     bundle_location = ""
     embedded_bundles_args = {}
-    if (rule_descriptor.product_type == apple_product_type.app_extension or
-        rule_descriptor.product_type == apple_product_type.watch2_extension):
+    if rule_descriptor.product_type == apple_product_type.app_extension:
         bundle_location = location_enum.plugin
         embedded_bundles_args["plugins"] = [archive]
     elif rule_descriptor.product_type == apple_product_type.extensionkit_extension:
@@ -827,24 +404,6 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
         ),
     ]
 
-    if rule_descriptor.product_type == apple_product_type.watch2_extension:
-        # Leave "imported" frameworks to the bundle with the main app delegate, as we do for other
-        # Apple platforms.
-        pending_bundling_tasks.append(
-            bundling_tasks.framework_import(
-                actions = actions,
-                apple_mac_toolchain_info = apple_mac_toolchain_info,
-                build_settings = apple_xplat_toolchain_info.build_settings,
-                cc_configured_features = cc_configured_features,
-                label_name = label.name,
-                mac_exec_group = mac_exec_group,
-                platform_prerequisites = platform_prerequisites,
-                provisioning_profile = provisioning_profile,
-                rule_descriptor = rule_descriptor,
-                targets = ctx.attr.deps,
-            ),
-        )
-
     if platform_prerequisites.platform.is_device:
         pending_bundling_tasks.append(
             bundling_tasks.provisioning_profile(
@@ -894,8 +453,8 @@ Please remove the "extensionkit_extension" attribute on this watchos_extension r
 
     return result_providers
 
-def _watchos_single_target_application_impl(ctx):
-    """Implementation of watchos_application for single target watch applications."""
+def _watchos_application_impl(ctx):
+    """Implementation of watchos_application."""
     required_minimum_os.validate(
         cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder,
         minimum_os_version = ctx.attr.minimum_os_version,
@@ -903,18 +462,6 @@ def _watchos_single_target_application_impl(ctx):
         rule_label = ctx.label,
         xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo],
     )
-
-    minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
-    if minimum_os < apple_common.dotted_version("7.0"):
-        fail("Single-target watchOS applications require a minimum_os_version of 7.0 or greater.")
-
-    if ctx.attr.extension:
-        fail("""
-Single-target watchOS applications do not support watchOS 2 extensions or their delegates.
-
-Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
-delegate is referenced in the single-target `watchos_application`'s `deps`.
-""")
 
     rule_descriptor = rule_support.rule_descriptor(
         platform_type = ctx.attr.platform_type,
@@ -1455,6 +1002,7 @@ watchos_application = rule_factory.create_apple_rule(
                 apple_resource_aspect,
                 framework_provider_aspect,
             ],
+            is_deps_mandatory = True,
             is_test_supporting_rule = False,
         ),
         rule_attrs.common_bundle_attrs(),
@@ -1473,34 +1021,10 @@ watchos_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.simulator_runner_template_attr(),
         {
-            "extension": attr.label(
-                cfg = transition_support.watchos2_app_extension_transition,
-                providers = [
-                    [AppleBundleInfo, WatchosExtensionBundleInfo],
-                ],
-                doc = """
-The watchOS 2 `watchos_extension` that is required to be bundled within a watchOS 2 application.
-
-It is considered an error if the watchOS 2 application extension is assigned to a single target
-watchOS application, which is constructed if the `watchos_application` target is assigned `deps`.
-
-This attribute will not support additional types of `watchos_extension`s in the future.
-""",
-            ),
             "extensions": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosExtensionBundleInfo]],
                 doc = """
 A list of watchOS application extensions to include in the final application bundle.
-
-This is only supported for single target watchOS applications, on account of how watchOS poorly
-handles migrating existing extensions to the new single target watchOS application format.
-
-Specifically, existing Shortcuts and other API integrations will be broken for the user on an app
-update if an existing watchOS 2-hosted extension is migrated to the single target application
-format.
-
-It is considered an error if any extensions are assigned to a legacy watchOS 2 application, which is
-constructed if the `watchos_application` target is not assigned `deps`.
 """,
             ),
             "frameworks": attr.label_list(
@@ -1553,7 +1077,7 @@ watchos_extension = rule_factory.create_apple_rule(
             platform_type = "watchos",
         ),
         rule_attrs.signing_attrs(
-            default_bundle_id_suffix = bundle_id_suffix_default.watchos2_app_extension,
+            default_bundle_id_suffix = bundle_id_suffix_default.bundle_name,
         ),
         {
             "frameworks": attr.label_list(

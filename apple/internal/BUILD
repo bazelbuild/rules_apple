@@ -797,7 +797,6 @@ bzl_library(
         ":rule_factory",
         ":rule_support",
         ":run_support",
-        ":stub_support",
         ":swift_support",
         ":transition_support",
         "//apple/internal/aspects:framework_provider_aspect",
@@ -808,7 +807,6 @@ bzl_library(
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_tools//tools/cpp:toolchain_utils",
         "@build_bazel_apple_support//lib:apple_support",
-        "@build_bazel_apple_support//lib:providers",
         "@build_bazel_apple_support//xcode:providers",
     ],
 )

@@ -1442,10 +1442,8 @@ def _apple_xcframework_impl(ctx):
         ],
     }
 
-    # iOS, tvOS, visionOS and watchOS single target app framework binaries live in
+    # iOS, tvOS, visionOS and watchOS app framework binaries live in
     # Application.app/Frameworks/Framework.framework/Framework
-    # watchOS 2 extension-dependent app framework binaries live in
-    # Application.app/PlugIns/Extension.appex/Frameworks/Framework.framework/Framework
     ios_linkopts = [
         "-Wl,-rpath,@executable_path/Frameworks",
         "-Wl,-rpath,@loader_path/Frameworks",

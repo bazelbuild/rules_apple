@@ -560,7 +560,7 @@ _RULE_TYPE_DESCRIPTORS = {
         ),
     },
     "watchos": {
-        # watchos_application (single target application)
+        # watchos_application
         apple_product_type.application: _describe_rule_type(
             additional_infoplist_values = {"WKApplication": True},
             allowed_device_families = ["watch"],
@@ -570,29 +570,6 @@ _RULE_TYPE_DESCRIPTORS = {
             requires_pkginfo = True,
             rpaths = [
                 # Application binaries live in Application.app/Application
-                "@executable_path/Frameworks",
-            ],
-        ),
-        # watchos_application (watchOS 2 extension-based app bundle)
-        apple_product_type.watch2_application: _describe_rule_type(
-            additional_infoplist_values = {"WKWatchKitApp": True},
-            allowed_device_families = ["watch"],
-            bundle_extension = ".app",
-            bundle_package_type = bundle_package_type.application,
-            product_type = apple_product_type.watch2_application,
-            requires_pkginfo = True,
-            stub_binary_path = "Library/Application Support/WatchKit/WK",
-        ),
-        # watchos_extension (watchOS 2 app extension)
-        apple_product_type.watch2_extension: _describe_rule_type(
-            allowed_device_families = ["watch"],
-            bundle_extension = ".appex",
-            bundle_package_type = bundle_package_type.extension_or_xpc,
-            product_type = apple_product_type.watch2_extension,
-            rpaths = [
-                # Extension binaries live in Application.app/PlugIns/Extension.appex/Extension
-                # Frameworks are packaged in Application.app/PlugIns/Extension.appex/Frameworks per
-                # https://developer.apple.com/library/archive/documentation/General/Conceptual/AppleWatch2TransitionGuide/ConfiguretheXcodeProject.html
                 "@executable_path/Frameworks",
             ],
         ),
@@ -628,7 +605,7 @@ _RULE_TYPE_DESCRIPTORS = {
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             product_type = apple_product_type.framework,
             rpaths = [
-                # Framework binaries for "single target" watchOS applications live in
+                # Framework binaries for watchOS applications live in
                 # Application.app/Frameworks/Framework.framework/Framework
                 # Frameworks are packaged in Application.app/Frameworks
                 "@executable_path/Frameworks",

@@ -70,6 +70,7 @@ _CPU_TO_PLATFORM = {
     "visionos_arm64e": "//buildenv/platforms/apple:visionos_arm64e",
     "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
     "visionos_sim_arm64e": "//buildenv/platforms/apple/simulator:visionos_arm64e",
+    # TODO(b/521725137): Remove when all configs no longer reference armv7k.
     "watchos_armv7k": "//buildenv/platforms/apple:watchos_armv7k",
     "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
     "watchos_sim_arm64e": "//buildenv/platforms/apple/simulator:watchos_arm64e",
@@ -87,6 +88,7 @@ _IOS_PLATFORM_TO_ENV_ARCH = {
 }
 
 _WATCHOS_PLATFORM_TO_ENV_ARCH = {
+    # TODO(b/521725137): Remove when all configs no longer reference armv7k.
     Label("//buildenv/platforms/apple:watchos_armv7k"): "armv7k",
     Label("//buildenv/platforms/apple/simulator:watchos_arm64"): "arm64",
     Label("//buildenv/platforms/apple/simulator:watchos_arm64e"): "sim_arm64e",
@@ -283,6 +285,7 @@ def _is_arch_supported_for_target_tuple(*, environment_arch, minimum_os_version,
 
     dotted_minimum_os_version = apple_common.dotted_version(minimum_os_version)
 
+    # TODO(b/521725137): Remove when all configs no longer reference armv7k.
     if (environment_arch == "armv7k" and platform_type == "watchos" and
         dotted_minimum_os_version >= apple_common.dotted_version("9.0")):
         return False

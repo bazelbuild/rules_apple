@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""watchos_ui_test Starlark tests leveraging watchos_single_target_application."""
+"""watchos_ui_test Starlark tests leveraging watchos_application."""
 
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",

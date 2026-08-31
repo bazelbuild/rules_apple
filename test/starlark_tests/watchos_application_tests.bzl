@@ -52,19 +52,6 @@ def watchos_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
-    analysis_failure_message_test(
-        name = "{}_unexpected_watch2_extension_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_watch2_ext",
-        expected_error = """
-Single-target watchOS applications do not support watchOS 2 extensions or their delegates.
-
-Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
-delegate is referenced in the single-target `watchos_application`'s `deps`.
-""",
-        tags = [
-            name,
-        ],
-    )
 
     # Tests analysis phase failure when an extension depends on a framework which
     # is not marked extension_safe.
