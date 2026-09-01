@@ -355,8 +355,6 @@ tvos_ui_test(*, <a href="#tvos_ui_test-name">name</a>, <a href="#tvos_ui_test-de
 Builds and bundles a tvOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
-Note: tvOS UI tests are not currently supported in the default test runner.
-
 The following is a list of the `tvos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
@@ -434,8 +432,6 @@ tvos_unit_test(*, <a href="#tvos_unit_test-name">name</a>, <a href="#tvos_unit_t
 
 Builds and bundles a tvOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
-
-Note: tvOS unit tests are not currently supported in the default test runner.
 
 `tvos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `tvos_application` target, the tests will run

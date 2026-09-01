@@ -165,8 +165,6 @@ visionos_ui_test = rule_factory.create_apple_test_rule(
 Builds and bundles a visionOS UI `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
 
-Note: visionOS UI tests are not currently supported in the default test runner.
-
 The following is a list of the `visionos_ui_test` specific attributes; for a list of
 the attributes inherited by all test rules, please check the
 [Bazel documentation](https://bazel.build/reference/be/common-definitions#common-attributes-tests).
@@ -238,8 +236,6 @@ visionos_unit_test = rule_factory.create_apple_test_rule(
     doc = """
 Builds and bundles a visionOS Unit `.xctest` test bundle. Runs the tests using the
 provided test runner when invoked with `bazel test`.
-
-Note: visionOS unit tests are not currently supported in the default test runner.
 
 `visionos_unit_test` targets can work in two modes: as app or library tests. If the
 `test_host` attribute is set to an `visionos_application` target, the tests will run
