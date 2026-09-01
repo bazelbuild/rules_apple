@@ -26,6 +26,10 @@ load(
     "//test/starlark_tests/rules:plisttool_action_test.bzl",
     "plisttool_action_test",
 )
+load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
 
 visibility("private")
 
@@ -138,6 +142,54 @@ def apple_mergeable_strings_test_suite(name):
         name = "{}_mismatched_merge_strings_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mismatched_mergeable_strings",
         target_mnemonic = "MergeStrings",
+        tags = [name],
+    )
+
+    # Tests that the merge strings validation action executed during the build of the iOS app
+    # for the m1 table.
+    validation_output_contents_test(
+        name = "{}_ios_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        validation_file_name = "m1.strings.validation",
+        tags = [name],
+    )
+
+    # Tests that the merge strings validation action executed during the build of the iOS app
+    # for the m2 table.
+    validation_output_contents_test(
+        name = "{}_ios_m2_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        validation_file_name = "m2.strings.validation",
+        tags = [name],
+    )
+
+    # Tests that the merge strings validation action executed during the build of the macOS app
+    # for the m1 table.
+    validation_output_contents_test(
+        name = "{}_macos_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_mergeable_strings",
+        validation_file_name = "m1.strings.validation",
+        tags = [name],
+    )
+
+    # Tests that the merge strings validation action executed during the build of the macOS app
+    # for the m2 table.
+    validation_output_contents_test(
+        name = "{}_macos_m2_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_mergeable_strings",
+        validation_file_name = "m2.strings.validation",
         tags = [name],
     )
 
