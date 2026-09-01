@@ -498,10 +498,6 @@ Avoid linking the dynamic framework, but still include it in the app. This is us
 to manually dlopen the framework at runtime.
 """,
             ),
-            "_cc_toolchain": attr.label(
-                default = "@rules_cc//cc:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
-            ),
         },
     ),
     doc = """
@@ -603,10 +599,6 @@ A boolean indicating if the target has Swift source code. This helps flag Apple 
 not include Swift interface or Swift module files.
 """,
                 default = False,
-            ),
-            "_cc_toolchain": attr.label(
-                default = "@rules_cc//cc:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
             ),
         },
     ),

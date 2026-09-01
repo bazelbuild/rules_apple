@@ -34,8 +34,8 @@ def _should_package_clang_runtime(*, features):
     return False
 
 def _get_from_toolchain(ctx):
-    if hasattr(ctx.attr, "_cc_toolchain"):
-        cc_toolchain = find_cc_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx)
+    if cc_toolchain:
         dylibs = [
             x
             for x in cc_toolchain.all_files.to_list()
