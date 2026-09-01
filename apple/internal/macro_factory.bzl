@@ -63,7 +63,6 @@ def _apple_test_bundle_attrs(platform):
     binary_linking_attrs = rule_attrs.binary_linking_attrs(
         deps_cfg = transition_support.apple_platform_split_transition,
         is_test_supporting_rule = True,
-        requires_legacy_cc_toolchain = True,
     )
     common_bundle_attrs = rule_attrs.common_bundle_attrs(
         deps_cfg = transition_support.apple_platform_split_transition,
