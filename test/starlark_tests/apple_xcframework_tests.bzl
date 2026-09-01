@@ -945,7 +945,7 @@ def apple_xcframework_test_suite(name):
     analysis_failure_message_test(
         name = "{}_has_invalid_character_bundle_id_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_invalid_character_bundle_id",
-        expected_error = "Error in fail: Invalid character(s) in bundle_id: \"my#bundle\"",
+        expected_error = "Invalid character(s) in bundle_id: \"my#bundle\"",
         tags = [name],
     )
 
