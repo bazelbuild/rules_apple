@@ -112,6 +112,10 @@ def _apple_intent_library_impl(ctx):
 
 apple_intent_library = rule(
     implementation = _apple_intent_library_impl,
+    # Runs xcrun intentbuilderc, a macOS-only tool.
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),

@@ -284,6 +284,9 @@ bzl_library(
 
 cc_toolchain_forwarder(
     name = "default_cc_toolchain_forwarder",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
 )
 
 # Consumed by bazel tests.

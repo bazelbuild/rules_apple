@@ -110,6 +110,10 @@ def _apple_metal_library_impl(ctx):
     ]
 
 apple_metal_library = rule(
+    # Runs xcrun metal/metallib, macOS-only tools.
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
