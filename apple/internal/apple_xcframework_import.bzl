@@ -867,10 +867,6 @@ to manually dlopen the framework at runtime.
 Unnecssary and ignored, will be removed in the future.
 """,
             ),
-            "_cc_toolchain": attr.label(
-                default = "@rules_cc//cc:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
-            ),
         },
     ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
@@ -1002,10 +998,6 @@ on this target.
                 doc = """
 Unnecssary and ignored, will be removed in the future.
 """,
-            ),
-            "_cc_toolchain": attr.label(
-                default = "@rules_cc//cc:current_cc_toolchain",
-                doc = "The C++ toolchain to use.",
             ),
         },
     ),

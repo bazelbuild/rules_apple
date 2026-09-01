@@ -155,7 +155,6 @@ implementation of `apple_binary` in Bazel core so that it can be removed.
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = True,
         ),
         rule_attrs.platform_attrs(),
         {

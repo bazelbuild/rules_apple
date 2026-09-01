@@ -932,7 +932,6 @@ apple_xcframework = rule_factory.create_apple_rule(
                 apple_resource_aspect,
             ],
             is_test_supporting_rule = False,
-            requires_legacy_cc_toolchain = False,
         ),
         {
             "_environment_plist_files": attr.label_list(
