@@ -32,6 +32,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -317,6 +321,25 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
         tags = [name],
     )
 
+    validation_output_contents_test(
+        name = "{}_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:framework_with_app_intents",
+        validation_file_name = "framework_with_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:framework_with_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+
     # Test that an app with multi-module app intents sharing modules with a framework generates a
     # Metadata.appintents bundle.
     archive_contents_test(
@@ -329,6 +352,53 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
         contains = [
             "$BUNDLE_ROOT/Contents/Resources/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Contents/Resources/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "app_with_multi_module_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_defined_app_intent_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_app_intent_dependent_main_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:framework_with_multi_module_app_intents",
+        validation_file_name = "framework_with_multi_module_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_app_intents_framework_defined_app_intent_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:framework_with_multi_module_app_intents",
+        validation_file_name = "framework_defined_app_intent_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
         ],
         tags = [name],
     )

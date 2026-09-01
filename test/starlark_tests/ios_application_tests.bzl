@@ -980,6 +980,151 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [name],
     )
 
+    # Test that the App Intents conformance validation action executed during the build of the app.
+    validation_output_contents_test(
+        name = "{}_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        validation_file_name = "app_with_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_transitive_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_app_intents",
+        validation_file_name = "app_with_transitive_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_repeated_references_to_the_same_app_intent_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_repeated_references_to_the_same_app_intent",
+        validation_file_name = "app_with_repeated_references_to_the_same_app_intent_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multi_module_framework_app_intents",
+        validation_file_name = "app_with_multi_module_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_with_widget_configuration_intent_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+        validation_file_name = "app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_widget_configuration_intent_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_widget_configuration_intent",
+        validation_file_name = "app_with_widget_configuration_intent_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_app_intents",
+        validation_file_name = "app_with_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_framework_app_intents",
+        validation_file_name = "app_with_ext_and_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+
+    # Test that the App Intents aspect-level validation action executed during the build of the app
+    # and produced the expected conforming typenames.
+    validation_output_contents_test(
+        name = "{}_hinted_app_intent_aspect_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
+        validation_file_name = "hinted_app_intent_app_intents_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_widget_configuration_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_widget_configuration_intent",
+        validation_file_name = "widget_configuration_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FavoriteSoup",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_transitive_widget_configuration_intent_dependency_in_app_intents_package_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_transitive_widget_configuration_intent_dependency_in_app_intents_package",
+        validation_file_name = "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency_app_intents_validation.txt",
+        expected_contents = [
+            "StaticLibraryAppIntentsWithTransitiveWidgetConfigurationDependency",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_app_intent_dependent_main_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_defined_app_intent_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_app_intent_dependent_main_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_framework_app_intent_dependent_main_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
+    )
+
     analysis_output_group_info_files_test(
         name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",

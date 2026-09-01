@@ -35,6 +35,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -183,6 +187,32 @@ def tvos_extension_test_suite(name):
         tags = [
             name,
         ],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_framework_app_intents",
+        validation_file_name = "ext_with_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_app_intent_dependent_main_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:ext_with_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
     )
 
     native.test_suite(

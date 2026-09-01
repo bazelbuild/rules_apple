@@ -34,11 +34,12 @@ def _validation_output_contents_test_impl(ctx):
 
     validation_files = validation_group.to_list()
     target_filename = ctx.attr.validation_file_name
-    matching_files = [
-        f
-        for f in validation_files
-        if f.basename == target_filename or f.short_path.endswith("/" + target_filename)
-    ]
+    matching_files_by_short_path = {}
+    for f in validation_files:
+        if f.basename == target_filename or f.short_path.endswith("/" + target_filename):
+            matching_files_by_short_path[f.short_path] = f
+
+    matching_files = matching_files_by_short_path.values()
 
     if not matching_files:
         fail("Could not find validation file '%s' in _validation outputs: %s" % (

@@ -31,6 +31,10 @@ load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
 )
+load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
 
 visibility("private")
 
@@ -76,6 +80,14 @@ def macos_extension_test_suite(name):
             "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
             "$RESOURCE_ROOT/Metadata.appintents/version.json",
         ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_transitive_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:ext_with_transitive_app_intents",
+        validation_file_name = "ext_with_transitive_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
         tags = [name],
     )
 

@@ -57,6 +57,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -491,6 +495,21 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    validation_output_contents_test(
+        name = "{}_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intents",
+        validation_file_name = "app_with_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_hinted_app_intent_aspect_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_app_intents",
+        validation_file_name = "hinted_app_intent_app_intents_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+
     # Test app with transitive App Intents generates and bundles Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_with_transitive_app_intents_contains_app_intents_metadata_bundle_test".format(name),
@@ -500,6 +519,14 @@ def macos_application_test_suite(name):
             "$RESOURCE_ROOT/Metadata.appintents/extract.actionsdata",
             "$RESOURCE_ROOT/Metadata.appintents/version.json",
         ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_transitive_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_transitive_app_intents",
+        validation_file_name = "app_with_transitive_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
         tags = [name],
     )
 

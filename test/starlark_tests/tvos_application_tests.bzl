@@ -51,6 +51,10 @@ load(
     "linkmap_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -614,6 +618,21 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    validation_output_contents_test(
+        name = "{}_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_app_intents",
+        validation_file_name = "app_with_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_hinted_app_intent_aspect_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_app_intents",
+        validation_file_name = "hinted_app_intent_app_intents_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+
     # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
     # at the top-level tvos_application rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.
@@ -683,6 +702,14 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    validation_output_contents_test(
+        name = "{}_with_transitive_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_transitive_app_intents",
+        validation_file_name = "app_with_transitive_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+
     # Test that an app with transitive and direct App Intents that aren't distinguished by the
     # shared_library_app_intents_hint fails to build.
     analysis_failure_message_test(
@@ -707,6 +734,35 @@ App Intents bundles were defined by the following targets:
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "app_with_multi_module_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_defined_app_intent_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_framework_app_intents_framework_app_intent_dependent_main_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_multi_module_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
         ],
         tags = [name],
     )
@@ -739,6 +795,32 @@ App Intents bundles were defined by the following framework-referenced targets:
         ],
     )
 
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_app_intents",
+        validation_file_name = "app_with_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_framework_app_intents_framework_app_intent_dependent_main_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
+    )
+
     # Test that an app with a framework-defined App Intents bundle is properly referenced by the app
     # bundle's Metadata.appintents bundle even when there is an extension that also references the
     # same framework-defined App Intents bundle.
@@ -753,6 +835,32 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [
             name,
         ],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_and_framework_app_intents",
+        validation_file_name = "app_with_ext_and_framework_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_and_framework_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_ext_and_framework_app_intents_framework_app_intent_dependent_main_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_and_framework_app_intents",
+        validation_file_name = "framework_app_intent_dependent_main_app_intents_validation.txt",
+        expected_contents = [
+            "HelloWorldAppIntentsPackage",
+        ],
+        tags = [name],
     )
 
     native.test_suite(

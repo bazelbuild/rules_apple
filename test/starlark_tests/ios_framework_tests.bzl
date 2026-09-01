@@ -39,6 +39,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -677,6 +681,23 @@ Please remove one of the two from your rule definition.
         tags = [name],
     )
 
+    validation_output_contents_test(
+        name = "{}_app_intents_conformances_validation_execution_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:framework_with_app_intents",
+        validation_file_name = "framework_with_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_framework_defined_app_intent_aspect_validation_execution_contents_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:framework_with_app_intents",
+        validation_file_name = "framework_defined_app_intent_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
+        ],
+        tags = [name],
+    )
+
     # Test framework with multi-module App Intents generates and bundles Metadata.appintents bundle.
     archive_contents_test(
         name = "{}_with_multi_module_app_intents_contains_app_intents_metadata_bundle_test".format(name),
@@ -688,6 +709,25 @@ Please remove one of the two from your rule definition.
         contains = [
             "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
             "$BUNDLE_ROOT/Metadata.appintents/version.json",
+        ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_with_multi_module_app_intents_conformances_validation_execution_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:framework_with_multi_module_app_intents",
+        validation_file_name = "framework_with_multi_module_app_intents_app_intents_conformances_validation.txt",
+        allow_empty = True,
+        tags = [name],
+    )
+    validation_output_contents_test(
+        name = "{}_with_multi_module_app_intents_framework_defined_app_intent_with_dependency_aspect_validation_execution_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:framework_with_multi_module_app_intents",
+        validation_file_name = "framework_defined_app_intent_with_dependency_app_intents_validation.txt",
+        expected_contents = [
+            "FrameworkDefinedHelloWorldIntents",
         ],
         tags = [name],
     )
