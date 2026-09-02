@@ -35,6 +35,10 @@ load(
     "common",
 )
 load(
+    "//test/starlark_tests:swift_explicit_modules_transition.bzl",
+    "swift_explicit_modules_target",
+)
+load(
     "//test/starlark_tests/rules:generate_framework.bzl",
     "generate_import_framework",
 )
@@ -3123,6 +3127,33 @@ macos_unit_test(
     data = [":runfiles1"],
     minimum_os_version = common.min_os_macos.baseline,
     tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "explicit_modules_unit_test_lib",
+    testonly = True,
+    srcs = ["explicit_modules_unit_test.swift"],
+    module_name = "ExplicitModulesUnitTest",
+    tags = common.fixture_tags,
+    deps = [
+        "@system_sdk//:Foundation",
+        "@system_sdk//:SwiftShims",
+        "@system_sdk//:Testing",
+        "@system_sdk//:XCTest",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_with_swift_explicit_modules",
+    minimum_os_version = "14.0",
+    tags = common.fixture_tags,
+    deps = [":explicit_modules_unit_test_lib"],
+)
+
+swift_explicit_modules_target(
+    name = "unit_test_with_swift_explicit_modules_transitioned",
+    tags = common.fixture_tags,
+    target = ":unit_test_with_swift_explicit_modules",
 )
 
 filegroup(
