@@ -98,7 +98,6 @@ def extract_extension_points(
 
         # Update output arg
         args = actions.args()
-        args.add("passthrough-commands")  # from xctoolrunner
         args.add("exutil")
         args.add("extract-extension-points")
         args.add("--module-name", module_name)
@@ -195,7 +194,6 @@ def generate_appextension_plist(
     main_module = module_name
 
     args = actions.args()
-    args.add("passthrough-commands")  # from xctoolrunner
     args.add("exutil")
     args.add("generate-appextension-plist")
     args.add("--module-name", main_module)
