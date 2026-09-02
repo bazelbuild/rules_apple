@@ -110,7 +110,7 @@ of the target will be used instead.
 
 def _create_apple_rule(
         *,
-        cfg = transition_support.apple_rule_transition,
+        cfg = transition_support.apple_platforms_rule_base_transition,
         doc,
         implementation,
         is_executable = False,
@@ -121,8 +121,7 @@ def _create_apple_rule(
 
     Args:
         cfg: The rule transition to be applied directly on the generated rule. Optional. This will
-            be the Starlark Apple rule transition `transition_support.apple_rule_transition` by
-            default.
+            be the Starlark Apple rule transition by default.
         doc: The documentation string for the rule itself.
         implementation: The method to handle the implementation of the given rule. Optional. True
             by default.
