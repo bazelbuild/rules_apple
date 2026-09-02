@@ -7,7 +7,7 @@ if [ -z "${SIMULATOR_UDID:-}" ]; then
   exit 1
 fi
 
-if [ -z "${SIMULATOR_REUSE_SIMULATOR:-}" ]; then
+if [ -z "${SIMULATOR_REUSE_SIMULATOR:-}" ] || [ -n "${TEST_TIMEOUT_DETECTED:-}" ]; then
   # Delete will shutdown down the simulator if it's still currently running.
   xcrun simctl delete "$SIMULATOR_UDID"
 fi
