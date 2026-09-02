@@ -433,7 +433,7 @@ def _debug_symbols_partial_impl(
                 direct_dsym_bundles.append(dsym_bundle_dir)
             direct_dsyms.extend(dsym_files)
 
-        if platform_prerequisites.cpp_fragment.objc_generate_linkmap:
+        if linkmaps:
             linkmaps = _collect_linkmaps(
                 actions = actions,
                 debug_output_filename = debug_output_filename,
