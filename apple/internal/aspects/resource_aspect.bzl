@@ -140,10 +140,10 @@ def _apple_resource_aspect_impl(target, ctx):
         "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
         "apple_xplat_toolchain_info": apple_toolchain_utils.get_xplat_toolchain(ctx),
         "bundle_id": None,
-        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(ctx),
+        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(),
         "product_type": None,
         "rule_label": ctx.label,
-        "xplat_exec_group": apple_toolchain_utils.get_xplat_exec_group(ctx),
+        "xplat_exec_group": apple_toolchain_utils.get_xplat_exec_group(),
     }
 
     collect_infoplists_args = dict()

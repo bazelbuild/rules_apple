@@ -142,7 +142,7 @@ def _apple_bundle_version_impl(ctx):
         inputs = inputs,
         outputs = [bundle_version_file],
         mnemonic = "AppleBundleVersion",
-        exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+        exec_group = apple_toolchain_utils.get_xplat_exec_group(),
     )
 
     return [

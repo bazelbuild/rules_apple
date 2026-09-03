@@ -720,7 +720,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
     cc_toolchain = find_cpp_toolchain(ctx)
     deps = ctx.attr.deps
     label = ctx.label
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
@@ -856,7 +856,7 @@ def _apple_static_xcframework_import_impl(ctx):
     label = ctx.label
     apple_platform_info = apple_support.platform_info_from_rule_ctx(ctx)
     linkopts = ctx.attr.linkopts
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     xcframework_imports = ctx.files.xcframework_imports
     xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
 

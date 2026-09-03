@@ -280,7 +280,7 @@ def _swift_const_values_aspect_impl(target, ctx):
                         apple_xplat_toolchain_info.swift_const_values_validation_tool
                     ),
                     target_label = target.label,
-                    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+                    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(),
                     conformance = "AppIntents.AppIntentsPackage",
                     mnemonic = "AppIntentsValidation",
                     suffix = "app_intents_validation",
@@ -309,7 +309,7 @@ def _swift_const_values_aspect_impl(target, ctx):
                         apple_xplat_toolchain_info.swift_const_values_validation_tool
                     ),
                     target_label = target.label,
-                    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
+                    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(),
                     conformance = "ExtensionFoundation.AppExtension",
                     mnemonic = "ExtensionFoundationValidation",
                     suffix = "extension_foundation_validation",

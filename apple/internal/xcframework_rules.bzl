@@ -1371,13 +1371,13 @@ def _apple_xcframework_impl(ctx):
     deps = ctx.split_attr.deps
     environment_plist_files = ctx.files._environment_plist_files
     families_required = ctx.attr.families_required
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
 
     build_settings = apple_xplat_toolchain_info.build_settings
 
@@ -1850,13 +1850,13 @@ def _apple_static_xcframework_impl(ctx):
     deps = ctx.split_attr.deps
     environment_plist_files = ctx.files._environment_plist_files
     families_required = ctx.attr.families_required
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     minimum_os_versions = ctx.attr.minimum_os_versions
     nested_bundle_id = ctx.attr.bundle_id
     rule_label = ctx.label
     version = ctx.attr.version
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
 
     build_settings = apple_xplat_toolchain_info.build_settings
 

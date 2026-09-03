@@ -183,10 +183,10 @@ def _ios_application_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
 
     extra_requested_features = []
     if ctx.attr.testonly:
@@ -576,9 +576,9 @@ def _ios_app_clip_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -892,9 +892,9 @@ def _ios_framework_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1131,9 +1131,9 @@ def _ios_extension_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -1447,9 +1447,9 @@ def _ios_static_framework_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     avoid_deps = ctx.attr.avoid_deps
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
@@ -1610,9 +1610,9 @@ def _ios_imessage_extension_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,

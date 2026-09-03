@@ -365,13 +365,13 @@ A `File` referencing a Swift tool for extracting version info from builds.
 def _get_mac_toolchain(ctx):
     return ctx.exec_groups[APPLE_MAC_EXEC_GROUP].toolchains[APPLE_MAC_TOOLCHAIN_TYPE].mac_tools_info
 
-def _get_mac_exec_group(_ctx):
+def _get_mac_exec_group():
     return APPLE_MAC_EXEC_GROUP
 
 def _get_xplat_toolchain(ctx):
     return ctx.exec_groups[APPLE_XPLAT_EXEC_GROUP].toolchains[APPLE_XPLAT_TOOLCHAIN_TYPE].xplat_tools_info
 
-def _get_xplat_exec_group(_ctx):
+def _get_xplat_exec_group():
     return APPLE_XPLAT_EXEC_GROUP
 
 def _use_apple_exec_group_toolchain():

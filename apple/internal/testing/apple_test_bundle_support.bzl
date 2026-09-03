@@ -342,9 +342,9 @@ def _apple_test_bundle_impl(*, ctx, product_type):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
 
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,

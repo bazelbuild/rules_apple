@@ -137,9 +137,9 @@ def _visionos_application_impl(ctx):
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
-    mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx)
+    mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
-    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx)
+    xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
