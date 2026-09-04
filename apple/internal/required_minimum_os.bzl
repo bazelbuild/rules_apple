@@ -29,7 +29,7 @@ _REQUIRED_MINIMUM_OS_VERSION = {
     "macos": "10.13",
     "tvos": "15.0",
     "visionos": "1.0",
-    "watchos": "8.0",
+    "watchos": "9.0",  # When armv7k support ends.
 }
 
 # Based on https://developer.apple.com/support/xcode/ for Xcode 27 as of 2026-06-15.
