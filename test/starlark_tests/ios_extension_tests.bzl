@@ -202,8 +202,7 @@ def ios_extension_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        is_binary_plist = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
-        contains = ["$BUNDLE_ROOT/resource_bundle.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/SharedStaticFrameworkResources.bundle/sample.plist"],
         not_contains = ["$BUNDLE_ROOT/Frameworks/iOSStaticFramework.framework"],
         tags = [name],
     )

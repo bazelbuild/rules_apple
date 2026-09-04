@@ -301,6 +301,12 @@ dummy_apple_resource_info(
 )
 
 apple_resource_bundle(
+    name = "SharedStaticFrameworkResources",
+    resources = ["sample.plist"],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
     name = "resource_bundle",
     infoplists = ["Another.plist"],
     resources = [":custom_apple_resource_info"],

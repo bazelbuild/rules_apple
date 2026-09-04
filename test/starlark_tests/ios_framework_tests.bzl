@@ -340,6 +340,9 @@ def ios_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_static_fmwk.framework/fmwk_with_imported_static_fmwk",
         binary_test_architecture = "x86_64",
         binary_contains_symbols = ["-[ObjectiveCSharedClass doSomethingShared]"],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_static_fmwk.framework/SharedStaticFrameworkResources.bundle/sample.plist",
+        ],
         tags = [name],
     )
 
@@ -350,6 +353,9 @@ def ios_framework_test_suite(name):
         binary_test_file = "$BUNDLE_ROOT/app_with_inner_and_outer_static_fmwk",
         binary_test_architecture = "x86_64",
         binary_not_contains_symbols = ["-[ObjectiveCSharedClass doSomethingShared]"],
+        not_contains = [
+            "$BUNDLE_ROOT/SharedStaticFrameworkResources.bundle",
+        ],
         tags = [name],
     )
 

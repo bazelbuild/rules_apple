@@ -1904,7 +1904,7 @@ apple_static_xcframework(
         "macos": common.min_os_macos.min_deployment_target,
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    resources = ["//test/starlark_tests/resources:resource_bundle"],
+    resources = ["//test/starlark_tests/resources:SharedStaticFrameworkResources"],
     tags = common.fixture_tags + ["requires-darwin"],
     deps = [
         ":macOSStaticFramework_lib",
@@ -1921,7 +1921,7 @@ genrule(
         "macOSStaticFramework.framework/Versions/A/Headers/macOSStaticFramework.h",
         "macOSStaticFramework.framework/Versions/A/Modules/module.modulemap",
         "macOSStaticFramework.framework/Versions/A/Resources/Info.plist",
-        "macOSStaticFramework.framework/Versions/A/Resources/resource_bundle.bundle/Info.plist",
+        "macOSStaticFramework.framework/Versions/A/Resources/SharedStaticFrameworkResources.bundle/sample.plist",
         "macOSStaticFramework.framework/Versions/A/macOSStaticFramework",
         "macOSStaticFramework.framework/macOSStaticFramework",
     ],

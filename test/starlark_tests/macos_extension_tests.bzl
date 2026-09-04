@@ -112,8 +112,7 @@ def macos_extension_test_suite(name):
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
         ],
-        is_binary_plist = ["$BUNDLE_ROOT/Contents/Resources/resource_bundle.bundle/Info.plist"],
-        contains = ["$BUNDLE_ROOT/Contents/Resources/resource_bundle.bundle/Info.plist"],
+        contains = ["$BUNDLE_ROOT/Contents/Resources/SharedStaticFrameworkResources.bundle/sample.plist"],
         not_contains = ["$BUNDLE_ROOT/Contents/Frameworks/macOSStaticFramework.framework"],
         tags = [name],
     )

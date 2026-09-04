@@ -908,7 +908,7 @@ apple_static_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    resources = ["//test/starlark_tests/resources:resource_bundle"],
+    resources = ["//test/starlark_tests/resources:SharedStaticFrameworkResources"],
     tags = common.fixture_tags,
     deps = [
         ":iOSStaticFramework_lib",
@@ -921,7 +921,7 @@ genrule(
     outs = [
         "iOSStaticFramework.framework/Headers/SharedClass.h",
         "iOSStaticFramework.framework/Headers/iOSStaticFramework.h",
-        "iOSStaticFramework.framework/resource_bundle.bundle/Info.plist",
+        "iOSStaticFramework.framework/SharedStaticFrameworkResources.bundle/sample.plist",
         "iOSStaticFramework.framework/Info.plist",
         "iOSStaticFramework.framework/Modules/module.modulemap",
         "iOSStaticFramework.framework/iOSStaticFramework",
