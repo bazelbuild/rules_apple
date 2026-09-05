@@ -15,6 +15,7 @@ load(":apple_xcframework_import_tests.bzl", "apple_xcframework_import_test_suite
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":docc_tests.bzl", "docc_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
+load(":exported_symbols_list_tests.bzl", "exported_symbols_list_test_suite")
 load(":generate_dynamic_xcframework_tests.bzl", "generate_dynamic_xcframework_test_suite")
 load(":generate_import_framework_tests.bzl", "generate_import_framework_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
@@ -105,6 +106,8 @@ apple_xcframework_test_suite(name = "apple_xcframework")
 apple_xcframework_import_test_suite(name = "apple_xcframework_import")
 
 dtrace_compile_test_suite(name = "dtrace_compile")
+
+exported_symbols_list_test_suite(name = "exported_symbols_list")
 
 generate_dynamic_xcframework_test_suite(name = "generate_dynamic_xcframework")
 

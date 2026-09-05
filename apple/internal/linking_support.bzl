@@ -146,6 +146,7 @@ def _link_multi_arch_binary(
         ctx,
         avoid_deps,
         cc_toolchains,
+        exported_symbols_lists,
         extra_linkopts,
         extra_link_inputs,
         extra_requested_features,
@@ -169,6 +170,8 @@ def _link_multi_arch_binary(
             this binary.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information for related deps.
+        exported_symbols_lists: Dictionary of exported-symbol-list targets under the same split
+            transition as `deps`.
         extra_linkopts: A list of strings: Extra linkopts to add to the linking action.
         extra_link_inputs: A list of strings: Extra files to pass to the linker action.
         extra_requested_features: A list of strings: Extra requested features to be passed
@@ -196,10 +199,18 @@ def _link_multi_arch_binary(
 
     split_deps = ctx.split_attr.deps
 
-    if split_deps and split_deps.keys() != cc_toolchains.keys():
+    if split_deps and sorted(split_deps.keys()) != sorted(cc_toolchains.keys()):
         fail(("Split transition keys are different between 'deps' [%s] and " +
               "'_cc_toolchain_forwarder' [%s]") % (
             split_deps.keys(),
+            cc_toolchains.keys(),
+        ))
+
+    if (exported_symbols_lists and
+        sorted(exported_symbols_lists.keys()) != sorted(cc_toolchains.keys())):
+        fail(("Split transition keys are different between 'exported_symbols_lists' [%s] and " +
+              "'_cc_toolchain_forwarder' [%s]") % (
+            exported_symbols_lists.keys(),
             cc_toolchains.keys(),
         ))
 
@@ -234,6 +245,14 @@ def _link_multi_arch_binary(
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
         deps = split_deps.get(split_transition_key, [])
         platform_info = child_toolchain[ApplePlatformInfo]
+        split_extra_linkopts = list(extra_linkopts)
+        split_extra_link_inputs = list(extra_link_inputs)
+        for exported_symbols_list_target in exported_symbols_lists.get(split_transition_key, []):
+            for exported_symbols_list in exported_symbols_list_target.files.to_list():
+                split_extra_linkopts.append(
+                    "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
+                )
+                split_extra_link_inputs.append(exported_symbols_list)
 
         # TODO: remove when we drop Bazel 8
         legacy_objc_compilation_support = getattr(apple_common, "compilation_support", None)
@@ -311,8 +330,8 @@ def _link_multi_arch_binary(
             attr_linkopts = attr_linkopts,
             cc_linking_context = cc_linking_context,
             common_variables = common_variables,
-            extra_link_args = extra_linkopts,
-            extra_link_inputs = extra_link_inputs,
+            extra_link_args = split_extra_linkopts,
+            extra_link_inputs = split_extra_link_inputs,
             name = name,
             # TODO: Delete when we drop Bazel 8 support (see f4a3fa40)
             split_transition_key = split_transition_key,
@@ -447,8 +466,8 @@ def _register_binary_linking_action(
             the entitlements will be embedded in a special section of the binary; when
             targeting non-simulator environments, this file is ignored (it is assumed that
             the entitlements will be provided during code signing).
-        exported_symbols_lists: List of `File`s containing exported symbols lists for the linker
-            to control symbol resolution.
+        exported_symbols_lists: Dictionary of exported-symbol-list targets under the same split
+            transition as `deps`.
         extra_linkopts: Extra linkopts to add to the linking action.
         extra_link_inputs: Extra link inputs to add to the linking action.
         extra_requested_features: Extra features as Strings requested of the underlying linker
@@ -484,13 +503,6 @@ def _register_binary_linking_action(
     """
     linkopts = []
     link_inputs = []
-
-    # Add linkopts/linker inputs that are common to all the rules.
-    for exported_symbols_list in exported_symbols_lists:
-        linkopts.append(
-            "-Wl,-exported_symbols_list,{}".format(exported_symbols_list.path),
-        )
-        link_inputs.append(exported_symbols_list)
 
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device and rule_descriptor and rule_descriptor.product_type != apple_product_type.kernel_extension:
@@ -542,6 +554,7 @@ def _register_binary_linking_action(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
         cc_toolchains = cc_toolchains,
+        exported_symbols_lists = exported_symbols_lists,
         extra_linkopts = linkopts,
         extra_link_inputs = link_inputs,
         extra_requested_features = extra_requested_features,

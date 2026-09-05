@@ -176,6 +176,7 @@ A list of strings representing extra flags that should be passed to `codesign`.
             ),
             "exported_symbols_lists": attr.label_list(
                 allow_files = True,
+                cfg = deps_cfg,
                 doc = """
 A list of targets containing exported symbols lists files for the linker to control symbol
 resolution.
