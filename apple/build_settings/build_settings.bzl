@@ -33,13 +33,6 @@ Apple BUILD rule maintainers.
 """,
         default = False,
     ),
-    "generate_stubs_for_swift_support_inputs": struct(
-        doc = """
-Generate stub binaries for Apple's swift-stdlib-tool from the binary files that contain Swift,
-leaving the downstream SwiftStdlibCopy action with a smaller set of binary inputs to consume.
-""",
-        default = True,
-    ),
     "signing_certificate_name": struct(
         doc = """
 Declare a code signing identity, to be used in all code signing flows related to the rules.

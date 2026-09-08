@@ -180,9 +180,7 @@ def _swift_dylibs_bundling_task_impl(
         xplat_exec_group):
     """Implementation for the Swift dylibs processing bundling task."""
 
-    generate_stubs_for_swift_support_inputs = (
-        apple_xplat_toolchain_info.build_settings.generate_stubs_for_swift_support_inputs
-    )
+    generate_stubs_for_swift_support_inputs = False
 
     # Collect transitive data.
     transitive_binary_files = []
