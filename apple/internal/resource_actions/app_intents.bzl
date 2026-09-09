@@ -245,7 +245,11 @@ def generate_app_intents_metadata_bundle(
 
     # Absent but not needed; --deployment-aware-processing.
 
-    args.add("--validate-assistant-intents")
+    xcode_version_less_than_27 = (
+        xcode_version_config.xcode_version() < apple_common.dotted_version("27.0")
+    )
+    if xcode_version_less_than_27:
+        args.add("--validate-assistant-intents")
 
     # Absent but seemingly not needed (b/460769318); --no-app-shortcuts-localization.
 
