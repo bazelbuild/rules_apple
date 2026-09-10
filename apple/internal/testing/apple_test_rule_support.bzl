@@ -121,6 +121,7 @@ def _get_template_substitutions(
         test_host_bundle_name = "",
         test_filter = None,
         test_host_dossier = None,
+        test_minimum_os_version,
         test_type):
     """Dictionary with the substitutions to be applied to the template script.
 
@@ -139,6 +140,7 @@ def _get_template_substitutions(
         test_host_bundle_name: Optional. The bundle_name for the test host rule if one was assigned.
         test_host_dossier: Optional. A File representing the dossier generated for the test host, if
             one exists.
+        test_minimum_os_version: String. The minimum OS version from the test rule.
         test_type: String. The test type received from the test rule implementation.
 
     Returns:
@@ -155,6 +157,7 @@ def _get_template_substitutions(
         "test_host_bundle_name": test_host_bundle_name,
         "test_host_path": test_host_artifact.short_path if test_host_artifact else "",
         "test_host_dossier_path": test_host_dossier.short_path if test_host_dossier else "",
+        "test_minimum_os_version": test_minimum_os_version,
         "test_type": test_type.upper(),
     }
     return {"%(" + k + ")s": substitutions[k] for k in substitutions}
@@ -273,6 +276,10 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         A full set of providers required to define an Apple test rule.
     """
     runner_attr = ctx.attr.runner
+    if type(runner_attr) == "list":
+        if len(runner_attr) != 1:
+            fail("Expected exactly one configured test runner, got {}".format(len(runner_attr)))
+        runner_attr = runner_attr[0]
     runner_info = runner_attr[AppleTestRunnerInfo]
     execution_requirements = getattr(runner_info, "execution_requirements", {})
 
@@ -365,6 +372,7 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
             test_host_artifact = test_host_artifact,
             test_host_bundle_name = test_host_bundle_name,
             test_host_dossier = test_host_dossier,
+            test_minimum_os_version = ctx.attr.minimum_os_version,
             test_type = test_type,
         ),
         is_executable = True,
