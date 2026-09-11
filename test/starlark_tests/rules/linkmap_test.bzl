@@ -97,6 +97,6 @@ provided.
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
         "//command_line_option:visionos_cpus": "sim_arm64",
-        "//command_line_option:watchos_cpus": "arm64,x86_64",
+        "//command_line_option:watchos_cpus": "sim_arm64,x86_64",
     },
 )

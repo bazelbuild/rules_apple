@@ -64,12 +64,12 @@ analysis_output_group_info_files_test = make_provider_test_rule(
     },
     config_settings = {
         build_settings_labels.require_pointer_authentication_attribute: True,
-        "//command_line_option:objc_generate_linkmap": "true",  # output_group: linkmaps
-        "//command_line_option:apple_generate_dsym": "true",  # output_group: dsyms
+        "//command_line_option:objc_generate_linkmap": "true",
+        "//command_line_option:apple_generate_dsym": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
         "//command_line_option:visionos_cpus": "sim_arm64",
-        "//command_line_option:watchos_cpus": "arm64,x86_64",
+        "//command_line_option:watchos_cpus": "sim_arm64,x86_64",
     },
 )

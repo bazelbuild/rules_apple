@@ -1828,7 +1828,7 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": ["device_arm64", "device_arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/single_target_app_with_generic_ext",
         binary_test_architecture = "arm64",
@@ -1871,7 +1871,7 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": ["device_arm64", "device_arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/simple_pointer_authentication_app",
         binary_test_architecture = "arm64e",

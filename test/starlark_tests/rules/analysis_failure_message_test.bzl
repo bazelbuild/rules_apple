@@ -66,7 +66,7 @@ analysis_failure_message_with_arm64e_target_test = make_analysis_failure_message
         "//command_line_option:ios_multi_cpus": ["arm64e"],
         "//command_line_option:macos_cpus": ["arm64e"],
         "//command_line_option:tvos_cpus": ["arm64e"],
-        "//command_line_option:watchos_cpus": ["device_arm64e"],
+        "//command_line_option:watchos_cpus": ["arm64e"],
         "//command_line_option:visionos_cpus": ["arm64e"],
     },
 )

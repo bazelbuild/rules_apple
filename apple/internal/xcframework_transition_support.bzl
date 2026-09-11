@@ -75,12 +75,9 @@ def _xcframework_split_attr_key(*, arch, environment, platform_type):
         platform_type = platform_type,
     ) + "_" + environment
 
-def _resolved_environment_arch_for_arch(*, arch, environment, platform_type):
-    # TODO (b/382494581): Clean up watchos_arm64 vs watchos_sim_arm64 vs watchos_device_arm64
-    if arch.startswith("arm64") and environment == "simulator" and platform_type != "watchos":
+def _resolved_environment_arch_for_arch(*, arch, environment):
+    if arch.startswith("arm64") and environment == "simulator":
         return "sim_{}".format(arch)
-    if arch.startswith("arm64") and arch != "arm64_32" and environment == "device" and platform_type == "watchos":
-        return "device_{}".format(arch)
     return arch
 
 def _command_line_options_for_xcframework_platform(
@@ -152,7 +149,6 @@ allow it to build for arm64e with the required Apple capabilities for pointer au
             resolved_environment_arch = _resolved_environment_arch_for_arch(
                 arch = arch,
                 environment = target_environment,
-                platform_type = platform_type,
             )
 
             found_cpu = {

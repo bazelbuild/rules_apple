@@ -182,7 +182,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
     archive_contents_test(
         name = "{}_links_watchos_arm64_macho_load_cmd_for_simulator_test".format(name),
         build_type = "simulator",
-        cpus = {"watchos_cpus": ["arm64"]},
+        cpus = {"watchos_cpus": ["sim_arm64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_imported_static_xcframework",
         not_contains = ["$BUNDLE_ROOT/Frameworks"],
         binary_test_file = "$BUNDLE_ROOT/app_with_imported_static_xcframework",

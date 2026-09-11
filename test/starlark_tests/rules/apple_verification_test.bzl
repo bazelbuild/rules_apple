@@ -84,7 +84,7 @@ def _apple_verification_transition_impl(settings, attr):
         output_dictionary.update({
             "//command_line_option:ios_multi_cpus": "arm64,arm64e",
             "//command_line_option:tvos_cpus": "arm64",
-            "//command_line_option:watchos_cpus": "device_arm64,arm64_32",
+            "//command_line_option:watchos_cpus": "arm64,arm64_32",
             "//command_line_option:visionos_cpus": "arm64",
         })
 

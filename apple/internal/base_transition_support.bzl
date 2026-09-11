@@ -40,16 +40,16 @@ _PLATFORM_TYPE_TO_CPUS_FLAG = {
 
 _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "x86_64": "x86_64",
-    "sim_arm64": "arm64",
+    "sim_arm64": "sim_arm64",
     "arm64": "arm64_32",
     "arm64e": "arm64_32",
 }
 
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "x86_64": "x86_64",
-    "sim_arm64": "arm64",
-    "arm64": "device_arm64",
-    "arm64e": "device_arm64",
+    "sim_arm64": "sim_arm64",
+    "arm64": "arm64",
+    "arm64e": "arm64",
 }
 
 # Following map provides and ad-hoc platform mapping
@@ -70,10 +70,10 @@ _CPU_TO_PLATFORM = {
     "visionos_arm64e": "//buildenv/platforms/apple:visionos_arm64e",
     "visionos_sim_arm64": "//buildenv/platforms/apple/simulator:visionos_arm64",
     "visionos_sim_arm64e": "//buildenv/platforms/apple/simulator:visionos_arm64e",
-    "watchos_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
+    "watchos_sim_arm64": "//buildenv/platforms/apple/simulator:watchos_arm64",
     "watchos_sim_arm64e": "//buildenv/platforms/apple/simulator:watchos_arm64e",
-    "watchos_device_arm64": "//buildenv/platforms/apple:watchos_arm64",
-    "watchos_device_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
+    "watchos_arm64": "//buildenv/platforms/apple:watchos_arm64",
+    "watchos_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
     "watchos_arm64_32": "//buildenv/platforms/apple:watchos_arm64_32",
     "watchos_x86_64": "//buildenv/platforms/apple/simulator:watchos_x86_64",
 }
@@ -86,10 +86,10 @@ _IOS_PLATFORM_TO_ENV_ARCH = {
 }
 
 _WATCHOS_PLATFORM_TO_ENV_ARCH = {
-    Label("//buildenv/platforms/apple/simulator:watchos_arm64"): "arm64",
+    Label("//buildenv/platforms/apple/simulator:watchos_arm64"): "sim_arm64",
     Label("//buildenv/platforms/apple/simulator:watchos_arm64e"): "sim_arm64e",
-    Label("//buildenv/platforms/apple:watchos_arm64"): "device_arm64",
-    Label("//buildenv/platforms/apple:watchos_arm64e"): "device_arm64e",
+    Label("//buildenv/platforms/apple:watchos_arm64"): "arm64",
+    Label("//buildenv/platforms/apple:watchos_arm64e"): "arm64e",
     Label("//buildenv/platforms/apple:watchos_arm64_32"): "arm64_32",
     Label("//buildenv/platforms/apple/simulator:watchos_x86_64"): "x86_64",
 }
@@ -99,7 +99,7 @@ _DEFAULT_ARCH = {
     "macos": "arm64",
     "tvos": "sim_arm64",
     "visionos": "sim_arm64",
-    "watchos": "arm64",
+    "watchos": "sim_arm64",
 }
 
 def _platform_specific_cpu_setting_name(platform_type):

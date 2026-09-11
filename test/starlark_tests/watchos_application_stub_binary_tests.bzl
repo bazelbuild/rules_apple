@@ -111,7 +111,7 @@ def watchos_application_stub_binary_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
         cpus = {
-            "watchos_cpus": ["x86_64", "arm64"],
+            "watchos_cpus": ["x86_64", "sim_arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
         binary_test_architecture = "arm64",
@@ -128,7 +128,7 @@ def watchos_application_stub_binary_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_companion",
         cpus = {
-            "watchos_cpus": ["arm64_32", "device_arm64"],
+            "watchos_cpus": ["arm64_32", "arm64"],
         },
         binary_test_file = "$BUNDLE_ROOT/Watch/app.app/_WatchKitStub/WK",
         binary_not_contains_architectures = ["arm64e"],
