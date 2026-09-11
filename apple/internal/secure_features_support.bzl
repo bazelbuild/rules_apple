@@ -221,7 +221,6 @@ def _entitlements_from_secure_features(
     for feature_name in secure_features:
         if feature_name == _REQUIRED_XCODE_26_OPT_IN:
             has_mandatory_xcode_26_opt_in = True
-            continue
         if feature_name not in _SECURE_FEATURES_WITHOUT_XCODE_26_OPT_IN_REQUIREMENT:
             requires_xcode_26_opt_in = True
         required_entitlements |= _ENTITLEMENTS_FROM_SECURE_FEATURES[feature_name]
