@@ -37,11 +37,11 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
-    "ios_xctestrun_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 
-ios_xctestrun_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner_17",
     device_type = "iPhone 11",
     os_version = "17.2",
