@@ -43,6 +43,10 @@ load(
     _apple_static_xcframework = "apple_static_xcframework",
     _apple_xcframework = "apple_xcframework",
 )
+load(
+    "//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    _apple_xctestrun_runner = "apple_xctestrun_runner",
+)
 
 apple_dynamic_framework_import = _apple_dynamic_framework_import
 apple_dynamic_xcframework_import = _apple_dynamic_xcframework_import
@@ -51,6 +55,7 @@ apple_static_library = _apple_static_library
 apple_static_xcframework = _apple_static_xcframework
 apple_static_xcframework_import = _apple_static_xcframework_import
 apple_universal_binary = _apple_universal_binary
+apple_xctestrun_runner = _apple_xctestrun_runner
 apple_xcframework = _apple_xcframework
 local_provisioning_profile = _local_provisioning_profile
 provisioning_profile_repository = _provisioning_profile_repository

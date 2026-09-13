@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Integration tests for iOS test runner.
+# Integration tests for apple_xctestrun_runner.
 
 function set_up() {
   mkdir -p ios
@@ -35,15 +35,21 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:ios_test_runner.bzl",
-    "ios_test_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
-ios_test_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone Xs",
+)
+
+apple_xctestrun_runner(
+    name = "ios_x86_64_sim_reuse_disabled_runner",
+    device_type = "iPhone Xs",
+    reuse_simulator = False,
 )
 
 genrule(
@@ -74,13 +80,6 @@ sh_binary(
   srcs = [":post_action_gen"],
 )
 
-ios_test_runner(
-    name = "ios_x86_64_sim_runner_with_hooks",
-    device_type = "iPhone Xs",
-    pre_action = ":pre_action",
-    post_action = ":post_action",
-)
-
 genrule(
   name = "post_action_soft_fail_gen",
   executable = True,
@@ -95,13 +94,25 @@ sh_binary(
   srcs = [":post_action_soft_fail_gen"],
 )
 
-ios_test_runner(
+apple_xctestrun_runner(
     name = "ios_x86_64_sim_runner_with_soft_fail",
     device_type = "iPhone Xs",
     post_action = ":post_action_soft_fail",
     post_action_determines_exit_code = True,
 )
 
+apple_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_hooks",
+    device_type = "iPhone Xs",
+    pre_action = ":pre_action",
+    post_action = ":post_action",
+)
+
+apple_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_test_environment",
+    device_type = "iPhone Xs",
+    test_environment = {"RUNNER_ENV_KEY1": "RUNNER_ENV_VALUE1"},
+)
 EOF
 }
 
@@ -155,6 +166,36 @@ function create_ios_unit_tests() {
     fail "create_sim_runners must be called first."
   fi
 
+  cat > ios/small_unit_test_1.m <<EOF
+#import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
+
+@interface SmallUnitTest1 : XCTestCase
+
+@end
+
+@implementation SmallUnitTest1
+- (void)testPass {
+  XCTAssertEqual(1, 1, @"should pass");
+}
+@end
+EOF
+
+  cat > ios/small_unit_test_2.m <<EOF
+#import <XCTest/XCTest.h>
+#import <XCTest/XCUIApplication.h>
+
+@interface SmallUnitTest2 : XCTestCase
+
+@end
+
+@implementation SmallUnitTest2
+- (void)testPass {
+  XCTAssertEqual(1, 1, @"should pass");
+}
+@end
+EOF
+
   cat > ios/pass_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
 #import <XCTest/XCUIApplication.h>
@@ -206,6 +247,10 @@ class PassingUnitTest : XCTestCase {
   func testSrcdirSet() {
     XCTAssertNotNil(ProcessInfo.processInfo.environment["TEST_SRCDIR"])
   }
+
+  func testUndeclaredOutputsSet() {
+    XCTAssertNotNil(ProcessInfo.processInfo.environment["TEST_UNDECLARED_OUTPUTS_DIR"])
+  }
 }
 EOF
 
@@ -223,6 +268,15 @@ EOF
 }
 
 @end
+EOF
+
+  cat > ios/SmallUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>SmallUnitTest</string>
+</dict>
+</plist>
 EOF
 
   cat > ios/PassUnitTest-Info.plist <<EOF
@@ -261,6 +315,20 @@ test_env = {
 }
 
 objc_library(
+    name = "small_unit_test_lib",
+    srcs = ["small_unit_test_1.m", "small_unit_test_2.m"],
+)
+
+ios_unit_test(
+    name = "SmallUnitTest",
+    infoplists = ["SmallUnitTest-Info.plist"],
+    deps = [":small_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner",
+)
+
+objc_library(
     name = "pass_unit_test_lib",
     srcs = ["pass_unit_test.m"],
 )
@@ -285,11 +353,20 @@ ios_unit_test(
 )
 
 ios_unit_test(
-    name = "PassingUnitTestWithHooks",
+    name = "PassingWithHostSimReuseDisabled",
     infoplists = ["PassUnitTest-Info.plist"],
     deps = [":pass_unit_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
+    env = test_env,
+    runner = ":ios_x86_64_sim_reuse_disabled_runner",
+)
+
+ios_unit_test(
+    name = "PassingUnitTestWithHooks",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
     env = test_env,
     runner = ":ios_x86_64_sim_runner_with_hooks",
 )
@@ -396,6 +473,14 @@ ios_unit_test(
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
 )
+
+ios_unit_test(
+    name = 'EnvFromRunner',
+    infoplists = ["EnvUnitTest-Info.plist"],
+    deps = [":env_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_runner_with_test_environment",
+)
 EOF
 }
 
@@ -404,7 +489,7 @@ function create_ios_unit_env_inherit_test() {
     fail "create_sim_runners must be called first."
   fi
 
-  cat > ios/env_unit_test.m <<EOF
+  cat > ios/env_inherit_unit_test.m <<EOF
 #import <XCTest/XCTest.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -434,14 +519,14 @@ EOF
 
   cat >> ios/BUILD <<EOF
 objc_library(
-    name = "env_unit_test_lib",
-    srcs = ["env_unit_test.m"],
+    name = "env_inherit_unit_test_lib",
+    srcs = ["env_inherit_unit_test.m"],
 )
 
 ios_unit_test(
     name = 'EnvInheritUnitTest',
     infoplists = ["EnvInheritUnitTest-Info.plist"],
-    deps = [":env_unit_test_lib"],
+    deps = [":env_inherit_unit_test_lib"],
     env_inherit = ["$1"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner",
@@ -450,7 +535,7 @@ ios_unit_test(
 ios_unit_test(
     name = 'EnvInheritWithHost',
     infoplists = ["EnvInheritUnitTest-Info.plist"],
-    deps = [":env_unit_test_lib"],
+    deps = [":env_inherit_unit_test_lib"],
     env_inherit = ["$1"],
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
@@ -703,6 +788,40 @@ function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
 
+function test_ios_unit_test_small_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+# Test bundle has tests with one test class with all tests filtered.
+function test_ios_unit_test_small_empty_test_class_filter_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test --test_filter="-SmallUnitTest1/testPass" //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'SmallUnitTest1' passed"
+  expect_log "Test Suite 'SmallUnitTest2' passed"
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+# Test bundle has tests but filter excludes all of them.
+function test_ios_unit_test_small_empty_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+
+  ! do_ios_test --test_filter="BadFilter" //ios:SmallUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'SmallUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+}
+
 function test_ios_unit_test_pass() {
   create_sim_runners
   create_ios_unit_tests
@@ -721,6 +840,17 @@ function test_ios_unit_test_with_host_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test //ios:PassingWithHostSimReuseDisabled || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHostSimReuseDisabled.xctest' passed"
   expect_log "Executed 4 tests, with 0 failures"
 }
 
@@ -744,7 +874,7 @@ function test_ios_unit_swift_test_pass() {
 
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitSwiftTest.xctest' passed"
-  expect_log "Executed 2 tests, with 0 failures"
+  expect_log "Executed 3 tests, with 0 failures"
 }
 
 function test_ios_unit_test_fail() {
@@ -788,6 +918,31 @@ function test_ios_unit_test_with_filter() {
   expect_log "Test Suite 'PassingUnitTest' passed"
   expect_log "Test Suite 'PassingUnitTest.xctest' passed"
   expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_with_filter_no_tests_ran_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_filter=PassingUnitTest/testInvalid //ios:PassingUnitTest || fail "should fail"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
+  expect_log "error: no tests were executed, is the test bundle empty?"
+}
+
+function test_ios_unit_test_with_filter_no_tests_ran_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_env=ERROR_ON_NO_TESTS_RAN=0 \
+    --test_filter=PassingUnitTest/testInvalid \
+    //ios:PassingUnitTest \
+    || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingUnitTest.xctest' passed"
+  expect_log "Executed 0 tests, with 0 failures"
 }
 
 function test_ios_unit_test_with_multi_filter() {
@@ -873,6 +1028,23 @@ function test_ios_unit_test_with_host_with_env() {
   expect_log "Test Suite 'EnvUnitTest' passed"
 }
 
+function test_ios_unit_test_with_runner_test_environment() {
+  create_sim_runners
+  create_ios_unit_env_test RUNNER_ENV_KEY1 RUNNER_ENV_VALUE1
+  do_ios_test //ios:EnvFromRunner || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_with_runner_test_environment_overriding_test_env() {
+  create_sim_runners
+  create_ios_unit_env_test RUNNER_ENV_KEY1 RUNNER_ENV_VALUE1
+  do_ios_test --test_env=RUNNER_ENV_KEY1=FROM_COMMAND_LINE //ios:EnvFromRunner \
+    || fail "should pass"
+
+  expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
 function test_ios_unit_test_with_env_inherit() {
   create_sim_runners
   create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
@@ -881,7 +1053,7 @@ function test_ios_unit_test_with_env_inherit() {
   expect_log "Test Suite 'EnvInheritUnitTest' passed"
 }
 
-function test_ios_unit_test_with_host_env_inherit() {
+function test_ios_unit_test_with_host_with_env_inherit() {
   create_sim_runners
   create_test_host_app
   create_ios_unit_env_inherit_test ENV_INHERIT_KEY1 ENV_INHERIT_VALUE2
@@ -924,22 +1096,6 @@ function test_ios_unit_test_with_host_with_make_var_set() {
   expect_log "Test Suite 'MakeVarUnitTest' passed"
 }
 
-function test_ios_unit_simulator_id() {
-  create_sim_runners
-  create_ios_unit_tests
-  readonly simulator_id=$(xcrun simctl create custom-sim "iPhone X" 2> >(grep -v "No runtime specified" || true))
-  do_ios_test //ios:PassingUnitTest \
-    --test_arg="--destination=platform=ios_simulator,id=$simulator_id" \
-    || fail "should pass"
-
-  xcrun simctl delete "$simulator_id"
-
-  # Custom logs from xctestrunner
-  expect_not_log "Creating a new simulator"
-  expect_not_log "Created new simulator"
-  expect_log "Executed 4 tests, with 0 failures"
-}
-
 function test_ios_unit_test_dot_separated_command_line_args() {
   create_sim_runners
   create_ios_unit_argtest arg1 arg2 arg3
@@ -964,13 +1120,12 @@ function test_ios_unit_other_arg() {
   create_ios_unit_tests
   ! do_ios_test //ios:PassingUnitTest --test_arg=invalid_arg || fail "should fail"
 
-  # Error comes from xctestrunner
-  expect_log "error: unrecognized arguments: invalid_arg"
+  expect_log "error: Unsupported argument 'invalid_arg'"
 }
 
 function test_ios_unit_test_with_multi_equal_env() {
   create_sim_runners
-  create_ios_unit_envtest ENV_KEY1 ENV_VALUE2=ENV_VALUE3
+  create_ios_unit_env_test ENV_KEY1 ENV_VALUE2=ENV_VALUE3
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2=ENV_VALUE3 //ios:EnvUnitTest || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
@@ -1089,4 +1244,39 @@ function test_ios_unit_test_pass_main_thread_checker_with_crash_on_report_fail()
   expect_log "Executed 1 test, with 1 failure"
 }
 
-run_suite "ios_unit_test with iOS test runner bundling tests"
+# Tests a test execution with parallel testing enabled is successful.
+function test_ios_unit_test_parallel_testing_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test \
+    --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    //ios:SmallUnitTest || fail "should pass"
+
+  expect_log "Test case '-\[SmallUnitTest1 testPass\]' passed"
+  expect_log "Test case '-\[SmallUnitTest2 testPass\]' passed"
+  expect_log "//ios:SmallUnitTest\s\+PASSED"
+  expect_log "Executed 1 out of 1 test: 1 test passes."
+}
+
+# Tests a test execution with parallel testing enabled is failed when
+# a test filter leads to no tests being run.
+function test_ios_unit_test_parallel_testing_no_tests_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test --test_arg=--xcodebuild_args=-parallel-testing-enabled \
+    --test_arg=--xcodebuild_args=YES \
+    --test_arg=--xcodebuild_args=-parallel-testing-worker-count \
+    --test_arg=--xcodebuild_args=1 \
+    --test_filter="BadFilter" \
+    //ios:SmallUnitTest || fail "should fail"
+
+  expect_not_log "Test suite 'SmallUnitTest1' started"
+  expect_not_log "Test suite 'SmallUnitTest2' started"
+  expect_log "FAIL: //ios:SmallUnitTest"
+  expect_log "Executed 1 out of 1 test: 1 fails locally."
+}
+
+run_suite "ios_unit_test with apple_xctestrun_runner bundling tests"
