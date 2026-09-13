@@ -67,6 +67,7 @@ List of environment variables to inherit from the external environment.
 """,
     ),
     "runner": attr.label(
+        cfg = transition_support.apple_rule_transition,
         doc = """
 The runner target that will provide the logic on how to run the tests. Needs to provide the
 AppleTestRunnerInfo provider.
