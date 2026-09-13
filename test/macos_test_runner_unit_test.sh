@@ -34,13 +34,13 @@ load("@rules_swift//swift:swift.bzl",
      "swift_library"
 )
 load(
-    "@rules_apple//apple/testing/default_runner:macos_test_runner.bzl",
-    "macos_test_runner"
+    "@rules_apple//apple/testing/default_runner:apple_xctestrun_runner.bzl",
+    "apple_xctestrun_runner"
 )
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
-macos_test_runner(
+apple_xctestrun_runner(
     name = "macos_runner",
 )
 
@@ -72,7 +72,7 @@ sh_binary(
   srcs = [":post_action_gen"],
 )
 
-macos_test_runner(
+apple_xctestrun_runner(
     name = "macos_runner_with_hooks",
     pre_action = ":pre_action",
     post_action = ":post_action",
@@ -93,7 +93,7 @@ sh_binary(
   srcs = [":post_action_soft_fail_gen"],
 )
 
-macos_test_runner(
+apple_xctestrun_runner(
     name = "macos_runner_with_soft_fail",
     post_action = ":post_action_soft_fail",
     post_action_determines_exit_code = True,

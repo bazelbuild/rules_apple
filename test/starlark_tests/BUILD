@@ -234,9 +234,11 @@ bzl_library(
     srcs = glob(["**/*.bzl"]),
     deps = [
         "//apple:linker",
+        "//apple:providers",
         "//apple/build_settings",
         "//apple/internal:shared_environment",
         "//test/starlark_tests/rules:test_rules",
+        "@bazel_skylib//lib:unittest",
     ],
 )
 
