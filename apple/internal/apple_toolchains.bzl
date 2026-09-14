@@ -331,23 +331,23 @@ def _use_apple_exec_group_toolchain():
     Usage:
     ```
     my_rule = rule(
-        exec_groups = dicts.add(
-          {other exec_groups},
-          apple_toolchain_utils.use_apple_exec_group_toolchain(),
-        ),
+        exec_groups = {other exec_groups} |
+                      apple_toolchain_utils.use_apple_exec_group_toolchain(),
     )
     ```
     Returns:
       A dict that can be used as the value for `rule.exec_groups`.
     """
-    groups = {}
-    groups[APPLE_XPLAT_EXEC_GROUP] = exec_group(
-        toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
-    )
-    groups[APPLE_MAC_EXEC_GROUP] = exec_group(
-        exec_compatible_with = ["@platforms//os:macos"],
-        toolchains = [config_common.toolchain_type(APPLE_MAC_TOOLCHAIN_TYPE)],
-    )
+    groups = {
+        APPLE_XPLAT_EXEC_GROUP: exec_group(
+            toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
+        ),
+        APPLE_MAC_EXEC_GROUP: exec_group(
+            exec_compatible_with = ["@platforms//os:macos"],
+            toolchains = [config_common.toolchain_type(APPLE_MAC_TOOLCHAIN_TYPE)],
+        ),
+    }
+
     return groups
 
 # Define the loadable module that lists the exported symbols in this file.
