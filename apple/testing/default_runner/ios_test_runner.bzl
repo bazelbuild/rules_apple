@@ -122,6 +122,7 @@ def _ios_test_runner_impl(ctx):
 
 ios_test_runner = rule(
     _ios_test_runner_impl,
+    exec_compatible_with = ["@platforms//os:macos"],
     attrs = {
         "create_simulator_action": attr.label(
             cfg = "exec",

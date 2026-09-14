@@ -106,4 +106,5 @@ amount of duplicative work done generating these plists for the same platforms.
     fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
     implementation = _environment_plist_impl,
+    exec_compatible_with = ["@platforms//os:macos"],
 )

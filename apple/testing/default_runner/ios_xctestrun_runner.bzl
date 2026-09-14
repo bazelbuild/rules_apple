@@ -148,6 +148,7 @@ def _ios_xctestrun_runner_impl(ctx):
 
 ios_xctestrun_runner = rule(
     _ios_xctestrun_runner_impl,
+    exec_compatible_with = ["@platforms//os:macos"],
     attrs = {
         "attachment_lifetime": attr.string(
             default = "keepNever",
