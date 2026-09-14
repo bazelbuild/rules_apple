@@ -12,6 +12,7 @@ load(
 def compile_xcstrings(
         *,
         actions,
+        mac_exec_group,
         input_file,
         output_dir,
         platform_prerequisites,
@@ -28,6 +29,7 @@ def compile_xcstrings(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         inputs = [input_file],
         mnemonic = "CompileXCStrings",

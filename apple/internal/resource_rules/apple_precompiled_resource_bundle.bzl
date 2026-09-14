@@ -113,6 +113,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
         "actions": actions,
         "apple_mac_toolchain_info": apple_mac_toolchain_info,
         "bundle_id": bundle_id,
+        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(ctx),
         "product_type": rule_descriptor.product_type,
         "rule_label": label,
     }

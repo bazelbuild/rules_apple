@@ -509,6 +509,7 @@ def _alticonstool_args(
 def compile_asset_catalog(
         *,
         actions,
+        mac_exec_group,
         alternate_icons,
         alticonstool,
         asset_files,
@@ -539,6 +540,7 @@ def compile_asset_catalog(
           app icons and launch images.
       build_settings: The build settings configuration for this target.
       bundle_id: The bundle ID to configure for this target.
+      mac_exec_group: The execution group for Mac tools.
       output_dir: The directory where the compiled outputs should be placed.
       output_plist: The file reference for the output plist that should be merged
         into Info.plist. May be None if the output plist is not desired.
@@ -631,6 +633,7 @@ def compile_asset_catalog(
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = asset_files,
@@ -650,6 +653,7 @@ def compile_asset_catalog(
                 alticons_files = alternate_icons,
                 device_families = platform_prerequisites.device_families,
             ),
+            exec_group = mac_exec_group,
             executable = alticonstool,
             inputs = [actool_output_plist] + alternate_icons,
             mnemonic = "AlternateIconsInsert",

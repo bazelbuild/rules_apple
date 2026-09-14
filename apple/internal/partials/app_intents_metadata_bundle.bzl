@@ -29,6 +29,7 @@ load(
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
+        mac_exec_group,
         cc_toolchains,
         deps,
         label,
@@ -59,6 +60,7 @@ def _app_intents_metadata_bundle_partial_impl(
             for intent_module_name in dep[AppIntentsInfo].intent_module_names
         ],
         label = label,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         source_files = [
             swift_source_file
@@ -88,6 +90,7 @@ def _app_intents_metadata_bundle_partial_impl(
 def app_intents_metadata_bundle_partial(
         *,
         actions,
+        mac_exec_group,
         cc_toolchains,
         deps,
         label,
@@ -99,6 +102,7 @@ def app_intents_metadata_bundle_partial(
 
     Args:
         actions: The actions provider from ctx.actions.
+        mac_exec_group: The execution group for Mac tools.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
         deps: Dictionary of targets under a split transition implementing the AppIntents protocol.
@@ -116,6 +120,7 @@ def app_intents_metadata_bundle_partial(
         cc_toolchains = cc_toolchains,
         deps = deps,
         label = label,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         json_tool = json_tool,
     )

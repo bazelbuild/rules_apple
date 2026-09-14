@@ -54,6 +54,7 @@ load(
 def _framework_import_partial_impl(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         features,
         label_name,
@@ -203,6 +204,7 @@ def _framework_import_partial_impl(
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = [args],
             env = shared_environment.default_env,
+            exec_group = mac_exec_group,
             executable = imported_dynamic_framework_processor,
             execution_requirements = execution_requirements,
             inputs = input_files,
@@ -225,6 +227,7 @@ def _framework_import_partial_impl(
 def framework_import_partial(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         features,
         label_name,
@@ -244,6 +247,7 @@ def framework_import_partial(
         apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         features: List of features enabled by the user. Typically from `ctx.features`.
         label_name: Name of the target being built.
+        mac_exec_group: The execution group for Mac tools.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -262,6 +266,7 @@ def framework_import_partial(
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         features = features,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,

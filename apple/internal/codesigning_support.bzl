@@ -492,7 +492,9 @@ def _generate_codesigning_dossier_action(
         output_discriminator,
         output_dossier,
         platform_prerequisites,
-        provisioning_profile):
+        provisioning_profile,
+        *,
+        mac_exec_group):
     """Generates a codesigning dossier based on parameters.
 
     Args:
@@ -508,6 +510,7 @@ def _generate_codesigning_dossier_action(
       output_dossier: The `File` representing the output dossier file - the zipped dossier will be placed here.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
+      mac_exec_group: The execution group for Mac tools.
     """
     input_files = [x.dossier_file for x in embedded_dossiers]
 
@@ -567,6 +570,7 @@ def _generate_codesigning_dossier_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
         inputs = input_files,
         mnemonic = mnemonic,
@@ -578,6 +582,7 @@ def _generate_codesigning_dossier_action(
 def _post_process_and_sign_archive_action(
         *,
         actions,
+        mac_exec_group,
         archive_codesigning_path,
         codesign_inputs,
         codesigningtool,
@@ -611,6 +616,7 @@ def _post_process_and_sign_archive_action(
           that has not yet been processed or signed.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: Name of the target being built.
+      mac_exec_group: The execution group for Mac tools.
       output_archive: The `File` representing the processed and signed archive.
       output_archive_root_path: The `string` path to where the processed, uncompressed archive
           should be located.
@@ -727,6 +733,7 @@ def _post_process_and_sign_archive_action(
             apple_fragment = platform_prerequisites.apple_fragment,
             arguments = arguments,
             env = shared_environment.default_env,
+            exec_group = mac_exec_group,
             executable = process_and_sign_expanded_template,
             execution_requirements = execution_requirements,
             inputs = input_files + codesign_inputs,
@@ -750,6 +757,7 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
+        mac_exec_group,
         codesign_inputs,
         codesigningtool,
         codesignopts,
@@ -766,6 +774,7 @@ def _sign_binary_action(
       codesigningtool: The files_to_run for the code signing tool.
       codesignopts: Extra options to pass to the `codesign` tool.
       input_binary: The `File` representing the binary to be signed.
+      mac_exec_group: The execution group for Mac tools.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
@@ -809,6 +818,7 @@ def _sign_binary_action(
             output_binary = output_binary.path,
         ) + "\n" + signing_commands,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         execution_requirements = execution_requirements,
         inputs = [input_binary] + codesign_inputs,
         mnemonic = "SignBinary",

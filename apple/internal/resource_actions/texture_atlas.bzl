@@ -26,6 +26,7 @@ load(
 def compile_texture_atlas(
         *,
         actions,
+        mac_exec_group,
         input_files,
         input_path,
         output_dir,
@@ -36,6 +37,7 @@ def compile_texture_atlas(
       actions: The actions provider from `ctx.actions`.
       input_files: The atlas file inputs that will be compiled.
       input_path: The path to the .atlas directory to compile.
+      mac_exec_group: The execution group for Mac tools.
       output_dir: The file reference for the compiled output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
     """
@@ -48,6 +50,7 @@ def compile_texture_atlas(
             input_path,
             output_dir.path,
         ],
+        exec_group = mac_exec_group,
         executable = "/usr/bin/xcrun",
         inputs = input_files,
         mnemonic = "CompileTextureAtlas",

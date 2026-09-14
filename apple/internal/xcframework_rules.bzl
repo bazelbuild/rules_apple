@@ -396,6 +396,7 @@ def _available_library_dictionary(
 def _create_xcframework_root_infoplist(
         *,
         actions,
+        mac_exec_group,
         apple_fragment,
         available_libraries,
         plisttool,
@@ -408,6 +409,7 @@ def _create_xcframework_root_infoplist(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         available_libraries: A dictionary containing keys representing how a given framework should
             be referenced in the root Info.plist of a given XCFramework bundle.
+        mac_exec_group: The execution group for Mac tools.
         plisttool: A files_to_run for the plist tool.
         rule_label: The label of the target being analyzed.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -447,6 +449,7 @@ def _create_xcframework_root_infoplist(
         actions = actions,
         apple_fragment = apple_fragment,
         arguments = [plisttool_control_file.path],
+        exec_group = mac_exec_group,
         executable = plisttool,
         inputs = [plisttool_control_file],
         mnemonic = "CreateXCFrameworkRootInfoPlist",
@@ -458,6 +461,7 @@ def _create_xcframework_root_infoplist(
 def _create_xcframework_bundle(
         *,
         actions,
+        mac_exec_group,
         apple_fragment,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
@@ -475,6 +479,7 @@ def _create_xcframework_bundle(
 
      Args:
         actions: The actions providerx from `ctx.actions`.
+        mac_exec_group: The execution group for Mac tools.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: The `AppleMacToolsToolchainInfo` provider from the mac toolchain.
         apple_xplat_toolchain_info: The `AppleXPlatToolsToolchainInfo` provider from the xplat
@@ -524,6 +529,7 @@ def _create_xcframework_bundle(
             actions = actions,
             apple_fragment = apple_fragment,
             arguments = [bundletool_control_file.path],
+            exec_group = mac_exec_group,
             executable = bundletool,
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
@@ -747,6 +753,7 @@ def _apple_xcframework_impl(ctx):
                 executable_name = executable_name,
                 label_name = label.name,
                 linkmaps = link_output.linkmaps,
+                mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 plisttool = apple_mac_toolchain_info.plisttool,
@@ -762,6 +769,7 @@ def _apple_xcframework_impl(ctx):
                 environment_plist = environment_plist,
                 executable_name = executable_name,
                 launch_storyboard = None,
+                mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
                 resource_deps = resource_deps,
@@ -777,6 +785,7 @@ def _apple_xcframework_impl(ctx):
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 binary_artifact = binary_artifact,
                 label_name = label.name,
+                mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
                 platform_prerequisites = platform_prerequisites,
             ),
         ]
@@ -813,6 +822,7 @@ def _apple_xcframework_impl(ctx):
             entitlements = None,
             features = features,
             ipa_post_processor = None,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             output_discriminator = library_identifier,
             partials = processor_partials,
             platform_prerequisites = platform_prerequisites,
@@ -873,6 +883,7 @@ def _apple_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = ctx.fragments.apple,
         available_libraries = available_libraries,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = xcode_config,
@@ -888,6 +899,7 @@ def _apple_xcframework_impl(ctx):
         framework_archive_merge_files = framework_archive_merge_files,
         framework_archive_merge_zips = framework_archive_merge_zips,
         label_name = label.name,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         output_archive = outputs_archive,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,
@@ -1248,6 +1260,7 @@ def _apple_static_xcframework_impl(ctx):
             environment_plist = environment_plist,
             executable_name = executable_name,
             launch_storyboard = None,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             output_discriminator = library_identifier,
             platform_prerequisites = platform_prerequisites,
             resource_deps = resource_deps,
@@ -1285,6 +1298,7 @@ def _apple_static_xcframework_impl(ctx):
         actions = actions,
         apple_fragment = apple_fragment,
         available_libraries = available_libraries,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         plisttool = apple_mac_toolchain_info.plisttool,
         rule_label = label,
         xcode_config = xcode_config,
@@ -1299,6 +1313,7 @@ def _apple_static_xcframework_impl(ctx):
         framework_archive_files = framework_archive_files,
         framework_archive_merge_files = framework_archive_merge_files,
         label_name = label.name,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         output_archive = outputs_archive,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         root_info_plist = root_info_plist,

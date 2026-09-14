@@ -25,6 +25,7 @@ load(
     "//apple/internal:apple_product_type.bzl",
     "apple_product_type",
 )
+load("//apple/internal:apple_toolchains.bzl", "apple_toolchain_utils")
 load(
     "//apple/internal:compilation_support.bzl",
     "compilation_support",
@@ -512,6 +513,7 @@ def _register_binary_linking_action(
             apple_fragment = platform_prerequisites.apple_fragment,
             entitlements = entitlements,
             label_name = ctx.label.name,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             xcode_version_config = platform_prerequisites.xcode_version_config,
         )
         linkopts.append(

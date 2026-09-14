@@ -52,11 +52,14 @@ def _run_main_thread_checker(
         dylibs,
         main_thread_checker_dylib,
         main_thread_checker_tool,
-        platform_prerequisites):
+        platform_prerequisites,
+        *,
+        mac_exec_group):
     apple_support.run(
         actions = actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [main_thread_checker_dylib.path],
+        exec_group = mac_exec_group,
         executable = main_thread_checker_tool,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [binary_artifact] + dylibs,
@@ -68,6 +71,7 @@ def _run_main_thread_checker(
 def _main_thread_checker_dylibs_partial_impl(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         binary_artifact,
         features,
@@ -84,7 +88,7 @@ def _main_thread_checker_dylibs_partial_impl(
     main_thread_checker_dylib = _create_main_thread_checker_dylib(actions, label_name, output_discriminator)
     main_thread_checker_tool = apple_mac_toolchain_info.main_thread_checker_tool
 
-    _run_main_thread_checker(actions, binary_artifact, dylibs, main_thread_checker_dylib, main_thread_checker_tool, platform_prerequisites)
+    _run_main_thread_checker(actions, binary_artifact, dylibs, main_thread_checker_dylib, main_thread_checker_tool, platform_prerequisites, mac_exec_group = mac_exec_group)
 
     bundle_files.append(
         (processor.location.framework, None, depset([main_thread_checker_dylib])),
@@ -95,6 +99,7 @@ def _main_thread_checker_dylibs_partial_impl(
 def main_thread_checker_dylibs_partial(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         binary_artifact,
         dylibs,
@@ -111,6 +116,7 @@ def main_thread_checker_dylibs_partial(
       dylibs: List of dylibs (usually from a toolchain).
       features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: Name of the target being built.
+      mac_exec_group: The execution group for Mac tools.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -127,6 +133,7 @@ def main_thread_checker_dylibs_partial(
         binary_artifact = binary_artifact,
         features = features,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         dylibs = dylibs,

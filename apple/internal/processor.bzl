@@ -226,6 +226,7 @@ def _archive_paths(
 def _bundle_partial_outputs_files(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         xplat_exec_group,
@@ -248,6 +249,7 @@ def _bundle_partial_outputs_files(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
       xplat_exec_group: A String. The exec_group for action using xplat toolchain.
@@ -446,6 +448,7 @@ def _bundle_partial_outputs_files(
         apple_support.run(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
+            exec_group = mac_exec_group,
             executable = bundletool,
             execution_requirements = execution_requirements,
             inputs = bundletool_inputs + codesign_inputs,
@@ -469,6 +472,7 @@ def _bundle_partial_outputs_files(
 def _bundle_post_process_and_sign(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         xplat_exec_group,
@@ -493,6 +497,7 @@ def _bundle_post_process_and_sign(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        mac_exec_group: The execution group for Mac tools.
         apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
         apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
         xplat_exec_group: A String. The exec_group for action using xplat toolchain.
@@ -565,6 +570,7 @@ def _bundle_post_process_and_sign(
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             locales_to_include = locales_to_include,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = output_archive,
             partial_outputs = partial_outputs,
@@ -595,6 +601,7 @@ def _bundle_post_process_and_sign(
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
             locales_to_include = locales_to_include,
+            mac_exec_group = mac_exec_group,
             output_discriminator = output_discriminator,
             output_file = unprocessed_archive,
             partial_outputs = partial_outputs,
@@ -621,6 +628,7 @@ def _bundle_post_process_and_sign(
             input_archive = unprocessed_archive,
             ipa_post_processor = ipa_post_processor,
             label_name = rule_label.name,
+            mac_exec_group = mac_exec_group,
             output_archive = output_archive,
             output_archive_root_path = output_archive_root_path,
             output_discriminator = output_discriminator,
@@ -672,6 +680,7 @@ def _bundle_post_process_and_sign(
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
                 locales_to_include = locales_to_include,
+                mac_exec_group = mac_exec_group,
                 output_discriminator = output_discriminator,
                 output_file = unprocessed_embedded_archive,
                 partial_outputs = partial_outputs,
@@ -692,6 +701,7 @@ def _bundle_post_process_and_sign(
                 input_archive = unprocessed_embedded_archive,
                 ipa_post_processor = ipa_post_processor,
                 label_name = rule_label.name,
+                mac_exec_group = mac_exec_group,
                 output_archive = embedding_archive,
                 output_archive_root_path = embedding_archive_root_path,
                 output_discriminator = output_discriminator,
@@ -705,6 +715,7 @@ def _bundle_post_process_and_sign(
 def _process(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         xplat_exec_group,
@@ -729,6 +740,7 @@ def _process(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
       apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
       xplat_exec_group: A String. The exec_group for action using xplat toolchain.
@@ -785,6 +797,7 @@ def _process(
             features = features,
             ipa_post_processor = ipa_post_processor,
             locales_to_include = locales_to_include,
+            mac_exec_group = mac_exec_group,
             output_archive = output_archive,
             output_discriminator = output_discriminator,
             partial_outputs = partial_outputs,

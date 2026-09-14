@@ -85,6 +85,7 @@ def _apple_intent_library_impl(ctx):
         input_file = ctx.file.src,
         swift_output_src = swift_output_src,
         objc_output_srcs = objc_output_srcs,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         objc_output_hdrs = objc_output_hdrs,
         objc_public_header = objc_public_header,
         language = ctx.attr.language,
@@ -116,7 +117,6 @@ apple_intent_library = rule(
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         apple_support.action_required_attrs(),
-        apple_toolchain_utils.shared_attrs(),
         {
             "src": attr.label(
                 allow_single_file = [".intentdefinition"],

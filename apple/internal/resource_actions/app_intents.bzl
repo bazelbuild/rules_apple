@@ -31,6 +31,7 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
 def generate_app_intents_metadata_bundle(
         *,
         actions,
+        mac_exec_group,
         apple_fragment,
         constvalues_files,
         intents_module_names,
@@ -44,6 +45,7 @@ def generate_app_intents_metadata_bundle(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        mac_exec_group: The execution group for Mac tools.
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         constvalues_files: List of swiftconstvalues files generated from Swift source files
             implementing the AppIntents protocol.
@@ -178,6 +180,7 @@ fi
             output_dir = output.path,
             json_tool_path = json_tool_path,
         ),
+        exec_group = mac_exec_group,
         inputs = depset(transitive = transitive_inputs),
         tools = [json_tool],
         outputs = [output],

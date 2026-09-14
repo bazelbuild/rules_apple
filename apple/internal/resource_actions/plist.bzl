@@ -46,6 +46,7 @@ load(
 def plisttool_action(
         *,
         actions,
+        mac_exec_group,
         control_file,
         inputs,
         mnemonic = None,
@@ -62,6 +63,7 @@ def plisttool_action(
       actions: The actions provider from `ctx.actions`.
       control_file: The `File` containing the control struct to be passed to plisttool.
       inputs: Any `File`s that should be treated as inputs to the underlying action.
+      mac_exec_group: The execution group for Mac tools.
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -72,6 +74,7 @@ def plisttool_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [control_file.path],
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = plisttool,
         inputs = inputs + [control_file],
         mnemonic = mnemonic,
@@ -79,12 +82,13 @@ def plisttool_action(
         xcode_config = platform_prerequisites.xcode_version_config,
     )
 
-def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
+def compile_plist(*, actions, mac_exec_group, input_file, output_file, platform_prerequisites):
     """Creates an action that compiles plist and strings files.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The property list file that should be converted.
+      mac_exec_group: The execution group for Mac tools.
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
     """
@@ -110,6 +114,7 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
         apple_fragment = platform_prerequisites.apple_fragment,
         command = complete_command,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         inputs = [input_file],
         mnemonic = mnemonic,
         outputs = [output_file],
@@ -119,6 +124,7 @@ def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
 def merge_resource_infoplists(
         *,
         actions,
+        mac_exec_group,
         bundle_id,
         bundle_name_with_extension,
         input_files,
@@ -134,6 +140,7 @@ def merge_resource_infoplists(
       bundle_id: The bundle ID to use when templating plist files.
       bundle_name_with_extension: The full name of the bundle where the plist will be placed.
       input_files: The list of plists to merge.
+      mac_exec_group: The execution group for Mac tools.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       output_plist: The file reference for the output plist.
@@ -181,6 +188,7 @@ def merge_resource_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileInfoPlist",
         outputs = [output_plist],
         platform_prerequisites = platform_prerequisites,
@@ -190,6 +198,7 @@ def merge_resource_infoplists(
 def merge_root_infoplists(
         *,
         actions,
+        mac_exec_group,
         bundle_name,
         bundle_id = None,
         bundle_extension,
@@ -217,6 +226,7 @@ def merge_root_infoplists(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       bundle_name: The name of the output bundle.
       bundle_id: The bundle identifier to set in the output plist.
       bundle_extension: The extension for the bundle.
@@ -393,6 +403,7 @@ def merge_root_infoplists(
         actions = actions,
         control_file = control_file,
         inputs = input_files,
+        mac_exec_group = mac_exec_group,
         mnemonic = "CompileRootInfoPlist",
         outputs = output_files,
         platform_prerequisites = platform_prerequisites,
