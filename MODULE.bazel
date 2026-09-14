@@ -20,6 +20,13 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "xctestrunner", version = "0.2.16-20260212-4c6f493")
 
+# TODO: Remove when apple_support releases the fix for Linux-first execution (#637).
+single_version_override(
+    module_name = "apple_support",
+    patch_strip = 1,
+    patches = ["//test/ios_unit_test_execution_platforms:apple_support.patch"],
+)
+
 system_sdk = use_extension("@rules_swift//swift:extensions.bzl", "system_sdk")
 system_sdk.configure_sdks(
     # NOTE: This doesn't apply to downstream repos
