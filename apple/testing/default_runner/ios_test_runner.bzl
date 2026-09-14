@@ -21,6 +21,11 @@ load(
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "APPLE_MAC_EXEC_GROUP",
+    "apple_toolchain_utils",
+)
 
 def _get_template_substitutions(
         *,
@@ -67,12 +72,15 @@ def _ios_simulator_version(ctx):
 def _ios_test_runner_impl(ctx):
     """Implementation for the ios_test_runner rule."""
 
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    create_simulator_action = ctx.attr.create_simulator_action or apple_mac_toolchain_info.simulator_creator
+
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
     sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
     os_version = str(ctx.attr.os_version or _ios_simulator_version(ctx) or "")
     device_type = ctx.attr.device_type or _ios_simulator_device(ctx) or ""
 
-    runfiles = ctx.attr.create_simulator_action[DefaultInfo].default_runfiles
+    runfiles = create_simulator_action[DefaultInfo].default_runfiles
     runfiles = runfiles.merge(ctx.attr._testrunner[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
@@ -94,7 +102,7 @@ def _ios_test_runner_impl(ctx):
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
-            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
+            create_simulator_action_binary = create_simulator_action[DefaultInfo].files_to_run.executable.short_path,
             device_type = device_type,
             os_version = os_version,
             post_action_binary = post_action_binary,
@@ -124,9 +132,8 @@ ios_test_runner = rule(
     _ios_test_runner_impl,
     attrs = {
         "create_simulator_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
-            default = Label("//apple/testing/default_runner:simulator_creator"),
             doc = """
 A binary that produces a UDID for a simulator that matches the given device type and OS version. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout. This is only invoked when the `$REUSE_GLOBAL_SIMULATOR` environment variable is set.
 
@@ -164,7 +171,7 @@ By default, it is the latest supported version of the device type.'
 """,
         ),
         "post_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE` environment variable, in addition to any other variables available to the test runner.
@@ -177,7 +184,7 @@ When true, the exit code of the test run will be set to the exit code of the `po
 """,
         ),
         "pre_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
             doc = """
 A binary to run prior to test execution. Runs after simulator creation. Sets any environment variables available to the test runner.
@@ -202,7 +209,7 @@ into the XCTest invocation.
             providers = [BuildSettingInfo],
         ),
         "_testrunner": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
             default = Label("@xctestrunner//:ios_test_runner"),
             doc = """
@@ -220,6 +227,7 @@ dependency is the test runner binary.
     outputs = {
         "test_runner_template": "%{name}.sh",
     },
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "objc"],
     doc = """
 Rule to identify an iOS runner that runs tests for iOS.

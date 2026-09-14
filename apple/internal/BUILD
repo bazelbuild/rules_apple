@@ -39,6 +39,8 @@ apple_mac_tools_toolchain(
     plisttool = "//tools/plisttool",
     process_and_sign_template = "//tools/bundletool:process_and_sign_template",
     provisioning_profile_tool = "//tools/provisioning_profile_tool",
+    simulator_cleanup = "//apple/testing/default_runner:simulator_cleanup",
+    simulator_creator = "//apple/testing/default_runner:simulator_creator",
     swift_stdlib_tool = "//tools/swift_stdlib_tool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and

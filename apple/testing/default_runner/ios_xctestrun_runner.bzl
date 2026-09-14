@@ -14,6 +14,11 @@ load(
     "AppleDeviceTestRunnerInfo",
     "apple_provider",
 )
+load(
+    "//apple/internal:apple_toolchains.bzl",
+    "APPLE_MAC_EXEC_GROUP",
+    "apple_toolchain_utils",
+)
 
 def _get_template_substitutions(
         *,
@@ -77,6 +82,10 @@ def _ios_simulator_version(ctx):
             getattr(ctx.fragments.objc, "ios_simulator_version", None))
 
 def _ios_xctestrun_runner_impl(ctx):
+    apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
+    clean_up_simulator_action = ctx.attr.clean_up_simulator_action or apple_mac_toolchain_info.simulator_cleanup
+    create_simulator_action = ctx.attr.create_simulator_action or apple_mac_toolchain_info.simulator_creator
+
     # TODO: Remove this getattr when we drop Bazel 8
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
     sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
@@ -89,8 +98,8 @@ def _ios_xctestrun_runner_impl(ctx):
         ctx.file._xctestrun_template,
         ctx.file._xctrunner_entitlements_template,
     ])
-    runfiles = runfiles.merge(ctx.attr.create_simulator_action[DefaultInfo].default_runfiles)
-    runfiles = runfiles.merge(ctx.attr.clean_up_simulator_action[DefaultInfo].default_runfiles)
+    runfiles = runfiles.merge(create_simulator_action[DefaultInfo].default_runfiles)
+    runfiles = runfiles.merge(clean_up_simulator_action[DefaultInfo].default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -112,9 +121,9 @@ def _ios_xctestrun_runner_impl(ctx):
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             attachment_lifetime = ctx.attr.attachment_lifetime,
-            clean_up_simulator_action_binary = ctx.executable.clean_up_simulator_action.short_path,
+            clean_up_simulator_action_binary = clean_up_simulator_action[DefaultInfo].files_to_run.executable.short_path,
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
-            create_simulator_action_binary = ctx.executable.create_simulator_action.short_path,
+            create_simulator_action_binary = create_simulator_action[DefaultInfo].files_to_run.executable.short_path,
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             device_type = device_type,
@@ -158,9 +167,8 @@ or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult out
 """,
         ),
         "clean_up_simulator_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
-            default = Label("//apple/testing/default_runner:simulator_cleanup"),
             doc = """
 A binary that cleans up any simulators created by the `create_simulator_action`. Runs after the `post_action`, regardless of test success or failure.
 
@@ -179,9 +187,8 @@ will always use `xcodebuild test-without-building` to run the test bundle.
 """,
         ),
         "create_simulator_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
-            default = Label("//apple/testing/default_runner:simulator_creator"),
             doc = """
 A binary that produces a UDID for a simulator that matches the given device type and OS version. Runs before the `pre_action`. The UDID will be used to run the tests on the correct simulator. The binary must print only the UDID to stdout.
 
@@ -223,7 +230,7 @@ supported version.
 """,
         ),
         "post_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
             doc = """
 A binary to run following test execution. Runs after testing but before test result handling and coverage processing. Sets the `$TEST_EXIT_CODE`, `$TEST_LOG_FILE`, and `$SIMULATOR_UDID` environment variables, the `$TEST_XCRESULT_BUNDLE_PATH` environment variable if the test run produces an XCResult bundle, and any other variables available to the test runner.
@@ -236,7 +243,7 @@ When true, the exit code of the test run will be set to the exit code of the `po
 """,
         ),
         "pre_action": attr.label(
-            cfg = "exec",
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
             executable = True,
             doc = """
 A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
@@ -318,6 +325,7 @@ will always use `xcodebuild test-without-building` to run the test bundle.
     outputs = {
         "test_runner_template": "%{name}.sh",
     },
+    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple", "objc"],
     doc = """
 This rule creates a test runner for iOS tests that uses xctestrun files to run
