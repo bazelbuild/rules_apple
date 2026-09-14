@@ -40,6 +40,17 @@ tasks:
     bazel: 9.x
     <<: *common
 
+  macos_9.x_linux_first:
+    name: "iOS unit test with Linux first"
+    bazel: 9.x
+    platform: macos_arm64
+    test_targets:
+      - "//test/ios_unit_test_execution_platforms:unit_test"
+    test_flags:
+      - --config=linux-exec
+    include_json_profile:
+      - test
+
   macos_last_green:
     name: "Last Green Bazel"
     # TODO: use last_green when we fix issues, this is the removal of incompatible_enable_apple_toolchain_resolution
