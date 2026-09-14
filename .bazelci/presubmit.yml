@@ -46,6 +46,8 @@ tasks:
     platform: macos_arm64
     test_targets:
       - "//test/ios_unit_test_execution_platforms:unit_test"
+      - "//test/ios_unit_test_execution_platforms:legacy_runner_test"
+      - "//test/ios_unit_test_execution_platforms:custom_xctestrun_runner_test"
     test_flags:
       - --config=ci
       - --ios_multi_cpus=sim_arm64
