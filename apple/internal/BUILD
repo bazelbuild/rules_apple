@@ -50,7 +50,10 @@ apple_mac_tools_toolchain(
     xctoolrunner = "//tools/xctoolrunner",
 )
 
-toolchain_type(name = "apple_xplat_toolchain_type")
+toolchain_type(
+    name = "apple_xplat_toolchain_type",
+    visibility = ["//test/ios_unit_test_execution_platforms:__pkg__"],
+)
 
 toolchain(
     name = "apple_xplat_toolchain",
