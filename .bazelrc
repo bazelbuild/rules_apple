@@ -24,6 +24,12 @@ build:ci --local_test_jobs=2
 build:ci --modify_execution_info=AssetCatalogCompile=+exclusive
 build:ci --test_tag_filters=-skipci
 
+# Run the iOS unit-test regression with Linux listed before macOS.
+build:linux-exec --config=ci
+build:linux-exec --ios_multi_cpus=sim_arm64
+build:linux-exec --extra_execution_platforms=//test/ios_unit_test_execution_platforms:linux,//test/ios_unit_test_execution_platforms:macos
+build:linux-exec --extra_toolchains=//test/ios_unit_test_execution_platforms:local_xplat_toolchain,//test/ios_unit_test_execution_platforms:unused_linux_cc_toolchain
+
 # Use llvm-cov instead of gcov (default).
 coverage --experimental_use_llvm_covmap
 
