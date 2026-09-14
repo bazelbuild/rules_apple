@@ -47,10 +47,7 @@ tasks:
     test_targets:
       - "//test/ios_unit_test_execution_platforms:unit_test"
     test_flags:
-      - --config=ci
-      - --ios_multi_cpus=sim_arm64
-      - --extra_execution_platforms=//test/ios_unit_test_execution_platforms:linux,//test/ios_unit_test_execution_platforms:macos
-      - --extra_toolchains=//test/ios_unit_test_execution_platforms:local_xplat_toolchain,//test/ios_unit_test_execution_platforms:unused_linux_cc_toolchain
+      - --config=linux-exec
     include_json_profile:
       - test
 
