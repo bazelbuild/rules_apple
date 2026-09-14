@@ -257,7 +257,6 @@ docc_archive(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support.platform_constraint_attrs(),
-        apple_toolchain_utils.shared_attrs(),
         {
             "dep": attr.label(
                 aspects = [

@@ -97,6 +97,7 @@ def _apple_metal_library_impl(ctx):
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
+        exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         executable = "/usr/bin/xcrun",
         inputs = ctx.files.srcs + ctx.files.hdrs,
         mnemonic = "MetallibCompile",
@@ -114,7 +115,6 @@ apple_metal_library = rule(
     attrs = dicts.add(
         apple_support.platform_constraint_attrs(),
         apple_support.action_required_attrs(),
-        apple_toolchain_utils.shared_attrs(),
         {
             "copts": attr.string_list(
                 doc = """\

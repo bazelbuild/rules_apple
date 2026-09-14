@@ -588,8 +588,8 @@ Returns a list of field names of the provider's resource buckets that are non em
 <pre>
 load("@rules_apple//apple:resources.bzl", "resources_common")
 
-resources_common.process_bucketized_data(*, <a href="#resources_common.process_bucketized_data-actions">actions</a>, <a href="#resources_common.process_bucketized_data-apple_mac_toolchain_info">apple_mac_toolchain_info</a>, <a href="#resources_common.process_bucketized_data-bucketized_owners">bucketized_owners</a>,
-                                         <a href="#resources_common.process_bucketized_data-buckets">buckets</a>, <a href="#resources_common.process_bucketized_data-bundle_id">bundle_id</a>, <a href="#resources_common.process_bucketized_data-output_discriminator">output_discriminator</a>,
+resources_common.process_bucketized_data(*, <a href="#resources_common.process_bucketized_data-actions">actions</a>, <a href="#resources_common.process_bucketized_data-mac_exec_group">mac_exec_group</a>, <a href="#resources_common.process_bucketized_data-apple_mac_toolchain_info">apple_mac_toolchain_info</a>,
+                                         <a href="#resources_common.process_bucketized_data-bucketized_owners">bucketized_owners</a>, <a href="#resources_common.process_bucketized_data-buckets">buckets</a>, <a href="#resources_common.process_bucketized_data-bundle_id">bundle_id</a>, <a href="#resources_common.process_bucketized_data-output_discriminator">output_discriminator</a>,
                                          <a href="#resources_common.process_bucketized_data-platform_prerequisites">platform_prerequisites</a>, <a href="#resources_common.process_bucketized_data-processing_owner">processing_owner</a>, <a href="#resources_common.process_bucketized_data-product_type">product_type</a>,
                                          <a href="#resources_common.process_bucketized_data-resource_types_to_process">resource_types_to_process</a>, <a href="#resources_common.process_bucketized_data-rule_label">rule_label</a>, <a href="#resources_common.process_bucketized_data-unowned_resources">unowned_resources</a>)
 </pre>
@@ -609,6 +609,7 @@ expected outputs for each of the actions declared in this method.
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="resources_common.process_bucketized_data-actions"></a>actions |  The actions provider from `ctx.actions`.   |  none |
+| <a id="resources_common.process_bucketized_data-mac_exec_group"></a>mac_exec_group |  The execution group for Mac tools.   |  none |
 | <a id="resources_common.process_bucketized_data-apple_mac_toolchain_info"></a>apple_mac_toolchain_info |  `struct` of tools from the shared Apple toolchain.   |  none |
 | <a id="resources_common.process_bucketized_data-bucketized_owners"></a>bucketized_owners |  A list of tuples indicating the owner of each bucketized resource.   |  `[]` |
 | <a id="resources_common.process_bucketized_data-buckets"></a>buckets |  A dictionary with bucketized resources organized by resource type.   |  none |

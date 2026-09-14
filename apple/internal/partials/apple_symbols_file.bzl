@@ -46,6 +46,7 @@ _AppleSymbolsFileInfo = provider(
 def _apple_symbols_file_partial_impl(
         *,
         actions,
+        mac_exec_group,
         binary_artifact,
         dependency_targets,
         dsym_binaries,
@@ -73,6 +74,7 @@ def _apple_symbols_file_partial_impl(
         apple_support.run_shell(
             actions = actions,
             apple_fragment = platform_prerequisites.apple_fragment,
+            exec_group = mac_exec_group,
             inputs = inputs,
             outputs = [output],
             command = (
@@ -108,6 +110,7 @@ def _apple_symbols_file_partial_impl(
 def apple_symbols_file_partial(
         *,
         actions,
+        mac_exec_group,
         binary_artifact,
         dependency_targets = [],
         dsym_binaries,
@@ -119,6 +122,7 @@ def apple_symbols_file_partial(
 
     Args:
       actions: Actions defined for the current build context.
+      mac_exec_group: The execution group for Mac tools.
       binary_artifact: The main binary artifact for this target.
       dependency_targets: List of targets that should be checked for files that need to be
         bundled.
@@ -142,6 +146,7 @@ def apple_symbols_file_partial(
         dsym_binaries = dsym_binaries,
         include_symbols_in_bundle = include_symbols_in_bundle,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
     )

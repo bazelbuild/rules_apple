@@ -34,6 +34,7 @@ load(
 def compile_storyboard(
         *,
         actions,
+        mac_exec_group,
         input_file,
         output_dir,
         platform_prerequisites,
@@ -44,6 +45,7 @@ def compile_storyboard(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The storyboard to compile.
+      mac_exec_group: The execution group for Mac tools.
       output_dir: The directory where the compiled outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
       swift_module: The name of the Swift module to use when compiling the
@@ -82,6 +84,7 @@ def compile_storyboard(
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [input_file],
@@ -93,6 +96,7 @@ def compile_storyboard(
 def link_storyboards(
         *,
         actions,
+        mac_exec_group,
         output_dir,
         platform_prerequisites,
         storyboardc_dirs,
@@ -105,6 +109,7 @@ def link_storyboards(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       output_dir: The directory where the linked outputs should be placed.
       platform_prerequisites: Struct containing information on the platform being targeted.
       storyboardc_dirs: A list of `File`s that represent directories containing
@@ -136,6 +141,7 @@ def link_storyboards(
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = storyboardc_dirs,
@@ -147,6 +153,7 @@ def link_storyboards(
 def compile_xib(
         *,
         actions,
+        mac_exec_group,
         input_file,
         output_dir,
         platform_prerequisites,
@@ -157,6 +164,7 @@ def compile_xib(
     Args:
       actions: The actions provider from `ctx.actions`.
       input_file: The Xib file to compile.
+      mac_exec_group: The execution group for Mac tools.
       output_dir: The file reference for the output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
       swift_module: The name of the Swift module to use when compiling the
@@ -191,6 +199,7 @@ def compile_xib(
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
         inputs = [input_file],

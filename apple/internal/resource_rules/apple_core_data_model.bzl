@@ -108,6 +108,7 @@ def _apple_core_data_model_impl(ctx):
             actions = actions,
             datamodel_path = datamodel_path,
             input_files = files.to_list(),
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             output_dir = output_dir_path,
             outputs = data_model_outputs,
             platform_prerequisites = platform_prerequisites,

@@ -30,6 +30,7 @@ load(
 def compile_datamodels(
         *,
         actions,
+        mac_exec_group,
         datamodel_path,
         input_files,
         module_name,
@@ -42,6 +43,7 @@ def compile_datamodels(
         actions: The actions provider from `ctx.actions`.
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
+        mac_exec_group: The execution group for Mac tools.
         module_name: The module name to use when compiling the datamodels.
         output_file: The file reference to the compiled datamodel.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -66,6 +68,7 @@ def compile_datamodels(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = args,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         inputs = input_files,
         mnemonic = "MomCompile",
@@ -76,6 +79,7 @@ def compile_datamodels(
 def compile_mappingmodel(
         *,
         actions,
+        mac_exec_group,
         input_files,
         mappingmodel_path,
         output_file,
@@ -86,6 +90,7 @@ def compile_mappingmodel(
     Args:
         actions: The actions provider from `ctx.actions`.
         input_files: The list of files to process for the given mapping model.
+        mac_exec_group: The execution group for Mac tools.
         mappingmodel_path: The path to the directory containing the mapping model.
         output_file: The file reference to the compiled mapping model.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -101,6 +106,7 @@ def compile_mappingmodel(
         arguments = [args],
         apple_fragment = platform_prerequisites.apple_fragment,
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         inputs = input_files,
         mnemonic = "MappingModelCompile",
@@ -111,6 +117,7 @@ def compile_mappingmodel(
 def generate_datamodels(
         *,
         actions,
+        mac_exec_group,
         datamodel_path,
         input_files,
         output_dir,
@@ -122,6 +129,7 @@ def generate_datamodels(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        mac_exec_group: The execution group for Mac tools.
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
         output_dir: The output directory reference where generated datamodel classes will be.
@@ -152,6 +160,7 @@ def generate_datamodels(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xctoolrunner,
         inputs = input_files,
         mnemonic = "MomGenerate",

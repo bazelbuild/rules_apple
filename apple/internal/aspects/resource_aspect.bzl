@@ -117,6 +117,7 @@ def _apple_resource_aspect_impl(target, ctx):
         "actions": ctx.actions,
         "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
         "bundle_id": None,
+        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(ctx),
         "product_type": None,
         "rule_label": ctx.label,
     }
@@ -436,7 +437,6 @@ apple_resource_aspect = aspect(
     attrs = dicts.add(
         apple_support.action_required_attrs(),
         apple_support.platform_constraint_attrs(),
-        apple_toolchain_utils.shared_attrs(),
     ),
     exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
     fragments = ["apple"],

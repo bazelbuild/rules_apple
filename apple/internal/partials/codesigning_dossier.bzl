@@ -242,6 +242,7 @@ def _create_combined_zip_artifact(
 def _codesigning_dossier_partial_impl(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         xplat_exec_group,
@@ -287,6 +288,7 @@ def _codesigning_dossier_partial_impl(
         actions = actions,
         label_name = label_name,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         output_dossier = output_dossier,
         platform_prerequisites = platform_prerequisites,
@@ -355,6 +357,7 @@ def _codesigning_dossier_partial_impl(
 def codesigning_dossier_partial(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         xplat_exec_group,
@@ -374,6 +377,7 @@ def codesigning_dossier_partial(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
@@ -412,6 +416,7 @@ def codesigning_dossier_partial(
         embedded_targets = embedded_targets,
         entitlements = entitlements,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,

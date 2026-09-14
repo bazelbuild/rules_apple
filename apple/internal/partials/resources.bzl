@@ -65,6 +65,7 @@ load(
 def _merge_root_infoplists(
         *,
         actions,
+        mac_exec_group,
         out_infoplist,
         output_discriminator,
         rule_descriptor,
@@ -74,6 +75,7 @@ def _merge_root_infoplists(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      mac_exec_group: The execution group for Mac tools.
       out_infoplist: Reference to the output Info plist.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -99,6 +101,7 @@ def _merge_root_infoplists(
 
     resource_actions.merge_root_infoplists(
         actions = actions,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         output_plist = out_infoplist,
         output_pkginfo = out_pkginfo,
@@ -182,6 +185,7 @@ def _locales_excluded(*, build_setting_locales_to_exclude, config_vars):
 def _resources_partial_impl(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id,
@@ -287,6 +291,7 @@ def _resources_partial_impl(
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
                 "files": files,
+                "mac_exec_group": mac_exec_group,
                 "output_discriminator": output_discriminator,
                 "parent_dir": parent_dir,
                 "platform_prerequisites": platform_prerequisites,
@@ -360,6 +365,7 @@ def _resources_partial_impl(
                 extensionkit_keys_required = extensionkit_keys_required,
                 input_plists = infoplists,
                 launch_storyboard = launch_storyboard,
+                mac_exec_group = mac_exec_group,
                 out_infoplist = out_infoplist,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
@@ -380,6 +386,7 @@ def _resources_partial_impl(
 def resources_partial(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         bundle_extension,
         bundle_id = None,
@@ -410,6 +417,7 @@ def resources_partial(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        mac_exec_group: The execution group for Mac tools.
         apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
         bundle_extension: The extension for the bundle.
         bundle_id: Optional bundle ID to use when processing resources. If no bundle ID is given,
@@ -467,6 +475,7 @@ def resources_partial(
         extensionkit_keys_required = extensionkit_keys_required,
         launch_storyboard = launch_storyboard,
         locales_to_include = locales_to_include,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,

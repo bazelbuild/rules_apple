@@ -82,6 +82,7 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
 def _swift_dylib_action(
         *,
         actions,
+        mac_exec_group,
         binary_files,
         output_dir,
         platform_name,
@@ -109,6 +110,7 @@ def _swift_dylib_action(
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [swift_stdlib_tool_args],
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = swift_stdlib_tool,
         inputs = binary_files,
         mnemonic = "SwiftStdlibCopy",
@@ -119,6 +121,7 @@ def _swift_dylib_action(
 def _swift_dylibs_partial_impl(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         binary_artifact,
         bundle_dylibs,
@@ -178,6 +181,7 @@ def _swift_dylibs_partial_impl(
             _swift_dylib_action(
                 actions = actions,
                 binary_files = binaries_to_check,
+                mac_exec_group = mac_exec_group,
                 output_dir = output_dir,
                 platform_name = platform_name,
                 platform_prerequisites = platform_prerequisites,
@@ -200,6 +204,7 @@ def _swift_dylibs_partial_impl(
                 _swift_dylib_action(
                     actions = actions,
                     binary_files = binaries_to_check,
+                    mac_exec_group = mac_exec_group,
                     output_dir = swift_support_output_dir,
                     platform_name = platform_name,
                     platform_prerequisites = platform_prerequisites,
@@ -239,6 +244,7 @@ def _swift_dylibs_partial_impl(
 def swift_dylibs_partial(
         *,
         actions,
+        mac_exec_group,
         apple_mac_toolchain_info,
         binary_artifact,
         bundle_dylibs = False,
@@ -260,6 +266,7 @@ def swift_dylibs_partial(
       dependency_targets: List of targets that should be checked for binaries that might contain
         Swift, so that the Swift dylibs can be collected.
       label_name: Name of the target being built.
+      mac_exec_group: The execution group for Mac tools.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       package_swift_support_if_needed: Whether the partial should also bundle the Swift dylib for
@@ -279,6 +286,7 @@ def swift_dylibs_partial(
         bundle_dylibs = bundle_dylibs,
         dependency_targets = dependency_targets,
         label_name = label_name,
+        mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,

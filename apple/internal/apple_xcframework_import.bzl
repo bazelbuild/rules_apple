@@ -130,6 +130,7 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
 def _get_xcframework_library(
         *,
         actions,
+        mac_exec_group,
         apple_fragment,
         apple_mac_toolchain_info,
         label,
@@ -148,6 +149,7 @@ def _get_xcframework_library(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         label: Label of the target being built.
+        mac_exec_group: The execution group for Mac tools.
         parse_xcframework_info_plist: Boolean to indicate if XCFramework library inferrence should
             be done parsing the XCFramework Info.plist file via the execution-phase tool
             xcframework_processor_tool.py.
@@ -184,6 +186,7 @@ def _get_xcframework_library(
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         label = label,
+        mac_exec_group = mac_exec_group,
         target_triplet = target_triplet,
         xcframework = xcframework,
         xcode_config = xcode_config,
@@ -269,6 +272,7 @@ def _get_xcframework_library_from_paths(*, target_triplet, xcframework):
 def _get_xcframework_library_with_xcframework_processor(
         *,
         actions,
+        mac_exec_group,
         apple_fragment,
         apple_mac_toolchain_info,
         label,
@@ -285,6 +289,7 @@ def _get_xcframework_library_with_xcframework_processor(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         label: Label of the target being built.
+        mac_exec_group: The execution group for Mac tools.
         target_triplet: Struct referring a Clang target triplet.
         xcframework: Struct containing imported XCFramework details.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
@@ -399,6 +404,7 @@ def _get_xcframework_library_with_xcframework_processor(
         apple_fragment = apple_fragment,
         arguments = [args],
         env = shared_environment.default_env,
+        exec_group = mac_exec_group,
         executable = xcframework_processor_tool,
         inputs = inputs,
         mnemonic = "ProcessXCFrameworkFiles",
@@ -510,6 +516,7 @@ def _apple_dynamic_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         label = label,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         parse_xcframework_info_plist = (
             apple_xplat_toolchain_info.build_settings.parse_xcframework_info_plist
         ),
@@ -652,6 +659,7 @@ def _apple_static_xcframework_import_impl(ctx):
         apple_fragment = apple_fragment,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         label = label,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         parse_xcframework_info_plist = (
             apple_xplat_toolchain_info.build_settings.parse_xcframework_info_plist
         ),

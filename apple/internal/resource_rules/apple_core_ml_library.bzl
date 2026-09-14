@@ -107,6 +107,7 @@ def _apple_core_ml_library_impl(ctx):
         input_file = ctx.file.mlmodel,
         swift_output_src = swift_output_src,
         objc_output_src = objc_output_src,
+        mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         objc_output_hdr = objc_output_hdr,
         platform_prerequisites = platform_prerequisites,
         xctoolrunner = apple_mac_toolchain_info.xctoolrunner,

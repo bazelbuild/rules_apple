@@ -79,6 +79,7 @@ def _environment_plist_impl(ctx):
             "--output",
             ctx.outputs.plist.path,
         ],
+        exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         executable = environment_plist_tool,
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
