@@ -81,7 +81,9 @@ def _ios_xctestrun_runner_impl(ctx):
     xcode_properties_attr = getattr(apple_common, "XcodeProperties", None) or XcodeVersionPropertiesInfo
     sdk_version = ctx.attr._xcode_config[xcode_properties_attr].default_ios_sdk_version
     os_version = str(ctx.attr.os_version or _ios_simulator_version(ctx) or "")
-    device_type = ctx.attr.device_type or _ios_simulator_device(ctx) or ""
+
+    # TODO: Ideally we would be smarter about picking a device, but we don't know what the current version of Xcode supports
+    device_type = ctx.attr.device_type or _ios_simulator_device(ctx) or "iPhone 15"
 
     runfiles = ctx.runfiles(files = [
         ctx.file._xctestrun_template,
