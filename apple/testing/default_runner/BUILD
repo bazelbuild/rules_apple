@@ -34,6 +34,7 @@ bzl_library(
     visibility = ["//apple:__pkg__"],
     deps = [
         "//apple:providers",
+        "//apple/internal:apple_toolchains",
         "@bazel_skylib//rules:common_settings",
     ],
 )
@@ -44,6 +45,7 @@ bzl_library(
     visibility = ["//apple:__pkg__"],
     deps = [
         "//apple:providers",
+        "//apple/internal:apple_toolchains",
         "@apple_support//xcode:providers",
         "@bazel_skylib//rules:common_settings",
     ],
