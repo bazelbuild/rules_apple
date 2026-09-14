@@ -11,6 +11,7 @@ py_binary(
     srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
+        "//test/ios_unit_test_execution_platforms:__pkg__",
     ],
     deps = [":bundletool_lib"],
 )

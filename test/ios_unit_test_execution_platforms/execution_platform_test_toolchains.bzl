@@ -24,6 +24,8 @@ load("@rules_cc//cc:cc_toolchain_config_lib.bzl", "tool_path")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 load("//apple/build_settings:build_settings.bzl", "build_settings_labels")
+
+# buildifier: disable=bzl-visibility
 load("//apple/internal:apple_toolchains.bzl", "AppleXPlatToolsToolchainInfo")
 
 def _local_xplat_toolchain_impl(ctx):
