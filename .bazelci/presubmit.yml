@@ -49,7 +49,7 @@ tasks:
   doc_tests:
     name: "Doc tests"
     bazel: 9.x # TODO: use last_green when we fix issues
-    platform: ubuntu2004
+    platform: ubuntu2404
     test_targets:
     - "doc/..."
 
