@@ -1,6 +1,8 @@
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("//apple:ios.bzl", "ios_unit_test")
+
+# buildifier: disable=bzl-visibility
 load("//apple/internal:execution_platform_test_toolchains.bzl", "local_xplat_toolchain", "unused_linux_cc_config")
 
 local_xplat_toolchain(name = "local_xplat_tools")
