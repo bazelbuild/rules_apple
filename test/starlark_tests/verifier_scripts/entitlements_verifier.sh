@@ -19,11 +19,10 @@ set -euo pipefail
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
 TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
 
-# This key comes from the
-# third_party/bazel_rules/rules_apple/test/starlark_tests/resources/entitlements.plist
-# file. Targets under test need to specify this file in the `entitlements`
-# attribute.
-TEST_ENTITLEMENT_KEY="test-an-entitlement"
+# If ENTITLEMENT_KEYS or ENTITLEMENTS_KEY was provided via the test's `env`
+# attribute, check those keys. Otherwise fall back to the default entitlement key
+# from third_party/bazel_rules/rules_apple/test/starlark_tests/resources/entitlements.plist.
+ENTITLEMENT_KEYS=("${ENTITLEMENT_KEYS[@]:-${ENTITLEMENTS_KEY[@]:-${TEST_ENTITLEMENT_KEY:-test-an-entitlement}}}")
 
 if [[ "$BUILD_TYPE" == "simulator" ]]; then
   # First check the legacy xml plist section.
@@ -31,25 +30,33 @@ if [[ "$BUILD_TYPE" == "simulator" ]]; then
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
 
-  assert_contains "<key>$TEST_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+  for key in "${ENTITLEMENT_KEYS[@]}"; do
+    assert_contains "<key>$key</key>" "$TEMP_OUTPUT"
+  done
 
   # Then check the new DER encoded section.
   xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
       -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
 
-  assert_contains "$TEST_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
+  for key in "${ENTITLEMENT_KEYS[@]}"; do
+    assert_contains "$key" "$TEMP_DER_OUTPUT"
+  done
 
 elif [[ "$BUILD_TYPE" == "device" ]]; then
   # First check the legacy xml plist section.
   codesign --display --xml --entitlements "$TEMP_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "<key>$TEST_ENTITLEMENT_KEY</key>" "$TEMP_OUTPUT"
+  for key in "${ENTITLEMENT_KEYS[@]}"; do
+    assert_contains "<key>$key</key>" "$TEMP_OUTPUT"
+  done
 
   # Then check the new DER encoded section.
   codesign --display --der --entitlements "$TEMP_DER_OUTPUT" "$BUNDLE_ROOT"
 
-  assert_contains "$TEST_ENTITLEMENT_KEY" "$TEMP_DER_OUTPUT"
+  for key in "${ENTITLEMENT_KEYS[@]}"; do
+    assert_contains "$key" "$TEMP_DER_OUTPUT"
+  done
 else
   fail "Unsupported BUILD_TYPE = $BUILD_TYPE for this test"
 fi

@@ -103,6 +103,29 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Tests that the required Xcode 26 entitlements are added when enhanced security features are
+    # assigned to a target.
+    apple_verification_test(
+        name = "{}_enhanced_security_features_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
+        },
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
+        },
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_imported_versioned_fmwk_codesign_test".format(name),
         build_type = "device",

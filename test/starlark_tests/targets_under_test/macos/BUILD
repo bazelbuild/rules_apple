@@ -1424,6 +1424,24 @@ macos_dylib(
     ],
 )
 
+macos_application(
+    name = "simple_enhanced_security_app",
+    bundle_id = "com.google.example",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
+    secure_features = [
+        "apple.enable_enhanced_security",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Tests for the `building_apple_bundle` build setting.
 
