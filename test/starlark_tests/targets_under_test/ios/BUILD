@@ -298,7 +298,7 @@ ios_application(
     ],
     linkopts = [
         "-order_file",
-        "$(location :app_additional_linker_input)",
+        "$(execpath :app_additional_linker_input)",
     ],
     minimum_os_version = common.min_os_ios.baseline,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
