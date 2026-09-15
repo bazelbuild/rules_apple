@@ -222,6 +222,8 @@ def macos_command_line_application_test_suite(name):
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_execute_header_lookup",
         compilation_mode = "opt",
+        # The verifier executes this binary, so support both Intel and Apple Silicon hosts.
+        cpus = {"macos_cpus": ["x86_64", "arm64"]},
         verifier_script = "verifier_scripts/execute_header_lookup_verifier.sh",
         tags = [name],
     )
