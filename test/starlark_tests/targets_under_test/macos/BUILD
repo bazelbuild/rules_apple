@@ -2721,6 +2721,19 @@ macos_command_line_application(
     ],
 )
 
+objc_library(
+    name = "execute_header_lookup_lib",
+    srcs = ["execute_header_lookup.c"],
+    tags = common.fixture_tags,
+)
+
+macos_command_line_application(
+    name = "cmd_app_execute_header_lookup",
+    minimum_os_version = common.min_os_macos.baseline,
+    tags = common.fixture_tags,
+    deps = [":execute_header_lookup_lib"],
+)
+
 macos_command_line_application(
     name = "cmd_app_info_plists",
     bundle_id = "com.google.example",

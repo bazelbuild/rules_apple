@@ -69,6 +69,16 @@ def macos_bundle_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    for target in ["bundle", "kext"]:
+        _action_macos_x86_64_test(
+            name = "{}_{}_default_exports_does_not_request_execute_header_test".format(name, target),
+            target_under_test = "//test/starlark_tests/targets_under_test/macos:" + target,
+            mnemonic = "ObjcLink",
+            expected_argv = ["-Wl,-no_exported_symbols"],
+            not_expected_argv = ["__mh_execute_header"],
+            tags = [name],
+        )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",

@@ -205,12 +205,24 @@ def macos_command_line_application_test_suite(name):
     )
 
     _action_macos_x86_64_test(
-        name = "{}_empty_exported_symbols_lists_uses_no_exported_symbols_test".format(name),
+        name = "{}_empty_exported_symbols_lists_preserves_execute_header_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         mnemonic = "ObjcLink",
         expected_argv = [
+            "-Wl,-exported_symbol,__mh_execute_header",
+        ],
+        not_expected_argv = [
             "-Wl,-no_exported_symbols",
         ],
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_execute_header_runtime_lookup_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_execute_header_lookup",
+        compilation_mode = "opt",
+        verifier_script = "verifier_scripts/execute_header_lookup_verifier.sh",
         tags = [name],
     )
 
@@ -223,6 +235,7 @@ def macos_command_line_application_test_suite(name):
         ],
         not_expected_argv = [
             "-Wl,-no_exported_symbols",
+            "__mh_execute_header",
         ],
         tags = [name],
     )

@@ -94,6 +94,7 @@ def macos_dylib_test_suite(name):
         ],
         not_expected_argv = [
             "-Wl,-no_exported_symbols",
+            "__mh_execute_header",
         ],
         tags = [name],
     )
