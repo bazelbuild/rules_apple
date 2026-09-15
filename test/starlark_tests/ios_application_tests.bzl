@@ -158,6 +158,16 @@ def ios_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    for suffix, target in [("application", "app_minimal"), ("extension", "ext")]:
+        action_command_line_test(
+            name = "{}_{}_default_exports_preserves_execute_header_test".format(name, suffix),
+            target_under_test = "//test/starlark_tests/targets_under_test/ios:" + target,
+            mnemonic = "ObjcLink",
+            expected_argv = ["-Wl,-exported_symbol,__mh_execute_header"],
+            not_expected_argv = ["-Wl,-no_exported_symbols"],
+            tags = [name],
+        )
+
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",

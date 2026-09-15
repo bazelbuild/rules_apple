@@ -512,7 +512,15 @@ def _register_binary_linking_action(
             )
             link_inputs.append(exported_symbols_list)
     elif not is_shared_library and not bundle_loader and not has_exported_symbol_linkopts:
-        linkopts.append("-Wl,-no_exported_symbols")
+        is_bundle = "-bundle" in extra_linkopts or (
+            rule_descriptor and rule_descriptor.product_type == apple_product_type.kernel_extension
+        )
+        if is_bundle:
+            linkopts.append("-Wl,-no_exported_symbols")
+        else:
+            # Crash reporters locate the main image through dlsym(MH_EXECUTE_SYM).
+            # Preserve that lookup without exporting the executable's other symbols.
+            linkopts.append("-Wl,-exported_symbol,__mh_execute_header")
 
     if entitlements:
         if platform_prerequisites and platform_prerequisites.platform.is_device and rule_descriptor and rule_descriptor.product_type != apple_product_type.kernel_extension:
