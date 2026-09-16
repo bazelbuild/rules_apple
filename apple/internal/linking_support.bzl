@@ -223,7 +223,7 @@ def _link_multi_arch_binary(
 
     cc_infos.extend(avoid_cc_infos)
 
-    # $(location...) is only used in one test, and tokenize only affects linkopts in one target
+    # expand_location is only exercised by one test, and tokenize only affects linkopts in one target
     additional_linker_inputs = getattr(ctx.attr, "additional_linker_inputs", [])
     attr_linkopts = [
         ctx.expand_location(opt, targets = additional_linker_inputs)
