@@ -17,6 +17,7 @@
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -44,6 +45,12 @@ load(
 )
 
 visibility("private")
+
+analysis_failure_message_with_device_platform_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:platforms": "//buildenv/platforms/apple:ios_arm64",
+    },
+)
 
 def ios_unit_test_test_suite(name):
     """Test suite for ios_unit_test.
@@ -286,6 +293,27 @@ def ios_unit_test_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    analysis_failure_message_with_device_platform_test(
+        name = "{}_apple_runfiles_data_fails_on_device_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_runfiles_data",
+        expected_error = "apple_runfiles_data is only supported on simulators and macOS because runfiles reside on the host machine filesystem (TEST_SRCDIR) and cannot be accessed from an isolated physical device.",
+        tags = [name],
+    )
+
+    analysis_failure_message_with_device_platform_test(
+        name = "{}_apple_runfiles_data_in_test_host_fails_on_device_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_test_host_runfiles_data",
+        expected_error = "via //test/starlark_tests/targets_under_test/ios:app_with_runfiles_data",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_apple_runfiles_data_in_resource_rule_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_resource_group_with_runfiles",
+        expected_error = "apple_runfiles_data targets cannot be included in Apple resource rules because runfiles reside on the host filesystem (TEST_SRCDIR) and are not bundled into Apple packages.",
         tags = [name],
     )
 

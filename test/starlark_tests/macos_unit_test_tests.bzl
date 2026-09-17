@@ -149,6 +149,26 @@ def macos_unit_test_test_suite(name):
         ],
     )
 
+    analysis_runfiles_test(
+        name = "{}_library_deps_runfiles_included".format(name),
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_library_deps_runfiles",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile1.txt",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile2.txt",
+        ],
+    )
+
+    analysis_runfiles_test(
+        name = "{}_test_host_runfiles_included".format(name),
+        tags = [name],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_test_host_runfiles",
+        expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile1.txt",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/macos/runfile2.txt",
+        ],
+    )
+
     infoplist_contents_test(
         name = "{}_base_bundle_id_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test_with_base_bundle_id_derived_bundle_id",

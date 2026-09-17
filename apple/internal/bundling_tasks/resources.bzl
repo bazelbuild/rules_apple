@@ -43,6 +43,11 @@ load(
     "outputs",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleRunfilesInfo",
+    "new_applerunfilesinfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
@@ -323,6 +328,7 @@ def _resources_bundling_task_impl(
         output_discriminator,
         platform_prerequisites,
         primary_icon_name,
+        propagate_runfiles = True,
         resource_deps,
         resource_locales,
         resource_providers_to_avoid,
@@ -337,6 +343,18 @@ def _resources_bundling_task_impl(
         xplat_exec_group):
     """Implementation for the resource processing bundling task."""
     providers = []
+    runfiles_provider = None
+
+    if propagate_runfiles:
+        runfiles_list = [
+            x[AppleRunfilesInfo].runfiles
+            for x in (resource_deps or []) + (targets_to_avoid or [])
+            if AppleRunfilesInfo in x
+        ]
+        if runfiles_list:
+            runfiles_provider = new_applerunfilesinfo(
+                runfiles = runfiles_list[0].merge_all(runfiles_list[1:]),
+            )
 
     if resource_deps:
         providers.extend([
@@ -366,6 +384,8 @@ def _resources_bundling_task_impl(
         # Most rules will always have at least one resource since they have a mandatory infoplists
         # attribute, but not ios_static_framework. This rule can be perfectly valid without any
         # resource.
+        if runfiles_provider:
+            return struct(providers = [runfiles_provider])
         return struct()
 
     final_provider = resources.merge_providers(
@@ -621,10 +641,14 @@ with dependencies where applicable. Please add a bundle ID to your target defini
             ),
         )
 
+    returned_providers = [final_provider]
+    if runfiles_provider:
+        returned_providers.append(runfiles_provider)
+
     return struct(
         bundle_files = bundle_files,
         bundle_zips = bundle_zips,
-        providers = [final_provider],
+        providers = returned_providers,
         output_groups = {"_validation": depset(all_validation_outputs)},
     )
 
@@ -647,6 +671,7 @@ def resources_bundling_task(
         output_discriminator = None,
         platform_prerequisites,
         primary_icon_name = None,
+        propagate_runfiles = True,
         resource_deps,
         resource_locales,
         resource_providers_to_avoid = [],
@@ -698,6 +723,7 @@ def resources_bundling_task(
         platform_prerequisites: Struct containing information on the platform being targeted.
         primary_icon_name: An optional String to identify the name of the primary app icon when
             alternate app icons have been provided for the app.
+        propagate_runfiles: Bool. Whether to propagate AppleRunfilesInfo from dependencies.
         resource_deps: A list of dependencies that the resource aspect has been applied to.
         resource_locales: An allow list of locales to be included in the bundle.
         resource_providers_to_avoid: List of AppleResourceInfo providers containing resources that
@@ -740,6 +766,7 @@ def resources_bundling_task(
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
+        propagate_runfiles = propagate_runfiles,
         resource_deps = resource_deps,
         resource_locales = resource_locales,
         resource_providers_to_avoid = resource_providers_to_avoid,

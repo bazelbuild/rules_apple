@@ -55,8 +55,10 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleExecutableBinaryInfo",
+    "AppleRunfilesInfo",
     "AppleTestInfo",
     "new_appleextraoutputsinfo",
+    "new_applerunfilesinfo",
     "new_appletestinfo",
 )
 load(
@@ -522,6 +524,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            propagate_runfiles = False,
             resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
             rule_descriptor = rule_descriptor,
@@ -614,6 +617,38 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     test_host_archive = None
     if test_host:
         test_host_archive = test_host[AppleBundleInfo].archive
+
+    apple_runfiles_deps = []
+    for dep in ctx.attr.deps + getattr(ctx.attr, "frameworks", []):
+        if AppleRunfilesInfo in dep and dep not in apple_runfiles_deps:
+            apple_runfiles_deps.append(dep)
+
+    if test_host and AppleRunfilesInfo in test_host and test_host not in apple_runfiles_deps:
+        apple_runfiles_deps.append(test_host)
+
+    if (
+        platform_prerequisites.platform_type != "macos" and
+        platform_prerequisites.platform.is_device and
+        apple_runfiles_deps
+    ):
+        fail(
+            (
+                "Test target '{label}' depends on apple_runfiles_data (via {deps}), " +
+                "but is being built for a physical device platform ({platform}). " +
+                "apple_runfiles_data is only supported on simulators and macOS because " +
+                "runfiles reside on the host machine filesystem (TEST_SRCDIR) and cannot " +
+                "be accessed from an isolated physical device."
+            ).format(
+                deps = ", ".join([str(dep.label) for dep in apple_runfiles_deps]),
+                label = label,
+                platform = platform_prerequisites.platform.name_in_plist,
+            ),
+        )
+
+    apple_runfiles = ctx.runfiles(
+        transitive_files = dsyms,
+    ).merge_all([dep[AppleRunfilesInfo].runfiles for dep in apple_runfiles_deps])
+
     providers.extend([
         _apple_test_info_provider(
             deps = ctx.attr.deps,
@@ -627,9 +662,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         new_appleextraoutputsinfo(files = depset(filtered_outputs)),
         DefaultInfo(
             files = output_files,
-            runfiles = ctx.runfiles(
-                transitive_files = dsyms,
-            ),
+            runfiles = apple_runfiles,
+        ),
+        new_applerunfilesinfo(
+            runfiles = apple_runfiles,
         ),
         OutputGroupInfo(
             **outputs.merge_output_groups(

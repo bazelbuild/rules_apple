@@ -34,6 +34,7 @@ load(
 load(
     "//apple:resources.bzl",
     "apple_resource_group",
+    "apple_runfiles_data",
 )
 load(
     "//apple:versioning.bzl",
@@ -5953,4 +5954,82 @@ ios_extension(
     deps = [
         "//test/starlark_tests/resources:hinted_enhanced_security_extension",
     ],
+)
+
+# ---------------------------------------------------------------------------------------
+
+apple_runfiles_data(
+    name = "runfiles1",
+    srcs = ["//test/starlark_tests/resources:example_filegroup"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_runfiles_data",
+    data = [":runfiles1"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_runfiles_data",
+    families = ["iphone"],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_runfiles_data"],
+)
+
+ios_application(
+    name = "app_with_runfiles_data",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_runfiles_data",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_test_host_runfiles_data",
+    families = ["iphone"],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_runfiles_data",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+apple_resource_group(
+    name = "resource_group_with_runfiles",
+    resources = [":runfiles1"],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_resource_group_with_runfiles",
+    data = [":resource_group_with_runfiles"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_resource_group_with_runfiles",
+    families = ["iphone"],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_resource_group_with_runfiles"],
 )

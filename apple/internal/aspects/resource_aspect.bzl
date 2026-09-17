@@ -34,8 +34,10 @@ load(
     "AppleResourceExplicitFilesInfo",
     "AppleResourceGroupInfo",
     "AppleResourceInfo",
+    "AppleRunfilesInfo",
     "new_appledsymbundleinfo",
     "new_applelinkmapinfo",
+    "new_applerunfilesinfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
@@ -128,8 +130,8 @@ def _platform_prerequisites_for_aspect(target, aspect_ctx):
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
-    # If the target already propagates a AppleResourceInfo, do nothing.
-    if AppleResourceInfo in target:
+    # If the target already propagates an AppleResourceInfo or AppleRunfilesInfo, do nothing.
+    if AppleResourceInfo in target or AppleRunfilesInfo in target:
         return []
 
     apple_resource_infos = []
@@ -336,10 +338,16 @@ def _apple_resource_aspect_impl(target, ctx):
             )
 
     # Get the providers from dependencies, referenced by deps and locations for resources.
+    is_resource_rule = (
+        AppleResourceBundleInfo in target or
+        AppleResourceGroupInfo in target or
+        AppleBundleImportInfo in target
+    )
     apple_resource_validation_infos = []
     apple_linkmap_infos = []
     apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
+    apple_runfiles_infos = []
     for attr in provider_deps:
         if hasattr(ctx.rule.attr, attr):
             targets = getattr(ctx.rule.attr, attr)
@@ -365,22 +373,27 @@ def _apple_resource_aspect_impl(target, ctx):
                         )
 
                     if AppIntentsBundleInfo in target:
-                        fail("""
-An App Intents metadata bundle was found in the following framework that is not directly loaded by \
-an app/extension:
-
-- {framework_target}
-
-This was loaded by the following library target:
-
-- {loading_target}
-
-App Intents are not supported within frameworks that aren't directly loaded by an app/extension.
-                        """.format(
-                            loading_target = str(ctx.label),
-                            framework_target = str(target.label),
+                        fail("An App Intents metadata bundle was found in the following " +
+                             "framework that is not directly loaded by an app/extension:\n\n" +
+                             "- {framework_target}\n\n" +
+                             "This was loaded by the following library target:\n\n" +
+                             "- {loading_target}\n\n" +
+                             "App Intents are not supported within frameworks that aren't " +
+                             "directly loaded by an app/extension.".format(
+                                 loading_target = str(ctx.label),
+                                 framework_target = str(target.label),
+                             ))
+                    if AppleRunfilesInfo in target:
+                        fail((
+                            "Target '{parent}' of kind '{kind}' includes '{dep}', which " +
+                            "provides AppleRunfilesInfo. apple_runfiles_data targets are not " +
+                            "supported within frameworks that aren't directly loaded by a " +
+                            "test or app target."
+                        ).format(
+                            dep = str(target.label),
+                            kind = ctx.rule.kind,
+                            parent = str(ctx.label),
                         ))
-
                 if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
                     # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to
                     # avoid propagating resources that should not be extended beyond the framework.
@@ -397,6 +410,22 @@ App Intents are not supported within frameworks that aren't directly loaded by a
 
                 if AppleResourceValidationInfo in target:
                     apple_resource_validation_infos.append(target[AppleResourceValidationInfo])
+
+                if AppleRunfilesInfo in target:
+                    if is_resource_rule:
+                        fail((
+                            "Target '{parent}' of kind '{kind}' includes '{dep}', which " +
+                            "provides AppleRunfilesInfo. apple_runfiles_data targets cannot " +
+                            "be included in Apple resource rules because runfiles reside on " +
+                            "the host filesystem (TEST_SRCDIR) and are not bundled into Apple " +
+                            "packages. Pass apple_runfiles_data targets via the 'data' attribute " +
+                            "of an objc_library or swift_library instead."
+                        ).format(
+                            dep = str(target.label),
+                            kind = ctx.rule.kind,
+                            parent = str(ctx.label),
+                        ))
+                    apple_runfiles_infos.append(target[AppleRunfilesInfo])
 
     if inherited_apple_resource_infos and bundle_name:
         # Nest the inherited resource providers within the bundle, if one is needed for this rule.
@@ -451,6 +480,13 @@ App Intents are not supported within frameworks that aren't directly loaded by a
                 transitive_dsyms = depset(
                     transitive = [x.transitive_dsyms for x in apple_dsym_bundle_infos],
                 ),
+            ),
+        )
+
+    if apple_runfiles_infos:
+        providers.append(
+            new_applerunfilesinfo(
+                runfiles = ctx.runfiles().merge_all([x.runfiles for x in apple_runfiles_infos]),
             ),
         )
 

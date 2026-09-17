@@ -29,6 +29,7 @@ load(
 load(
     "//apple:resources.bzl",
     "apple_resource_group",
+    "apple_runfiles_data",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -1194,24 +1195,58 @@ macos_unit_test(
     tags = common.fixture_tags,
 )
 
-filegroup(
-    name = "runfiles1",
-    # NOTE: we specify `data` instead of `srcs` because `data` puts the files
-    # into runfiles, while `srcs` puts them into the default outputs.
-    data = [
-        "runfile1.txt",
-        # Add a second-order dependency to check that the transitive runfiles
-        # are being added.
-        ":runfiles2",
-    ],
+objc_library(
+    name = "objc_lib_with_data_deps",
+    data = [":runfiles1"],
     tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
 )
 
-filegroup(
+macos_unit_test(
+    name = "unit_test_library_deps_runfiles",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    deps = [":objc_lib_with_data_deps"],
+)
+
+macos_application(
+    name = "app_with_runfiles_data",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_data_deps",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_unit_test(
+    name = "unit_test_test_host_runfiles",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_runfiles_data",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+apple_runfiles_data(
+    name = "runfiles1",
+    srcs = ["runfile1.txt"],
+    tags = common.fixture_tags,
+    deps = [":runfiles2"],
+)
+
+apple_runfiles_data(
     name = "runfiles2",
-    # NOTE: we specify `data` instead of `srcs` because `data` puts the files
-    # into runfiles, while `srcs` puts them into the default outputs.
-    data = ["runfile2.txt"],
+    srcs = ["runfile2.txt"],
     tags = common.fixture_tags,
 )
 

@@ -961,3 +961,13 @@ is a watchOS .xctest bundle should use this provider to describe that requiremen
     fields = {},
     init = make_banned_init(provider_name = "WatchosXcTestBundleInfo"),
 )
+
+AppleRunfilesInfo, new_applerunfilesinfo = provider(
+    doc = """
+Provider used to propagate runfiles that should be included in an Apple test bundle's runfiles.
+""",
+    fields = {
+        "runfiles": "A runfiles object containing files to be included in test runfiles.",
+    },
+    init = make_banned_init(provider_name = "AppleRunfilesInfo"),
+)

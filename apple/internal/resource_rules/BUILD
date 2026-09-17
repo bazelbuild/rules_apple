@@ -53,6 +53,17 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "apple_runfiles_data",
+    srcs = ["apple_runfiles_data.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",

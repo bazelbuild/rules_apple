@@ -337,6 +337,7 @@ def _apple_test_rule_impl(
     transitive_runfile_objects = [
         runner_attr[DefaultInfo].default_runfiles,
         runner_attr[DefaultInfo].data_runfiles,
+        test_bundle_target[DefaultInfo].default_runfiles,
     ]
 
     # Add required data into the runfiles to make it available during test

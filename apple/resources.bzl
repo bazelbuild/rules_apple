@@ -31,6 +31,10 @@ load(
     _apple_locale_from_unicode_locale = "apple_locale_from_unicode_locale",
     _apple_resource_locales = "apple_resource_locales",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/resource_rules:apple_runfiles_data.bzl",
+    _apple_runfiles_data = "apple_runfiles_data",
+)
 
 visibility("public")
 
@@ -39,3 +43,4 @@ apple_locale_from_unicode_locale = _apple_locale_from_unicode_locale
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
 apple_resource_locales = _apple_resource_locales
+apple_runfiles_data = _apple_runfiles_data
