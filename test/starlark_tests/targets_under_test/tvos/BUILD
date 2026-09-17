@@ -637,10 +637,6 @@ tvos_framework(
     ],
     bundle_id = "com.google.example.framework",
     extension_safe = True,
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-        "//test/starlark_tests/resources:Another.plist",
-    ],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -1353,9 +1349,6 @@ tvos_dynamic_framework(
     name = "basic_framework",
     bundle_id = "com.google.example.framework",
     bundle_name = "BasicFramework",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_tvos.baseline,
     tags = common.fixture_tags,
     deps = [

@@ -2577,7 +2577,9 @@ macos_bundle = rule_factory.create_apple_rule(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
             is_mandatory = False,
         ),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.bundle_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
@@ -3733,7 +3735,9 @@ of those `macos_application` and/or `macos_extension` rules.""",
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
         ),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.bundle_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
@@ -3796,7 +3800,9 @@ macos_dynamic_framework = rule_factory.create_apple_rule(
         rule_attrs.device_family_attrs(
             allowed_families = rule_attrs.defaults.allowed_families.macos,
         ),
-        rule_attrs.infoplist_attrs(),
+        rule_attrs.infoplist_attrs(
+            default_infoplist = rule_attrs.defaults.bundle_infoplist,
+        ),
         rule_attrs.ipa_post_processor_attrs(),
         rule_attrs.platform_attrs(
             add_environment_plist = True,
