@@ -84,6 +84,10 @@ Targets whose runfiles should be transitively included in this target's runfiles
     },
     doc =
         """
-Exposes files and transitive dependencies as runfiles accessible via `TEST_SRCDIR`.
+Exposes files and transitive dependencies as runfiles for Apple tests.
+
+On simulators and macOS, files are exposed via standard runfiles (accessible via
+`TEST_SRCDIR`). On physical devices, files are automatically bundled into the test
+bundle under `runfiles/<workspace_name>/...`.
 """,
 )

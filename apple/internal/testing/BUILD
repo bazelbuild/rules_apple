@@ -38,6 +38,7 @@ bzl_library(
         "//apple/internal:swift_support",
         "//apple/internal/toolchains:apple_toolchains",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:types",
         "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",

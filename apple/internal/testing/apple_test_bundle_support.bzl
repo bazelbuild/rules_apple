@@ -15,6 +15,10 @@
 """Helper methods for implementing the test bundles."""
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
@@ -117,6 +121,23 @@ def _collect_files(rule_attr, attr_names):
         transitive_files.extend([f.files for f in attr_val_as_list])
 
     return depset(transitive = transitive_files)
+
+def _runfiles_parent_dir(ctx, resource):
+    """Calculates the bundle parent directory for an apple_runfiles_data file on physical devices."""
+    if resource.short_path.startswith("../"):
+        rel_path = resource.short_path[3:]
+        dirname = paths.dirname(rel_path)
+        if dirname:
+            return paths.join("runfiles", dirname)
+        return "runfiles"
+
+    workspace_name = (
+        resource.owner.workspace_name if (resource.owner and resource.owner.workspace_name) else ctx.workspace_name
+    )
+    dirname = paths.dirname(resource.short_path)
+    if dirname:
+        return paths.join("runfiles", workspace_name, dirname)
+    return paths.join("runfiles", workspace_name)
 
 def _is_swift_target(target):
     """Returns whether a target directly exports a Swift module."""
@@ -443,6 +464,37 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     if bundle_loader:
         targets_to_avoid.append(bundle_loader)
 
+    apple_runfiles_deps = []
+    for dep in ctx.attr.deps + getattr(ctx.attr, "frameworks", []):
+        if AppleRunfilesInfo in dep and dep not in apple_runfiles_deps:
+            apple_runfiles_deps.append(dep)
+
+    if test_host and AppleRunfilesInfo in test_host and test_host not in apple_runfiles_deps:
+        apple_runfiles_deps.append(test_host)
+
+    extra_resource_providers = []
+    if (
+        platform_prerequisites.platform_type != "macos" and
+        platform_prerequisites.platform.is_device and
+        apple_runfiles_deps
+    ):
+        runfiles_files = depset(
+            transitive = [dep[AppleRunfilesInfo].runfiles.files for dep in apple_runfiles_deps],
+        ).to_list()
+        if runfiles_files:
+            extra_resource_providers.append(
+                resources.bucketize_typed(
+                    bucket_type = "unprocessed",
+                    expect_files = True,
+                    owner = str(label),
+                    parent_dir_param = lambda *args, **kwargs: _runfiles_parent_dir(
+                        ctx,
+                        kwargs.get("resource") if "resource" in kwargs else args[0],
+                    ),
+                    resources = runfiles_files,
+                ),
+            )
+
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
@@ -522,6 +574,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
+            extra_resource_providers = extra_resource_providers,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             propagate_runfiles = False,
@@ -617,33 +670,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     test_host_archive = None
     if test_host:
         test_host_archive = test_host[AppleBundleInfo].archive
-
-    apple_runfiles_deps = []
-    for dep in ctx.attr.deps + getattr(ctx.attr, "frameworks", []):
-        if AppleRunfilesInfo in dep and dep not in apple_runfiles_deps:
-            apple_runfiles_deps.append(dep)
-
-    if test_host and AppleRunfilesInfo in test_host and test_host not in apple_runfiles_deps:
-        apple_runfiles_deps.append(test_host)
-
-    if (
-        platform_prerequisites.platform_type != "macos" and
-        platform_prerequisites.platform.is_device and
-        apple_runfiles_deps
-    ):
-        fail(
-            (
-                "Test target '{label}' depends on apple_runfiles_data (via {deps}), " +
-                "but is being built for a physical device platform ({platform}). " +
-                "apple_runfiles_data is only supported on simulators and macOS because " +
-                "runfiles reside on the host machine filesystem (TEST_SRCDIR) and cannot " +
-                "be accessed from an isolated physical device."
-            ).format(
-                deps = ", ".join([str(dep.label) for dep in apple_runfiles_deps]),
-                label = label,
-                platform = platform_prerequisites.platform.name_in_plist,
-            ),
-        )
 
     apple_runfiles = ctx.runfiles(
         transitive_files = dsyms,

@@ -296,20 +296,6 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
-    analysis_failure_message_with_device_platform_test(
-        name = "{}_apple_runfiles_data_fails_on_device_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_runfiles_data",
-        expected_error = "apple_runfiles_data is only supported on simulators and macOS because runfiles reside on the host machine filesystem (TEST_SRCDIR) and cannot be accessed from an isolated physical device.",
-        tags = [name],
-    )
-
-    analysis_failure_message_with_device_platform_test(
-        name = "{}_apple_runfiles_data_in_test_host_fails_on_device_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_test_host_runfiles_data",
-        expected_error = "via //test/starlark_tests/targets_under_test/ios:app_with_runfiles_data",
-        tags = [name],
-    )
-
     analysis_failure_message_test(
         name = "{}_apple_runfiles_data_in_resource_rule_fails_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_resource_group_with_runfiles",
