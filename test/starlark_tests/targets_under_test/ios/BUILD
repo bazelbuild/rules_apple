@@ -1676,7 +1676,7 @@ ios_application(
     ],
     linkopts = [
         "-exported_symbols_list",
-        "$(location //test/starlark_tests/resources:ExportAnotherFunctionMain.exp)",
+        "$(execpath //test/starlark_tests/resources:ExportAnotherFunctionMain.exp)",
         "-dead_strip",
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
