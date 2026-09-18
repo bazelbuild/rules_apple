@@ -119,7 +119,9 @@ def order_file_test_suite(*, name):
             "FIRST_SYMBOL": ["dyld_stub_binder"],
             "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
         },
-        tags = [name],
+        tags = [
+            name,
+        ],
         timeout = "short",
     )
 
@@ -133,7 +135,9 @@ def order_file_test_suite(*, name):
             "FIRST_SYMBOL": ["dyld_stub_binder"],
             "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_dontCallMeMain", "_anotherFunctionMain", "_main"],
         },
-        tags = [name],
+        tags = [
+            name,
+        ],
         timeout = "short",
     )
 
@@ -147,7 +151,9 @@ def order_file_test_suite(*, name):
             "FIRST_SYMBOL": ["dyld_stub_binder"],
             "ORDERED_SYMBOLS": ["dyld_stub_binder", "__mh_execute_header", "_main", "_dontCallMeMain", "_anotherFunctionMain"],
         },
-        tags = [name],
+        tags = [
+            name,
+        ],
         timeout = "short",
         compilation_mode = "opt",
     )
