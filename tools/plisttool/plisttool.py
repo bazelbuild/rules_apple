@@ -382,6 +382,9 @@ _CONTROL_KEYS = frozenset([
     'raw_substitutions',
     'skip_substitutions',
     'target',
+    # Unused by plisttool.py; reserved for plisttool_wrapper to select between
+    # Swift and Python implementations.
+    'use_swift_plisttool',
     'variable_substitutions',
 ])
 
@@ -390,6 +393,7 @@ _INDIVIDUAL_PLIST_SUPPORTED_KEYS = frozenset([
     'individual_plist',
     'output',
     'target',
+    'use_swift_plisttool',
 ])
 
 # All valid keys in the info_plist_options control structure.

@@ -185,6 +185,50 @@ class PlistToolMainTest(unittest.TestCase):
           container=fp.read(),
       )
 
+  def test_main_invocation_ignores_use_swift_plisttool_key(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(plist_fp.name))
+    with plist_fp:
+      plist = _xml_plist('<key>Foo</key><string>abc</string>')
+      plist_fp.write(plist.getvalue())
+
+    outfile = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(outfile.name))
+    outfile.close()
+    control = {
+        'plists': [plist_fp.name],
+        'target': '//test:target',
+        'output': outfile.name,
+        'use_swift_plisttool': True,
+    }
+    json_string = json.dumps(control)
+
+    self.assertFalse(
+        plisttool._main(json_string), 'plisttool did not successfully run'
+    )
+
+  def test_individual_plist_ignores_use_swift_plisttool_key(self):
+    plist_fp = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(plist_fp.name))
+    with plist_fp:
+      plist = _xml_plist('<key>Foo</key><string>abc</string>')
+      plist_fp.write(plist.getvalue())
+
+    outfile = tempfile.NamedTemporaryFile(delete=False)
+    self.addCleanup(lambda: os.unlink(outfile.name))
+    outfile.close()
+    control = {
+        'individual_plist': plist_fp.name,
+        'target': '//test:target',
+        'output': outfile.name,
+        'use_swift_plisttool': False,
+    }
+    json_string = json.dumps(control)
+
+    self.assertFalse(
+        plisttool._main(json_string), 'plisttool did not successfully run'
+    )
+
 
 class PlistToolVariableReferenceTest(unittest.TestCase):
 
