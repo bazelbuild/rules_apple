@@ -15,15 +15,6 @@
 """Implementation of the resource propagation aspect."""
 
 load(
-    "@build_bazel_apple_support//lib:apple_support.bzl",
-    "apple_support",
-)
-load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
-load(
-    "@build_bazel_rules_apple//apple/internal:platform_support.bzl",
-    "platform_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleImportInfo",
     "AppleBundleInfo",
@@ -44,20 +35,12 @@ load(
     "resources",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
-    "swift_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsBundleInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
     "AppleResourceValidationInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
-    "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -113,20 +96,6 @@ def _propagation_attrs(ctx):
     # Always support data and cc_library derived deps-like attributes for resource propagation.
     return _RESOURCE_ASPECT_BASE_ATTRS
 
-def _platform_prerequisites_for_aspect(target, aspect_ctx):
-    """Return the set of platform prerequisites that can be determined from this aspect."""
-    cpp_fragment = aspect_ctx.fragments.cpp
-    deps_and_target = getattr(aspect_ctx.rule.attr, "deps", []) + [target]
-    uses_swift = swift_support.uses_swift(deps_and_target)
-
-    return platform_support.platform_prerequisites(
-        apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(aspect_ctx),
-        config_vars = aspect_ctx.var,
-        explicit_minimum_os = cpp_fragment.minimum_os_version(),
-        uses_swift = uses_swift,
-        xcode_version_config = aspect_ctx.attr._xcode_config[XcodeVersionInfo],
-    )
-
 def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
@@ -136,17 +105,6 @@ def _apple_resource_aspect_impl(target, ctx):
 
     apple_resource_infos = []
     bucketize_args = {}
-
-    process_args = {
-        "actions": ctx.actions,
-        "apple_mac_toolchain_info": apple_toolchain_utils.get_mac_toolchain(ctx),
-        "apple_xplat_toolchain_info": apple_toolchain_utils.get_xplat_toolchain(ctx),
-        "bundle_id": None,
-        "mac_exec_group": apple_toolchain_utils.get_mac_exec_group(),
-        "product_type": None,
-        "rule_label": ctx.label,
-        "xplat_exec_group": apple_toolchain_utils.get_xplat_exec_group(),
-    }
 
     collect_infoplists_args = dict()
     collect_args = dict()
@@ -216,20 +174,12 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_infoplists_args
         )
         if infoplists:
-            bucketized_owners, unowned_resources, buckets = resources.bucketize_typed_data(
-                bucket_type = "infoplists",
-                owner = owner,
-                parent_dir_param = bundle_name,
-                resources = infoplists,
-            )
             apple_resource_infos.append(
-                resources.process_bucketized_data(
-                    bucketized_owners = bucketized_owners,
-                    buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
-                    processing_owner = owner,
-                    unowned_resources = unowned_resources,
-                    **process_args
+                resources.bucketize_typed(
+                    bucket_type = "infoplists",
+                    owner = owner,
+                    parent_dir_param = bundle_name,
+                    resources = infoplists,
                 ),
             )
 
@@ -240,20 +190,12 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_args
         )
         if resource_files:
-            bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
-                owner = owner,
-                parent_dir_param = bundle_name,
-                resources = resource_files,
-                **bucketize_args
-            )
             apple_resource_infos.append(
-                resources.process_bucketized_data(
-                    bucketized_owners = bucketized_owners,
-                    buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
-                    processing_owner = owner,
-                    unowned_resources = unowned_resources,
-                    **process_args
+                resources.bucketize(
+                    owner = owner,
+                    parent_dir_param = bundle_name,
+                    resources = resource_files,
+                    **bucketize_args
                 ),
             )
 
@@ -296,21 +238,13 @@ def _apple_resource_aspect_impl(target, ctx):
 
             # Avoid processing PNG files that are referenced through the structured_resources
             # attribute. This is mostly for legacy reasons and should get cleaned up in the future.
-            bucketized_owners, unowned_resources, buckets = resources.bucketize_data(
-                allowed_buckets = ["strings", "plists"],
-                owner = owner,
-                parent_dir_param = structured_parent_dir_param,
-                resources = structured_files,
-                **bucketize_args
-            )
             apple_resource_infos.append(
-                resources.process_bucketized_data(
-                    bucketized_owners = bucketized_owners,
-                    buckets = buckets,
-                    platform_prerequisites = _platform_prerequisites_for_aspect(target, ctx),
-                    processing_owner = owner,
-                    unowned_resources = unowned_resources,
-                    **process_args
+                resources.bucketize(
+                    allowed_buckets = ["strings", "plists"],
+                    owner = owner,
+                    parent_dir_param = structured_parent_dir_param,
+                    resources = structured_files,
+                    **bucketize_args
                 ),
             )
 
@@ -495,10 +429,6 @@ def _apple_resource_aspect_impl(target, ctx):
 apple_resource_aspect = aspect(
     implementation = _apple_resource_aspect_impl,
     attr_aspects = _propagation_attrs,
-    attrs = apple_support.action_required_attrs() |
-            apple_support.platform_constraint_attrs(),
-    exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
-    fragments = ["cpp"],
     doc = """
 Aspect that collects and propagates transitive `AppleResourceInfo` providers to allow for resources
 to be bundled by a top-level Apple bundling rule.

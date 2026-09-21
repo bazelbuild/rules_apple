@@ -77,10 +77,6 @@ load(
     "new_appleresourceinfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/bundling_tasks/support:resources_support.bzl",
-    "resources_support",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
     "bundle_paths",
 )
@@ -93,14 +89,6 @@ visibility([
     "@build_bazel_rules_apple//apple/...",
     "@build_bazel_rules_apple//test/...",
 ])
-
-CACHEABLE_PROVIDER_FIELD_TO_ACTION = {
-    "datamodels": (resources_support.datamodels, True),
-    "infoplists": (resources_support.infoplists, False),
-    "plists": (resources_support.plists_and_strings, False),
-    "pngs": (resources_support.pngs, False),
-    "strings": (resources_support.plists_and_strings, False),
-}
 
 _KNOWN_BINARY_ATTRS = ["deps", "avoid_deps"]
 
@@ -171,14 +159,14 @@ def _get_attr_as_list(*, attr, nested_attr, split_attr_keys):
             ))
     return attr_as_list
 
-def _bucketize_data(
+def _bucketize(
         *,
         allowed_buckets = None,
         owner = None,
         parent_dir_param = None,
         resources,
         swift_module = None):
-    """Separates the given resources into resource bucket types.
+    """Separates the given resources into resource bucket types and returns an AppleResourceInfo.
 
     This method takes a list of resources and constructs a tuple object for each, placing it inside
     the correct bucket.
@@ -210,8 +198,7 @@ def _bucketize_data(
         swift_module: The Swift module name to associate to these resources.
 
     Returns:
-        A tuple with a list of owners, a list of "unowned" resources, and a dictionary with
-            bucketized resources organized by resource type.
+        An AppleResourceInfo provider with resources bucketized according to type.
     """
     buckets = {}
     owners = []
@@ -298,60 +285,20 @@ Found at: {resource_short_path}
                 (parent, resource_swift_module, resource_depset),
             )
 
-    return (
-        owners,
-        unowned_resources,
-        dict([(k, _minimize(bucket = b)) for k, b in buckets.items()]),
-    )
-
-def _bucketize(
-        *,
-        allowed_buckets = None,
-        owner = None,
-        parent_dir_param = None,
-        resources,
-        swift_module = None):
-    """Separates the given resources into resource bucket types and returns an AppleResourceInfo.
-
-    This method wraps _bucketize_data and returns its tuple as an immutable Starlark structure to
-    help propagate the structure of the Apple bundle resources to the bundler.
-
-    Args:
-        allowed_buckets: List of buckets allowed for bucketing. Files that do not fall into these
-            buckets will instead be placed into the "unprocessed" bucket. Defaults to `None` which
-            means all buckets are allowed.
-        owner: An optional string that has a unique identifier to the target that should own the
-            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a function used to calculate the value of
-            parent_dir for each resource. If it is a function, it will be considered a bundling task
-            context, and will be invoked with ().
-        resources: List of resources to bucketize.
-        swift_module: The Swift module name to associate to these resources.
-
-    Returns:
-        An AppleResourceInfo provider with resources bucketized according to type.
-    """
-    owners, unowned_resources, buckets = _bucketize_data(
-        resources = resources,
-        swift_module = swift_module,
-        owner = owner,
-        parent_dir_param = parent_dir_param,
-        allowed_buckets = allowed_buckets,
-    )
     return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
-        **buckets
+        **dict([(k, _minimize(bucket = b)) for k, b in buckets.items()])
     )
 
-def _bucketize_typed_data(
+def _bucketize_typed(
         *,
         bucket_type,
         expect_files = False,
         owner = None,
         parent_dir_param = None,
         resources):
-    """Collects and bucketizes a specific type of resource.
+    """Collects and bucketizes a specific type of resource and returns an AppleResourceInfo.
 
     Adds the given resources directly into a tuple under the field named in bucket_type. This avoids
     the sorting mechanism that `bucketize` does, while grouping resources together using
@@ -363,14 +310,13 @@ def _bucketize_typed_data(
             instead of Targets.
         owner: An optional string that has a unique identifier to the target that should own the
             resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a function used to calculate the value of
-            parent_dir for each resource. If it is a function, it will be considered a bundling task
+        parent_dir_param: Either a string/None or a struct used to calculate the value of
+            parent_dir for each resource. If it is a struct, it will be considered a bundling task
             context, and will be invoked with ().
-        resources: List of targets to place in bucket_type.
+        resources: List of resources to place in bucket_type.
 
     Returns:
-        A tuple with a list of owners, a list of "unowned" resources, and a dictionary with
-            bucketized resources that are all placed within a single bucket defined by bucket_type.
+        An AppleResourceInfo provider with resources in the given bucket.
     """
     typed_bucket = []
     owners = []
@@ -401,162 +347,10 @@ def _bucketize_typed_data(
 
         typed_bucket.append((parent, None, depset(direct = [resource])))
 
-    return (
-        owners,
-        unowned_resources,
-        dict([(bucket_type, _minimize(bucket = typed_bucket))]),
-    )
-
-def _bucketize_typed(
-        *,
-        bucket_type,
-        expect_files = False,
-        owner = None,
-        parent_dir_param = None,
-        resources):
-    """Collects and bucketizes a specific type of resource and returns an AppleResourceInfo.
-
-    Adds the given resources directly into a tuple under the field named in bucket_type. This avoids
-    the sorting mechanism that `bucketize` does, while grouping resources together using
-    parent_dir_param when available.
-
-    Args:
-        bucket_type: The AppleResourceInfo field under which to collect the resources.
-        expect_files: Boolean. Wheither to expect that the List of resources is a list of Files,
-            instead of Targets.
-        owner: An optional string that has a unique identifier to the target that should own the
-            resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        parent_dir_param: Either a string/None or a struct used to calculate the value of
-            parent_dir for each resource. If it is a struct, it will be considered a bundling task
-            context, and will be invoked with ().
-        resources: List of resources to place in bucket_type.
-
-    Returns:
-        An AppleResourceInfo provider with resources in the given bucket.
-    """
-    owners, unowned_resources, buckets = _bucketize_typed_data(
-        bucket_type = bucket_type,
-        expect_files = expect_files,
-        owner = owner,
-        parent_dir_param = parent_dir_param,
-        resources = resources,
-    )
-
     return new_appleresourceinfo(
         owners = depset(owners),
         unowned_resources = depset(unowned_resources),
-        **buckets
-    )
-
-def _process_bucketized_data(
-        *,
-        actions,
-        apple_mac_toolchain_info,
-        apple_xplat_toolchain_info,
-        bucketized_owners = [],
-        buckets,
-        bundle_id,
-        mac_exec_group,
-        output_discriminator = None,
-        platform_prerequisites,
-        processing_owner = None,
-        product_type,
-        rule_label,
-        unowned_resources = [],
-        xplat_exec_group):
-    """Registers actions for cacheable resource types, given bucketized groupings of data.
-
-    This method performs the same actions as bucketize_data, and further iterates through a subset
-    of supported resource types to register actions to process them as necessary before returning an
-    AppleResourceInfo. This AppleResourceInfo has an additional field, called "processed", featuring
-    the expected outputs for each of the actions declared in this method.
-
-    Args:
-        actions: The actions provider from `ctx.actions`.
-        apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
-        apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
-        bucketized_owners: A list of tuples indicating the owner of each bucketized resource.
-        buckets: A dictionary with bucketized resources organized by resource type.
-        bundle_id: The bundle ID to configure for this target.
-        mac_exec_group: The exec_group associated with apple_mac_toolchain_info
-        output_discriminator: A string to differentiate between different target intermediate files
-            or `None`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        processing_owner: An optional string that has a unique identifier to the target that should
-            own the resources. If an owner should be passed, it's usually equal to `str(ctx.label)`.
-        product_type: The product type identifier used to describe the current bundle type.
-        rule_label: The label of the target being analyzed.
-        unowned_resources: A list of "unowned" resources.
-        xplat_exec_group: The exec_group associated with apple_xplat_toolchain_info
-
-    Returns:
-        An AppleResourceInfo provider with resources bucketized according to type.
-    """
-
-    # Keep a list to reference what the processed files are based from.
-    processed_origins = []
-
-    for bucket_name, bucket_action in CACHEABLE_PROVIDER_FIELD_TO_ACTION.items():
-        processed_field = buckets.pop(bucket_name, default = None)
-        if not processed_field:
-            continue
-        for parent_dir, swift_module, files in processed_field:
-            processing_func, requires_swift_module = bucket_action
-
-            processing_args = {
-                "actions": actions,
-                "apple_mac_toolchain_info": apple_mac_toolchain_info,
-                "apple_xplat_toolchain_info": apple_xplat_toolchain_info,
-                "bundle_id": bundle_id,
-                "files": files,
-                "mac_exec_group": mac_exec_group,
-                "output_discriminator": output_discriminator,
-                "parent_dir": parent_dir,
-                "platform_prerequisites": platform_prerequisites,
-                "product_type": product_type,
-                "rule_label": rule_label,
-                "xplat_exec_group": xplat_exec_group,
-            }
-
-            # Only pass the Swift module name if the resource to process requires it.
-            if requires_swift_module:
-                processing_args["swift_module"] = swift_module
-
-            # Execute the processing function.
-            result = processing_func(**processing_args)
-
-            # Store each origin as a tuple in an array, to keep this knowledge as a low-memory
-            # reference within a depset.
-            for processed_resource, processed_origin in result.processed_origins.items():
-                processed_origins.append((processed_resource, processed_origin))
-
-            processed_field = {}
-            for _, revised_parent_dir, processed_file in result.files:
-                processed_field.setdefault(
-                    # The parent_dir can change after processing, so be sure to pass that through.
-                    revised_parent_dir if revised_parent_dir else "",
-                    [],
-                ).append(processed_file)
-
-            # Save files to the "processed" field for copying in the bundling phase.
-            for revised_parent_dir, processed_files in processed_field.items():
-                buckets.setdefault("processed", []).append(
-                    (revised_parent_dir, swift_module, depset(transitive = processed_files)),
-                )
-
-            # Add owners information for each of the processed files.
-            for _, _, processed_files in result.files:
-                for processed_file in processed_files.to_list():
-                    if processing_owner:
-                        bucketized_owners.append((processed_file.short_path, processing_owner))
-                    else:
-                        unowned_resources.append(processed_file.short_path)
-
-    return new_appleresourceinfo(
-        owners = depset(bucketized_owners),
-        unowned_resources = depset(unowned_resources),
-        processed_origins = depset(processed_origins),
-        **buckets
+        **dict([(bucket_type, _minimize(bucket = typed_bucket))])
     )
 
 def _bundle_relative_parent_dir(resource, extension):
@@ -714,17 +508,6 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
     # unowned_resources is a depset of resource paths.
     unowned_resources = depset(transitive = [provider.unowned_resources for provider in providers])
 
-    # processed_origins is a depset of processed resources to lists of resources.
-    processed_origins_list = [
-        provider.processed_origins
-        for provider in providers
-        if getattr(provider, "processed_origins", None)
-    ]
-    if processed_origins_list:
-        processed_origins = depset(transitive = processed_origins_list)
-    else:
-        processed_origins = None
-
     # owners is a depset of (resource_path, owner) pairs.
     transitive_owners = [provider.owners for provider in providers]
 
@@ -745,7 +528,6 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
     return new_appleresourceinfo(
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
-        processed_origins = processed_origins,
         **dict([(k, _minimize(bucket = v)) for (k, v) in buckets.items()])
     )
 
@@ -822,7 +604,6 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
     return new_appleresourceinfo(
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
-        processed_origins = getattr(provider_to_nest, "processed_origins", None),
         **nested_provider_fields
     )
 
@@ -831,7 +612,7 @@ def _populated_resource_fields(provider):
     return [
         f
         for f in dir(provider)
-        if f not in ["owners", "unowned_resources", "processed_origins"]
+        if f not in ["owners", "unowned_resources"]
     ]
 
 def _structured_resources_parent_dir(*, parent_dir = None, resource):
@@ -853,15 +634,12 @@ def _structured_resources_parent_dir(*, parent_dir = None, resource):
 
 resources = struct(
     bucketize = _bucketize,
-    bucketize_data = _bucketize_data,
     bucketize_typed = _bucketize_typed,
-    bucketize_typed_data = _bucketize_typed_data,
     bundle_relative_parent_dir = _bundle_relative_parent_dir,
     collect = _collect,
     merge_providers = _merge_providers,
     minimize = _minimize,
     nest_in_bundle = _nest_in_bundle,
     populated_resource_fields = _populated_resource_fields,
-    process_bucketized_data = _process_bucketized_data,
     structured_resources_parent_dir = _structured_resources_parent_dir,
 )

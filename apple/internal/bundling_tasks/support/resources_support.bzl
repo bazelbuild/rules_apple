@@ -69,30 +69,32 @@ def _compile_datamodels(
     "Compiles datamodels into mom files."
     output_files = []
     module_name = swift_module or label_name
-    processed_origins = {}
     for datamodel_path, files in datamodel_groups.items():
         datamodel_name = paths.replace_extension(paths.basename(datamodel_path), "")
 
         datamodel_parent = parent_dir
         if datamodel_path.endswith(".xcdatamodeld"):
             basename = datamodel_name + ".momd"
+            datamodel_parent = paths.join(datamodel_parent or "", basename)
             output_file = intermediates.directory(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                dir_name = basename,
+                dir_name = paths.join("datamodels", swift_module or "", datamodel_parent),
             )
-            datamodel_parent = paths.join(datamodel_parent or "", basename)
         else:
             output_file = intermediates.file(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                file_name = datamodel_name + ".mom",
+                file_name = paths.join(
+                    "datamodels",
+                    swift_module or "",
+                    datamodel_parent or "",
+                    datamodel_name + ".mom",
+                ),
             )
 
-        input_files = files.to_list()
-        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_datamodels(
             actions = actions,
             datamodel_path = datamodel_path,
@@ -109,7 +111,6 @@ def _compile_datamodels(
 
     return struct(
         files = output_files,
-        processed_origins = processed_origins,
     )
 
 def _compile_mappingmodels(
@@ -124,7 +125,6 @@ def _compile_mappingmodels(
         xctoolrunner):
     """Compiles mapping models into cdm files."""
     output_files = []
-    processed_origins = {}
     for mappingmodel_path, files in mappingmodel_groups.items():
         compiled_model_name = paths.replace_extension(paths.basename(mappingmodel_path), ".cdm")
         output_file = intermediates.file(
@@ -134,11 +134,9 @@ def _compile_mappingmodels(
             file_name = paths.join(parent_dir or "", compiled_model_name),
         )
 
-        input_files = files.to_list()
-        processed_origins[output_file.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_mappingmodel(
             actions = actions,
-            input_files = input_files,
+            input_files = files.to_list(),
             mappingmodel_path = mappingmodel_path,
             mac_exec_group = mac_exec_group,
             output_file = output_file,
@@ -152,7 +150,6 @@ def _compile_mappingmodels(
 
     return struct(
         files = output_files,
-        processed_origins = processed_origins,
     )
 
 def _asset_catalogs(
@@ -258,7 +255,6 @@ def _datamodels(
     standalone_datamodels = []
     grouped_datamodels = []
     mappingmodels = []
-    processed_origins = {}
 
     # Split the datamodels into whether they are inside an xcdatamodeld bundle or not.
     for datamodel in datamodel_files:
@@ -301,7 +297,6 @@ def _datamodels(
         xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
         swift_module = swift_module,
     )
-    processed_origins.update(compiled_data_outputs.processed_origins)
 
     compiled_mapping_outputs = _compile_mappingmodels(
         actions = actions,
@@ -313,11 +308,9 @@ def _datamodels(
         platform_prerequisites = platform_prerequisites,
         xctoolrunner = apple_mac_toolchain_info.xctoolrunner_alternative,
     )
-    processed_origins.update(compiled_mapping_outputs.processed_origins)
 
     return struct(
         files = compiled_data_outputs.files + compiled_mapping_outputs.files,
-        processed_origins = processed_origins,
     )
 
 def _infoplists(
@@ -359,21 +352,18 @@ def _infoplists(
         `infoplists` field with the plists that need to be merged for the root Info.plist
     """
     if parent_dir:
-        input_files = files.to_list()
-        processed_origins = {}
         out_plist = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir, "Info.plist"),
         )
-        processed_origins[out_plist.short_path] = [f.short_path for f in input_files]
         resource_actions.merge_resource_infoplists(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_name_with_extension = paths.basename(parent_dir),
-            input_files = input_files,
+            input_files = files.to_list(),
             mac_exec_group = mac_exec_group,
             output_plist = out_plist,
             platform_prerequisites = platform_prerequisites,
@@ -384,7 +374,6 @@ def _infoplists(
             files = [
                 (location_enum.resource, parent_dir, depset(direct = [out_plist])),
             ],
-            processed_origins = processed_origins,
         )
     else:
         return struct(files = [], infoplists = files.to_list())
@@ -480,7 +469,6 @@ def _plists_and_strings(
         )
 
     plist_files = []
-    processed_origins = {}
     for file in files.to_list():
         plist_file = intermediates.file(
             actions = actions,
@@ -488,7 +476,6 @@ def _plists_and_strings(
             output_discriminator = output_discriminator,
             file_name = paths.join(parent_dir or "", file.basename),
         )
-        processed_origins[plist_file.short_path] = [file.short_path]
         resource_actions.compile_plist(
             actions = actions,
             input_file = file,
@@ -501,7 +488,6 @@ def _plists_and_strings(
         files = [
             (location_enum.resource, parent_dir, depset(direct = plist_files)),
         ],
-        processed_origins = processed_origins,
     )
 
 def _pngs(
@@ -531,7 +517,6 @@ def _pngs(
         A struct containing a `files` field with tuples as described in apple_bundler.bzl.
     """
     png_files = []
-    processed_origins = {}
     for file in files.to_list():
         png_path = paths.join(parent_dir or "", file.basename)
         png_file = intermediates.file(
@@ -540,7 +525,6 @@ def _pngs(
             output_discriminator = output_discriminator,
             file_name = png_path,
         )
-        processed_origins[png_file.short_path] = [file.short_path]
         resource_actions.copy_png(
             actions = actions,
             input_file = file,
@@ -553,7 +537,6 @@ def _pngs(
         files = [
             (location_enum.resource, parent_dir, depset(direct = png_files)),
         ],
-        processed_origins = processed_origins,
     )
 
 def _storyboards(
@@ -708,12 +691,8 @@ def _noop(
         files,
         **_kwargs):
     """Registers files to be bundled as is."""
-    processed_origins = {}
-    for file in files.to_list():
-        processed_origins[file.short_path] = [file.short_path]
     return struct(
         files = [(location_enum.resource, parent_dir, files)],
-        processed_origins = processed_origins,
     )
 
 def _apple_bundle(bundle_type):

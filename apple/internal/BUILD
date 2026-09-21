@@ -536,7 +536,6 @@ bzl_library(
     ],
     deps = [
         ":providers",
-        "//apple/internal/bundling_tasks/support:resources_support",
         "//apple/internal/utils:bundle_paths",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:types",
