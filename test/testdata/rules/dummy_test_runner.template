@@ -16,5 +16,6 @@
 # verification.
 
 TEST_HOST=%(test_host_path)s
+TEST_HOST_BUNDLE_NAME=%(test_host_bundle_name)s
 TEST_BUNDLE=%(test_bundle_path)s
 TEST_TYPE=%(test_type)s

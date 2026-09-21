@@ -89,6 +89,22 @@ ios_application(
 )
 
 ios_application(
+    name = "app_minimal_custom_bundle_name",
+    bundle_id = "com.google.example",
+    bundle_name = "custom_test_host_bundle",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
     name = "app_minimal",
     bundle_id = "com.google.example",
     families = ["iphone"],
@@ -3364,6 +3380,23 @@ ios_ui_test(
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     tags = common.fixture_tags,
     test_host = ":app",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
+    name = "ui_test_custom_test_host_bundle_name",
+    families = [
+        "iphone",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_minimal_custom_bundle_name",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
     ],

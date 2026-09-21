@@ -39,6 +39,10 @@ load(
     "infoplist_contents_test",
 )
 load(
+    "//test/starlark_tests/rules:output_text_match_test.bzl",
+    "output_text_match_test",
+)
+load(
     ":common.bzl",
     "common",
 )
@@ -141,6 +145,17 @@ def ios_ui_test_test_suite(name):
             "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
         ],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk",
+        tags = [name],
+    )
+
+    output_text_match_test(
+        name = "{}_custom_test_host_bundle_name_test_runner_script_text_match".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_custom_test_host_bundle_name",
+        files_match = {
+            "ui_test_custom_test_host_bundle_name": [
+                "TEST_HOST_BUNDLE_NAME=custom_test_host_bundle",
+            ],
+        },
         tags = [name],
     )
 
