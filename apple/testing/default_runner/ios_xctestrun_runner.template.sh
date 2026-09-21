@@ -236,7 +236,11 @@ if [[ -n "$test_host_path" ]]; then
     cp -R "$libraries_path/Frameworks/XCTest.framework" "$runner_app_frameworks_destination/XCTest.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTestCore.framework" "$runner_app_frameworks_destination/XCTestCore.framework"
     cp -R "$libraries_path/PrivateFrameworks/XCTAutomationSupport.framework" "$runner_app_frameworks_destination/XCTAutomationSupport.framework"
-    cp -R "$libraries_path/PrivateFrameworks/XCUnit.framework" "$runner_app_frameworks_destination/XCUnit.framework"
+    # Removed in Xcode 27.2.
+    xcunit_framework_path="$libraries_path/PrivateFrameworks/XCUnit.framework"
+    if [[ -d "$xcunit_framework_path" ]]; then
+      cp -R "$xcunit_framework_path" "$runner_app_frameworks_destination/XCUnit.framework"
+    fi
     cp "$developer_path/usr/lib/libXCTestSwiftSupport.dylib" "$runner_app_frameworks_destination/libXCTestSwiftSupport.dylib"
     cp "$developer_path/usr/lib/libXCTestBundleInject.dylib" "$runner_app_frameworks_destination/libXCTestBundleInject.dylib"
     # Added in Xcode 14.3

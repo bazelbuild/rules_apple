@@ -167,7 +167,6 @@ def main(argv) -> None:
         "XCTAutomationSupport.framework",
         "XCTestCore.framework",
         "XCTestSupport.framework",
-        "XCUnit.framework",
     ]
 
     dylib_deps = [
@@ -176,6 +175,9 @@ def main(argv) -> None:
     ]
 
     xcode_version_int = _parse_xcode_version(args.xcode_version)
+    if xcode_version_int < 2720:
+        private_framework_deps.append("XCUnit.framework")
+
     if xcode_version_int >= 1640:
         framework_deps.append("XCUIAutomation.framework")
     else:
