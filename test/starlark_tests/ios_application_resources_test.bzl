@@ -794,31 +794,6 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         tags = [name],
     )
 
-    # Tests that an ios_application whose bundle_name matches a swift_library's module_name with
-    # datamodels does not collide with the intermediate binary path, and deduplicates resources
-    # referenced across both infoplists/resources and swift_library/top-level resources.
-    archive_contents_test(
-        name = "{}_matching_swift_module_bundle_name_and_duplicated_resources_test".format(name),
-        build_type = "simulator",
-        compilation_mode = "opt",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_matching_swift_module_bundle_name_and_duplicated_resources",
-        contains = [
-            "$BUNDLE_ROOT/Info.plist",
-            "$BUNDLE_ROOT/unversioned_datamodel.mom",
-            "$BUNDLE_ROOT/versioned_datamodel.momd/v1.mom",
-            "$BUNDLE_ROOT/versioned_datamodel.momd/v2.mom",
-            "$BUNDLE_ROOT/versioned_datamodel.momd/VersionInfo.plist",
-        ],
-        tags = [name],
-    )
-    analysis_target_actions_test(
-        name = "{}_registers_action_for_datamodel_compilation_with_matching_swift_module_and_duplicated_resources".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_matching_swift_module_bundle_name_and_duplicated_resources",
-        target_mnemonic = "MomCompile",
-        expected_argv = ["--module EasyToSearchForModuleName"],
-        tags = [name],
-    )
-
     archive_contents_test(
         name = "{}_opt_compilation_mode_on_apple_resource_locales_filter_test".format(name),
         build_type = "device",

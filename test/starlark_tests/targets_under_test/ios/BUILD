@@ -665,27 +665,6 @@ ios_application(
 )
 
 ios_application(
-    name = "app_with_matching_swift_module_bundle_name_and_duplicated_resources",
-    bundle_id = "com.google.example",
-    bundle_name = "EasyToSearchForModuleName",
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    resources = [
-        "//test/starlark_tests/resources:Info.plist",
-        "//test/testdata/resources:unversioned_datamodel",
-        "//test/testdata/resources:versioned_datamodel",
-    ],
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:swift_lib_with_resources",
-    ],
-)
-
-ios_application(
     name = "app_with_transitive_swift_library_scoped_resources",
     bundle_id = "com.google.example",
     families = ["iphone"],

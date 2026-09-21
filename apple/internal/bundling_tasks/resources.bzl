@@ -53,6 +53,7 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:resources.bzl",
+    "CACHEABLE_PROVIDER_FIELD_TO_ACTION",
     "resources",
 )
 load(
@@ -69,6 +70,8 @@ load(
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
+
+_PROCESSED_FIELDS = CACHEABLE_PROVIDER_FIELD_TO_ACTION.keys()
 
 def _merge_root_infoplists(
         *,
@@ -135,16 +138,28 @@ def _expand_owners(*, owners):
             dict.setdefault(resource, {})[owner] = None
     return dict
 
+def _expand_processed_origins(*, processed_origins):
+    """Converts a depset of (processed_resource, resource) to a dict.
+
+    Args:
+      processed_origins: A depset of (processed_resource, resource) pairs.
+    """
+    processed_origins_dict = {}
+    for processed_resource, resource in processed_origins.to_list():
+        processed_origins_dict[processed_resource] = resource
+    return processed_origins_dict
+
 def _deduplicate(
         *,
         avoid_owners,
         avoid_provider,
-        deduplication_map,
         field,
         locales_dropped,
         locales_included,
         locales_requested,
         owners,
+        processed_origins,
+        processed_deduplication_map,
         resources_provider):
     """Deduplicates and returns resources between 2 providers for a given field.
 
@@ -160,14 +175,17 @@ def _deduplicate(
     Args:
       avoid_owners: The owners map for avoid_provider computed by _expand_owners.
       avoid_provider: The provider with the resources to avoid bundling.
-      deduplication_map: A dictionary mapping parent directories to sets of already-processed
-          resource short_paths across fields.
       field: The field to deduplicate resources on.
       locales_dropped: The locales dropped from the bundle.
       locales_included: The locales included in the bundle.
       locales_requested: The locales to include in the bundle.
       resources_provider: The provider with the resources to be bundled.
       owners: The owners map for resources_provider computed by _expand_owners.
+      processed_origins: The processed resources map for resources_provider computed by
+          _expand_processed_origins.
+      processed_deduplication_map: A dictionary of keys to lists of short paths referencing already-
+          deduplicated resources that can be referenced by the resource processing aspect to avoid
+          duplicating files referenced by library targets and top level targets.
 
     Returns:
       A list of tuples with the resources present in avoid_providers removed from
@@ -185,24 +203,19 @@ def _deduplicate(
     # tuple with only the remaining files, if any.
     deduped_tuples = []
 
-    # Process tuples with an explicit swift_module before those with swift_module == None so that
-    # if a resource is referenced by both a swift_library and an objc_library/bundle, the
-    # swift_module association is preserved.
-    tuples = sorted(
-        getattr(resources_provider, field),
-        key = lambda x: x[1] == None,
-    )
-
-    for parent_dir, swift_module, files in tuples:
+    for parent_dir, swift_module, files in getattr(resources_provider, field):
         key = "%s_%s" % (parent_dir or "root", swift_module or "root")
 
         # Dictionary used as a set to mark files as processed by short_path to deduplicate generated
-        # files that may appear more than once if multiple architectures are being built, as well as
-        # files duplicated across fields (e.g., infoplists and plists) or targets.
-        multi_architecture_deduplication_set = deduplication_map.setdefault(
-            parent_dir or "root",
-            {},
-        )
+        # files that may appear more than once if multiple architectures are being built.
+        multi_architecture_deduplication_set = {}
+
+        # Update the deduplication map for this key, representing the domain of this library
+        # processable resource in bundling, and use that as our deduplication list for library
+        # processable resources.
+        if not processed_deduplication_map.get(key, None):
+            processed_deduplication_map[key] = []
+        processed_deduplication_list = processed_deduplication_map[key]
 
         deduped_files = []
         for to_bundle_file in files.to_list():
@@ -231,6 +244,25 @@ def _deduplicate(
                 ]
                 if not deduped_owners:
                     continue
+
+            if field == "processed":
+                # Check for duplicates referencing our map of where the processed resources were
+                # based from.
+                path_origins = processed_origins[short_path]
+                if path_origins in processed_deduplication_list:
+                    continue
+                processed_deduplication_list.append(path_origins)
+            elif field in _PROCESSED_FIELDS:
+                # Check for duplicates across fields that can be processed by a resource aspect, to
+                # avoid dupes between top-level fields and fields processed by the resource aspect.
+                all_path_origins = [
+                    path_origin
+                    for path_origins in processed_deduplication_list
+                    for path_origin in path_origins
+                ]
+                if short_path in all_path_origins:
+                    continue
+                processed_deduplication_list.append([short_path])
 
             deduped_files.append(to_bundle_file)
 
@@ -397,6 +429,7 @@ def _resources_bundling_task_impl(
         "mergeable_strings": (resources_support.mergeable_strings, False),
         "plists": (resources_support.plists_and_strings, False),
         "pngs": (resources_support.pngs, False),
+        "processed": (resources_support.noop, False),
         "storyboards": (resources_support.storyboards, True),
         "strings": (resources_support.plists_and_strings, False),
         "texture_atlases": (resources_support.texture_atlases, False),
@@ -420,12 +453,22 @@ def _resources_bundling_task_impl(
     locales_included = set(["Base"])
     locales_dropped = set()
 
-    # Precompute owners and avoid_owners to avoid duplicate work in _deduplicate.
+    # Precompute owners, avoid_owners and processed_origins to avoid duplicate work in _deduplicate.
     # Build a dictionary with the file paths under each key for the avoided resources.
     avoid_owners = {}
     if avoid_provider:
         avoid_owners = _expand_owners(owners = avoid_provider.owners)
     owners = _expand_owners(owners = final_provider.owners)
+    if final_provider.processed_origins:
+        processed_origins = _expand_processed_origins(
+            processed_origins = final_provider.processed_origins,
+        )
+    else:
+        processed_origins = {}
+
+    # Create the deduplication map for library processable resources to be referenced across fields
+    # for the purposes of deduplicating top level resources and multiple library scoped resources.
+    processed_deduplication_map = {}
 
     if resource_locales:
         default_lproj = resource_locales[AppleResourceLocalesInfo].default_locale + ".lproj"
@@ -433,17 +476,17 @@ def _resources_bundling_task_impl(
         default_lproj = "en.lproj"
 
     all_validation_outputs = []
-    deduplication_map = {}
     for field in fields:
         deduplicated = _deduplicate(
             avoid_owners = avoid_owners,
             avoid_provider = avoid_provider,
-            deduplication_map = deduplication_map,
             field = field,
             locales_dropped = locales_dropped,
             locales_included = locales_included,
             locales_requested = locales_requested,
             owners = owners,
+            processed_origins = processed_origins,
+            processed_deduplication_map = processed_deduplication_map,
             resources_provider = final_provider,
         )
 
