@@ -69,7 +69,11 @@ def _get_execution_environment(ctx):
     if not xcode_version:
         fail("error: No xcode_version in _xcode_config")
 
-    return {"XCODE_VERSION_OVERRIDE": xcode_version}
+    execution_environment = {"XCODE_VERSION_OVERRIDE": xcode_version}
+    if ctx.attr.export_covered_binaries:
+        execution_environment["APPLE_TEST_EXPORT_COVERED_BINARIES"] = "1"
+
+    return execution_environment
 
 def _ios_simulator_device(ctx):
     return (ctx.attr._ios_simulator_device[BuildSettingInfo].value or
@@ -218,6 +222,13 @@ always use `xcodebuild test-without-building` to run the test bundle.
 The device type of the iOS simulator to run test. The supported types correspond
 to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
 By default, it reads from the `ios_simulator_device` build setting or falls back to some device.
+""",
+        ),
+        "export_covered_binaries": attr.bool(
+            default = False,
+            doc = """
+When true, makes the complete set of binaries under coverage available to test
+actions through `$TEST_BINARIES_FOR_LLVM_COV` without enabling LCOV export.
 """,
         ),
         "os_version": attr.string(
