@@ -228,7 +228,9 @@ By default, it reads from the `ios_simulator_device` build setting or falls back
             default = False,
             doc = """
 When true, makes the complete set of binaries under coverage available to test
-actions through `$TEST_BINARIES_FOR_LLVM_COV` without enabling LCOV export.
+actions through `$TEST_BINARIES_FOR_LLVM_COV` and runfiles when coverage
+instrumentation is enabled. This does not enable LCOV export; use
+`collect_code_coverage = False` on the test target to disable LCOV export.
 """,
         ),
         "os_version": attr.string(
