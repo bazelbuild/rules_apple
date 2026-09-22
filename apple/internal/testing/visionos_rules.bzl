@@ -76,7 +76,7 @@ def _visionos_ui_test_bundle_impl(ctx):
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,
         product_type = apple_product_type.ui_test_bundle,
-        requires_dossiers = True,
+        requires_dossiers = False,
     ) + [
         new_visionosxctestbundleinfo(),
     ]
@@ -88,7 +88,7 @@ def _visionos_unit_test_bundle_impl(ctx):
     return apple_test_bundle_support.apple_test_bundle_impl(
         ctx = ctx,
         product_type = apple_product_type.unit_test_bundle,
-        requires_dossiers = True,
+        requires_dossiers = False,
     ) + [
         new_visionosxctestbundleinfo(),
     ]
@@ -97,7 +97,7 @@ def _visionos_ui_test_impl(ctx):
     """Implementation of visionos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = True,
+        requires_dossiers = False,
         test_type = "xcuitest",
     ) + [
         new_visionosxctestbundleinfo(),
@@ -107,7 +107,7 @@ def _visionos_unit_test_impl(ctx):
     """Implementation of visionos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = True,
+        requires_dossiers = False,
         test_type = "xctest",
     ) + [
         new_visionosxctestbundleinfo(),
