@@ -137,6 +137,19 @@ def ios_ui_test_test_suite(name):
         tags = [name],
     )
 
+    # UI tests must bundle the import even when the out-of-process host has it.
+    # The imported framework is reachable only through `frameworks`, not `deps`.
+    archive_contents_test(
+        name = "{}_test_target_bundles_framework_imports".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_fmwk.framework/fmwk_with_imported_fmwk",
+            "$BUNDLE_ROOT/Frameworks/iOSDynamicFramework.framework/iOSDynamicFramework",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk_importing_fmwk",
+        tags = [name],
+    )
+
     analysis_output_group_info_files_test(
         name = "{}_dsyms_output_group_files_with_fmwk_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk",
