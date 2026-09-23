@@ -2,8 +2,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 licenses(["notice"])
 
-package()
-
 # Exports all files in this package as targets to make it easier to depend on them.
 # Because these are for Starlark tests, we can scope the visibility to just this
 # package.

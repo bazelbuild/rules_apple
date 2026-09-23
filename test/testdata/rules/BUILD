@@ -1,7 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-package()
-
 licenses(["notice"])
 
 exports_files(
