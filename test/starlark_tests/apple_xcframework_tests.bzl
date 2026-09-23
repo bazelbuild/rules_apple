@@ -15,10 +15,6 @@
 """xcframework Starlark tests."""
 
 load(
-    "@rules_shell//shell:sh_test.bzl",
-    "sh_test",
-)
-load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
 )
@@ -49,6 +45,10 @@ load(
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
     "linkmap_test",
+)
+load(
+    "//test/starlark_tests/rules:symlink_contents_test.bzl",
+    "symlink_contents_test",
 )
 load(
     ":common.bzl",
@@ -359,12 +359,24 @@ def apple_xcframework_test_suite(name):
         ],
     )
 
-    # TODO(b/541269827): Replace this hardcoded bash script with a dedicated symlink verification rule.
-    sh_test(
+    macos_fmwk_dir = (
+        "macos_dynamic_xcframework.xcframework/macos-arm64_x86_64/" +
+        "macos_dynamic_xcframework.framework"
+    )
+    symlink_contents_test(
         name = "{}_macos_symlinks_test".format(name),
-        srcs = ["//test/starlark_tests:verifier_scripts/check_macos_symlinks.sh"],
-        args = ["$(location //test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework)"],
-        data = ["//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework"],
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework",
+        output_file = "macos_dynamic_xcframework.xcframework.zip",
+        expected_symlinks = {
+            macos_fmwk_dir + "/Headers": "Versions/Current/Headers",
+            macos_fmwk_dir + "/Modules": "Versions/Current/Modules",
+            macos_fmwk_dir + "/Resources": "Versions/Current/Resources",
+            macos_fmwk_dir + "/Versions/Current": "A",
+            macos_fmwk_dir + "/macos_dynamic_xcframework": (
+                "Versions/Current/macos_dynamic_xcframework"
+            ),
+        },
         tags = [name],
     )
 
