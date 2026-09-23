@@ -307,6 +307,8 @@ apple_xcframework(<a href="#apple_xcframework-name">name</a>, <a href="#apple_xc
 
 Builds and bundles an XCFramework for third-party distribution.
 
+Pass `--apple_generate_dsym` to include dSYM bundles in the XCFramework.
+
 **ATTRIBUTES**
 
 
