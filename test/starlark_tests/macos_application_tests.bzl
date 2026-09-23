@@ -15,8 +15,17 @@
 """macos_application Starlark tests."""
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "asserts",
+    "unittest",
+)
+load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
+)
+load(
+    "//apple/internal:secure_features_support.bzl",
+    "secure_features_support",
 )
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
@@ -66,6 +75,115 @@ load(
 )
 
 visibility("private")
+
+def _xcode_26_4_version():
+    return apple_common.dotted_version("26.4")
+
+def _xcode_27_0_version():
+    return apple_common.dotted_version("27.0")
+
+def _secure_features_entitlements_unit_test_impl(ctx):
+    env = unittest.begin(ctx)
+    xcode_26 = struct(xcode_version = _xcode_26_4_version)
+    xcode_27 = struct(xcode_version = _xcode_27_0_version)
+
+    asserts.equals(
+        env,
+        {
+            "com.apple.security.hardened-process": True,
+            "com.apple.security.hardened-process.enhanced-security-version-string": "1",
+        },
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = ["apple.enable_enhanced_security"],
+            xcode_version_config = xcode_26,
+        ),
+    )
+    asserts.equals(
+        env,
+        {
+            "com.apple.security.hardened-process": True,
+            "com.apple.security.hardened-process.enhanced-security-version-string": "1",
+        },
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = [
+                "apple.adopt_guard_objects",
+                "apple.enable_enhanced_security",
+            ],
+            xcode_version_config = xcode_26,
+        ),
+    )
+    asserts.equals(
+        env,
+        {
+            "com.apple.security.hardened-process": True,
+            "com.apple.security.hardened-process.enhanced-security-version-string": "2",
+            "com.apple.security.hardened-process.no-guard-objects": True,
+        },
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = ["apple.enable_enhanced_security"],
+            xcode_version_config = xcode_27,
+        ),
+    )
+    asserts.equals(
+        env,
+        {
+            "com.apple.security.hardened-process": True,
+            "com.apple.security.hardened-process.enhanced-security-version-string": "2",
+        },
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = [
+                "apple.adopt_guard_objects",
+                "apple.enable_enhanced_security",
+            ],
+            xcode_version_config = xcode_27,
+        ),
+    )
+    asserts.equals(
+        env,
+        {},
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = ["trivial_auto_var_init"],
+            xcode_version_config = xcode_27,
+        ),
+    )
+    asserts.equals(
+        env,
+        {},
+        secure_features_support.entitlements_from_secure_features(
+            rule_label = ctx.label,
+            secure_features = [],
+            xcode_version_config = xcode_27,
+        ),
+    )
+    asserts.equals(
+        env,
+        [
+            "apple.adopt_guard_objects",
+            "apple.enable_enhanced_security",
+        ],
+        secure_features_support.crosstool_features_from_secure_features(
+            features = [],
+            name = ctx.label.name,
+            secure_features = [
+                "apple.adopt_guard_objects",
+                "apple.enable_enhanced_security",
+            ],
+        ),
+    )
+    asserts.true(
+        env,
+        "com.apple.security.hardened-process.no-guard-objects" in secure_features_support.ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS,
+    )
+    return unittest.end(env)
+
+_secure_features_entitlements_unit_test = unittest.make(
+    _secure_features_entitlements_unit_test_impl,
+)
 
 analysis_failure_message_with_intel_test = make_analysis_failure_message_test(
     config_settings = {
@@ -123,6 +241,80 @@ def macos_application_test_suite(name):
         env = {
             "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_features_xcode_26_version_and_guard_objects_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.no-guard-objects"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
+            "ENTITLEMENT_VALUES": ["com.apple.security.hardened-process.enhanced-security-version-string=1"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_features_xcode_27_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+                "com.apple.security.hardened-process.no-guard-objects",
+            ],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.security.hardened-process.enhanced-security-version-string=2",
+                "com.apple.security.hardened-process.no-guard-objects=true",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_adopt_guard_objects_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.no-guard-objects"],
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process",
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+            ],
+        },
+        tags = [name],
+    )
+    apple_verification_test(
+        name = "{}_enhanced_security_adopt_guard_objects_xcode_27_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.no-guard-objects"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
+            "ENTITLEMENT_VALUES": ["com.apple.security.hardened-process.enhanced-security-version-string=2"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    analysis_failure_message_test(
+        name = "{}_enhanced_security_adopt_guard_objects_missing_xcode_26_opt_in_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_without_opt_in_app",
+        expected_error = """
+Apple enhanced security features were requested, but the build is missing the required feature \
+"apple.enable_enhanced_security" that is needed to enable required entitlements in Xcode 26.0 or later.
+""",
+        tags = [name],
+    )
+    _secure_features_entitlements_unit_test(
+        name = "{}_secure_features_entitlements_unit_test".format(name),
         tags = [name],
     )
 

@@ -22,7 +22,12 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
+
+# The name of the secure feature that opts into Guard Objects on Xcode 27.0 or later by removing the
+# default "com.apple.security.hardened-process.no-guard-objects" opt-out entitlement.
+_ADOPT_GUARD_OBJECTS = "apple.adopt_guard_objects"
 
 # The name of the secure feature that's required for opting into any set of enhanced security
 # features on Xcode 26.0 or later.
@@ -40,6 +45,8 @@ _ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS = [
     # Required opt-in entitlements for Xcode 26.0 - only the "-string" variant is functional.
     "com.apple.security.hardened-process.enhanced-security-version",
     "com.apple.security.hardened-process.enhanced-security-version-string",
+    # Opt-out entitlement for Guard Objects in Xcode 27.0 and later.
+    "com.apple.security.hardened-process.no-guard-objects",
     # Additional runtime platform restrictions, typically enabled by Xcode when opting into the
     # "enhanced-security-version" entitlement and its capability; only the "-string" variant is
     # functional.
@@ -69,6 +76,7 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
         # https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.hardened-process.platform-restrictions-string
         "com.apple.security.hardened-process.platform-restrictions-string": "2",
     },
+    "apple.adopt_guard_objects": {},
     "apple.read_only_platform_memory": {
         "com.apple.security.hardened-process.dyld-ro": True,
     },
@@ -109,6 +117,7 @@ _SUPPORTED_SECURE_FEATURES = set(list(_ENTITLEMENTS_FROM_SECURE_FEATURES.keys())
 # changes to support them, i.e. for apple.read_only_platform_memory and ARM MTE-adjacent features.
 _SECURE_FEATURES_WITHOUT_CLANG_REQUIREMENTS = set([
     "apple.additional_runtime_platform_restrictions",
+    _ADOPT_GUARD_OBJECTS,
     "apple.read_only_platform_memory",
     "security_compiler_warnings",
     "warn_unsafe_buffer_usage",
@@ -210,7 +219,8 @@ Either remove the secure feature from the "secure_features" attribute to disable
 def _entitlements_from_secure_features(
         *,
         rule_label,
-        secure_features):
+        secure_features,
+        xcode_version_config):
     if not secure_features:
         return {}
 
@@ -235,6 +245,15 @@ Please add it to the "secure_features" rule attribute at `{rule_label}`.
             required_xcode_26_opt_in = _REQUIRED_XCODE_26_OPT_IN,
             rule_label = str(rule_label),
         ))
+
+    if has_mandatory_xcode_26_opt_in and (
+        xcode_version_config.xcode_version() >= apple_common.dotted_version("27.0")
+    ):
+        required_entitlements["com.apple.security.hardened-process.enhanced-security-version-string"] = "2"
+        required_entitlements["com.apple.security.hardened-process.no-guard-objects"] = True
+
+    if _ADOPT_GUARD_OBJECTS in secure_features:
+        required_entitlements.pop("com.apple.security.hardened-process.no-guard-objects", None)
 
     return required_entitlements
 

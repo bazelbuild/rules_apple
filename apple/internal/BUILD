@@ -608,6 +608,7 @@ bzl_library(
     srcs = ["secure_features_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
+        "//test:__subpackages__",
     ],
     deps = [
         "@build_bazel_apple_support//lib:providers",

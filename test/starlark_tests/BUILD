@@ -130,9 +130,11 @@ bzl_library(
     deps = [
         "//apple:linker",
         "//apple/build_settings",
+        "//apple/internal:secure_features_support",
         "//test/starlark_tests/rules:test_rules",
         "//tools/build_defs/build_test",
         "//tools/build_defs/write_file:bzl_lib",
+        "@bazel_skylib//lib:unittest",
         "@rules_shell//shell:rules_bzl",
     ],
 )
