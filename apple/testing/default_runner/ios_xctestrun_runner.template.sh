@@ -65,17 +65,13 @@ session_marker=""
 simulator_pool_slot=0
 simulator_pool_slot_claimed=false
 
-# Runs from the EXIT trap on any controlled exit. Suffixed pool simulators
-# (slot >= 1) only exist while tests actually run concurrently; left booted
-# they would consume memory forever, since serial runs only ever touch slot 0.
-# Shutting one down while still holding its slot lock is race-free - no other
-# test can claim the slot until this process exits.
+# Runs from the EXIT trap on any controlled exit. Pool simulators, suffixed
+# ones included, stay booted so later tests in this or subsequent runs reuse
+# them warm; killed or wedged sessions are recovered by the TERM/INT trap and
+# the session-marker check in the simulator creator.
 _pool_exit_cleanup() {
   if [[ -n "$session_marker" ]]; then
     rm -f "$session_marker"
-  fi
-  if [[ "$simulator_pool_slot_claimed" == true && "$simulator_pool_slot" -gt 0 && -n "${simulator_id:-}" ]]; then
-    xcrun simctl shutdown "$simulator_id" >/dev/null 2>&1 || true
   fi
 }
 
@@ -526,8 +522,8 @@ if [[ "$build_for_device" == false ]]; then
   # "Failed to initialize for UI testing" errors. To let concurrent tests run
   # in parallel, each test action claims an exclusive slot in a machine-wide
   # simulator pool before asking the simulator creator for a device: slot 0
-  # reuses today's simulator name, higher slots (which only exist while tests
-  # actually run concurrently) get their own suffixed simulator. Slots are not
+  # reuses today's simulator name, higher slots (which are only claimed while
+  # tests actually run concurrently) get their own suffixed simulator. Slots are not
   # keyed on device type or OS version, so a single invocation running tests
   # across several simulator types still hands every concurrent test its own
   # device. A claim is an atomic shlock(1) pid lockfile: it is valid only

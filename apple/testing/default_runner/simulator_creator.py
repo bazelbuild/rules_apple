@@ -173,8 +173,8 @@ def _default_device_name(device_type: str, os_version: str, pool_slot: int) -> s
     # Each concurrent test action claims an exclusive pool slot (see the
     # runner template) so no two running tests share a simulator. Slot 0 keeps
     # the historical name so existing simulators are still reused; higher
-    # slots, which only exist while tests actually run concurrently, get their
-    # own suffixed simulator.
+    # slots, which are only claimed while tests actually run concurrently, get
+    # their own suffixed simulator.
     name = f"BAZEL_TEST_{device_type}_{os_version}"
     if pool_slot != 0:
         name += f"_{pool_slot}"
