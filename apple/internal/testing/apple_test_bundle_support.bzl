@@ -128,13 +128,12 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
-def _apple_test_bundle_impl(*, ctx, product_type, requires_dossiers):
+def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles.
 
     Args:
         ctx: A rule context.
         product_type: The product type for the test bundle.
-        requires_dossiers: Whether the platform's test runner requires codesigning dossiers.
     """
     test_host = ctx.attr.test_host
     test_host_bundle_id = _test_host_bundle_id(test_host)
@@ -173,7 +172,6 @@ def _apple_test_bundle_impl(*, ctx, product_type, requires_dossiers):
         requested_features = ctx.features,
         unsupported_features = ctx.disabled_features,
     )
-    requires_dossiers = requires_dossiers or "disable_legacy_signing" in ctx.features
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
@@ -319,7 +317,7 @@ def _apple_test_bundle_impl(*, ctx, product_type, requires_dossiers):
         ),
     ]
 
-    if requires_dossiers:
+    if "disable_legacy_signing" in ctx.features:
         processor_partials.append(partials.codesigning_dossier_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
