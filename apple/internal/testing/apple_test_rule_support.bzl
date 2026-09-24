@@ -260,13 +260,11 @@ def _get_simulator_test_environment(
         _get_main_thread_checker_test_environment(features = features),
     )
 
-def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
+def _apple_test_rule_impl(*, ctx, test_type):
     """Generates an implementation for the Apple test rules, given arguments.
 
     Args:
         ctx: A rule context.
-        requires_dossiers: A Boolean to indicate if the test rule depends on dossiers from the test
-            bundle and the optional test host.
         test_type: A String indicating the test type. For example, "xctest" or "xcuitest".
 
     Returns:
@@ -288,6 +286,8 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
 
     direct_runfiles = [test_bundle]
     transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
+
+    requires_dossiers = "disable_legacy_signing" in ctx.features
 
     test_bundle_dossier = None
     if requires_dossiers and AppleCodesigningDossierInfo in test_bundle_target:
