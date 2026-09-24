@@ -365,8 +365,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps,
-            targets_to_avoid = targets_to_avoid,
+            # Framework dependencies propagate binary imports but do not embed them.
+            # Only exclude imports already bundled by the in-process test host.
+            targets = embeddable_targets,
+            targets_to_avoid = [bundle_loader] if bundle_loader else [],
         ),
         partials.resources_partial(
             actions = actions,
