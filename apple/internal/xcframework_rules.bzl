@@ -352,6 +352,7 @@ def _unioned_attrs(*, attr_names, split_attr, split_attr_keys):
 def _available_library_dictionary(
         *,
         architectures,
+        debug_symbols_path = None,
         environment,
         headers_path,
         library_identifier,
@@ -362,6 +363,7 @@ def _available_library_dictionary(
      Args:
         architectures: The architectures of the target that was built. For example, `x86_64` or
             `arm64`.
+        debug_symbols_path: An optional path to bundled dSYMs, relative to the library identifier.
         environment: The environment of the target that was built, which corresponds to the
             toolchain's target triple values as reported by `apple_common` linking APIs.
             Typically `device` or `simulator`.
@@ -388,6 +390,9 @@ def _available_library_dictionary(
 
     if headers_path:
         available_library["HeadersPath"] = headers_path
+
+    if debug_symbols_path:
+        available_library["DebugSymbolsPath"] = debug_symbols_path
 
     if environment != "device":
         available_library["SupportedPlatformVariant"] = environment
@@ -833,6 +838,7 @@ def _apple_xcframework_impl(ctx):
             rule_label = label,
         )
 
+        debug_symbols_path = None
         for provider in processor_result.providers:
             # Save the framework archive.
             if getattr(provider, "archive", None):
@@ -859,7 +865,18 @@ def _apple_xcframework_impl(ctx):
                 # Save a reference to those archives as file-friendly inputs to the bundler action.
                 framework_archive_files.append(depset([provider.archive]))
 
-            # Save the dSYMs.
+            # Embed only this framework's dSYM bundles, not those of its dependencies.
+            direct_dsyms = getattr(provider, "direct_dsyms", [])
+            if direct_dsyms:
+                debug_symbols_path = "dSYMs"
+                framework_archive_files.append(depset(direct_dsyms))
+                for dsym in direct_dsyms:
+                    framework_archive_merge_files.append(struct(
+                        src = dsym.path,
+                        dest = paths.join(library_identifier, debug_symbols_path, dsym.basename),
+                    ))
+
+            # Preserve the standalone dSYM outputs.
             if getattr(provider, "dsyms", None):
                 framework_output_files.append(depset(transitive = [provider.dsyms]))
                 framework_output_groups.append({"dsyms": provider.dsyms})
@@ -872,6 +889,7 @@ def _apple_xcframework_impl(ctx):
         # Save additional library details for the XCFramework's root info plist.
         available_libraries.append(_available_library_dictionary(
             architectures = link_output.architectures,
+            debug_symbols_path = debug_symbols_path,
             environment = link_output.environment,
             headers_path = None,
             library_identifier = library_identifier,
@@ -932,7 +950,10 @@ def _apple_xcframework_impl(ctx):
 
 apple_xcframework = rule_factory.create_apple_rule(
     cfg = None,
-    doc = "Builds and bundles an XCFramework for third-party distribution.",
+    doc = """Builds and bundles an XCFramework for third-party distribution.
+
+Pass `--apple_generate_dsym` to include dSYM bundles in the XCFramework.
+""",
     implementation = _apple_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
     attrs = [

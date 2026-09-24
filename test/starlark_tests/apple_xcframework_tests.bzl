@@ -56,6 +56,10 @@ def apple_xcframework_test_suite(name):
     infoplist_contents_test(
         name = "{}_ios_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        not_expected_keys = [
+            "AvailableLibraries:0:DebugSymbolsPath",
+            "AvailableLibraries:1:DebugSymbolsPath",
+        ],
         expected_values = {
             "AvailableLibraries:0:LibraryIdentifier": "ios-arm64",
             "AvailableLibraries:0:LibraryPath": "ios_dynamic_xcframework.framework",
@@ -320,16 +324,67 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Debug symbols belong alongside each framework, not inside its framework bundle.
+    for target_name, bundle_name, library_identifiers in [
+        ("ios_dynamic_xcframework", "ios_dynamic_xcframework", ["ios-arm64", "ios-x86_64-simulator"]),
+        ("ios_dynamic_lipoed_xcframework", "ios_dynamic_lipoed_xcframework", ["ios-arm64_arm64e", "ios-arm64_x86_64-simulator"]),
+        ("ios_dynamic_xcframework_custom_bundle_name", "CustomBundleName", ["ios-arm64", "ios-x86_64-simulator"]),
+    ]:
+        dsym_files = []
+        for library_identifier, environment in zip(library_identifiers, ["device", "simulator"]):
+            debug_name = "{}_ios_{}".format(bundle_name, environment)
+            dsym_path = "{}/dSYMs/{}.framework.dSYM".format(library_identifier, debug_name)
+            dsym_files.extend([
+                dsym_path + "/Contents/Info.plist",
+                dsym_path + "/Contents/Resources/DWARF/" + debug_name,
+            ])
+
+        archive_contents_test(
+            name = "{}_{}_bundled_dsyms_test".format(name, target_name),
+            build_type = "simulator",
+            target_under_test = "//test/starlark_tests/targets_under_test/apple:" + target_name,
+            apple_generate_dsym = True,
+            contains = ["$BUNDLE_ROOT/" + path for path in dsym_files],
+            plist_test_file = "$BUNDLE_ROOT/Info.plist",
+            plist_test_values = {
+                "AvailableLibraries:0:DebugSymbolsPath": "dSYMs",
+                "AvailableLibraries:1:DebugSymbolsPath": "dSYMs",
+            },
+            tags = [name],
+        )
+
+        directory_test(
+            name = "{}_{}_bundled_dsyms_tree_artifact_test".format(name, target_name),
+            target_under_test = "//test/starlark_tests/targets_under_test/apple:" + target_name,
+            apple_generate_dsym = True,
+            build_settings = {
+                build_settings_labels.use_tree_artifacts_outputs: "True",
+            },
+            expected_directories = {
+                bundle_name + ".xcframework": dsym_files,
+            },
+            tags = [name],
+        )
+
+    archive_contents_test(
+        name = "{}_without_bundled_dsyms_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/dSYMs",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/dSYMs",
+        ],
+        tags = [name],
+    )
+
     # XCFrameworks do not provide a public AppleDsymBundleInfo provider for the following reasons:
     #
     #     - All dSYMs for embedded frameworks are provided in output groups when specified with the
     #         --output_groups=+dsyms option.
     #     - There are no known end users that require the usage of dSYMs from XCFrameworks that
     #         are not already served by the output groups API.
-    #     - XCFrameworks can embed dSYM bundles within the XCFramework bundle on a per-library
-    #         identifier basis, which is not something that the rules have previously supported as a
-    #         debugging experience, and would not be effectively represented through this particular
-    #         public provider interface.
+    #     - XCFrameworks embed dSYM bundles on a per-library identifier basis, which would not be
+    #         effectively represented through this particular public provider interface.
     #
     analysis_output_group_info_files_test(
         name = "{}_dsyms_output_group_files_test".format(name),
