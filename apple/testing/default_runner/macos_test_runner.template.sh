@@ -104,9 +104,24 @@ fi
 # depending on whether the test is running with or without a test host.
 XCTESTRUN_TEST_BUNDLE_PATH="__TESTROOT__/$TEST_BUNDLE_NAME.xctest"
 if [[ -n "$TEST_HOST_PATH" ]]; then
-  XCTESTRUN_TEST_HOST_PATH="__TESTROOT__/$TEST_HOST_NAME.app"
-  XCTESTRUN_TEST_HOST_BASED=true
-  XCTESTRUN_TEST_HOST_BINARY="__TESTHOST__/Contents/MacOS/$TEST_HOST_NAME"
+  XCTESTRUN_TEST_HOST_BINARY="__TESTROOT__/$TEST_HOST_NAME.app/Contents/MacOS/$TEST_HOST_NAME"
+  if [[ "$(sw_vers -productVersion | cut -d. -f1)" -ge 26 ]]; then
+    # For app hosted test bundles xcodebuild launches the test host through
+    # LaunchServices. On macOS 26+, LaunchServices strips the environment
+    # variables XCTest needs (DYLD_INSERT_LIBRARIES, XCTestSessionIdentifier,
+    # etc.) from launch requests made by sandboxed processes, so the test
+    # session never starts and xcodebuild hangs until the test times out.
+    # Instead point xcodebuild at the test host's executable as if it were an
+    # unhosted test runner. xcodebuild then spawns it directly as a child
+    # process with the environment intact, the test bundle is still injected
+    # with libXCTestBundleInject, and the app still finishes launching before
+    # the tests start.
+    XCTESTRUN_TEST_HOST_PATH="$XCTESTRUN_TEST_HOST_BINARY"
+    XCTESTRUN_TEST_HOST_BASED=false
+  else
+    XCTESTRUN_TEST_HOST_PATH="__TESTROOT__/$TEST_HOST_NAME.app"
+    XCTESTRUN_TEST_HOST_BASED=true
+  fi
 else
   XCTESTRUN_TEST_HOST_PATH="__PLATFORMS__/MacOSX.platform/Developer/Library/Xcode/Agents/xctest"
   XCTESTRUN_TEST_HOST_BASED=false
