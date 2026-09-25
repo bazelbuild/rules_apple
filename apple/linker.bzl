@@ -15,10 +15,15 @@
 """Rules related to Apple linker."""
 
 load(
+    "//apple/internal:exported_symbols_list.bzl",
+    _apple_exported_symbols_list = "exported_symbols_list",
+)
+load(
     "//apple/internal:order_file.bzl",
     _apple_order_file = "order_file",
 )
 
 visibility("public")
 
+apple_exported_symbols_list = _apple_exported_symbols_list
 apple_order_file = _apple_order_file

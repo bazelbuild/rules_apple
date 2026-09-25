@@ -12,6 +12,7 @@ filegroup(
         "//tools/codesigningtool:for_bazel_tests",
         "//tools/dossier_codesigningtool:for_bazel_tests",
         "//tools/environment_plist:for_bazel_tests",
+        "//tools/exported_symbols_list:for_bazel_tests",
         "//tools/imported_dynamic_framework_processor:for_bazel_tests",
         "//tools/json_tool:for_bazel_tests",
         "//tools/main_thread_checker_tool:for_bazel_tests",
