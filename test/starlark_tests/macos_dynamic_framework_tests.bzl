@@ -19,6 +19,10 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -38,16 +42,28 @@ def macos_dynamic_framework_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    # macOS frameworks are versioned bundles: Versions/A, Versions/Current and top-level links.
+    apple_verification_test(
+        name = "{}_versioned_bundle_layout_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework",
+        verifier_script = "verifier_scripts/versioned_framework_verifier.sh",
+        env = {
+            "EXPECTED_TOP_LEVEL_LINKS": ["Headers", "Modules", "Resources"],
+        },
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_archive_contents_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework",
         binary_test_file = "$BUNDLE_ROOT/BasicFramework",
-        macho_load_commands_contain = ["name @rpath/BasicFramework.framework/BasicFramework (offset 24)"],
+        macho_load_commands_contain = ["name @rpath/BasicFramework.framework/Versions/A/BasicFramework (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/BasicFramework",
             "$BUNDLE_ROOT/Headers/BasicFramework.h",
-            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Resources/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/BasicFramework.swiftmodule/x86_64.swiftmodule",
@@ -83,11 +99,11 @@ def macos_dynamic_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_direct_dependency",
         binary_test_file = "$BUNDLE_ROOT/DirectDependencyTest",
-        macho_load_commands_contain = ["name @rpath/DirectDependencyTest.framework/DirectDependencyTest (offset 24)"],
+        macho_load_commands_contain = ["name @rpath/DirectDependencyTest.framework/Versions/A/DirectDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/DirectDependencyTest",
             "$BUNDLE_ROOT/Headers/DirectDependencyTest.h",
-            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Resources/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/DirectDependencyTest.swiftmodule/x86_64.swiftmodule",
@@ -100,11 +116,11 @@ def macos_dynamic_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_transitive_dependency",
         binary_test_file = "$BUNDLE_ROOT/TransitiveDependencyTest",
-        macho_load_commands_contain = ["name @rpath/TransitiveDependencyTest.framework/TransitiveDependencyTest (offset 24)"],
+        macho_load_commands_contain = ["name @rpath/TransitiveDependencyTest.framework/Versions/A/TransitiveDependencyTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/TransitiveDependencyTest",
             "$BUNDLE_ROOT/Headers/TransitiveDependencyTest.h",
-            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Resources/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/TransitiveDependencyTest.swiftmodule/x86_64.swiftmodule",
@@ -164,13 +180,13 @@ def macos_dynamic_framework_test_suite(name):
         binary_test_architecture = "x86_64",
         contains = [
             "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/swift_transitive_lib",
-            "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/Info.plist",
+            "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/Resources/Info.plist",
             "$CONTENT_ROOT/Frameworks/swift_shared_lib.framework/swift_shared_lib",
-            "$CONTENT_ROOT/Frameworks/swift_shared_lib.framework/Info.plist",
+            "$CONTENT_ROOT/Frameworks/swift_shared_lib.framework/Resources/Info.plist",
         ],
         not_contains = [
             "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/Frameworks/",
-            "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/nonlocalized.plist",
+            "$CONTENT_ROOT/Frameworks/swift_transitive_lib.framework/Resources/nonlocalized.plist",
             "$CONTENT_ROOT/framework_resources/nonlocalized.plist",
         ],
         binary_contains_symbols = ["_$s20swift_transitive_lib21anotherFunctionSharedyyF"],
@@ -192,11 +208,11 @@ def macos_dynamic_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_dynamic_framework_import",
         binary_test_file = "$BUNDLE_ROOT/DynamicFrameworkImportTest",
-        macho_load_commands_contain = ["name @rpath/DynamicFrameworkImportTest.framework/DynamicFrameworkImportTest (offset 24)"],
+        macho_load_commands_contain = ["name @rpath/DynamicFrameworkImportTest.framework/Versions/A/DynamicFrameworkImportTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/DynamicFrameworkImportTest",
             "$BUNDLE_ROOT/Headers/DynamicFrameworkImportTest.h",
-            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Resources/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/DynamicFrameworkImportTest.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/DynamicFrameworkImportTest.swiftmodule/x86_64.swiftmodule",
@@ -209,11 +225,11 @@ def macos_dynamic_framework_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:basic_framework_with_static_framework_import",
         binary_test_file = "$BUNDLE_ROOT/StaticFrameworkImportTest",
-        macho_load_commands_contain = ["name @rpath/StaticFrameworkImportTest.framework/StaticFrameworkImportTest (offset 24)"],
+        macho_load_commands_contain = ["name @rpath/StaticFrameworkImportTest.framework/Versions/A/StaticFrameworkImportTest (offset 24)"],
         contains = [
             "$BUNDLE_ROOT/StaticFrameworkImportTest",
             "$BUNDLE_ROOT/Headers/StaticFrameworkImportTest.h",
-            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/Resources/Info.plist",
             "$BUNDLE_ROOT/Modules/module.modulemap",
             "$BUNDLE_ROOT/Modules/StaticFrameworkImportTest.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/Modules/StaticFrameworkImportTest.swiftmodule/x86_64.swiftmodule",

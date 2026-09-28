@@ -117,6 +117,27 @@ class BundlerExperimentalTest(unittest.TestCase):
     self._assert_symlink(os.path.join(
         bundled_framework, "Resources"), "Versions/Current/Resources")
 
+  def test_bundle_symlinks(self):
+    output = self._run_bundler({
+        "bundle_merge_files": [{
+            "src": self._scratch_file("Foo", "framework-binary"),
+            "dest": "Foo.framework/Versions/A/Foo",
+        }],
+        "bundle_symlinks": [
+            {"dest": "Foo.framework/Versions/Current", "target": "A"},
+            {"dest": "Foo.framework/Foo", "target": "Versions/Current/Foo"},
+        ],
+    })
+
+    bundled_framework = os.path.join(output, "Foo.framework")
+    self.assertTrue(os.path.isfile(os.path.join(
+        bundled_framework, "Versions/A/Foo")))
+    self._assert_symlink(os.path.join(
+        bundled_framework, "Versions/Current"), "A")
+    self._assert_symlink(os.path.join(
+        bundled_framework, "Foo"), "Versions/Current/Foo")
+    self.assertTrue(os.path.isfile(os.path.join(bundled_framework, "Foo")))
+
   def test_bundle_merge_zips_preserves_symlink_entries(self):
     framework_zip = self._scratch_zip("Foo.zip")
 

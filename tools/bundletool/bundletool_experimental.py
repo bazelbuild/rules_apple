@@ -38,6 +38,10 @@ following keys:
       fields: "src", the path of the archive whose contents should be merged
       into the bundle; and "dest", the path inside the bundle where the ZIPs
       contents should be placed.
+  bundle_symlinks: A list of dictionaries representing symbolic links to be
+      added to the bundle, such as a versioned framework's Versions/Current.
+      Each dictionary contains two fields: "dest", the path of the link inside
+      the bundle; and "target", the (relative) path the link points to.
   code_signing_commands: An optional list of shell commands that should be
       executed to sign the bundle.
   output: The path to the directory (which will be created/cleared) that will
@@ -165,6 +169,9 @@ class Bundler(object):
     for f in bundle_merge_files:
       self._add_files(f['src'], f['dest'], f.get('executable', False),
                       output_path)
+
+    for s in self._control.get('bundle_symlinks', []):
+      self._write_symlink(s['dest'], s['target'], output_path)
 
     os.chmod(output_path, 0o755)
 

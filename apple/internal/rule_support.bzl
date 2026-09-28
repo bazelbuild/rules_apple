@@ -46,6 +46,7 @@ _CODESIGNING_EXCEPTIONS = struct(
 def _describe_bundle_locations(
         archive_relative = "",
         bundle_relative_contents = "",
+        bundle_version = "",
         contents_relative_app_clips = "AppClips",
         contents_relative_binary = "",
         contents_relative_extensions = "Extensions",
@@ -54,10 +55,17 @@ def _describe_bundle_locations(
         contents_relative_resources = "",
         contents_relative_watch = "Watch",
         contents_relative_xpc_service = "XPCServices"):
-    """Creates a descriptor of locations for different types of artifacts within an Apple bundle."""
+    """Creates a descriptor of locations for different types of artifacts within an Apple bundle.
+
+    `bundle_version` makes a versioned bundle, the layout macOS frameworks use (see Apple's
+    "Anatomy of Framework Bundles"): `bundle_relative_contents` must then be
+    `Versions/<bundle_version>`, everything bundled goes under it, and the bundler adds the
+    `Versions/Current` link and a top-level link to `Versions/Current/<entry>` for each entry.
+    """
     return struct(
         archive_relative = archive_relative,
         bundle_relative_contents = bundle_relative_contents,
+        bundle_version = bundle_version,
         contents_relative_app_clips = contents_relative_app_clips,
         contents_relative_binary = contents_relative_binary,
         contents_relative_extensions = contents_relative_extensions,
@@ -138,6 +146,15 @@ def _describe_rule_type(
 _DEFAULT_MACOS_BUNDLE_LOCATIONS = _describe_bundle_locations(
     bundle_relative_contents = "Contents",
     contents_relative_binary = "MacOS",
+    contents_relative_resources = "Resources",
+)
+
+# macOS frameworks are versioned: code in Versions/A, Info.plist and resources in
+# Versions/A/Resources, with Versions/Current and top-level links. The Mac App Store rejects a
+# flat (iOS style) framework inside an app (ITMS-90291, ITMS-90292).
+_MACOS_FRAMEWORK_BUNDLE_LOCATIONS = _describe_bundle_locations(
+    bundle_relative_contents = "Versions/A",
+    bundle_version = "A",
     contents_relative_resources = "Resources",
 )
 
@@ -486,6 +503,7 @@ _RULE_TYPE_DESCRIPTORS = {
         apple_product_type.framework: _describe_rule_type(
             allowed_device_families = ["mac"],
             bundle_extension = ".framework",
+            bundle_locations = _MACOS_FRAMEWORK_BUNDLE_LOCATIONS,
             bundle_package_type = bundle_package_type.framework,
             codesigning_exceptions = _CODESIGNING_EXCEPTIONS.sign_with_provisioning_profile,
             product_type = apple_product_type.framework,

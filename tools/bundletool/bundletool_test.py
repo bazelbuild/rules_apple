@@ -161,6 +161,29 @@ class BundlerTest(unittest.TestCase):
       self._assert_zip_contains(z, 'Payload/foo.app/foo.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/bar.txt')
 
+  def test_bundle_symlinks(self):
+    out_zip = _run_bundler({
+        'bundle_path': 'Foo.framework',
+        'bundle_merge_files': [
+            {'src': self._scratch_file('Foo'), 'dest': 'Versions/A/Foo'},
+        ],
+        'bundle_symlinks': [
+            {'dest': 'Versions/Current', 'target': 'A'},
+            {'dest': 'Foo', 'target': 'Versions/Current/Foo'},
+        ],
+    })
+    with zipfile.ZipFile(out_zip, 'r') as z:
+      self._assert_zip_contains(z, 'Foo.framework/Versions/A/Foo')
+      for entry, target in (
+          ('Foo.framework/Versions/Current', 'A'),
+          ('Foo.framework/Foo', 'Versions/Current/Foo'),
+      ):
+        zipinfo = z.getinfo(entry)
+        self.assertTrue(
+            stat.S_ISLNK(zipinfo.external_attr >> 16),
+            'Expected %r to be a symlink, but it was not' % entry)
+        self.assertEqual(target, z.read(entry).decode('utf-8'))
+
   def test_bundle_merge_files_with_executable(self):
     out_zip = _run_bundler({
         'bundle_path': 'Payload/foo.app',

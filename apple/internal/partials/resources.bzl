@@ -110,6 +110,9 @@ def _merge_root_infoplists(
         **kwargs
     )
 
+    # A versioned bundle (a macOS framework) keeps its Info.plist in Versions/<v>/Resources.
+    if rule_descriptor.bundle_locations.bundle_version:
+        return [(processor.location.resource, None, depset(direct = files))]
     return [(processor.location.content, None, depset(direct = files))]
 
 def _locales_requested(*, build_setting_locales_to_include, locales_to_include, config_vars):

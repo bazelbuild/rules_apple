@@ -223,6 +223,34 @@ def _archive_paths(
         ),
     }
 
+def _versioned_bundle_symlinks(*, bundle_path, dests, version, version_path):
+    """Returns the links of a versioned bundle: Versions/Current and one per top-level entry.
+
+    Args:
+      bundle_path: The path of the bundle in the archive.
+      dests: The archive paths files and zips are placed at.
+      version: The bundle version, e.g. "A".
+      version_path: The path of the version directory in the archive.
+
+    Returns:
+      A list of structs with the `dest` of each link in the archive and its relative `target`.
+    """
+    prefix = version_path + "/"
+    entries = {}
+    for dest in dests:
+        if not dest.startswith(prefix):
+            continue
+        entry = dest[len(prefix):].split("/", 1)[0]
+        if entry and entry != "_CodeSignature":
+            entries[entry] = None
+    symlinks = [struct(dest = paths.join(bundle_path, "Versions", "Current"), target = version)]
+    for entry in sorted(entries.keys()):
+        symlinks.append(struct(
+            dest = paths.join(bundle_path, entry),
+            target = paths.join("Versions", "Current", entry),
+        ))
+    return symlinks
+
 def _bundle_partial_outputs_files(
         *,
         actions,
@@ -315,6 +343,13 @@ def _bundle_partial_outputs_files(
         tree_artifact_is_enabled = tree_artifact_is_enabled,
     )
 
+    # In a versioned bundle everything, headers and modules included, lives in the version
+    # directory; the top level only has links into it.
+    bundle_version = rule_descriptor.bundle_locations.bundle_version
+    bundle_path = location_to_paths[_LOCATION_ENUM.bundle]
+    if bundle_version:
+        location_to_paths[_LOCATION_ENUM.bundle] = location_to_paths[_LOCATION_ENUM.content]
+
     platform_type = platform_prerequisites.platform_type
     invalid_top_level_dirs = _invalid_top_level_directories_for_platform(
         platform_type = platform_type,
@@ -380,6 +415,15 @@ def _bundle_partial_outputs_files(
                 target_path = paths.join(location_to_paths[location], parent_dir or "")
                 control_zips.append(struct(src = source.path, dest = target_path))
 
+    bundle_symlinks = []
+    if bundle_version:
+        bundle_symlinks = _versioned_bundle_symlinks(
+            bundle_path = bundle_path,
+            dests = [f.dest for f in control_files] + [z.dest for z in control_zips],
+            version = bundle_version,
+            version_path = location_to_paths[_LOCATION_ENUM.content],
+        )
+
     post_processor = ipa_post_processor
     post_processor_path = ""
 
@@ -389,6 +433,7 @@ def _bundle_partial_outputs_files(
     control = struct(
         bundle_merge_files = control_files,
         bundle_merge_zips = control_zips,
+        bundle_symlinks = bundle_symlinks,
         output = output_file.path,
         code_signing_commands = codesigning_command or "",
         post_processor = post_processor_path,
