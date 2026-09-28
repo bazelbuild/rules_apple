@@ -11,6 +11,7 @@ py_library(
     ],
     srcs_version = "PY3",
     visibility = [
+        "//tools/app_intents_nl_training_tool:__pkg__",
         "//tools/bitcode_strip:__pkg__",
         "//tools/codesigningtool:__pkg__",
         "//tools/imported_dynamic_framework_processor:__pkg__",

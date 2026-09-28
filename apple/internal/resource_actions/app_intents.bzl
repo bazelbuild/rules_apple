@@ -199,3 +199,68 @@ fi
     )
 
     return output
+
+def generate_app_intents_nl_training_assets(
+        *,
+        actions,
+        apple_fragment,
+        bundle_id,
+        infoplist,
+        label,
+        lproj_dirs,
+        lproj_files,
+        mac_exec_group,
+        metadata_bundle,
+        nl_training_tool,
+        resource_trees,
+        xcode_version_config):
+    """Generates the App Shortcuts Flexible Matching assets (`<locale>.lproj/nlu.appintents`).
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_fragment: An Apple fragment (ctx.fragments.apple).
+        bundle_id: The bundle ID of the target.
+        infoplist: The merged root Info.plist of the target.
+        label: Label for the current target (`ctx.label`).
+        lproj_dirs: Names of the `.lproj` directories in the bundle's resources.
+        lproj_files: List of (lproj_dir, File) tuples for strings files the tool reads.
+        mac_exec_group: The execution group for Mac tools.
+        metadata_bundle: The Metadata.appintents directory for the target.
+        nl_training_tool: A `files_to_run` for the App Intents NL training tool.
+        resource_trees: Directories bundled at the resources root that may contain `.lproj`
+            directories.
+        xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
+    Returns:
+        A directory with the assets, laid out relative to the bundle's resources directory.
+    """
+    output = intermediates.directory(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        dir_name = "AppShortcutsFlexibleMatching",
+    )
+
+    args = actions.args()
+    args.add("--bundle-id", bundle_id)
+    args.add("--infoplist", infoplist)
+    args.add("--metadata", metadata_bundle.path)
+    args.add("--output", output.path)
+    args.add_all(lproj_dirs, before_each = "--lproj")
+    for lproj_dir, file in lproj_files:
+        args.add("--lproj-file", lproj_dir)
+        args.add(file)
+    args.add_all(resource_trees, before_each = "--resource-tree", expand_directories = False)
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = apple_fragment,
+        arguments = [args],
+        exec_group = mac_exec_group,
+        executable = nl_training_tool,
+        inputs = [infoplist, metadata_bundle] + [f for _, f in lproj_files] + resource_trees,
+        mnemonic = "AppIntentsNLTraining",
+        outputs = [output],
+        xcode_config = xcode_version_config,
+    )
+
+    return output

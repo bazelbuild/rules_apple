@@ -30,6 +30,9 @@ All partials handled by this processor must follow this API:
       (location_type, parent_dir, files) where location_type is a field of the
       location enum and each file is a ZIP file. The files extracted from the
       ZIPs are then placed at the given location in the output bundle.
+    * deferred_partial: A partial that the processor calls after all other
+      partials, passing their outputs as the `partial_outputs` argument. Its
+      output follows this same API, except for `deferred_partial`.
     * output_files: Depset of `File`s that should be returned as outputs of the
       target.
     * output_groups: Dictionary of output group names to depset of Files that should be returned in
@@ -817,6 +820,11 @@ def _process(
     """
 
     partial_outputs = [partial.call(p) for p in partials]
+    partial_outputs = partial_outputs + [
+        partial.call(o.deferred_partial, partial_outputs = partial_outputs)
+        for o in partial_outputs
+        if getattr(o, "deferred_partial", None)
+    ]
 
     if bundle_post_process_and_sign:
         output_archive = outputs.archive(
