@@ -1248,6 +1248,66 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test app with App Intents and localized strings bundles App Shortcuts Flexible Matching assets
+    # for each locale.
+    archive_contents_test(
+        name = "{}_contains_app_shortcuts_flexible_matching_assets_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents_and_localized_strings",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/fr.lproj/AppShortcuts.strings",
+            "$BUNDLE_ROOT/fr.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/it.lproj/nlu.appintents/nlu.lzfse",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/root.ssu.yaml",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_contains_app_shortcuts_flexible_matching_assets_for_opt_device_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents_and_localized_strings",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/fr.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/it.lproj/nlu.appintents/nlu.lzfse",
+        ],
+        tags = [name],
+    )
+
+    # Test App Shortcuts Flexible Matching assets are bundled for locales compiled from xcstrings.
+    archive_contents_test(
+        name = "{}_contains_app_shortcuts_flexible_matching_assets_for_xcstrings_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents_and_localized_xcstrings",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/fr.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/it.lproj/nlu.appintents/nlu.lzfse",
+        ],
+        tags = [name],
+    )
+
+    # Test app_intents_flexible_matching = False skips App Shortcuts Flexible Matching assets.
+    archive_contents_test(
+        name = "{}_without_flexible_matching_does_not_contain_app_shortcuts_flexible_matching_assets_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents_and_localized_strings_without_flexible_matching",
+        contains = [
+            "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
+            "$BUNDLE_ROOT/fr.lproj/AppShortcuts.strings",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/en.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/fr.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/it.lproj/nlu.appintents/nlu.lzfse",
+        ],
+        tags = [name],
+    )
+
     # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
     # at the top-level ios_application rule, and present through the 'dsysms' and 'linkmaps' output
     # groups.

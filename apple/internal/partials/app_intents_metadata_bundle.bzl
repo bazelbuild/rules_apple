@@ -24,15 +24,84 @@ load(
 load(
     "//apple/internal/resource_actions:app_intents.bzl",
     "generate_app_intents_metadata_bundle",
+    "generate_app_intents_nl_training_assets",
 )
+
+# Localized strings files that appintentsnltrainingprocessor reads from each `.lproj` directory.
+_NL_TRAINING_STRINGS_BASENAMES = ["AppShortcuts.strings", "InfoPlist.strings"]
+
+def _app_intents_nl_training_partial_impl(
+        *,
+        actions,
+        bundle_id,
+        label,
+        mac_exec_group,
+        metadata_bundle,
+        nl_training_tool,
+        partial_outputs,
+        platform_prerequisites):
+    """Implementation of the App Shortcuts Flexible Matching partial.
+
+    It reads the merged Info.plist and localized resources from the outputs of the other partials.
+    """
+    infoplist = None
+    lproj_dirs = {}
+    lproj_files = []
+    resource_trees = []
+    for partial_output in partial_outputs:
+        for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
+            if location == processor.location.content and not parent_dir:
+                for file in files.to_list():
+                    if file.basename == "Info.plist":
+                        infoplist = file
+            if location != processor.location.resource:
+                continue
+            if not parent_dir:
+                resource_trees.extend([f for f in files.to_list() if f.is_directory])
+                continue
+            lproj_dir = parent_dir.split("/", 1)[0]
+            if not lproj_dir.endswith(".lproj"):
+                continue
+            lproj_dirs[lproj_dir] = None
+            if parent_dir == lproj_dir:
+                lproj_files.extend([
+                    (lproj_dir, f)
+                    for f in files.to_list()
+                    if f.basename in _NL_TRAINING_STRINGS_BASENAMES
+                ])
+
+    if not infoplist:
+        return struct()
+
+    assets = generate_app_intents_nl_training_assets(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        bundle_id = bundle_id,
+        infoplist = infoplist,
+        label = label,
+        lproj_dirs = lproj_dirs.keys(),
+        lproj_files = lproj_files,
+        mac_exec_group = mac_exec_group,
+        metadata_bundle = metadata_bundle,
+        nl_training_tool = nl_training_tool,
+        resource_trees = resource_trees,
+        xcode_version_config = platform_prerequisites.xcode_version_config,
+    )
+
+    return struct(
+        bundle_files = [(processor.location.resource, None, depset(direct = [assets]))],
+    )
 
 def _app_intents_metadata_bundle_partial_impl(
         *,
         actions,
+        bundle_id,
         mac_exec_group,
         cc_toolchains,
         deps,
+        flexible_matching,
         label,
+        nl_training_tool,
         platform_prerequisites,
         json_tool):
     """Implementation of the AppIntents metadata bundle partial."""
@@ -79,34 +148,61 @@ def _app_intents_metadata_bundle_partial_impl(
     if str(platform_prerequisites.platform_type) == "macos":
         bundle_location = processor.location.resource
 
+    # appintentsnltrainingprocessor ships with Xcode 15 and later.
+    deferred_partial = None
+    xcode_version = platform_prerequisites.xcode_version_config.xcode_version()
+    if (flexible_matching and bundle_id and
+        xcode_version >= apple_common.dotted_version("15.0")):
+        deferred_partial = partial.make(
+            _app_intents_nl_training_partial_impl,
+            actions = actions,
+            bundle_id = bundle_id,
+            label = label,
+            mac_exec_group = mac_exec_group,
+            metadata_bundle = metadata_bundle,
+            nl_training_tool = nl_training_tool,
+            platform_prerequisites = platform_prerequisites,
+        )
+
     return struct(
         bundle_files = [(
             bundle_location,
             "Metadata.appintents",
             depset(direct = [metadata_bundle]),
         )],
+        deferred_partial = deferred_partial,
     )
 
 def app_intents_metadata_bundle_partial(
         *,
         actions,
+        bundle_id = None,
         mac_exec_group,
         cc_toolchains,
         deps,
+        flexible_matching = False,
         label,
+        nl_training_tool = None,
         platform_prerequisites,
         json_tool):
     """Constructor for the AppIntents metadata bundle processing partial.
 
     This partial generates the Metadata.appintents bundle required for AppIntents functionality.
+    When `flexible_matching` is True, it also generates the App Shortcuts Flexible Matching assets
+    after the other partials run, since those assets depend on the merged Info.plist and the
+    localized resources.
 
     Args:
         actions: The actions provider from ctx.actions.
+        bundle_id: The bundle ID of the target. Required when `flexible_matching` is True.
         mac_exec_group: The execution group for Mac tools.
         cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
             transition to relay target platform information.
         deps: Dictionary of targets under a split transition implementing the AppIntents protocol.
+        flexible_matching: Whether to generate the App Shortcuts Flexible Matching assets.
         label: Label of the target being built.
+        nl_training_tool: A `files_to_run` for the App Intents NL training tool. Required when
+            `flexible_matching` is True.
         platform_prerequisites: Struct containing information on the platform being targeted.
         json_tool: A `files_to_run` wrapping Python's `json.tool` module
             (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
@@ -117,10 +213,13 @@ def app_intents_metadata_bundle_partial(
     return partial.make(
         _app_intents_metadata_bundle_partial_impl,
         actions = actions,
+        bundle_id = bundle_id,
         cc_toolchains = cc_toolchains,
         deps = deps,
+        flexible_matching = flexible_matching,
         label = label,
         mac_exec_group = mac_exec_group,
+        nl_training_tool = nl_training_tool,
         platform_prerequisites = platform_prerequisites,
         json_tool = json_tool,
     )

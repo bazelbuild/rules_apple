@@ -6,6 +6,7 @@ filegroup(
     testonly = True,
     srcs = glob(["**"]) + [
         "//tools/alticonstool:for_bazel_tests",
+        "//tools/app_intents_nl_training_tool:for_bazel_tests",
         "//tools/bitcode_strip:for_bazel_tests",
         "//tools/bundletool:for_bazel_tests",
         "//tools/clangrttool:for_bazel_tests",
