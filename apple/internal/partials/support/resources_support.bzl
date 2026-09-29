@@ -29,6 +29,9 @@ All methods in this file follow this convention:
             by their basenames.
       - infoplists: A list of files representing plist files that will be merged to compose the main
         bundle's Info.plist.
+      - app_intents_resources: Processed inputs for App Shortcuts training, with `lproj_files`
+        containing (locale directory, strings File) tuples and `resource_trees` containing
+        (resource-relative parent directory, tree File) tuples. A parent of "." denotes the root.
 """
 
 load(
@@ -55,6 +58,22 @@ load(
     "//apple/internal:resource_actions.bzl",
     "resource_actions",
 )
+
+def _app_intents_resources(*, parent_dir, files):
+    """Selects training inputs from processed strings or resources passed through unchanged."""
+    lproj_files = []
+    resource_trees = []
+    is_lproj = parent_dir and "/" not in parent_dir and parent_dir.endswith(".lproj")
+    if not parent_dir or is_lproj:
+        for file in files:
+            if file.is_directory:
+                resource_trees.append((parent_dir or ".", file))
+            elif is_lproj and file.basename in ["AppShortcuts.strings", "InfoPlist.strings"]:
+                lproj_files.append((parent_dir, file))
+    return struct(
+        lproj_files = lproj_files,
+        resource_trees = resource_trees,
+    )
 
 def _compile_datamodels(
         *,
@@ -613,6 +632,7 @@ def _plists_and_strings(
         plist_files.append(plist_file)
 
     return struct(
+        app_intents_resources = _app_intents_resources(parent_dir = parent_dir, files = plist_files),
         files = [
             (processor.location.resource, parent_dir, depset(direct = plist_files)),
         ],
@@ -871,6 +891,7 @@ def _xcstrings(
         lproj_files.append(out_dir)
 
     return struct(
+        app_intents_resources = _app_intents_resources(parent_dir = parent_dir, files = lproj_files),
         files = [(processor.location.resource, parent_dir, depset(lproj_files))],
         processed_origins = processed_origins,
     )
@@ -882,9 +903,11 @@ def _noop(
         **_kwargs):
     """Registers files to be bundled as is."""
     processed_origins = {}
-    for file in files.to_list():
+    file_list = files.to_list()
+    for file in file_list:
         processed_origins[file.short_path] = [file.short_path]
     return struct(
+        app_intents_resources = _app_intents_resources(parent_dir = parent_dir, files = file_list),
         files = [(processor.location.resource, parent_dir, files)],
         processed_origins = processed_origins,
     )
