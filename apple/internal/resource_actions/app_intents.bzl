@@ -28,6 +28,18 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
     "visionos": "xrOS",
 }
 
+def _file_list_args(*, actions, files):
+    """Returns `Args` that expand to the path of a file listing `files`, one per line.
+
+    The file is for appintentsmetadataprocessor's `--*-list` flags. One flag per file can exceed
+    ARG_MAX for large modules.
+    """
+    file_list_args = actions.args()
+    file_list_args.add_all(files)
+    file_list_args.set_param_file_format("multiline")
+    file_list_args.use_param_file("%s", use_always = True)
+    return file_list_args
+
 def generate_app_intents_metadata_bundle(
         *,
         actions,
@@ -95,10 +107,6 @@ Could not find a module name for app_intents. One is required for App Intents me
 
     args.add("--module-name", intents_module_names[0])
     args.add("--output", output.dirname)
-    args.add_all(
-        source_files,
-        before_each = "--source-files",
-    )
     transitive_inputs = [depset(source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     platform_type_string = str(platform_prerequisites.platform_type)
@@ -106,10 +114,6 @@ Could not find a module name for app_intents. One is required for App Intents me
     args.add("--platform-family", platform_family)
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")
-    args.add_all(
-        constvalues_files,
-        before_each = "--swift-const-vals",
-    )
     transitive_inputs.append(depset(constvalues_files))
     args.add("--compile-time-extraction")
 
@@ -130,7 +134,13 @@ an issue with the Apple BUILD rules with repro steps.
     apple_support.run_shell(
         actions = actions,
         apple_fragment = apple_fragment,
-        arguments = [args],
+        arguments = [
+            args,
+            "--source-file-list",
+            _file_list_args(actions = actions, files = source_files),
+            "--swift-const-vals-list",
+            _file_list_args(actions = actions, files = constvalues_files),
+        ],
         env = shared_environment.default_env,
         command = '''\
 set -euo pipefail
