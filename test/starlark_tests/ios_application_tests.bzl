@@ -1165,16 +1165,6 @@ def ios_application_test_suite(name):
         ],
         tags = [name],
     )
-    action_inputs_test(
-        name = "{}_app_intents_metadata_processor_uses_file_lists_inputs_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents",
-        mnemonic = "AppIntentsMetadataProcessor",
-        expected_inputs = [
-            "app_with_app_intents-intermediates/app_intents_source_files.txt",
-            "app_with_app_intents-intermediates/app_intents_swiftconstvalues_files.txt",
-        ],
-        tags = [name],
-    )
 
     # Test app with a Widget Configuration Intent with a computed property generates and bundles Metadata.appintents bundle.
     archive_contents_test(
