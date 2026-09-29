@@ -746,14 +746,19 @@ def _watchos_extension_based_application_impl(ctx):
     """Implementation of watchos_application for watchOS 2 extension-based application bundles."""
 
     minimum_os = apple_common.dotted_version(ctx.attr.minimum_os_version)
-    if minimum_os >= apple_common.dotted_version("9.0"):
-        fail("""
-Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.
 
-watchOS applications for watchOS 9.0 or later MUST be single-target watchOS applications, relying on
+    # Xcode produces an error when building an extension-based watchOS 2 (dual-target) app whose
+    # minimum deployment target is watchOS 9.2 or later, and App Store Connect rejects them.
+    # Below that version, dual-target watchOS apps continue to build and ship.
+    # See: https://developer.apple.com/documentation/watchos-apps/migrating-to-a-single-target-watchos-app
+    if minimum_os >= apple_common.dotted_version("9.2"):
+        fail("""
+Error: Building an app extension-based watchOS 2 application for watchOS 9.2 or later.
+
+watchOS applications for watchOS 9.2 or later MUST be single-target watchOS applications, relying on
 an app delegate via deps rather than a watchOS 2 extension.
 
-Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.0 or
+Attempting to ship an extension-based watchOS 2 application to the App Store for watchOS 9.2 or
 later will be met with a rejection.
 
 Please remove the assigned watchOS 2 app `extension` and make sure a valid watchOS application
