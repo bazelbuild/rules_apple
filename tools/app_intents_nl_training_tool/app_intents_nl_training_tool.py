@@ -128,7 +128,9 @@ def main(argv):
         "--archive-ssu-assets",
     ])
 
-    # The tool reports some failures only in its output.
+    # In testing, the tool reported an error message, but exited with code 0.
+    # e.g. "error: Could not archive SSU artifacts. Check build log."
+    # Defensively check for an error message in addition to the exit code.
     if returncode != 0 or _ERROR_RE.search(stdout) or _ERROR_RE.search(stderr):
       sys.stderr.write(stdout)
       sys.stderr.write(stderr)
