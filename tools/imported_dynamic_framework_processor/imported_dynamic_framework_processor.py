@@ -300,8 +300,11 @@ def main() -> None:
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  framework_directory = os.path.normpath(
-      os.path.commonprefix(args.framework_file + [args.framework_binary]))
+  # Stub binaries of embedded static frameworks are generated outside of the
+  # imported framework directory.
+  framework_path = (args.framework_file + [args.framework_binary])[0]
+  framework_directory = framework_path[
+      :framework_path.index(".framework/") + len(".framework")]
   framework_name, _ = os.path.splitext(os.path.basename(framework_directory))
   is_versioned_framework = any(map(_is_versioned_file, args.framework_file))
 
@@ -328,6 +331,7 @@ def main() -> None:
             binary=args.framework_binary)
 
     # Copy files from Versions/<version_id>
+    has_versioned_binary = False
     for framework_file in args.framework_file:
       if not _is_versioned_file(framework_file, version):
         # Ignore non-current/effective version framework files.
@@ -347,6 +351,7 @@ def main() -> None:
         continue
 
       if os.path.basename(framework_file) == framework_name:
+        has_versioned_binary = True
         _strip_or_copy_binary(
             framework_binary=framework_file,
             output_path=args.temp_path,
@@ -357,6 +362,13 @@ def main() -> None:
             framework_file,
             executable=False,
             output_path=args.temp_path)
+
+    if not has_versioned_binary:
+      # Stub binaries of embedded static frameworks go in the effective version.
+      versioned_binary = os.path.join(
+          args.temp_path, "Versions", version, framework_name)
+      shutil.copy(args.framework_binary, versioned_binary)
+      os.chmod(versioned_binary, 0o755)
 
     # Create symbolic link from Current to effective version directory.
     symlink_path = os.path.join(args.temp_path, "Versions", "Current")

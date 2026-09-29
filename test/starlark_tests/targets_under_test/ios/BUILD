@@ -7300,3 +7300,88 @@ ios_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
+
+generate_static_framework_xcframework(
+    name = "generated_static_framework_xcframework_with_resources",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    include_privacy_manifest = True,
+    include_resource_bundle = True,
+    minimum_os_versions = {
+        "ios": common.min_os_ios.oldest_supported,
+        "ios_simulator": common.min_os_ios.oldest_supported,
+    },
+    platforms = {
+        "ios": ["arm64"],
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_framework_xcframework_with_resources",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_framework_xcframework_with_resources"],
+)
+
+objc_library(
+    name = "static_framework_xcframework_with_resources_depending_lib",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_framework_xcframework_with_resources"],
+)
+
+ios_application(
+    name = "app_with_imported_static_framework_xcframework",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_framework_xcframework_with_resources_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_extension(
+    name = "ext_with_imported_static_framework_xcframework",
+    bundle_id = "com.google.example.ext",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [":static_framework_xcframework_with_resources_depending_lib"],
+)
+
+ios_application(
+    name = "app_with_ext_with_imported_static_framework_xcframework",
+    bundle_id = "com.google.example",
+    extensions = [":ext_with_imported_static_framework_xcframework"],
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.nplus1,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)

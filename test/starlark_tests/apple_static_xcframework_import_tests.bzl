@@ -318,6 +318,121 @@ def apple_static_xcframework_import_test_suite(name):
         tags = [name],
     )
 
+    # Verify Static Framework XCFrameworks are embedded like Xcode: without headers, modules or the
+    # static binary, with an empty dylib for the app's minimum OS version that the app doesn't link.
+    ios_fw = "$BUNDLE_ROOT/Frameworks/generated_static_framework_xcframework_with_resources.framework"
+    ios_fw_binary = ios_fw + "/generated_static_framework_xcframework_with_resources"
+    ios_app = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_framework_xcframework"
+    ios_fw_contents = [
+        ios_fw + "/Info.plist",
+        ios_fw + "/PrivacyInfo.xcprivacy",
+        ios_fw + "/generated_static_framework_xcframework_with_resources.bundle/Info.plist",
+        ios_fw_binary,
+    ]
+    for build_type, arch, platform, test_name in [
+        ("simulator", "x86_64", "IOSSIMULATOR", "ios_x86_64_macho_load_cmd_for_simulator_test"),
+        ("device", "arm64", "IOS", "ios_arm64_macho_load_cmd_for_device_test"),
+    ]:
+        archive_contents_test(
+            name = "{}_framework_dependent_app_does_not_link_{}".format(name, test_name),
+            build_type = build_type,
+            target_under_test = ios_app,
+            binary_test_file = "$BINARY",
+            binary_test_architecture = arch,
+            cpus = {"ios_multi_cpus": [arch]},
+            macho_load_commands_not_contain = [
+                "name @rpath/generated_static_framework_xcframework_with_resources.framework/generated_static_framework_xcframework_with_resources",
+            ],
+            tags = [name],
+        )
+        archive_contents_test(
+            name = "{}_framework_links_{}".format(name, test_name),
+            build_type = build_type,
+            target_under_test = ios_app,
+            binary_test_file = ios_fw_binary,
+            binary_test_architecture = arch,
+            cpus = {"ios_multi_cpus": [arch]},
+            contains = ios_fw_contents,
+            not_contains = [
+                ios_fw + "/Headers/",
+                ios_fw + "/Modules/",
+                "$BUNDLE_ROOT/generated_static_framework_xcframework_with_resources.bundle/Info.plist",
+            ],
+            macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.nplus1, "platform " + platform],
+            tags = [name],
+        )
+
+    # Verify the empty dylib contains every architecture of a multi-architecture simulator build.
+    archive_contents_test(
+        name = "{}_framework_empty_dylib_contains_all_simulator_architectures_test".format(name),
+        build_type = "simulator",
+        target_under_test = ios_app,
+        binary_test_file = ios_fw_binary,
+        binary_test_architecture = "arm64",
+        cpus = {"ios_multi_cpus": ["x86_64", "sim_arm64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Verify the empty dylib is built for the app's minimum OS version when only an extension with
+    # a different minimum OS version links the Static Framework XCFramework.
+    archive_contents_test(
+        name = "{}_framework_empty_dylib_uses_app_minimum_os_version_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_imported_static_framework_xcframework",
+        binary_test_file = ios_fw_binary,
+        binary_test_architecture = "x86_64",
+        cpus = {"ios_multi_cpus": ["x86_64"]},
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.nplus1, "platform IOSSIMULATOR"],
+        tags = [name],
+    )
+
+    # Verify Static Framework XCFrameworks are embedded when using xcframework_processor_tool.
+    archive_contents_test(
+        name = "{}_framework_bundles_resources_with_xcframework_import_tool_test".format(name),
+        build_type = "simulator",
+        target_under_test = ios_app,
+        cpus = {"ios_multi_cpus": ["x86_64"]},
+        contains = ios_fw_contents,
+        not_contains = [
+            ios_fw + "/Headers/",
+            ios_fw + "/Modules/",
+        ],
+        build_settings = {
+            build_settings_labels.parse_xcframework_info_plist: "True",
+        },
+        tags = [name],
+    )
+
+    # Verify macos_application embeds versioned Static Framework XCFrameworks.
+    macos_fw = "$CONTENT_ROOT/Frameworks/generated_static_versioned_framework_xcframework.framework"
+    for arch in ["x86_64", "arm64"]:
+        archive_contents_test(
+            name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_{}_build".format(name, arch),
+            build_type = "device",
+            cpus = {"macos_cpus": [arch]},
+            target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_framework_xcframework",
+            binary_test_file = macos_fw + "/Versions/A/generated_static_versioned_framework_xcframework",
+            binary_test_architecture = arch,
+            contains = [
+                macos_fw + "/Resources/Info.plist",
+                macos_fw + "/Resources/PrivacyInfo.xcprivacy",
+                macos_fw + "/generated_static_versioned_framework_xcframework",
+                macos_fw + "/Versions/A/Resources/Info.plist",
+                macos_fw + "/Versions/A/Resources/PrivacyInfo.xcprivacy",
+                macos_fw + "/Versions/A/generated_static_versioned_framework_xcframework",
+                macos_fw + "/Versions/Current/Resources/Info.plist",
+                macos_fw + "/Versions/Current/generated_static_versioned_framework_xcframework",
+            ],
+            not_contains = [
+                macos_fw + "/Headers/",
+                macos_fw + "/Modules/",
+                macos_fw + "/Versions/B/",
+            ],
+            macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_macos.arm64_support, "platform MACOS"],
+            tags = [name],
+        )
+
     native.test_suite(
         name = name,
         tags = [name],
