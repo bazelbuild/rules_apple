@@ -22,6 +22,10 @@ and will return information on how the bundles should be built.
 All partials handled by this processor must follow this API:
 
   - The expected output is a struct with the following optional fields:
+    * app_intents_resources: Inputs exported by resource processing for deferred App Shortcuts
+      training. Contains `lproj_dirs` (top-level locale directory names), `lproj_files` (locale
+      directory, strings File pairs), and `resource_trees` (resource-relative parent directory,
+      tree File pairs, where "." denotes the resources root).
     * bundle_files: Contains tuples of the format
       (location_type, parent_dir, files) where location_type is a field of the
       location enum. The files are then placed at the given location in the

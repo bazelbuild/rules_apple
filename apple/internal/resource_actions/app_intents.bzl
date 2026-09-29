@@ -227,8 +227,8 @@ def generate_app_intents_nl_training_assets(
         mac_exec_group: The execution group for Mac tools.
         metadata_bundle: The Metadata.appintents directory for the target.
         nl_training_tool: A `files_to_run` for the App Intents NL training tool.
-        resource_trees: Directories bundled at the resources root that may contain `.lproj`
-            directories.
+        resource_trees: List of (resource-relative parent directory, tree File) tuples that may
+            contain localized strings. A parent of "." denotes the resources root.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
     Returns:
         A directory with the assets, laid out relative to the bundle's resources directory.
@@ -249,7 +249,9 @@ def generate_app_intents_nl_training_assets(
     for lproj_dir, file in lproj_files:
         args.add("--lproj-file", lproj_dir)
         args.add(file)
-    args.add_all(resource_trees, before_each = "--resource-tree", expand_directories = False)
+    for parent_dir, tree in resource_trees:
+        args.add("--resource-tree", parent_dir)
+        args.add(tree.path)
 
     apple_support.run(
         actions = actions,
@@ -257,7 +259,7 @@ def generate_app_intents_nl_training_assets(
         arguments = [args],
         exec_group = mac_exec_group,
         executable = nl_training_tool,
-        inputs = [infoplist, metadata_bundle] + [f for _, f in lproj_files] + resource_trees,
+        inputs = [infoplist, metadata_bundle] + [f for _, f in lproj_files] + [f for _, f in resource_trees],
         mnemonic = "AppIntentsNLTraining",
         outputs = [output],
         xcode_config = xcode_version_config,

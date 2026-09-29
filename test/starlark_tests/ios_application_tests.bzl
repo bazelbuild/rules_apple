@@ -1295,6 +1295,24 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    # Test excluded locales do not contribute training inputs or receive generated assets.
+    archive_contents_test(
+        name = "{}_app_shortcuts_flexible_matching_respects_excluded_locales_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.locales_to_exclude: "fr",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_app_intents_and_localized_strings",
+        contains = [
+            "$BUNDLE_ROOT/en.lproj/nlu.appintents/nlu.lzfse",
+            "$BUNDLE_ROOT/it.lproj/nlu.appintents/nlu.lzfse",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/fr.lproj",
+        ],
+        tags = [name],
+    )
+
     # Test App Shortcuts Flexible Matching assets are bundled for locales compiled from xcstrings.
     archive_contents_test(
         name = "{}_contains_app_shortcuts_flexible_matching_assets_for_xcstrings_test".format(name),

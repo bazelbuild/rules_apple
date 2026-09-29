@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("//apple/internal:outputs.bzl", "outputs")
 load("//apple/internal:processor.bzl", "processor")
 load(
     "//apple/internal/providers:app_intents_info.bzl",
@@ -26,9 +27,6 @@ load(
     "generate_app_intents_metadata_bundle",
     "generate_app_intents_nl_training_assets",
 )
-
-# Localized strings files that appintentsnltrainingprocessor reads from each `.lproj` directory.
-_NL_TRAINING_STRINGS_BASENAMES = ["AppShortcuts.strings", "InfoPlist.strings"]
 
 def _app_intents_nl_training_partial_impl(
         *,
@@ -42,36 +40,23 @@ def _app_intents_nl_training_partial_impl(
         platform_prerequisites):
     """Implementation of the App Shortcuts Flexible Matching partial.
 
-    It reads the merged Info.plist and localized resources from the outputs of the other partials.
+    It consumes the training inputs explicitly exported by resource processing.
     """
-    infoplist = None
+    infoplist = outputs.infoplist(
+        actions = actions,
+        label_name = label.name,
+        output_discriminator = None,
+    )
     lproj_dirs = {}
     lproj_files = []
     resource_trees = []
     for partial_output in partial_outputs:
-        for location, parent_dir, files in getattr(partial_output, "bundle_files", []):
-            if location == processor.location.content and not parent_dir:
-                for file in files.to_list():
-                    if file.basename == "Info.plist":
-                        infoplist = file
-            if location != processor.location.resource:
-                continue
-            if not parent_dir:
-                resource_trees.extend([f for f in files.to_list() if f.is_directory])
-                continue
-            lproj_dir = parent_dir.split("/", 1)[0]
-            if not lproj_dir.endswith(".lproj"):
-                continue
-            lproj_dirs[lproj_dir] = None
-            if parent_dir == lproj_dir:
-                lproj_files.extend([
-                    (lproj_dir, f)
-                    for f in files.to_list()
-                    if f.basename in _NL_TRAINING_STRINGS_BASENAMES
-                ])
-
-    if not infoplist:
-        return struct()
+        training_resources = getattr(partial_output, "app_intents_resources", None)
+        if training_resources:
+            for lproj_dir in training_resources.lproj_dirs:
+                lproj_dirs[lproj_dir] = None
+            lproj_files.extend(training_resources.lproj_files)
+            resource_trees.extend(training_resources.resource_trees)
 
     assets = generate_app_intents_nl_training_assets(
         actions = actions,

@@ -44,17 +44,24 @@ def _stage_file(src, relpath, product_dir, staged_paths):
   staged_paths.add(relpath)
 
 
-def _stage_resource_tree(tree, product_dir, staged_paths):
-  """Stages the .lproj directories at the root of tree, such as those compiled from xcstrings."""
+def _stage_lproj(lproj_dir, lproj_path, product_dir, staged_paths):
+  os.makedirs(os.path.join(product_dir, lproj_dir), exist_ok=True)
+  for basename in _LOCALIZED_STRINGS_BASENAMES:
+    src = os.path.join(lproj_path, basename)
+    if os.path.isfile(src):
+      _stage_file(src, os.path.join(lproj_dir, basename), product_dir, staged_paths)
+
+
+def _stage_resource_tree(parent_dir, tree, product_dir, staged_paths):
+  """Stages a tree merged at the resources root or directly into a locale directory."""
+  if parent_dir != ".":
+    _stage_lproj(parent_dir, tree, product_dir, staged_paths)
+    return
   for name in sorted(os.listdir(tree)):
     lproj_path = os.path.join(tree, name)
     if not name.endswith(".lproj") or not os.path.isdir(lproj_path):
       continue
-    os.makedirs(os.path.join(product_dir, name), exist_ok=True)
-    for basename in _LOCALIZED_STRINGS_BASENAMES:
-      src = os.path.join(lproj_path, basename)
-      if os.path.isfile(src):
-        _stage_file(src, os.path.join(name, basename), product_dir, staged_paths)
+    _stage_lproj(name, lproj_path, product_dir, staged_paths)
 
 
 def _development_region(infoplist):
@@ -86,7 +93,9 @@ def _parse_args(argv):
       "--resource-tree",
       action="append",
       default=[],
-      help="A directory bundled at the root of the resources that may contain .lproj directories.",
+      metavar=("PARENT", "PATH"),
+      nargs=2,
+      help="A tree merged into PARENT, either '.' for the resources root or a locale directory.",
   )
   return parser.parse_args(argv)
 
@@ -106,8 +115,8 @@ def main(argv):
       os.makedirs(os.path.join(product_dir, lproj), exist_ok=True)
     for lproj, path in args.lproj_file:
       _stage_file(path, os.path.join(lproj, os.path.basename(path)), product_dir, staged_paths)
-    for tree in args.resource_tree:
-      _stage_resource_tree(tree, product_dir, staged_paths)
+    for parent_dir, tree in args.resource_tree:
+      _stage_resource_tree(parent_dir, tree, product_dir, staged_paths)
 
     # With no locale to train, the tool prints an error but exits with status 0.
     if not os.listdir(product_dir) and not _development_region(args.infoplist):
