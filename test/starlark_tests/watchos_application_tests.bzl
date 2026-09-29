@@ -630,7 +630,19 @@ def watchos_application_test_suite(name):
     analysis_failure_message_test(
         name = "{}_test_watchos_single_target_application_required_error".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_invalid_watchos_version",
-        expected_error = "Error: Building an app extension-based watchOS 2 application for watchOS 9.0 or later.",
+        expected_error = "Error: Building an app extension-based watchOS 2 application for watchOS 9.2 or later.",
+        tags = [name],
+    )
+
+    # Test that an extension-based watchOS 2 app still builds with a minimum OS version below
+    # the single-target threshold, matching Xcode and App Store Connect.
+    archive_contents_test(
+        name = "{}_test_watchos_extension_based_application_below_single_target_threshold".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/watchos:app_with_ext_with_valid_watchos_version",
+        contains = [
+            "$BUNDLE_ROOT/PlugIns/ext.appex/Info.plist",
+        ],
         tags = [name],
     )
 
