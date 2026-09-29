@@ -28,6 +28,24 @@ _PLATFORM_TYPE_TO_PLATFORM_FAMILY = {
     "visionos": "xrOS",
 }
 
+def _write_file_list(*, actions, files, file_name, label):
+    """Writes the paths of `files`, one per line, to an intermediate file and returns it.
+
+    The file is for appintentsmetadataprocessor's `--*-list` flags. One flag per file can exceed
+    ARG_MAX for large modules.
+    """
+    file_list = intermediates.file(
+        actions = actions,
+        target_name = label.name,
+        output_discriminator = None,
+        file_name = file_name,
+    )
+    file_list_args = actions.args()
+    file_list_args.set_param_file_format("multiline")
+    file_list_args.add_all(files)
+    actions.write(output = file_list, content = file_list_args)
+    return file_list
+
 def generate_app_intents_metadata_bundle(
         *,
         actions,
@@ -95,22 +113,28 @@ Could not find a module name for app_intents. One is required for App Intents me
 
     args.add("--module-name", intents_module_names[0])
     args.add("--output", output.dirname)
-    args.add_all(
-        source_files,
-        before_each = "--source-files",
+    source_file_list = _write_file_list(
+        actions = actions,
+        files = source_files,
+        file_name = "app_intents_source_files.txt",
+        label = label,
     )
-    transitive_inputs = [depset(source_files)]
+    args.add("--source-file-list", source_file_list)
+    transitive_inputs = [depset([source_file_list] + source_files)]
     args.add("--sdk-root", apple_support.path_placeholders.sdkroot())
     platform_type_string = str(platform_prerequisites.platform_type)
     platform_family = _PLATFORM_TYPE_TO_PLATFORM_FAMILY[platform_type_string]
     args.add("--platform-family", platform_family)
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")
-    args.add_all(
-        constvalues_files,
-        before_each = "--swift-const-vals",
+    constvalues_file_list = _write_file_list(
+        actions = actions,
+        files = constvalues_files,
+        file_name = "app_intents_swiftconstvalues_files.txt",
+        label = label,
     )
-    transitive_inputs.append(depset(constvalues_files))
+    args.add("--swift-const-vals-list", constvalues_file_list)
+    transitive_inputs.append(depset([constvalues_file_list] + constvalues_files))
     args.add("--compile-time-extraction")
 
     # Read the build version from the fourth component of the Xcode version.
