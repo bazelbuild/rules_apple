@@ -41,6 +41,11 @@ following keys:
       into the bundle; and "dest", the path inside the bundle where the ZIPs
       contents should be placed. The destination path is relative to
       `bundle_path`.
+  bundle_symlinks: A list of dictionaries representing symbolic links to be
+      added to the bundle, such as a versioned framework's Versions/Current.
+      Each dictionary contains two fields: "dest", the path of the link inside
+      the bundle, relative to `bundle_path`; and "target", the (relative) path
+      the link points to.
   output: The path to the uncompressed ZIP archive that should be created with
       the merged bundle contents.
   root_merge_zips: A list of dictionaries representing the ZIP archives whose
@@ -109,6 +114,7 @@ class Bundler(object):
     bundle_merge_files = self._control.get('bundle_merge_files', [])
     bundle_merge_zips = self._control.get('bundle_merge_zips', [])
     root_merge_zips = self._control.get('root_merge_zips', [])
+    bundle_symlinks = self._control.get('bundle_symlinks', [])
     compress = self._control.get('compress', False)
 
     with zipfile.ZipFile(output_path, 'w', allowZip64 = True) as out_zip:
@@ -123,6 +129,13 @@ class Bundler(object):
 
       for z in root_merge_zips:
         self._add_zip_contents(z['src'], z['dest'], out_zip, compress)
+
+      for s in bundle_symlinks:
+        dest = os.path.normpath(os.path.join(bundle_path, s['dest']))
+        self._write_entry(
+            dest=dest, data=s['target'].encode('utf-8'), is_symlink=True,
+            out_zip=out_zip,
+            compress=compress)
 
     with zipfile.ZipFile(output_path, 'r') as test_zip:
       badfile = test_zip.testzip()

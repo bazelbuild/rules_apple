@@ -2977,6 +2977,12 @@ An `apple_bundle_version` target that represents the version for this target. Se
     ],
 )
 
+def _versioned_contents(rule_descriptor):
+    """The version directory a versioned framework's binary is in, with a trailing slash, or ""."""
+    if rule_descriptor.bundle_locations.bundle_version:
+        return rule_descriptor.bundle_locations.bundle_relative_contents + "/"
+    return ""
+
 def _macos_framework_impl(ctx):
     """Experimental implementation of macos_framework."""
     rule_descriptor = rule_support.rule_descriptor(
@@ -3044,7 +3050,8 @@ def _macos_framework_impl(ctx):
 
     extra_linkopts = [
         "-dynamiclib",
-        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+        "-Wl,-install_name,@rpath/{name}{extension}/{contents}{name}".format(
+            contents = _versioned_contents(rule_descriptor),
             extension = bundle_extension,
             name = bundle_name,
         ),
@@ -3337,7 +3344,8 @@ def _macos_dynamic_framework_impl(ctx):
 
     extra_linkopts = [
         "-dynamiclib",
-        "-Wl,-install_name,@rpath/{name}{extension}/{name}".format(
+        "-Wl,-install_name,@rpath/{name}{extension}/{contents}{name}".format(
+            contents = _versioned_contents(rule_descriptor),
             extension = bundle_extension,
             name = bundle_name,
         ),
