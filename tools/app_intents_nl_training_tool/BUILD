@@ -1,6 +1,4 @@
 load("@rules_python//python:py_binary.bzl", "py_binary")
-load("@rules_python//python:py_library.bzl", "py_library")
-load("@rules_python//python:py_test.bzl", "py_test")
 load("//tools:binary_env.bzl", "binary_env")
 
 licenses(["notice"])
@@ -14,24 +12,7 @@ py_binary(
     visibility = [
         "//apple/internal:__pkg__",
     ],
-    deps = [":app_intents_nl_training_tool_lib"],
-)
-
-py_library(
-    name = "app_intents_nl_training_tool_lib",
-    srcs = [
-        "__init__.py",
-        "app_intents_nl_training_tool.py",
-    ],
-    srcs_version = "PY3",
     deps = ["//tools/wrapper_common:execute"],
-)
-
-py_test(
-    name = "app_intents_nl_training_tool_test",
-    srcs = ["app_intents_nl_training_tool_test.py"],
-    python_version = "PY3",
-    deps = [":app_intents_nl_training_tool_lib"],
 )
 
 # Consumed by bazel tests.

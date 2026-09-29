@@ -13,11 +13,14 @@
 # limitations under the License.
 """Generates App Shortcuts Flexible Matching assets with appintentsnltrainingprocessor.
 
-appintentsnltrainingprocessor trains one model for each .lproj directory in the product directory,
-plus the Info.plist's CFBundleDevelopmentRegion. It reads AppShortcuts.strings and InfoPlist.strings
-from each .lproj directory and writes <locale>.lproj/nlu.appintents/ into the product directory.
-This wrapper stages those inputs in a temporary product directory, copies the generated files to
-the output directory, and zeroes the generation timestamp in each nlu.lzfse.
+appintentsnltrainingprocessor writes assets for each .lproj directory in the product directory, plus
+the Info.plist's CFBundleDevelopmentRegion. It reads AppShortcuts.strings and InfoPlist.strings from
+each .lproj directory and writes <locale>.lproj/nlu.appintents/ into the product directory. This
+wrapper stages those inputs in a temporary product directory and copies the generated files to the
+output directory.
+
+Each nlu.lzfse embeds the time it was generated, so the output differs between runs on identical
+inputs (FB24982656).
 """
 
 import argparse
@@ -25,49 +28,13 @@ import os
 import plistlib
 import re
 import shutil
-import struct
 import sys
 import tempfile
-import time
 
 from tools.wrapper_common import execute
 
 _LOCALIZED_STRINGS_BASENAMES = ("AppShortcuts.strings", "InfoPlist.strings")
 _ERROR_RE = re.compile(r"\berror:")
-
-
-def zero_timestamps(data, start, end):
-  """Returns data with each 4-byte aligned little-endian integer in [start, end] set to zero.
-
-  Each nlu.lzfse decompresses to a FlatBuffer that stores its generation time as seconds since
-  the Unix epoch. The schema is not public, so this searches for values in the time range when the
-  tool ran.
-  """
-  result = bytearray(data)
-  for offset in range(0, len(result) - 3, 4):
-    (value,) = struct.unpack_from("<I", result, offset)
-    if start <= value <= end:
-      struct.pack_into("<I", result, offset, 0)
-  return bytes(result)
-
-
-def _normalize_nlu_archive(src, dest, start, end, work_dir):
-  """Writes src to dest with its generation timestamp set to zero."""
-  decoded_path = os.path.join(work_dir, "nlu.decoded")
-  normalized_path = os.path.join(work_dir, "nlu.normalized")
-  _compression_tool("-decode", src, decoded_path)
-  with open(decoded_path, "rb") as f:
-    decoded = f.read()
-  with open(normalized_path, "wb") as f:
-    f.write(zero_timestamps(decoded, start, end))
-  _compression_tool("-encode", normalized_path, dest)
-
-
-def _compression_tool(mode, src, dest):
-  execute.execute_and_filter_output(
-      ["/usr/bin/compression_tool", mode, "-a", "lzfse", "-i", src, "-o", dest],
-      raise_on_failure=True,
-  )
 
 
 def _stage_file(src, relpath, product_dir, staged_paths):
@@ -148,7 +115,6 @@ def main(argv):
 
     # The tool writes root.ssu.yaml into the --extracted-metadata-path directory, which is a
     # read-only input, unless --deployment-postprocessing is passed.
-    start = int(time.time())
     returncode, stdout, stderr = execute.execute_and_filter_output([
         "/usr/bin/xcrun",
         "appintentsnltrainingprocessor",
@@ -161,7 +127,6 @@ def main(argv):
         "--deployment-postprocessing",
         "--archive-ssu-assets",
     ])
-    end = int(time.time()) + 1
 
     # The tool reports some failures only in its output.
     if returncode != 0 or _ERROR_RE.search(stdout) or _ERROR_RE.search(stderr):
@@ -177,10 +142,7 @@ def main(argv):
           continue
         dest = os.path.join(args.output, relpath)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        if filename == "nlu.lzfse":
-          _normalize_nlu_archive(src, dest, start, end, work_dir)
-        else:
-          shutil.copyfile(src, dest)
+        shutil.copyfile(src, dest)
 
   return 0
 
