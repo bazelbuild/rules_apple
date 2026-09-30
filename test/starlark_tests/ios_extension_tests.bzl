@@ -80,6 +80,9 @@ def ios_extension_test_suite(name):
     apple_verification_test(
         name = "{}_fmwk_provisioned_codesign_asan_test".format(name),
         build_type = "simulator",
+        cpus = {
+            "ios_multi_cpus": ["sim_arm64"],
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",

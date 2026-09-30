@@ -154,6 +154,9 @@ All requested architectures must be either device or simulator architectures."""
     apple_verification_test(
         name = "{}_ext_and_fmwk_provisioned_codesign_asan_test".format(name),
         build_type = "simulator",
+        cpus = {
+            "ios_multi_cpus": ["sim_arm64"],
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_and_fmwk_provisioned",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         sanitizer = "asan",
@@ -667,6 +670,9 @@ All requested architectures must be either device or simulator architectures."""
         contains = [
             "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_iossim_dynamic.dylib",
         ],
+        cpus = {
+            "ios_multi_cpus": ["sim_arm64"],
+        },
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         tags = [name],
@@ -722,6 +728,9 @@ All requested architectures must be either device or simulator architectures."""
         contains = [
             "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_iossim_dynamic.dylib",
         ],
+        cpus = {
+            "ios_multi_cpus": ["sim_arm64"],
+        },
         sanitizer = "asan",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_minimal",
         tags = [name],
