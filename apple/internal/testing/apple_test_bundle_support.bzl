@@ -552,6 +552,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = getattr(ctx.attr, "frameworks", []),
+            embedded_framework_targets = (
+                getattr(ctx.attr, "deps", []) +
+                getattr(ctx.attr, "resources", [])
+            ),
         ),
         bundling_tasks.framework_import(
             actions = actions,

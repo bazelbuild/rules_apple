@@ -1,7 +1,3 @@
-load(
-    "@build_bazel_rules_swift//swift:swift_library.bzl",
-    "swift_library",
-)
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple_imports.bzl",
@@ -28,7 +24,6 @@ load(
 )
 load(
     "//apple:resources.bzl",
-    "apple_resource_group",
     "apple_runfiles_data",
 )
 load(
@@ -2113,47 +2108,6 @@ macos_application(
     deps = [
         ":macOSImportedDynamicFramework",
         "//test/starlark_tests/resources:another_plist_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-objc_library(
-    name = "objc_lib_with_macos_framework",
-    srcs = [
-        "//test/starlark_tests/resources:shared.h",
-        "//test/starlark_tests/resources:shared.m",
-    ],
-    data = [
-        ":fmwk_with_resources",
-        ":mac_resource_group_with_framework",
-    ],
-    tags = common.fixture_tags,
-)
-
-apple_resource_group(
-    name = "mac_resource_group_with_framework",
-    resources = [":fmwk_no_version"],
-    tags = common.fixture_tags,
-)
-
-swift_library(
-    name = "swift_lib_with_macos_framework",
-    srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
-    data = [":fmwk_min_os_baseline_with_bundle"],
-    tags = common.fixture_tags,
-)
-
-macos_extension(
-    name = "ext_with_fmwks_from_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example.ext",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_macos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_macos_framework",
-        ":swift_lib_with_macos_framework",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )

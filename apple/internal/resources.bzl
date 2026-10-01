@@ -223,6 +223,8 @@ def _bucketize_data(
         allowed_bucket_set = {k: None for k in allowed_buckets}
 
     for target in resources:
+        if AppleFrameworkBundleInfo in target:
+            continue
         for resource in target.files.to_list():
             # Local cache of the resource short path since it gets used quite a bit below.
             resource_short_path = resource.short_path
@@ -247,14 +249,7 @@ def _bucketize_data(
             resource_depset = depset([resource])
 
             # For each type of resource, place in the appropriate bucket.
-            if AppleFrameworkBundleInfo in target:
-                if ".dSYM" in resource_short_path or resource.extension == "linkmap":
-                    # Never ever bundle dSYMs or linkmaps since they should never, ever belong in
-                    # resource processing. This goes for any "framework" outputs that do not belong
-                    # in the shipping framework bundle itself.
-                    continue
-                bucket_name = "framework"
-            elif (resource_short_path.endswith(".mergeable.strings")):
+            if (resource_short_path.endswith(".mergeable.strings")):
                 bucket_name = "mergeable_strings"
             elif (resource_short_path.endswith(".strings") or
                   resource_short_path.endswith(".stringsdict")):
@@ -381,7 +376,12 @@ def _bucketize_typed_data(
     if expect_files:
         all_resources = resources
     else:
-        all_resources = [f for t in resources for f in t.files.to_list()]
+        all_resources = [
+            f
+            for t in resources
+            if AppleFrameworkBundleInfo not in t
+            for f in t.files.to_list()
+        ]
 
     for resource in all_resources:
         resource_short_path = resource.short_path
@@ -663,6 +663,8 @@ def _collect(
 
         binary_attr = True if res_attr in _KNOWN_BINARY_ATTRS else False
         for target in targets_for_attr:
+            if AppleFrameworkBundleInfo in target:
+                continue
             if not target.files:
                 # Target does not export any File interfaces, ignore.
                 continue

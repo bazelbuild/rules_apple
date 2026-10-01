@@ -140,6 +140,7 @@ bzl_library(
     deps = [
         "//apple/internal:location_enum",
         "//apple/internal/providers:embeddable_info",
+        "//apple/internal/providers:embedded_framework_bundle_info",
     ],
 )
 
@@ -241,6 +242,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
         "//apple/internal:outputs",
+        "//apple/internal:providers",
         "//apple/internal:resource_actions",
         "//apple/internal:resources",
         "//apple/internal:shared_environment",

@@ -424,7 +424,6 @@ def _resources_bundling_task_impl(
     provider_field_to_action = {
         "asset_catalogs": (resources_support.asset_catalogs, False),
         "datamodels": (resources_support.datamodels, True),
-        "framework": (resources_support.apple_bundle(location_enum.framework), False),
         "infoplists": (resources_support.infoplists, False),
         "mergeable_strings": (resources_support.mergeable_strings, False),
         "plists": (resources_support.plists_and_strings, False),

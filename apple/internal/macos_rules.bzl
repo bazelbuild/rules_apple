@@ -183,7 +183,11 @@ def _macos_application_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.xpc_services
+    embeddable_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions +
+        ctx.attr.xpc_services
+    )
     extra_requested_features = []
     if ctx.attr.testonly:
         extra_requested_features.append("exported_symbols")
@@ -362,7 +366,7 @@ def _macos_application_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.debug_symbols(
@@ -378,6 +382,7 @@ def _macos_application_impl(ctx):
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
         ),
         bundling_tasks.framework_import(
             actions = actions,
@@ -888,7 +893,7 @@ def _macos_framework_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.debug_symbols(
@@ -903,6 +908,7 @@ def _macos_framework_impl(ctx):
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
             frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
@@ -1161,7 +1167,7 @@ def _macos_extension_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.clang_rt_dylibs(
@@ -1204,6 +1210,7 @@ def _macos_extension_impl(ctx):
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(

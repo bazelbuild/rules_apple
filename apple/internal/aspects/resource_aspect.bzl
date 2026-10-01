@@ -26,17 +26,12 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleImportInfo",
-    "AppleBundleInfo",
-    "AppleDsymBundleInfo",
     "AppleFrameworkBundleInfo",
-    "AppleLinkmapInfo",
     "AppleResourceBundleInfo",
     "AppleResourceExplicitFilesInfo",
     "AppleResourceGroupInfo",
     "AppleResourceInfo",
     "AppleRunfilesInfo",
-    "new_appledsymbundleinfo",
-    "new_applelinkmapinfo",
     "new_applerunfilesinfo",
 )
 load(
@@ -46,14 +41,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:swift_support.bzl",
     "swift_support",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
-    "AppIntentsBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
-    "AppleResourceValidationInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
@@ -131,7 +118,12 @@ def _apple_resource_aspect_impl(target, ctx):
     """Implementation of the resource propation aspect."""
 
     # If the target already propagates an AppleResourceInfo or AppleRunfilesInfo, do nothing.
-    if AppleResourceInfo in target or AppleRunfilesInfo in target:
+    # Framework bundles do not propagate resources.
+    if (
+        AppleResourceInfo in target or
+        AppleRunfilesInfo in target or
+        AppleFrameworkBundleInfo in target
+    ):
         return []
 
     apple_resource_infos = []
@@ -343,9 +335,6 @@ def _apple_resource_aspect_impl(target, ctx):
         AppleResourceGroupInfo in target or
         AppleBundleImportInfo in target
     )
-    apple_resource_validation_infos = []
-    apple_linkmap_infos = []
-    apple_dsym_bundle_infos = []
     inherited_apple_resource_infos = []
     apple_runfiles_infos = []
     for attr in provider_deps:
@@ -353,63 +342,10 @@ def _apple_resource_aspect_impl(target, ctx):
             targets = getattr(ctx.rule.attr, attr)
             for target in targets:
                 if AppleFrameworkBundleInfo in target:
-                    if AppleBundleInfo in target:
-                        # Create a reference to the AppleBundleInfo for any rules that output a
-                        # framework bundle for validation in the top level bundling rule.
-                        #
-                        # Further, we want to track the source of this AppleBundleInfo for logging
-                        # via the rule label. Otherwise we won't be able to get at the target/label
-                        # later.
-                        target_apple_bundle_info = struct(
-                            apple_bundle_info = target[AppleBundleInfo],
-                            target_label = str(target.label),
-                        )
+                    continue
 
-                        apple_resource_validation_infos.append(
-                            AppleResourceValidationInfo(
-                                direct_target_bundle_infos = [target_apple_bundle_info],
-                                transitive_target_bundle_infos = depset([target_apple_bundle_info]),
-                            ),
-                        )
-
-                    if AppIntentsBundleInfo in target:
-                        fail("An App Intents metadata bundle was found in the following " +
-                             "framework that is not directly loaded by an app/extension:\n\n" +
-                             "- {framework_target}\n\n" +
-                             "This was loaded by the following library target:\n\n" +
-                             "- {loading_target}\n\n" +
-                             "App Intents are not supported within frameworks that aren't " +
-                             "directly loaded by an app/extension.".format(
-                                 loading_target = str(ctx.label),
-                                 framework_target = str(target.label),
-                             ))
-                    if AppleRunfilesInfo in target:
-                        fail((
-                            "Target '{parent}' of kind '{kind}' includes '{dep}', which " +
-                            "provides AppleRunfilesInfo. apple_runfiles_data targets are not " +
-                            "supported within frameworks that aren't directly loaded by a " +
-                            "test or app target."
-                        ).format(
-                            dep = str(target.label),
-                            kind = ctx.rule.kind,
-                            parent = str(ctx.label),
-                        ))
-                if AppleFrameworkBundleInfo not in target and AppleResourceInfo in target:
-                    # Propagate the AppleResourceInfo for non-AppleFrameworkBundleInfo targets, to
-                    # avoid propagating resources that should not be extended beyond the framework.
+                if AppleResourceInfo in target:
                     inherited_apple_resource_infos.append(target[AppleResourceInfo])
-
-                # Propagate AppleLinkMapInfo and AppleDsymBundleInfo providers from deps/resources
-                # referenced dependencies required for the debug_symbols bundling task. This will
-                # often start from frameworks.
-                if AppleLinkmapInfo in target:
-                    apple_linkmap_infos.append(target[AppleLinkmapInfo])
-
-                if AppleDsymBundleInfo in target:
-                    apple_dsym_bundle_infos.append(target[AppleDsymBundleInfo])
-
-                if AppleResourceValidationInfo in target:
-                    apple_resource_validation_infos.append(target[AppleResourceValidationInfo])
 
                 if AppleRunfilesInfo in target:
                     if is_resource_rule:
@@ -447,39 +383,6 @@ def _apple_resource_aspect_impl(target, ctx):
             resources.merge_providers(
                 default_owner = owner,
                 providers = apple_resource_infos,
-            ),
-        )
-
-    if apple_resource_validation_infos:
-        providers.append(
-            AppleResourceValidationInfo(
-                direct_target_bundle_infos = [],
-                transitive_target_bundle_infos = depset(
-                    transitive = [
-                        x.transitive_target_bundle_infos
-                        for x in apple_resource_validation_infos
-                    ],
-                ),
-            ),
-        )
-
-    if apple_linkmap_infos:
-        providers.append(
-            new_applelinkmapinfo(
-                direct_linkmaps = [],
-                transitive_linkmaps = depset(
-                    transitive = [x.transitive_linkmaps for x in apple_linkmap_infos],
-                ),
-            ),
-        )
-
-    if apple_dsym_bundle_infos:
-        providers.append(
-            new_appledsymbundleinfo(
-                direct_dsyms = [],
-                transitive_dsyms = depset(
-                    transitive = [x.transitive_dsyms for x in apple_dsym_bundle_infos],
-                ),
             ),
         )
 

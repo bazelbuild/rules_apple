@@ -210,7 +210,11 @@ def _ios_application_impl(ctx):
         extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
-    embeddable_targets = ctx.attr.frameworks + ctx.attr.extensions + ctx.attr.app_clips
+    embeddable_targets = (
+        ctx.attr.frameworks +
+        ctx.attr.extensions +
+        ctx.attr.app_clips
+    )
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -392,7 +396,7 @@ def _ios_application_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.clang_rt_dylibs(
@@ -418,6 +422,7 @@ def _ios_application_impl(ctx):
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
         ),
         bundling_tasks.framework_import(
             actions = actions,
@@ -705,7 +710,7 @@ def _ios_app_clip_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.codesigning_dossier(
@@ -749,6 +754,7 @@ def _ios_app_clip_impl(ctx):
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
             embeddable_targets = embeddable_targets,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
         ),
         bundling_tasks.framework_import(
             actions = actions,
@@ -1011,7 +1017,7 @@ def _ios_framework_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.debug_symbols(
@@ -1026,6 +1032,7 @@ def _ios_framework_impl(ctx):
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
             frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
@@ -1297,7 +1304,7 @@ def _ios_extension_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.codesigning_dossier(
@@ -1339,6 +1346,7 @@ def _ios_extension_impl(ctx):
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(
@@ -1736,7 +1744,7 @@ def _ios_imessage_extension_impl(ctx):
             frameworks = ctx.attr.frameworks,
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps,
+            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
             rule_label = label,
         ),
         bundling_tasks.codesigning_dossier(
@@ -1778,6 +1786,7 @@ def _ios_imessage_extension_impl(ctx):
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             embeddable_targets = ctx.attr.frameworks,
+            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
             plugins = [archive_for_embedding],
         ),
         bundling_tasks.extension_safe_validation(

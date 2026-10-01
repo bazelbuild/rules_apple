@@ -22,6 +22,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
     "AppleEmbeddableInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embedded_framework_bundle_info.bzl",
+    "AppleEmbeddedFrameworkBundleInfo",
+)
 
 visibility("@build_bazel_rules_apple//apple/...")
 
@@ -30,6 +34,7 @@ def _embedded_bundles_bundling_task_impl(
         build_settings,
         bundle_embedded_bundles,
         embeddable_targets,
+        embedded_framework_targets = [],
         signed_frameworks,
         **input_bundles_by_type):
     """Implementation for the embedded bundles processing bundling task."""
@@ -39,6 +44,13 @@ def _embedded_bundles_bundling_task_impl(
         x[AppleEmbeddableInfo]
         for x in embeddable_targets
         if AppleEmbeddableInfo in x
+    ]
+
+    # Collect all AppleEmbeddedFrameworkBundleInfo providers from the embedded framework targets.
+    embedded_framework_providers = [
+        x[AppleEmbeddedFrameworkBundleInfo]
+        for x in embedded_framework_targets
+        if AppleEmbeddedFrameworkBundleInfo in x
     ]
 
     # Map of embedded bundle type to their final location in the top-level bundle.
@@ -64,6 +76,14 @@ def _embedded_bundles_bundling_task_impl(
                     bundle_type,
                     [],
                 ).append(getattr(provider, bundle_type))
+
+        if bundle_type == "frameworks":
+            for provider in embedded_framework_providers:
+                if hasattr(provider, "frameworks") and provider.frameworks:
+                    transitive_bundles.setdefault(
+                        "frameworks",
+                        [],
+                    ).append(provider.frameworks)
 
         if bundle_embedded_bundles:
             # If this bundling task is configured to embed the transitive embeddable bundling tasks,
@@ -110,7 +130,10 @@ def _embedded_bundles_bundling_task_impl(
 
     # See if any signed_frameworks have been propagated.
     for provider in embeddable_providers:
-        if hasattr(provider, "signed_frameworks"):
+        if hasattr(provider, "signed_frameworks") and provider.signed_frameworks:
+            transitive_signed_framework_depsets.append(provider.signed_frameworks)
+    for provider in embedded_framework_providers:
+        if hasattr(provider, "signed_frameworks") and provider.signed_frameworks:
             transitive_signed_framework_depsets.append(provider.signed_frameworks)
 
     if transitive_signed_framework_depsets:
@@ -131,8 +154,17 @@ def _embedded_bundles_bundling_task_impl(
         # If no transitive signed frameworks were found, pass signed_frameworks.
         embeddedable_info_fields["signed_frameworks"] = signed_frameworks
 
+    output_providers = [AppleEmbeddableInfo(**embeddedable_info_fields)]
+    if not bundle_embedded_bundles:
+        output_providers.append(
+            AppleEmbeddedFrameworkBundleInfo(
+                frameworks = embeddedable_info_fields.get("frameworks", depset()),
+                signed_frameworks = embeddedable_info_fields.get("signed_frameworks", depset()),
+            ),
+        )
+
     return struct(
-        providers = [AppleEmbeddableInfo(**embeddedable_info_fields)],
+        providers = output_providers,
         **task_output_fields
     )
 
@@ -142,6 +174,7 @@ def embedded_bundles_bundling_task(
         build_settings,
         bundle_embedded_bundles = False,
         embeddable_targets = [],
+        embedded_framework_targets = [],
         extensions = [],
         frameworks = [],
         plugins = [],
@@ -165,6 +198,8 @@ def embedded_bundles_bundling_task(
             embeddable bundles will be propagated downstream for a top level target to bundle them.
         embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
             propagate.
+        embedded_framework_targets: The list of targets that propagate embedded frameworks to
+            bundle or propagate.
         extensions: List of ExtensionKit extension bundles that should be propagated downstream for
             a top level target to bundle inside `Extensions`.
         frameworks: List of framework bundles that should be propagated downstream for a top level
@@ -186,6 +221,7 @@ def embedded_bundles_bundling_task(
         build_settings = build_settings,
         bundle_embedded_bundles = bundle_embedded_bundles,
         embeddable_targets = embeddable_targets,
+        embedded_framework_targets = embedded_framework_targets,
         extensions = extensions,
         frameworks = frameworks,
         plugins = plugins,

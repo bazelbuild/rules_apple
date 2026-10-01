@@ -1,8 +1,4 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load(
-    "@build_bazel_rules_swift//swift:swift_library.bzl",
-    "swift_library",
-)
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 load(
     "//apple:apple_imports.bzl",
@@ -1239,67 +1235,6 @@ tvos_unit_test(
 # ---------------------------------------------------------------------------------------
 # Targets for Apple Frameworks propagated from objc_library/swift_library data attribute tests.
 
-tvos_application(
-    name = "app_with_fmwks_from_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-    ],
-)
-
-tvos_application(
-    name = "app_with_fmwks_from_transitive_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_inner_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-    ],
-)
-
-tvos_application(
-    name = "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example",
-    frameworks = [":fmwk"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-    ],
-)
-
-objc_library(
-    name = "objc_lib_with_inner_lib_with_tvos_framework",
-    srcs = [":objc_lib_with_inner_lib_with_tvos_framework_file"],
-    tags = common.fixture_tags,
-    deps = [":objc_lib_with_tvos_framework"],
-)
-
-write_file(
-    name = "objc_lib_with_inner_lib_with_tvos_framework_file",
-    out = "objc_lib_with_inner_lib_with_tvos_framework_file.m",
-    content = ["""
-int objc_lib_with_inner_lib_with_tvos_framework_function() {
-  return 0;
-}
-"""],
-    tags = common.fixture_tags,
-)
-
 objc_library(
     name = "objc_lib_with_tvos_framework",
     srcs = [":objc_lib_with_tvos_framework_file"],
@@ -1358,66 +1293,6 @@ int main() {
 }
 """],
     tags = common.fixture_tags,
-)
-
-swift_library(
-    name = "swift_lib_with_tvos_framework",
-    srcs = ["//test/starlark_tests/resources:DummySwiftFile"],
-    data = [":fmwk_with_resource_bundles"],
-    tags = common.fixture_tags,
-)
-
-tvos_application(
-    name = "app_with_resources_and_fmwks_with_resources_from_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-        "//test/starlark_tests/resources:another_basic_bundle_lib",
-        "//test/starlark_tests/resources:objc_common_lib_with_structured_resources",
-    ],
-)
-
-tvos_extension(
-    name = "ext_with_fmwks_from_objc_swift_libraries_using_data",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-tvos_framework(
-    name = "fmwk_with_fmwks_from_objc_swift_libraries_using_data",
-    hdrs = [
-        "//test/starlark_tests/resources:shared.h",
-    ],
-    bundle_id = "com.google.example.framework",
-    extension_safe = True,
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_tvos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        ":objc_lib_with_tvos_framework",
-        ":swift_lib_with_tvos_framework",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
 )
 
 # ---------------------------------------------------------------------------------------

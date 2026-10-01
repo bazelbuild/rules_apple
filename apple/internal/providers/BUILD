@@ -74,6 +74,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "embedded_framework_bundle_info",
+    srcs = ["embedded_framework_bundle_info.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "swift_generated_header_info",
     srcs = ["swift_generated_header_info.bzl"],
     visibility = [

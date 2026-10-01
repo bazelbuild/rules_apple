@@ -633,54 +633,6 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
-    # Test dSYM binaries and linkmaps from framework embedded via 'data' are propagated correctly
-    # at the top-level tvos_application rule, and present through the 'dsysms' and 'linkmaps' output
-    # groups.
-    analysis_output_group_info_files_test(
-        name = "{}_with_runtime_framework_transitive_dsyms_output_group_info_dsymutil_bundle_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        output_group_name = "dsyms",
-        expected_outputs = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-            "fmwk.framework.dSYM",
-            "fmwk_with_resource_bundles.framework.dSYM",
-            "fmwk_with_structured_resources.framework.dSYM",
-        ],
-        tags = [name],
-    )
-    analysis_output_group_info_files_test(
-        name = "{}_with_runtime_framework_transitive_linkmaps_output_group_info_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        output_group_name = "linkmaps",
-        expected_outputs = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_arm64.linkmap",
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data_x86_64.linkmap",
-            "fmwk_arm64.linkmap",
-            "fmwk_x86_64.linkmap",
-            "fmwk_with_resource_bundles_arm64.linkmap",
-            "fmwk_with_resource_bundles_x86_64.linkmap",
-            "fmwk_with_structured_resources_arm64.linkmap",
-            "fmwk_with_structured_resources_x86_64.linkmap",
-        ],
-        tags = [name],
-    )
-
-    # Test transitive frameworks dSYM bundles are propagated by the AppleDsymBundleInfo provider.
-    apple_dsym_bundle_info_test(
-        name = "{}_with_runtime_framework_dsym_bundle_info_dsymutil_bundle_test".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data",
-        expected_direct_dsyms = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-        ],
-        expected_transitive_dsyms = [
-            "app_with_fmwks_from_frameworks_and_objc_swift_libraries_using_data.app.dSYM",
-            "fmwk.framework.dSYM",
-            "fmwk_with_resource_bundles.framework.dSYM",
-            "fmwk_with_structured_resources.framework.dSYM",
-        ],
-        tags = [name],
-    )
-
     infoplist_contents_test(
         name = "{}_capability_set_derived_bundle_id_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_capability_set_derived_bundle_id",
