@@ -68,6 +68,7 @@ _OBJC_LIBRARY_ATTRS = [
     # keep sorted
     "data",
     "deps",
+    "implementation_deps",
 ]
 
 _SUPPORTED_QUALIFIED_KINDS = ADDITIONAL_QUALIFIED_KINDS
