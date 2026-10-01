@@ -175,7 +175,14 @@ def _framework_provider_aspect_impl(target, ctx):
             )
             apple_embedded_framework_infos.append(
                 AppleEmbeddedFrameworkBundleInfo(
-                    frameworks = target[DefaultInfo].files,
+                    frameworks = depset([
+                        f
+                        for f in target[DefaultInfo].files.to_list()
+                        # Never ever bundle dSYMs or linkmaps since they should never, ever belong
+                        # in processing "files". This goes for any "framework" outputs that do not
+                        # belong in the shipping framework bundle itself.
+                        if not f.basename.endswith(".dSYM") and f.extension != "linkmap"
+                    ]),
                     signed_frameworks = depset(),
                 ),
             )
