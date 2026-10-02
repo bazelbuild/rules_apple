@@ -1,6 +1,3 @@
-# NOTE: These are mainly just for the BazelCI setup so they don't have
-# to be repeated multiple times in .bazelci/presubmit.yml.
-
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 build --test_env=PATH
