@@ -1133,6 +1133,115 @@ App Intents bundles were defined by the following framework-referenced targets:
         tags = [name],
     )
 
+    targets_under_test_ios = (
+        "//test/starlark_tests/targets_under_test/ios:"
+    )
+
+    # Test that runtime framework wrapper (without AppleEmbeddedFrameworkBundleInfo)
+    # is bundled correctly into the app when dSYMs are enabled, and does not leak
+    # .dSYM or .linkmap files into the framework bundling path (b/184668988).
+    archive_contents_test(
+        name = "{}_bundles_runtime_framework_from_wrapper_with_dsyms".format(name),
+        build_type = "device",
+        apple_generate_dsym = True,
+        compilation_mode = "opt",
+        target_under_test = (
+            targets_under_test_ios + "app_with_wrapped_runtime_fmwk_using_data"
+        ),
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework.dSYM",
+            "$BUNDLE_ROOT/Frameworks/fmwk_arm64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = (
+            "{}_bundles_runtime_framework_from_wrapper_with_dsyms_and_tree_artifacts".format(
+                name,
+            )
+        ),
+        build_type = "device",
+        apple_generate_dsym = True,
+        compilation_mode = "opt",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = (
+            targets_under_test_ios + "app_with_wrapped_runtime_fmwk_using_data"
+        ),
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/Frameworks/fmwk.framework.dSYM",
+            "$BUNDLE_ROOT/Frameworks/fmwk_arm64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test dSYM binaries and linkmaps from runtime framework wrapper are propagated
+    # correctly at the top-level ios_application rule through dsyms and linkmaps
+    # output groups.
+    analysis_output_group_info_files_test(
+        name = (
+            "{}_with_wrapped_runtime_framework_transitive_dsyms_output_group_test".format(
+                name,
+            )
+        ),
+        target_under_test = (
+            targets_under_test_ios + "app_with_wrapped_runtime_fmwk_using_data"
+        ),
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "app_with_wrapped_runtime_fmwk_using_data.app.dSYM",
+            "fmwk.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = (
+            "{}_with_wrapped_runtime_framework_transitive_linkmaps_output_group_test".format(
+                name,
+            )
+        ),
+        target_under_test = (
+            targets_under_test_ios + "app_with_wrapped_runtime_fmwk_using_data"
+        ),
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_with_wrapped_runtime_fmwk_using_data_arm64.linkmap",
+            "app_with_wrapped_runtime_fmwk_using_data_x86_64.linkmap",
+            "fmwk_arm64.linkmap",
+            "fmwk_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    # Test transitive runtime framework dSYM bundles are propagated by AppleDsymBundleInfo.
+    apple_dsym_bundle_info_test(
+        name = (
+            "{}_with_wrapped_runtime_framework_dsym_bundle_info_test".format(
+                name,
+            )
+        ),
+        target_under_test = (
+            targets_under_test_ios + "app_with_wrapped_runtime_fmwk_using_data"
+        ),
+        expected_direct_dsyms = [
+            "app_with_wrapped_runtime_fmwk_using_data.app.dSYM",
+        ],
+        expected_transitive_dsyms = [
+            "app_with_wrapped_runtime_fmwk_using_data.app.dSYM",
+            "fmwk.framework.dSYM",
+        ],
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_no_bundle_id_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_bundle_id",

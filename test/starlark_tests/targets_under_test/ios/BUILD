@@ -44,6 +44,10 @@ load(
     "//test/starlark_tests:common.bzl",
     "common",
 )
+load(
+    "//test/starlark_tests/rules:runtime_framework_wrapper.bzl",
+    "runtime_framework_wrapper",
+)
 
 licenses(["notice"])
 
@@ -4075,6 +4079,40 @@ objc_library(
         ":fmwk_min_os_nplus1",
     ],
     tags = common.fixture_tags,
+)
+
+runtime_framework_wrapper(
+    name = "wrapped_runtime_fmwk",
+    tags = common.fixture_tags,
+    target = ":fmwk",
+)
+
+objc_library(
+    name = "objc_lib_with_wrapped_runtime_fmwk",
+    srcs = [
+        "//test/starlark_tests/resources:shared.h",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    data = [
+        ":wrapped_runtime_fmwk",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_wrapped_runtime_fmwk_using_data",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_wrapped_runtime_fmwk",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 ios_application(
