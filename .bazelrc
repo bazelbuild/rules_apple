@@ -1,5 +1,3 @@
-common --module_mirrors=https://bcr.cloudflaremirrors.com
-
 # Add the PATH to the test environment so that common macOS tools can be found
 # during a test run.
 build --test_env=PATH

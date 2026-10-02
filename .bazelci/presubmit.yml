@@ -22,6 +22,15 @@ x_defaults:
       - build
       - test
 
+  common_with_module_mirror: &common_with_module_mirror
+    <<: *common
+    build_flags:
+      - --config=ci
+      - --module_mirrors=https://bcr.cloudflaremirrors.com
+    test_flags:
+      - --config=ci
+      - --module_mirrors=https://bcr.cloudflaremirrors.com
+
 # NOTE: To avoid listing the same things for build_flags/test_flags for each
 # of these tasks, they are listed in the .bazelrc instead.
 tasks:
@@ -33,12 +42,12 @@ tasks:
   macos_8.x:
     name: "8.x"
     bazel: 8.x
-    <<: *common
+    <<: *common_with_module_mirror
 
   macos_9.x:
     name: "9.x"
     bazel: 9.x
-    <<: *common
+    <<: *common_with_module_mirror
 
   macos_9.x_linux_first:
     name: "iOS unit test with Linux first"
@@ -48,13 +57,14 @@ tasks:
       - "//test/ios_unit_test_execution_platforms:unit_test"
     test_flags:
       - --config=linux-exec
+      - --module_mirrors=https://bcr.cloudflaremirrors.com
     include_json_profile:
       - test
 
   macos_last_green:
     name: "Last Green Bazel"
     bazel: last_green
-    <<: *common
+    <<: *common_with_module_mirror
 
   doc_tests:
     name: "Doc tests"
@@ -62,5 +72,7 @@ tasks:
     platform: ubuntu2404
     test_targets:
     - "doc/..."
+    test_flags:
+      - --module_mirrors=https://bcr.cloudflaremirrors.com
 
 buildifier: 8.5.1
