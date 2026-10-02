@@ -51,6 +51,72 @@ load(
     "bundle_paths",
 )
 
+_TARGET_TRIPLE_OS_BY_PLATFORM_TYPE = {
+    "ios": "ios",
+    "macos": "macos",
+    "tvos": "tvos",
+    "visionos": "xros",
+    "watchos": "watchos",
+}
+
+def _generate_stub_binary(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        build_archs,
+        framework_basename,
+        is_versioned,
+        label_name,
+        mac_exec_group,
+        output_discriminator,
+        platform_prerequisites):
+    """Generates the stub binary Xcode injects into embedded static frameworks."""
+    framework_name = paths.split_extension(framework_basename)[0]
+    install_name = paths.join("@rpath", framework_basename, framework_name)
+    if is_versioned:
+        install_name = paths.join("@rpath", framework_basename, "Versions", "A", framework_name)
+
+    stub_binary = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = output_discriminator,
+        file_name = paths.join("_codeless_frameworks", framework_basename, framework_name),
+    )
+
+    args = actions.args()
+    args.add("generate-stub-dylib")
+    args.add_all(build_archs, before_each = "--architecture")
+    args.add("--environment", "device" if platform_prerequisites.platform.is_device else "simulator")
+    args.add("--install-name", install_name)
+    args.add("--minimum-os-version", platform_prerequisites.minimum_os)
+    args.add("--output-path", stub_binary.path)
+    args.add(
+        "--platform",
+        _TARGET_TRIPLE_OS_BY_PLATFORM_TYPE[str(platform_prerequisites.platform_type)],
+    )
+    args.add("--sdk-root-input-path", apple_support.path_placeholders.sdkroot())
+    args.add(
+        "--xcode-toolchain-input-path",
+        "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
+            xcode_path = apple_support.path_placeholders.xcode(),
+        ),
+    )
+
+    apple_support.run(
+        actions = actions,
+        apple_fragment = platform_prerequisites.apple_fragment,
+        arguments = [args],
+        env = shared_environment.default_env,
+        exec_group = mac_exec_group,
+        executable = apple_mac_toolchain_info.xcframework_processor_tool,
+        mnemonic = "GenerateFrameworkEmptyDylib",
+        outputs = [stub_binary],
+        xcode_config = platform_prerequisites.xcode_version_config,
+        xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
+    )
+
+    return stub_binary
+
 def _framework_import_partial_impl(
         *,
         actions,
@@ -144,6 +210,24 @@ def _framework_import_partial_impl(
             file_name = temp_path + ".zip",
         )
         temp_framework_bundle_path = paths.split_extension(framework_zip.path)[0]
+
+        # Static frameworks are embedded without a binary. Like Xcode, inject a stub binary built
+        # for the top-level target's minimum OS version.
+        if not framework_binaries_by_framework[framework_basename]:
+            framework_binaries_by_framework[framework_basename].append(_generate_stub_binary(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                build_archs = build_archs_found,
+                framework_basename = framework_basename,
+                is_versioned = any([
+                    ".framework/Versions/" in f.short_path
+                    for f in files_by_framework[framework_basename]
+                ]),
+                label_name = label_name,
+                mac_exec_group = mac_exec_group,
+                output_discriminator = output_discriminator,
+                platform_prerequisites = platform_prerequisites,
+            ))
 
         # Pass through all binaries, files, and relevant info as args.
         args = actions.args()

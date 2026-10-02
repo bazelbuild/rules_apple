@@ -675,10 +675,28 @@ def _apple_static_xcframework_import_impl(ctx):
         ),
     ]
 
+    # Like Xcode, embed static frameworks without their headers, modules and static binary, which
+    # is replaced by a stub binary when bundling.
+    bundling_imports = []
+    if xcframework.bundle_type == _BUNDLE_TYPE.frameworks:
+        framework_paths = framework_import_support.embeddable_framework_paths(xcframework_imports)
+        if xcframework_library.framework_files:
+            bundling_imports = framework_import_support.embedded_static_framework_files(
+                bundle_name = xcframework.library_name,
+                framework_files = xcframework_library.framework_imports,
+                framework_paths = framework_paths,
+            )
+        elif (len(framework_paths) == len(xcframework.files_by_category.binary_imports) and
+              not framework_import_support.has_versioned_framework_files(xcframework_imports)):
+            # The xcframework_processor_tool selects the library during execution, so only embed
+            # when every library has an Info.plist.
+            bundling_imports = xcframework_library.framework_imports
+
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
-        build_archs = [apple_fragment.single_arch_cpu],
+        build_archs = [target_triplet.architecture],
         deps = deps,
+        framework_imports = bundling_imports,
     )
     providers.append(apple_framework_import_info)
 
@@ -811,7 +829,7 @@ def _apple_static_xcframework_import_impl(ctx):
 
     # Create AppleFrameworkImportBundleInfo provider.
     bundle_files = [x for x in xcframework_library.framework_files if ".bundle/" in x.short_path]
-    if bundle_files:
+    if bundle_files and not bundling_imports:
         providers.append(AppleFrameworkImportBundleInfo(bundle_files = bundle_files))
 
     return providers

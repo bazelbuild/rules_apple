@@ -44,12 +44,16 @@ following information:
       List of supported platforms by the library.
   - SupportedPlatformVariant:
       List of supported platform variants (e.g. simulator) if available.
+
+The `generate-stub-dylib` command generates the empty dylib that Xcode injects
+as the binary of "codeless frameworks", such as embedded static frameworks.
 """
 
 import argparse
 import os
 import plistlib
 import shutil
+import subprocess
 import sys
 from typing import Any, Dict, List
 
@@ -120,6 +124,53 @@ def _create_args_parser() -> argparse.ArgumentParser:
     )
 
   return parser
+
+
+def _generate_stub_dylib(argv: List[str]) -> int:
+  """Generates an empty dylib, matching the stub binary Xcode generates."""
+  parser = argparse.ArgumentParser(prog="generate-stub-dylib")
+  parser.add_argument("--architecture", action="append", required=True)
+  for arg_name in [
+      "environment",
+      "install-name",
+      "minimum-os-version",
+      "output-path",
+      "platform",
+      "sdk-root-input-path",
+      "xcode-toolchain-input-path",
+  ]:
+    parser.add_argument(f"--{arg_name}", required=True)
+  args = parser.parse_args(argv)
+
+  toolchain_bin = os.path.join(args.xcode_toolchain_input_path, "usr", "bin")
+  environment = "-simulator" if args.environment == "simulator" else ""
+  arch_binaries = []
+  for architecture in args.architecture:
+    arch_binary = f"{args.output_path}.{architecture}"
+    subprocess.run(
+        [
+            os.path.join(toolchain_bin, "clang"),
+            "-x", "c", "/dev/null",
+            "-dynamiclib",
+            "-isysroot", args.sdk_root_input_path,
+            "-target",
+            f"{architecture}-apple-{args.platform}{args.minimum_os_version}"
+            f"{environment}",
+            "-install_name", args.install_name,
+            "-Xlinker", "-adhoc_codesign",
+            "-o", arch_binary,
+        ],
+        check=True)
+    arch_binaries.append(arch_binary)
+
+  subprocess.run(
+      [os.path.join(toolchain_bin, "lipo"), "-create", "-output",
+       args.output_path] + arch_binaries,
+      check=True)
+  for arch_binary in arch_binaries:
+    os.remove(arch_binary)
+
+  return 0
 
 
 def _get_plist_dict(info_plist_path: str) -> Dict[str, Any]:
@@ -280,6 +331,9 @@ def _copy_xcframework_files(
 
 
 def main() -> int:
+  if len(sys.argv) > 1 and sys.argv[1] == "generate-stub-dylib":
+    return _generate_stub_dylib(sys.argv[2:])
+
   args_parser = _create_args_parser()
   args = args_parser.parse_args()
 

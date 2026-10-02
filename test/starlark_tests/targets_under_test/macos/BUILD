@@ -9,6 +9,7 @@ load(
     "apple_dynamic_xcframework_import",
     "apple_static_framework_import",
     "apple_static_xcframework",
+    "apple_static_xcframework_import",
     "apple_xcframework",
 )
 load(
@@ -42,6 +43,7 @@ load("//test/starlark_tests/rules:generate_framework_dsym.bzl", "generate_import
 load(
     "//test/starlark_tests/rules:generate_xcframework.bzl",
     "generate_dynamic_xcframework",
+    "generate_static_framework_xcframework",
 )
 load("//test/testdata/rules:substitution.bzl", "substitution")
 
@@ -3400,4 +3402,45 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+generate_static_framework_xcframework(
+    name = "generated_static_versioned_framework_xcframework",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    include_privacy_manifest = True,
+    include_versioned_frameworks = True,
+    minimum_os_versions = {"macos": common.min_os_macos.baseline},
+    platforms = {"macos": [
+        "x86_64",
+        "arm64",
+    ]},
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "imported_static_versioned_framework_xcframework",
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_versioned_framework_xcframework"],
+)
+
+objc_library(
+    name = "static_versioned_framework_xcframework_depending_lib",
+    srcs = ["@bazel_tools//tools/objc:objc_dummy.mm"],
+    tags = common.fixture_tags,
+    deps = [":imported_static_versioned_framework_xcframework"],
+)
+
+macos_application(
+    name = "app_with_imported_static_versioned_framework_xcframework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.arm64_support,
+    tags = common.fixture_tags,
+    deps = [
+        ":static_versioned_framework_xcframework_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
