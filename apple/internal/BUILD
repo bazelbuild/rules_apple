@@ -668,7 +668,6 @@ bzl_library(
     srcs = ["shared_environment.bzl"],
     visibility = [
         "//apple:__subpackages__",
-        "//test:__subpackages__",
     ],
 )
 
