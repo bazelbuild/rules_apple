@@ -724,6 +724,11 @@ filegroup(
 )
 
 filegroup(
+    name = "app_shortcuts_localized_strings",
+    srcs = glob(["app_shortcuts/*.lproj/*.strings"]),
+)
+
+filegroup(
     name = "localized_xcstrings",
     srcs = [
         "files.xcstrings",
