@@ -795,9 +795,6 @@ watchos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
     extension_safe = True,
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
     minimum_os_version = common.min_os_watchos.baseline,
     tags = common.fixture_tags,
     deps = [
@@ -1348,9 +1345,6 @@ watchos_dynamic_framework(
     name = "basic_framework",
     bundle_id = "com.google.example.framework",
     bundle_name = "BasicFramework",
-    infoplists = [
-        "//test/starlark_tests/resources:Info-watchos.plist",
-    ],
     minimum_os_version = "6.0",
     tags = common.fixture_tags,
     deps = [
