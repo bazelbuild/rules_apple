@@ -26,7 +26,7 @@ partial and the resource aspect.
 Depset of `File` references to dSYM files if requested in the build with --apple_generate_dsym.
 """,
         "linkmaps": """
-Depset of `File` references to linkmap files if requested in the build with --objc_generate_linkmap.
+Depset of `File` references to linkmap files when linkmap generation is requested.
 """,
     },
 )

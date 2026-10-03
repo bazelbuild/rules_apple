@@ -278,7 +278,8 @@ def _group_link_outputs_by_library_identifier(
             # static library linking does not support dsym, and linkmaps yet.
             if linking_type == "binary":
                 dsym_binaries[link_output.architecture] = link_output.dsym_binary
-                linkmaps[link_output.architecture] = link_output.linkmap
+                if link_output.linkmap:
+                    linkmaps[link_output.architecture] = link_output.linkmap
 
         environment = link_outputs[0].environment
         platform = link_outputs[0].platform
