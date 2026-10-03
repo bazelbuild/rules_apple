@@ -48,6 +48,21 @@ ios_application(
 See the [examples](https://github.com/bazelbuild/rules_apple/tree/main/examples)
 directory for sample applications.
 
+## Supported Xcode versions
+
+`rules_apple` is heavily tied to the Xcode and the tools it ships. We
+have the ability to change functionality based on the current Xcode, but
+overtime we like to reduce the maintenance cost of this type of branch
+and remove support for older versions. We attempt to do this
+conservatively and are open to supporting more versions if there is a
+need.
+
+| Xcode release | Minimum supported rules version | Final supported rules version|
+|:-------------------:|:-------------------:|:-------------------------:|
+| 27.x | unknown | current |
+| 26.x | unknown | current |
+| 16.x | unknown | current |
+
 ## Supported bazel versions
 
 rules_apple and rules_swift are often affected by changes in bazel
