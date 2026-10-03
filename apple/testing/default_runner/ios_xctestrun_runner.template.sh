@@ -205,7 +205,15 @@ if [[ -n "$test_host_path" ]]; then
     cp -R "$libraries_path/Xcode/Agents/XCTRunner.app" "$runner_app_destination"
     chmod -R 777 "$runner_app_destination"
     xctestrun_test_host_path="__TESTROOT__/$runner_app"
-    xcrun_test_host_bundle_identifier="com.apple.test.$runner_app_name"
+    if [[ "$build_for_device" == true ]]; then
+      # Devices fail to create a data container for a runner under the
+      # com.apple.test prefix (ContainerLookupErrorDomain error 2), so use
+      # Xcode's naming for the runner: <test bundle identifier>.xctrunner.
+      test_bundle_identifier=$(/usr/bin/plutil -extract CFBundleIdentifier raw -o - "$test_tmp_dir/$test_bundle_name.xctest/Info.plist")
+      xcrun_test_host_bundle_identifier="$test_bundle_identifier.xctrunner"
+    else
+      xcrun_test_host_bundle_identifier="com.apple.test.$runner_app_name"
+    fi
     plugins_path="$test_tmp_dir/$runner_app/PlugIns"
     mkdir -p "$plugins_path"
     mv "$test_tmp_dir/$test_bundle_name.xctest" "$plugins_path"
