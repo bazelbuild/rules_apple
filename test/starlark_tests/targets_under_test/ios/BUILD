@@ -51,6 +51,7 @@ load(
     "//apple:xctrunner.bzl",
     "xctrunner",
 )
+load("//apple/testing/default_runner:ios_xctestrun_runner.bzl", "ios_xctestrun_runner")
 load(
     "//test/starlark_tests:common.bzl",
     "common",
@@ -4839,6 +4840,41 @@ ios_unit_test(
     size = "large",
     env = {"STARTUP_TIMEOUT_SEC": "300"},
     minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":coverage_app",
+    deps = [":coverage_hosted_test_lib"],
+)
+
+ios_xctestrun_runner(
+    name = "coverage_export_runner",
+    export_covered_binaries = True,
+)
+
+ios_unit_test(
+    name = "coverage_export_only_test",
+    collect_code_coverage = False,
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = ":coverage_export_runner",
+    tags = common.fixture_tags,
+    test_host = ":coverage_app",
+    deps = [":coverage_hosted_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_export_disabled_test",
+    collect_code_coverage = False,
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = "//apple/testing/default_runner:ios_xctestrun_ordered_runner",
+    tags = common.fixture_tags,
+    test_host = ":coverage_app",
+    deps = [":coverage_hosted_test_lib"],
+)
+
+ios_unit_test(
+    name = "coverage_export_with_lcov_test",
+    collect_code_coverage = True,
+    minimum_os_version = common.min_os_ios.baseline,
+    runner = ":coverage_export_runner",
     tags = common.fixture_tags,
     test_host = ":coverage_app",
     deps = [":coverage_hosted_test_lib"],
