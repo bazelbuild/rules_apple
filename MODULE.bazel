@@ -71,3 +71,9 @@ register_toolchains(
     "//apple/internal:apple_xplat_toolchain",
     "//apple/internal:mac_toolchain_declaration",
 )
+
+developer_frameworks = use_extension(
+    "//apple:developer_frameworks.bzl",
+    "developer_frameworks",
+)
+use_repo(developer_frameworks, "developer_frameworks")
