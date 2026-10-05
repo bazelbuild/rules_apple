@@ -117,6 +117,9 @@ e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 A tool to create an Apple bundle by taking a list of files/ZIPs and destinations paths to build the
 directory structure for those files.
 """,
+        "clangrttool": """\
+The files_to_run for a tool that finds the set of Clang libraries needed for an application bundle.
+""",
         "derq": """\
 The files_to_run for a tool that DER-encodes entitlements.
 """,
@@ -127,6 +130,9 @@ from requesting or disabling features.
         "plisttool": """\
 The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
+""",
+        "provisioning_profile_tool": """\
+The files_to_run for a tool used to extract info from a provisioning profile.
 """,
         "swift_const_values_validation_tool": """\
 A `File` referencing a tool to validate Swift const values conformances.
@@ -287,9 +293,11 @@ def _apple_xplat_tools_toolchain_impl(ctx):
     xplat_info = AppleXPlatToolsToolchainInfo(
         build_settings = build_settings_struct,
         bundletool_swift = ctx.attr.bundletool_swift,
+        clangrttool = ctx.attr.clangrttool.files_to_run,
         derq = ctx.attr.derq.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
+        provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
         swift_const_values_validation_tool = ctx.attr.swift_const_values_validation_tool.files_to_run,
         swiftstdlibstubtool = ctx.attr.swiftstdlibstubtool.files_to_run,
         verifystringstool = ctx.attr.verifystringstool.files_to_run,
@@ -319,6 +327,13 @@ A `File` referencing a tool to create an Apple bundle by taking a list of files/
 paths to build the directory structure for those files.
 """,
         ),
+        "clangrttool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that finds the set of Clang libraries needed for an application bundle.
+""",
+        ),
         "derq": attr.label(
             cfg = "exec",
             executable = True,
@@ -339,6 +354,13 @@ requesting or disabling features.
             doc = """
 A `File` referencing a tool to perform plist operations such as variable substitution, merging, and
 conversion of plist files to binary format.
+""",
+        ),
+        "provisioning_profile_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool used to extract info from a provisioning profile.
 """,
         ),
         "swift_const_values_validation_tool": attr.label(

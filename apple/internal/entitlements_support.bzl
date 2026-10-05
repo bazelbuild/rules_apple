@@ -144,23 +144,26 @@ def _include_app_clip_entitlements(*, product_type):
 def _extract_signing_info(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         entitlements,
         mac_exec_group,
         platform_prerequisites,
         provisioning_profile,
-        provisioning_profile_tool,
-        rule_label):
+        rule_label,
+        xplat_exec_group):
     """Inspects the current context and extracts the signing information.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: `AppleMacToolsToolchainInfo` from the shared Apple toolchain.
+      apple_xplat_toolchain_info: `AppleXPlatToolsToolchainInfo` from the shared Apple toolchain.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+      mac_exec_group: The exec group associated with apple_mac_toolchain.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: File for the provisioning profile.
-      provisioning_profile_tool: A files_to_run for a tool used to extract info from a provisioning
-        profile.
       rule_label: The label of the target being analyzed.
-      mac_exec_group: The exec group associated with the provisioning_profile_tool
+      xplat_exec_group: The exec group associated with apple_xplat_toolchain.
 
     Returns:
       A `struct` with the following args:
@@ -206,21 +209,32 @@ def _extract_signing_info(
             content = json.encode(struct(**control)),
         )
 
-        apple_support.run(
-            actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
-            arguments = [control_file.path],
-            env = shared_environment.default_env,
-            executable = provisioning_profile_tool,
-            # Since the tools spawns openssl and/or security tool, it doesn't
-            # support being sandboxed.
-            execution_requirements = {"no-sandbox": "1"},
-            exec_group = mac_exec_group,
-            inputs = [control_file, provisioning_profile],
-            mnemonic = "ExtractFromProvisioningProfile",
-            outputs = outputs,
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
+        if apple_xplat_toolchain_info.build_settings.force_provisioning_profile_tool_on_mac:
+            apple_support.run(
+                actions = actions,
+                apple_platform_info = platform_prerequisites.apple_platform_info,
+                arguments = [control_file.path],
+                env = shared_environment.default_env,
+                executable = apple_mac_toolchain_info.provisioning_profile_tool,
+                # Since the tools spawns openssl and/or security tool, it doesn't
+                # support being sandboxed.
+                execution_requirements = {"no-sandbox": "1"},
+                exec_group = mac_exec_group,
+                inputs = [control_file, provisioning_profile],
+                mnemonic = "ExtractFromProvisioningProfile",
+                outputs = outputs,
+                xcode_config = platform_prerequisites.xcode_version_config,
+            )
+        else:
+            actions.run(
+                arguments = [control_file.path],
+                env = shared_environment.default_env,
+                exec_group = xplat_exec_group,
+                executable = apple_xplat_toolchain_info.provisioning_profile_tool,
+                inputs = [control_file, provisioning_profile],
+                mnemonic = "ExtractFromProvisioningProfile",
+                outputs = outputs,
+            )
 
     return struct(
         entitlements = entitlements,
@@ -309,12 +323,14 @@ def _process_entitlements(
 
     signing_info = _extract_signing_info(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         entitlements = entitlements_file,
+        mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
-        provisioning_profile_tool = apple_mac_toolchain_info.provisioning_profile_tool,
-        mac_exec_group = mac_exec_group,
         rule_label = rule_label,
+        xplat_exec_group = xplat_exec_group,
     )
     plists = []
     forced_plists = []

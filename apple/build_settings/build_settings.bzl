@@ -24,6 +24,14 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
+    "force_clangrttool_on_mac": struct(
+        doc = """
+Indicates that `clangrttool` should be run on the Mac, rather than on Linux. This is an emergency
+valve so the default can be flipped if we ever have a problem with the Apple `clangrttool` binary on
+Linux, and should not be used or set by anyone except Apple BUILD rule maintainers.
+""",
+        default = True,
+    ),
     "force_derq_on_mac": struct(
         doc = """
 Indicates that `derq` should be run on the Mac, rather than on Linux. This is an emergency
@@ -40,6 +48,15 @@ swift-corelibs-foundation plutil binary on Linux, and should not be used or set 
 Apple BUILD rule maintainers.
 """,
         default = False,
+    ),
+    "force_provisioning_profile_tool_on_mac": struct(
+        doc = """
+Indicates that `provisioning_profile_tool` should be run on the Mac, rather than on Linux. This is
+an emergency valve so the default can be flipped if we ever have a problem with the Apple
+`provisioning_profile_tool` binary on Linux, and should not be used or set by anyone except Apple
+BUILD rule maintainers.
+""",
+        default = True,
     ),
     "signing_certificate_name": struct(
         doc = """

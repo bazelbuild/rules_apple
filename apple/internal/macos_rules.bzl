@@ -337,12 +337,14 @@ def _macos_application_impl(ctx):
         bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
@@ -642,12 +644,14 @@ def _macos_bundle_impl(ctx):
         bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
@@ -1173,12 +1177,14 @@ def _macos_extension_impl(ctx):
         bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
@@ -1424,12 +1430,14 @@ def _macos_xpc_service_impl(ctx):
         bundling_tasks.clang_rt_dylibs(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,

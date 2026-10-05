@@ -41,13 +41,15 @@ def _clang_rt_dylibs_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         binary_artifact,
         cc_configured_features,
+        dylibs,
         label_name,
         mac_exec_group,
         output_discriminator,
         platform_prerequisites,
-        dylibs):
+        xplat_exec_group):
     """Implementation for the Clang runtime dylibs processing bundling task."""
     bundle_zips = []
     if clang_rt_dylibs.should_package_clang_runtime(
@@ -64,20 +66,31 @@ def _clang_rt_dylibs_bundling_task_impl(
         args.add("--binary-path", binary_artifact.path)
         args.add("--output-zip-path", clang_rt_zip.path)
 
-        apple_support.run(
-            actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
-            arguments = [args],
-            env = shared_environment.default_env,
-            executable = apple_mac_toolchain_info.clangrttool,
-            # This action needs to read the contents of the Xcode bundle.
-            execution_requirements = {"no-sandbox": "1"},
-            exec_group = mac_exec_group,
-            inputs = [binary_artifact] + dylibs,
-            outputs = [clang_rt_zip],
-            mnemonic = "ClangRuntimeLibsCopy",
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
+        if apple_xplat_toolchain_info.build_settings.force_clangrttool_on_mac:
+            apple_support.run(
+                actions = actions,
+                apple_platform_info = platform_prerequisites.apple_platform_info,
+                arguments = [args],
+                env = shared_environment.default_env,
+                executable = apple_mac_toolchain_info.clangrttool,
+                # This action needs to read the contents of the Xcode bundle.
+                execution_requirements = {"no-sandbox": "1"},
+                exec_group = mac_exec_group,
+                inputs = [binary_artifact] + dylibs,
+                outputs = [clang_rt_zip],
+                mnemonic = "ClangRuntimeLibsCopy",
+                xcode_config = platform_prerequisites.xcode_version_config,
+            )
+        else:
+            actions.run(
+                arguments = [args],
+                env = shared_environment.default_env,
+                exec_group = xplat_exec_group,
+                executable = apple_xplat_toolchain_info.clangrttool,
+                inputs = [binary_artifact] + dylibs,
+                mnemonic = "ClangRuntimeLibsCopy",
+                outputs = [clang_rt_zip],
+            )
 
         bundle_zips.append(
             (location_enum.framework, None, depset([clang_rt_zip])),
@@ -91,27 +104,31 @@ def clang_rt_dylibs_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         binary_artifact,
         cc_configured_features,
         dylibs,
         label_name,
         mac_exec_group,
         output_discriminator = None,
-        platform_prerequisites):
+        platform_prerequisites,
+        xplat_exec_group):
     """Constructor for the Clang runtime dylibs processing bundling task.
 
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       binary_artifact: The main binary artifact for this target.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
       dylibs: List of dylibs (usually from a toolchain).
       label_name: Name of the target being built.
-      mac_exec_group: The exec_group associated with clangrttool.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
 
     Returns:
       A bundling task that returns the bundle location of the Clang runtime dylibs, if there were
@@ -120,13 +137,15 @@ def clang_rt_dylibs_bundling_task(
     return lambda *args, **kwargs: _clang_rt_dylibs_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         binary_artifact = binary_artifact,
         cc_configured_features = cc_configured_features,
+        dylibs = dylibs,
         label_name = label_name,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
-        dylibs = dylibs,
+        xplat_exec_group = xplat_exec_group,
         *args,
         **kwargs
     )
