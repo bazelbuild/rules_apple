@@ -340,8 +340,9 @@ Please file a bug against the Apple BUILD rules with repro steps.
     if tree_artifact_is_enabled:
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_inputs = depset(bundletool_inputs),
             code_signing_commands = codesigning_command or "",
             control_file_name = control_file_name,
@@ -355,6 +356,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
             post_processor = ipa_post_processor,
             progress_message = "Bundling, processing and signing %s" % label_name,
             xcode_config = platform_prerequisites.xcode_version_config,
+            xplat_exec_group = xplat_exec_group,
         )
     else:
         enable_zip64_support = False
@@ -457,14 +459,6 @@ def _bundle_post_process_and_sign(
             ),
         )
 
-        extra_input_files = []
-
-        if entitlements:
-            extra_input_files.append(entitlements)
-
-        if provisioning_profile:
-            extra_input_files.append(provisioning_profile)
-
         codesigning_command = codesigning_support.codesigning_command(
             build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
@@ -477,6 +471,14 @@ def _bundle_post_process_and_sign(
             rule_descriptor = rule_descriptor,
             signed_frameworks = transitive_signed_frameworks,
         )
+
+        extra_input_files = []
+        if codesigning_command:
+            if entitlements:
+                extra_input_files.append(entitlements)
+
+            if provisioning_profile:
+                extra_input_files.append(provisioning_profile)
 
         _bundle_task_output_files(
             actions = actions,
@@ -534,8 +536,8 @@ def _bundle_post_process_and_sign(
 
         codesigning_support.post_process_and_sign_archive_action(
             actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             archive_codesigning_path = archive_codesigning_path,
-            build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
             codesigningtool = apple_mac_toolchain_info.codesigningtool,
             entitlements = entitlements,
@@ -607,8 +609,8 @@ def _bundle_post_process_and_sign(
 
             codesigning_support.post_process_and_sign_archive_action(
                 actions = actions,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 archive_codesigning_path = embedding_archive_codesigning_path,
-                build_settings = apple_xplat_toolchain_info.build_settings,
                 cc_configured_features = cc_configured_features,
                 codesigningtool = apple_mac_toolchain_info.codesigningtool,
                 entitlements = entitlements,

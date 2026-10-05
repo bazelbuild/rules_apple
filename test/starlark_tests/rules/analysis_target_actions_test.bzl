@@ -47,6 +47,19 @@ Mnemonic: {target_mnemonic}
 Action argv: {action_argv}
 """
 
+_TARGET_CONTAINS_ACTION_WITH_EXECUTION_REQUIREMENTS_FAIL_MSG = """
+Expected execution requirement could not be found on actual action execution_info for target mnemonic '{target_mnemonic}'.
+Target: {target}
+Expected execution requirement: {expected_execution_requirement}
+Actual execution_info: {actual_execution_info}
+"""
+
+_TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_EXECUTION_REQUIREMENTS_FAIL_MSG = """
+Expected target mnemonic '{target_mnemonic}' to not contain execution requirement '{not_expected_execution_requirement}', but it did.
+Target: {target}
+Actual execution_info: {actual_execution_info}
+"""
+
 def _analysis_target_actions_test_impl(ctx):
     """Implementation of analysis_target_actions_test."""
     env = analysistest.begin(ctx)
@@ -111,6 +124,43 @@ def _analysis_target_actions_test_impl(ctx):
             )
             return analysistest.end(env)
 
+    for expected_req_key, expected_req_value in ctx.attr.expected_execution_requirements.items():
+        target_mnemonic_actions_exec_info = [a.execution_info for a in target_mnemonic_actions]
+
+        matched_expected_req = False
+        for action_exec_info in target_mnemonic_actions_exec_info:
+            if expected_req_key not in action_exec_info:
+                continue
+            if action_exec_info[expected_req_key] == expected_req_value:
+                matched_expected_req = True
+                break
+        if not matched_expected_req:
+            unittest.fail(
+                env,
+                _TARGET_CONTAINS_ACTION_WITH_EXECUTION_REQUIREMENTS_FAIL_MSG.format(
+                    target_mnemonic = target_mnemonic,
+                    target = target_under_test,
+                    expected_execution_requirement = {expected_req_key: expected_req_value},
+                    actual_execution_info = target_mnemonic_actions_exec_info,
+                ),
+            )
+            return analysistest.end(env)
+
+    for not_expected_req_key in ctx.attr.not_expected_execution_requirements:
+        target_mnemonic_actions_exec_info = [a.execution_info for a in target_mnemonic_actions]
+        for action_exec_info in target_mnemonic_actions_exec_info:
+            if not_expected_req_key in action_exec_info:
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_EXECUTION_REQUIREMENTS_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        not_expected_execution_requirement = not_expected_req_key,
+                        target = target_under_test,
+                        actual_execution_info = target_mnemonic_actions_exec_info,
+                    ),
+                )
+                return analysistest.end(env)
+
     for not_expected_mnemonic in ctx.attr.not_expected_mnemonic:
         actual_mnemonics = {
             action.mnemonic: action
@@ -162,6 +212,16 @@ space-delimited string.""",
                 doc = """
 A string dictionary representing expected environment values that should be
 present in the action environment values.""",
+            ),
+            "expected_execution_requirements": attr.string_dict(
+                doc = """
+A string dictionary representing expected execution requirements that should be
+present in the action execution_info dictionary.""",
+            ),
+            "not_expected_execution_requirements": attr.string_list(
+                doc = """
+A list of execution requirement keys not expected to be present in the action
+execution_info dictionary.""",
             ),
             "not_expected_mnemonic": attr.string_list(
                 doc = """

@@ -593,7 +593,7 @@ def _generate_dossier_file(
 def _post_process_and_sign_archive_action(
         *,
         actions,
-        build_settings,
+        apple_xplat_toolchain_info,
         archive_codesigning_path,
         cc_configured_features,
         codesigningtool,
@@ -616,10 +616,11 @@ def _post_process_and_sign_archive_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      build_settings: A `dict`-like struct describing build settings.
+      apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       archive_codesigning_path: The codesigning path relative to the archive.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
+      codesigningtool: The files_to_run for the code signing tool.
       entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
@@ -635,11 +636,11 @@ def _post_process_and_sign_archive_action(
       platform_prerequisites: Struct containing information on the platform being targeted.
       process_and_sign_template: A template for a shell script to process and sign as a file.
       provisioning_profile: The provisioning profile file. May be `None`.
-      codesigningtool: The files_to_run for the code signing tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       signed_frameworks: Depset containing each framework that has already been signed.
       xplat_exec_group: The exec_group for action using xplat toolchain.
       """
+    build_settings = apple_xplat_toolchain_info.build_settings
     input_files = [input_archive]
     processing_tools = []
 
@@ -691,8 +692,11 @@ def _post_process_and_sign_archive_action(
     # copy the file over.
     has_work = any([signing_command_lines, ipa_post_processor_path, should_compress])
     if not has_work:
+        copy_command = "cp -p '%s' '%s'" % (input_archive.path, output_archive.path)
+
         actions.run_shell(
-            command = "cp -p '%s' '%s'" % (input_archive.path, output_archive.path),
+            command = copy_command,
+            exec_group = xplat_exec_group,
             inputs = [input_archive],
             mnemonic = mnemonic,
             outputs = [output_archive],

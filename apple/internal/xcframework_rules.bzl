@@ -1259,8 +1259,9 @@ def _create_xcframework_bundle(
         final_bundle_merge_files = [root_info_plist_merge_file] + framework_archive_merge_files
         bundling_support.generate_tree_artifact_bundle_action(
             actions = actions,
-            apple_platform_info = apple_platform_info,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_platform_info = apple_platform_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_inputs = depset(
                 direct = [root_info_plist],
                 transitive = framework_archive_files,
@@ -1275,6 +1276,7 @@ def _create_xcframework_bundle(
             output_discriminator = None,
             progress_message = "Bundling %s" % label_name,
             xcode_config = xcode_config,
+            xplat_exec_group = xplat_exec_group,
         )
     else:
         root_bundle_path = "{}.xcframework".format(bundle_name)

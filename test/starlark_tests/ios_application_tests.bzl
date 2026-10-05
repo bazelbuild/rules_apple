@@ -29,7 +29,9 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
     "analysis_target_actions_tree_artifacts_outputs_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_target_outputs_test.bzl",
@@ -81,6 +83,32 @@ visibility("private")
 
 analysis_failure_message_with_mismatched_universal_architechtures_test = make_analysis_failure_message_test(
     config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
+)
+
+analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
 )
 
 def ios_application_test_suite(name):
@@ -1994,6 +2022,101 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
         validation_file_name = "com_apple_example_extension-point_extension_point_definition_validation.txt",
         allow_empty = True,
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_process_and_sign_legacy_signing_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    analysis_target_actions_disable_legacy_signing_test(
+        name = "{}_process_and_sign_disable_legacy_signing_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_disable_legacy_signing_compressed_test(
+        name = "{}_process_and_sign_disable_legacy_signing_compressed_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_disable_legacy_signing_test(
+        name = "{}_process_and_sign_disable_legacy_signing_with_post_processor_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        target_mnemonic = "ProcessAndSign",
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_disable_legacy_signing_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_features = ["disable_legacy_signing"],
+        contains = [
+            "$BINARY",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_disable_legacy_signing_opt_archive_contents_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_features = ["disable_legacy_signing"],
+        contains = [
+            "$BINARY",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_test(
+        name = "{}_bundle_tree_app_legacy_signing_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleTreeApp",
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test(
+        name = "{}_bundle_tree_app_disable_legacy_signing_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleTreeApp",
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test(
+        name = "{}_bundle_tree_app_disable_legacy_signing_with_post_processor_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        target_mnemonic = "BundleTreeApp",
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_disable_legacy_signing_tree_artifact_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_features = ["disable_legacy_signing"],
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app_minimal",
+        ],
         tags = [name],
     )
 

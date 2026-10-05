@@ -390,8 +390,9 @@ def _generate_bundle_archive_action(
 def _generate_tree_artifact_bundle_action(
         *,
         actions,
-        apple_platform_info,
         apple_mac_toolchain_info,
+        apple_platform_info,
+        apple_xplat_toolchain_info,
         bundletool_inputs,
         code_signing_commands = "",
         control_file_name,
@@ -404,13 +405,15 @@ def _generate_tree_artifact_bundle_action(
         output_discriminator,
         post_processor = None,
         progress_message,
-        xcode_config):
+        xcode_config,
+        xplat_exec_group):
     """Generates an action that creates a tree artifact for a bundle rule output.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      apple_platform_info: The ApplePlatformInfo provider.
       apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+      apple_platform_info: The ApplePlatformInfo provider.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundletool_inputs: A depset of files to pass to the bundletool.
       code_signing_commands: String. The sequence of code signing commands to execute, or an empty
           string if codesigning should not be performed.
@@ -434,14 +437,18 @@ def _generate_tree_artifact_bundle_action(
           processor should be used.
       progress_message: A String. The progress message to use for the action.
       xcode_config: The `XcodeVersionInfo` provider from the context.
+      xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
 
     additional_bundling_tools = []
+    additional_control_options = {}
     if code_signing_commands:
         codesigningtool = apple_mac_toolchain_info.codesigningtool
         additional_bundling_tools.append(codesigningtool)
+        additional_control_options["code_signing_commands"] = code_signing_commands
     if post_processor:
         additional_bundling_tools.append(post_processor)
+        additional_control_options["post_processor"] = post_processor.path
 
     bundletool_control_file = intermediates.file(
         actions = actions,
@@ -453,38 +460,53 @@ def _generate_tree_artifact_bundle_action(
         bundle_merge_files = control_merge_files,
         bundle_merge_zips = control_merge_zips,
         output = output_archive.path,
-        code_signing_commands = code_signing_commands,
-        post_processor = post_processor.path if post_processor else "",
+        **additional_control_options
     )
     actions.write(
         output = bundletool_control_file,
         content = json.encode(bundletool_control),
     )
     bundletool_final_inputs = depset([bundletool_control_file], transitive = [bundletool_inputs])
-    apple_support.run(
-        actions = actions,
-        apple_platform_info = apple_platform_info,
-        arguments = [
-            bundletool_control_file.path,
-        ],
-        env = shared_environment.default_env,
-        exec_group = mac_exec_group,
-        executable = apple_mac_toolchain_info.bundletool_mac,
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-remote": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
-        inputs = bundletool_final_inputs,
-        mnemonic = mnemonic,
-        outputs = [output_archive],
-        progress_message = progress_message,
-        tools = additional_bundling_tools,
-        xcode_config = xcode_config,
-    )
+
+    run_on_darwin = any([code_signing_commands, post_processor])
+    if run_on_darwin:
+        apple_support.run(
+            actions = actions,
+            apple_platform_info = apple_platform_info,
+            arguments = [
+                bundletool_control_file.path,
+            ],
+            env = shared_environment.default_env,
+            exec_group = mac_exec_group,
+            executable = apple_mac_toolchain_info.bundletool_mac,
+            execution_requirements = {
+                # Added so that the output of this action is not cached remotely, in case multiple
+                # developers sign the same artifact with different identities.
+                "no-remote": "1",
+                # Unsure, but may be needed for keychain access, especially for files that live in
+                # $HOME.
+                "no-sandbox": "1",
+            },
+            inputs = bundletool_final_inputs,
+            mnemonic = mnemonic,
+            outputs = [output_archive],
+            progress_message = progress_message,
+            tools = additional_bundling_tools,
+            xcode_config = xcode_config,
+        )
+    else:
+        actions.run(
+            arguments = [
+                bundletool_control_file.path,
+            ],
+            env = shared_environment.default_env,
+            exec_group = xplat_exec_group,
+            executable = apple_xplat_toolchain_info.bundletool_swift.files_to_run,
+            inputs = bundletool_final_inputs,
+            mnemonic = mnemonic,
+            outputs = [output_archive],
+            progress_message = progress_message,
+        )
 
 def _path_is_under_fragments(path, path_fragments):
     """Helper for _ensure_asset_types().
