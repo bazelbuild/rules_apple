@@ -425,9 +425,11 @@ def _generate_der_entitlements(
         *,
         actions,
         apple_platform_info,
+        apple_xplat_toolchain_info,
         entitlements,
         label_name,
-        xcode_version_config):
+        xcode_version_config,
+        xplat_exec_group):
     """Creates a DER formatted entitlements file given an existing entitlements plist.
 
     This converts an entitlements plist into a DER encoded representation identical to that of a
@@ -438,9 +440,11 @@ def _generate_der_entitlements(
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
+      apple_xplat_toolchain_info: The `AppleXPlatToolsToolchainInfo` provider from the current ctx.
       entitlements: The entitlements file to sign with.
       label_name: The name of the target being built.
       xcode_version_config: The `XcodeVersionInfo` provider from the current context.
+      xplat_exec_group: The exec group associated with the xplat toolchain.
 
     Returns:
       A `File` referencing the generated DER formatted entitlements.
@@ -449,26 +453,46 @@ def _generate_der_entitlements(
     der_entitlements = actions.declare_file(
         "entitlements/%s.der" % label_name,
     )
-    apple_support.run(
-        actions = actions,
-        apple_platform_info = apple_platform_info,
-        arguments = [
-            "query",
-            "-f",
-            "xml",
-            "-i",
-            entitlements.path,
-            "-o",
-            der_entitlements.path,
-            "--raw",
-        ],
-        env = shared_environment.default_env,
-        executable = "/usr/bin/derq",
-        inputs = [entitlements],
-        mnemonic = "ProcessDEREntitlements",
-        outputs = [der_entitlements],
-        xcode_config = xcode_version_config,
-    )
+    if apple_xplat_toolchain_info.build_settings.force_derq_on_mac:
+        apple_support.run(
+            actions = actions,
+            apple_platform_info = apple_platform_info,
+            arguments = [
+                "query",
+                "-f",
+                "xml",
+                "-i",
+                entitlements.path,
+                "-o",
+                der_entitlements.path,
+                "--raw",
+            ],
+            env = shared_environment.default_env,
+            executable = "/usr/bin/derq",
+            inputs = [entitlements],
+            mnemonic = "ProcessDEREntitlements",
+            outputs = [der_entitlements],
+            xcode_config = xcode_version_config,
+        )
+    else:
+        actions.run(
+            arguments = [
+                "query",
+                "-f",
+                "xml",
+                "-i",
+                entitlements.path,
+                "-o",
+                der_entitlements.path,
+                "--raw",
+            ],
+            env = shared_environment.default_env,
+            exec_group = xplat_exec_group,
+            executable = apple_xplat_toolchain_info.derq,
+            inputs = [entitlements],
+            mnemonic = "ProcessDEREntitlements",
+            outputs = [der_entitlements],
+        )
     return der_entitlements
 
 entitlements_support = struct(

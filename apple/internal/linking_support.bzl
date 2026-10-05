@@ -48,6 +48,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
     "AppleDynamicFrameworkInfo",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
+    "apple_toolchain_utils",
+)
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_cc//cc/private/rules_impl:objc_compilation_support.bzl", objc_compilation_support = "compilation_support")  # buildifier: disable=bzl-visibility
@@ -620,9 +624,11 @@ def _register_binary_linking_action(
         der_entitlements = entitlements_support.generate_der_entitlements(
             actions = ctx.actions,
             apple_platform_info = platform_prerequisites.apple_platform_info,
+            apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx),
             entitlements = entitlements,
             label_name = ctx.label.name,
             xcode_version_config = platform_prerequisites.xcode_version_config,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(),
         )
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(

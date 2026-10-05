@@ -354,6 +354,7 @@ bzl_library(
         ":outputs",
         ":providers",
         "//apple/internal/providers:apple_dynamic_framework_info",
+        "//apple/internal/toolchains:apple_toolchains",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//lib:lipo",
         "@build_bazel_apple_support//lib:providers",

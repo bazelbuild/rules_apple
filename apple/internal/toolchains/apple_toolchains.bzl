@@ -117,6 +117,9 @@ e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 A tool to create an Apple bundle by taking a list of files/ZIPs and destinations paths to build the
 directory structure for those files.
 """,
+        "derq": """\
+The files_to_run for a tool that DER-encodes entitlements.
+""",
         "feature_allowlists": """\
 A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
 from requesting or disabling features.
@@ -284,6 +287,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
     xplat_info = AppleXPlatToolsToolchainInfo(
         build_settings = build_settings_struct,
         bundletool_swift = ctx.attr.bundletool_swift,
+        derq = ctx.attr.derq.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
         swift_const_values_validation_tool = ctx.attr.swift_const_values_validation_tool.files_to_run,
@@ -313,6 +317,13 @@ List of `Label`s referencing custom build settings for all Apple rules.
             doc = """
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
 paths to build the directory structure for those files.
+""",
+        ),
+        "derq": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that DER-encodes entitlements.
 """,
         ),
         "feature_allowlists": attr.label_list(
