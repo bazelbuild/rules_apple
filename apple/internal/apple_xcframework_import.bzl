@@ -925,11 +925,11 @@ def _apple_static_xcframework_import_impl(ctx):
 
     # Create AppleFrameworkImportInfo provider
     apple_framework_import_info = framework_import_support.framework_import_info_with_dependencies(
-        binary_imports = stub_binary_imports,
         build_archs = [target_triplet.architecture],
         bundling_imports = bundling_imports,
         deps = deps,
         signature_files = [signature_file] if signature_file else [],
+        stub_binary_imports = stub_binary_imports,
     )
     providers.append(apple_framework_import_info)
 

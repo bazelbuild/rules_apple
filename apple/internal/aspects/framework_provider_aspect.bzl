@@ -202,7 +202,8 @@ def _framework_provider_aspect_impl(target, ctx):
         apple_framework_info = merge_apple_framework_import_info(apple_framework_infos)
         if (apple_framework_info.binary_imports or
             apple_framework_info.bundling_imports or
-            apple_framework_info.signature_files):
+            apple_framework_info.signature_files or
+            apple_framework_info.stub_binary_imports):
             providers.append(apple_framework_info)
 
     if AppleEmbeddedFrameworkBundleInfo not in target and apple_embedded_framework_infos:

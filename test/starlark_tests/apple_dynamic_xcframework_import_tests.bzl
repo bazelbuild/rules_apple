@@ -443,6 +443,25 @@ Please contact the owner of this target to supply a precompiled artifact (likely
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_with_conflicting_imported_dynamic_xcframeworks_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_conflicting_imported_dynamic_xcframeworks",
+        expected_error = """
+Error: Expected to find only one framework path when bundling the imported framework \
+generated_dynamic_xcframework_with_headers.framework for \
+app_with_conflicting_imported_dynamic_xcframeworks, but found multiple framework paths instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework
+
+Each bundled framework must come from a single framework path. Check that your target does not \
+depend on multiple imported framework targets that provide \
+generated_dynamic_xcframework_with_headers.framework, or a single imported framework target that \
+imports files from multiple generated_dynamic_xcframework_with_headers.framework directories.
+""",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

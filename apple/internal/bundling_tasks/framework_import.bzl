@@ -129,8 +129,15 @@ def _framework_import_bundling_task_impl(
     )
 
     binary_files_to_bundle = _framework_provider_files_to_bundle(
-        deduplicate_short_paths = False,  # Required to handle stub dylibs for codeless frameworks.
+        deduplicate_short_paths = True,
         field_name = "binary_imports",
+        targets = targets,
+        targets_to_avoid = targets_to_avoid,
+    )
+
+    stub_binary_files_to_bundle = _framework_provider_files_to_bundle(
+        deduplicate_short_paths = False,  # Required to handle stub dylibs for codeless frameworks.
+        field_name = "stub_binary_imports",
         targets = targets,
         targets_to_avoid = targets_to_avoid,
     )
@@ -157,6 +164,7 @@ def _framework_import_bundling_task_impl(
 
     # Separating our files by framework path, to better address what should be passed in.
     files_by_framework = dict()
+    framework_paths_by_framework = dict()
     for file in bundling_files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
 
@@ -164,11 +172,31 @@ def _framework_import_bundling_task_impl(
         framework_basename = paths.basename(framework_path)
         if not files_by_framework.get(framework_basename):
             files_by_framework[framework_basename] = []
+        if not framework_paths_by_framework.get(framework_basename):
+            framework_paths_by_framework[framework_basename] = []
 
         files_by_framework[framework_basename].append(file)
+        if framework_path not in framework_paths_by_framework[framework_basename]:
+            framework_paths_by_framework[framework_basename].append(framework_path)
 
     framework_binaries_by_framework = dict()
     for file in binary_files_to_bundle:
+        framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
+
+        # Continue using the framework path's basename to distinguish groups of files.
+        framework_basename = paths.basename(framework_path)
+        if not framework_binaries_by_framework.get(framework_basename):
+            framework_binaries_by_framework[framework_basename] = []
+        if not framework_paths_by_framework.get(framework_basename):
+            framework_paths_by_framework[framework_basename] = []
+
+        framework_binaries_by_framework[framework_basename].append(file)
+        if framework_path not in framework_paths_by_framework[framework_basename]:
+            framework_paths_by_framework[framework_basename].append(framework_path)
+
+    # Stub binaries are synthesized in intermediate directories for static framework XCFrameworks,
+    # so their paths are not tracked in framework_paths_by_framework.
+    for file in stub_binary_files_to_bundle:
         framework_path = bundle_paths.farthest_parent(file.short_path, "framework")
 
         # Continue using the framework path's basename to distinguish groups of files.
@@ -180,6 +208,24 @@ def _framework_import_bundling_task_impl(
 
     tree_artifact_is_enabled = build_settings.use_tree_artifacts_outputs
     for framework_basename in files_by_framework.keys():
+        framework_paths = framework_paths_by_framework.get(framework_basename, [])
+
+        if len(framework_paths) > 1:
+            fail("""
+Error: Expected to find only one framework path when bundling the imported framework \
+{framework_basename} for {label_name}, but found multiple framework paths instead:
+
+{framework_paths}
+
+Each bundled framework must come from a single framework path. Check that your target does not \
+depend on multiple imported framework targets that provide {framework_basename}, or a single \
+imported framework target that imports files from multiple {framework_basename} directories.
+""".format(
+                framework_basename = framework_basename,
+                framework_paths = "\n".join(["- " + p for p in framework_paths]),
+                label_name = label_name,
+            ))
+
         # Create a temporary path for intermediate files and the anticipated zip output.
 
         # Pass through all binaries, files, and relevant info as args.

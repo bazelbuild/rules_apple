@@ -326,6 +326,10 @@ under the Frameworks directory.
 `depset` of `Files`s that represent signature xml plists that need to be bundled in the Signatures
 subfolder of the archive (IPA or xcarchive).
 """,
+        "stub_binary_imports": """
+`depset` of `File`s that represent stub framework binary files that need to be bundled in the top
+level bundle under the Frameworks directory.
+""",
     },
     init = make_banned_init(provider_name = "AppleFrameworkImportInfo"),
 )
@@ -343,6 +347,7 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
     transitive_binary_imports = []
     transitive_bundling_imports = []
     transitive_signature_files = []
+    transitive_stub_binary_imports = []
     build_archs = []
 
     for framework_info in apple_framework_import_infos:
@@ -352,6 +357,8 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
             transitive_bundling_imports.append(framework_info.bundling_imports)
         if framework_info.signature_files:
             transitive_signature_files.append(framework_info.signature_files)
+        if framework_info.stub_binary_imports:
+            transitive_stub_binary_imports.append(framework_info.stub_binary_imports)
         build_archs.append(framework_info.build_archs)
 
     return new_appleframeworkimportinfo(
@@ -359,6 +366,7 @@ def merge_apple_framework_import_info(apple_framework_import_infos):
         bundling_imports = depset(transitive = transitive_bundling_imports),
         build_archs = depset(transitive = build_archs),
         signature_files = depset(transitive = transitive_signature_files),
+        stub_binary_imports = depset(transitive = transitive_stub_binary_imports),
     )
 
 AppleLinkmapInfo, new_applelinkmapinfo = provider(

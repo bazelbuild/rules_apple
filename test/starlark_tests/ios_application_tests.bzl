@@ -2120,6 +2120,44 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_with_conflicting_imported_dynamic_fmwks_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_conflicting_imported_dynamic_fmwks",
+        expected_error = """
+Error: Expected to find only one framework path when bundling the imported framework \
+iOSDynamicFramework.framework for app_with_conflicting_imported_dynamic_fmwks, but found multiple \
+framework paths instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/iOSDynamicFramework.framework
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/second_iOSDynamicFramework/iOSDynamicFramework.framework
+
+Each bundled framework must come from a single framework path. Check that your target does not \
+depend on multiple imported framework targets that provide iOSDynamicFramework.framework, or a \
+single imported framework target that imports files from multiple iOSDynamicFramework.framework \
+directories.
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_test(
+        name = "{}_with_multiple_paths_in_single_imported_dynamic_fmwk_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_paths_in_single_imported_dynamic_fmwk",
+        expected_error = """
+Error: Expected to find only one framework path when bundling the imported framework \
+iOSDynamicFramework.framework for app_with_multiple_paths_in_single_imported_dynamic_fmwk, but \
+found multiple framework paths instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/iOSDynamicFramework.framework
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/second_iOSDynamicFramework/iOSDynamicFramework.framework
+
+Each bundled framework must come from a single framework path. Check that your target does not \
+depend on multiple imported framework targets that provide iOSDynamicFramework.framework, or a \
+single imported framework target that imports files from multiple iOSDynamicFramework.framework \
+directories.
+""",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

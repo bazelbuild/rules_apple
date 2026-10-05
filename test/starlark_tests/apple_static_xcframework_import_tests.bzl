@@ -430,6 +430,27 @@ Please contact the owner of this target to supply a precompiled artifact (likely
         tags = [name],
     )
 
+    analysis_failure_message_test(
+        name = "{}_with_conflicting_imported_static_framework_xcframeworks_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_conflicting_imported_static_framework_xcframeworks",
+        expected_error = """
+Error: Expected to find only one framework path when bundling the imported framework \
+ios_static_framework_xcframework_with_data_resource_bundle.framework for \
+app_with_conflicting_imported_static_framework_xcframeworks, but found multiple framework paths \
+instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework
+- third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework
+
+Each bundled framework must come from a single framework path. Check that your target does not \
+depend on multiple imported framework targets that provide \
+ios_static_framework_xcframework_with_data_resource_bundle.framework, or a single imported \
+framework target that imports files from multiple \
+ios_static_framework_xcframework_with_data_resource_bundle.framework directories.
+""",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

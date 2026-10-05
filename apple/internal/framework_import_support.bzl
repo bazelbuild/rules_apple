@@ -328,7 +328,8 @@ def _framework_import_info_with_dependencies(
         binary_imports = [],
         bundling_imports = [],
         deps,
-        signature_files = []):
+        signature_files = [],
+        stub_binary_imports = []):
     """Returns AppleFrameworkImportInfo containing transitive framework imports and build archs.
 
     Args:
@@ -338,6 +339,8 @@ def _framework_import_info_with_dependencies(
         deps: List of transitive dependencies of the current target.
         signature_files: List of files representing the generated signature XML files for the
             framework if any were generated. An empty List if not.
+        stub_binary_imports: List of files representing stub binaries to bundle for the imported
+            framework.
     Returns:
         AppleFrameworkImportInfo provider.
     """
@@ -359,6 +362,12 @@ def _framework_import_info_with_dependencies(
         if AppleFrameworkImportInfo in dep
     ]
 
+    transitive_stub_binary_imports = [
+        dep[AppleFrameworkImportInfo].stub_binary_imports
+        for dep in deps
+        if AppleFrameworkImportInfo in dep
+    ]
+
     return new_appleframeworkimportinfo(
         build_archs = depset(build_archs),
         binary_imports = depset(
@@ -372,6 +381,10 @@ def _framework_import_info_with_dependencies(
         signature_files = depset(
             signature_files,
             transitive = transitive_signature_files,
+        ),
+        stub_binary_imports = depset(
+            stub_binary_imports,
+            transitive = transitive_stub_binary_imports,
         ),
     )
 

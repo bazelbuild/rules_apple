@@ -2121,6 +2121,76 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+genrule(
+    name = "second_iOSDynamicFramework",
+    srcs = [":iOSDynamicFramework_xcframework"],
+    outs = [
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Headers/SharedClass.h",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Headers/iOSDynamicFramework.h",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Another.plist",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Info.plist",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Modules/module.modulemap",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/iOSDynamicFramework",
+    ],
+    cmd = common.extract_xcframework_cmd("iOSDynamicFramework"),
+    tags = common.fixture_tags,
+    visibility = ["//visibility:public"],
+)
+
+apple_dynamic_framework_import(
+    name = "second_iOSImportedDynamicFramework",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [":second_iOSDynamicFramework"],
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_framework_import(
+    name = "iOSImportedDynamicFrameworkWithMultiplePaths",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [
+        ":iOSDynamicFramework",
+        "second_iOSDynamicFramework/iOSDynamicFramework.framework/Another.plist",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_conflicting_imported_dynamic_fmwks",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSImportedDynamicFramework",
+        ":second_iOSImportedDynamicFramework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_multiple_paths_in_single_imported_dynamic_fmwk",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        ":iOSImportedDynamicFrameworkWithMultiplePaths",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # --------------------------------------------------------------------------------------------------
 # Targets for Apple static framework import tests.
 
@@ -2537,6 +2607,53 @@ genrule(
     ],
     cmd = common.extract_xcframework_cmd("generated_dynamic_xcframework_with_headers"),
     tags = common.fixture_tags,
+)
+
+genrule(
+    name = "second_generated_dynamic_xcframework_with_headers",
+    srcs = [":dynamic_xcframework_with_headers"],
+    outs = [
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/Info.plist",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_x86_64-simulator/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/SharedClass.h",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Headers/generated_dynamic_xcframework_with_headers.h",
+        "second_generated_dynamic_xcframework_with_headers/generated_dynamic_xcframework_with_headers.xcframework/ios-arm64_arm64e/generated_dynamic_xcframework_with_headers.framework/Modules/module.modulemap",
+    ],
+    cmd = common.extract_xcframework_cmd("second_generated_dynamic_xcframework_with_headers"),
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "second_ios_imported_dynamic_xcframework",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":second_generated_dynamic_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "app_with_conflicting_imported_dynamic_xcframeworks",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":ios_imported_dynamic_xcframework",
+        ":second_ios_imported_dynamic_xcframework",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 # Objective-C app with imported Swift XCFramework.
@@ -3177,6 +3294,70 @@ genrule(
     ],
     cmd = common.extract_xcframework_cmd("ios_static_framework_xcframework_with_data_resource_bundle"),
     tags = common.fixture_tags,
+)
+
+genrule(
+    name = "first_ios_static_framework_xcframework_with_data_resource_bundle",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle"],
+    outs = [
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/Info.plist",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_data_resource_bundle.h",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/shared.h",
+        "first_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/module.modulemap",
+    ],
+    cmd = common.extract_xcframework_cmd("first_ios_static_framework_xcframework_with_data_resource_bundle"),
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "first_ios_imported_static_framework_xcframework_with_data_resources",
+    tags = common.fixture_tags,
+    xcframework_imports = [":first_ios_static_framework_xcframework_with_data_resource_bundle"],
+)
+
+genrule(
+    name = "second_ios_static_framework_xcframework_with_data_resource_bundle",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle"],
+    outs = [
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/Info.plist",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Another.plist",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Info.plist",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/ios_static_framework_xcframework_with_data_resource_bundle",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/ios_static_framework_xcframework_with_data_resource_bundle.h",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Headers/shared.h",
+        "second_ios_static_framework_xcframework_with_data_resource_bundle/ios_static_framework_xcframework_with_data_resource_bundle.xcframework/ios-arm64_x86_64-simulator/ios_static_framework_xcframework_with_data_resource_bundle.framework/Modules/module.modulemap",
+    ],
+    cmd = common.extract_xcframework_cmd("second_ios_static_framework_xcframework_with_data_resource_bundle"),
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "second_ios_imported_static_framework_xcframework_with_data_resources",
+    tags = common.fixture_tags,
+    xcframework_imports = [":second_ios_static_framework_xcframework_with_data_resource_bundle"],
+)
+
+ios_application(
+    name = "app_with_conflicting_imported_static_framework_xcframeworks",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":first_ios_imported_static_framework_xcframework_with_data_resources",
+        ":second_ios_imported_static_framework_xcframework_with_data_resources",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
 )
 
 ios_application(
