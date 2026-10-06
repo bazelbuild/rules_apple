@@ -54,6 +54,17 @@ _FRAMEWORK_PLIST_TEMPLATE = """
 </plist>
 """
 
+_PRIVACY_MANIFEST_CONTENT = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSPrivacyTracking</key>
+  <false/>
+</dict>
+</plist>
+"""
+
 def _min_version_arg_for_sdk(sdk, minimum_os_version):
     """Returns the clang minimum version argument for a given SDK as a string.
 
@@ -259,10 +270,12 @@ def _create_framework(
         label,
         library,
         headers,
+        include_privacy_manifest = False,
         include_resource_bundle = False,
         include_versioned_frameworks = False,
         is_dynamic,
         module_interfaces = [],
+        shallow_resource_bundle = False,
         target_os,
         xcode_config):
     """Creates an Apple platform framework bundle.
@@ -275,12 +288,16 @@ def _create_framework(
         label: Label of the target being built.
         library: The library for the framework bundle.
         headers: List of header files for the framework bundle.
+        include_privacy_manifest: Boolean to indicate if a privacy manifest should be added to the
+            framework bundle (optional).
         include_resource_bundle: Boolean to indicate if a resource bundle should be added to
             the framework bundle (optional).
         include_versioned_frameworks: Boolean to indicate if the framework should include additional
             versions of the framework under the Versions directory.
         is_dynamic: Whether the generated binary is dynamic.
         module_interfaces: List of Swift module interface files for the framework bundle (optional).
+        shallow_resource_bundle: Boolean to indicate if the resource bundle should be placed at the
+            root of non-macOS framework bundles, instead of under Resources (optional).
         target_os: The target Apple OS for the generated framework bundle.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     Returns:
@@ -362,9 +379,26 @@ def _create_framework(
                 for interface_file in module_interfaces
             ])
 
+    if include_privacy_manifest:
+        for framework_directory in framework_directories:
+            manifest_directory = paths.join(
+                framework_directory,
+                "Resources" if is_macos_framework else "",
+            )
+            privacy_manifest = intermediates.file(
+                actions = actions,
+                file_name = paths.join(manifest_directory, "PrivacyInfo.xcprivacy"),
+                output_discriminator = None,
+                target_name = label.name,
+            )
+            actions.write(output = privacy_manifest, content = _PRIVACY_MANIFEST_CONTENT)
+            framework_files.append(privacy_manifest)
+
     if include_resource_bundle:
         for framework_directory in framework_directories:
             resources_directory = paths.join(framework_directory, "Resources")
+            if shallow_resource_bundle and not is_macos_framework:
+                resources_directory = framework_directory
             resources_path = paths.join(resources_directory, bundle_name + ".bundle")
 
             resource_file = intermediates.file(

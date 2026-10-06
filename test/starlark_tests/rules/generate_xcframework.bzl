@@ -491,6 +491,9 @@ def _generate_static_framework_xcframework_impl(ctx):
     hdrs = ctx.files.hdrs
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
+    include_privacy_manifest = ctx.attr.include_privacy_manifest
+    include_resource_bundle = ctx.attr.include_resource_bundle
+    include_versioned_frameworks = ctx.attr.include_versioned_frameworks
 
     if platforms.keys() != minimum_os_versions.keys():
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
@@ -524,6 +527,7 @@ def _generate_static_framework_xcframework_impl(ctx):
             apple_fragment = apple_fragment,
             binary = binary,
             label = label,
+            parent_dir = library_identifier,
             xcode_config = xcode_config,
         )
 
@@ -534,9 +538,13 @@ def _generate_static_framework_xcframework_impl(ctx):
             base_path = library_identifier,
             bundle_name = label.name,
             headers = hdrs,
+            include_privacy_manifest = include_privacy_manifest,
+            include_resource_bundle = include_resource_bundle,
+            include_versioned_frameworks = include_versioned_frameworks,
             label = label,
             is_dynamic = False,
             library = static_library,
+            shallow_resource_bundle = True,
             target_os = platform,
             xcode_config = xcode_config,
         )
@@ -756,6 +764,18 @@ represented as a dotted version number as values.
     },
 """,
                 mandatory = True,
+            ),
+            "include_privacy_manifest": attr.bool(
+                default = False,
+                doc = "Include a privacy manifest in the generated static frameworks.",
+            ),
+            "include_resource_bundle": attr.bool(
+                default = False,
+                doc = "Include a resource bundle in the generated static frameworks.",
+            ),
+            "include_versioned_frameworks": attr.bool(
+                default = False,
+                doc = "Include versioned frameworks for macOS static frameworks.",
             ),
         } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
     ),

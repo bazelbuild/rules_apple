@@ -485,6 +485,46 @@ def _has_versioned_framework_files(framework_files):
             return True
     return False
 
+def _embeddable_framework_paths(framework_files):
+    """Returns the framework bundle paths with an Info.plist, which Xcode requires to embed them."""
+    framework_paths = {}
+    for f in framework_files:
+        if f.basename != "Info.plist" or ".framework/" not in f.short_path:
+            continue
+        framework_path = bundle_paths.farthest_parent(f.short_path, "framework")
+        relative_path = paths.relativize(f.short_path, framework_path)
+
+        # macOS frameworks are only embeddable as versioned frameworks.
+        if relative_path == "Info.plist" or (
+            relative_path.startswith("Versions/") and
+            relative_path.endswith("/Resources/Info.plist") and
+            relative_path.count("/") == 3
+        ):
+            framework_paths[framework_path] = True
+    return framework_paths
+
+def _embedded_static_framework_files(*, bundle_name, framework_files, framework_paths):
+    """Returns the files Xcode embeds for static frameworks within the given framework paths.
+
+    Xcode excludes headers, modules, .tbd files and the static binary, which is replaced by a stub.
+    """
+    embedded_files = []
+    for f in framework_files:
+        if ".framework/" not in f.short_path or f.extension == "tbd":
+            continue
+        framework_path = bundle_paths.farthest_parent(f.short_path, "framework")
+        if framework_path not in framework_paths:
+            continue
+        components = paths.relativize(f.short_path, framework_path).split("/")
+        if [c for c in components[:-1] if c in ("Headers", "Modules", "PrivateHeaders")]:
+            continue
+        if f.basename == bundle_name and (
+            len(components) == 1 or (len(components) == 3 and components[0] == "Versions")
+        ):
+            continue
+        embedded_files.append(f)
+    return embedded_files
+
 def _swift_info_from_module_interface(
         *,
         actions,
@@ -805,6 +845,8 @@ framework_import_support = struct(
     cc_info_with_dependencies = _cc_info_with_dependencies,
     classify_file_imports = _classify_file_imports,
     classify_framework_imports = _classify_framework_imports,
+    embeddable_framework_paths = _embeddable_framework_paths,
+    embedded_static_framework_files = _embedded_static_framework_files,
     framework_import_info_with_dependencies = _framework_import_info_with_dependencies,
     get_swift_module_files_with_target_triplet = _get_swift_module_files_with_target_triplet,
     get_dsym_binaries = _get_dsym_binaries,
