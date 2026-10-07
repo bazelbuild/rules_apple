@@ -62,16 +62,17 @@ def compile_storyboard(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-
-    # Keep warnings as non-errors as storyboard issues such as "This file is set to build for a
-    # version older than the deployment target. Functionality may be limited." are not fatal errors
-    # and should not fail the build. Furthermore, all storyboards are deprecated in watchOS 7.0+, so
-    # there should be always be an exception made for watchOS specifically if nothing else...
-    #
-    # TODO: b/447391969 - See if exceptions can be made like in actool.bzl to "--downgrade-error"
-    # to start escalating client-facing compatibility warnings as errors. This requires small
-    # wrapper changes to relay that option.
-    args.add("--treat-warnings-as-errors", "false")
+    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
+    # causes no issues for a period of three or four weeks.
+    args.add("--treat-warnings-as-errors", "true")
+    args.add_all([
+        # Downgrade errors for storyboards targeting a version older than the deployment target,
+        # which can happen when a shared library's storyboard is compiled into an app with a newer
+        # deployment target.
+        "--downgrade-error=substring=This file is set to build for a version older than the deployment target. Functionality may be limited.",
+        # Downgrade errors for the use of WatchKit storyboards in watchOS 7.0 and later.
+        "--downgrade-error=substring=WatchKit storyboards are deprecated in watchOS 7.0 and later.",
+    ])
     args.add(
         "--compilation-directory",
         xctoolrunner_support.prefixed_path(output_dir.dirname),
