@@ -6647,6 +6647,75 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_app_intents_and_localized_strings",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:app_shortcuts_localized_strings",
+        "//test/starlark_tests/resources:localized_strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
+ios_application(
+    name = "app_with_app_intents_and_localized_strings_without_flexible_matching",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    app_intents_flexible_matching = False,
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:app_shortcuts_localized_strings",
+        "//test/starlark_tests/resources:localized_strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
+ios_application(
+    name = "app_with_app_intents_and_localized_xcstrings",
+    app_intents = [
+        "//test/starlark_tests/resources:app_intent",
+    ],
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.app_intents_support,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:localized_xcstrings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:app_intent",
+        "//test/starlark_tests/resources:swift_uikit_appdelegate",
+    ],
+)
+
+ios_application(
     name = "app_with_widget_configuration_intent",
     app_intents = [
         "//test/starlark_tests/resources:widget_configuration_intent",

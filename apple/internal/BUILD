@@ -28,6 +28,7 @@ toolchain(
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
     alticonstool = "//tools/alticonstool",
+    app_intents_nl_training_tool = "//tools/app_intents_nl_training_tool",
     bundletool_experimental = "//tools/bundletool:bundletool_experimental",
     clangrttool = "//tools/clangrttool",
     codesigningtool = "//tools/codesigningtool",

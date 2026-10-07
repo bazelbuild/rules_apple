@@ -290,10 +290,13 @@ def _ios_application_impl(ctx):
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
+            bundle_id = bundle_id,
             cc_toolchains = cc_toolchain_forwarder,
             deps = ctx.split_attr.app_intents,
+            flexible_matching = ctx.attr.app_intents_flexible_matching,
             label = label,
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            nl_training_tool = apple_mac_toolchain_info.app_intents_nl_training_tool,
             platform_prerequisites = platform_prerequisites,
             json_tool = ctx.attr._json_tool.files_to_run,
         ),
@@ -1373,10 +1376,13 @@ def _ios_extension_impl(ctx):
         ),
         partials.app_intents_metadata_bundle_partial(
             actions = actions,
+            bundle_id = bundle_id,
             cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
             deps = ctx.split_attr.app_intents,
+            flexible_matching = ctx.attr.app_intents_flexible_matching,
             label = label,
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            nl_training_tool = apple_mac_toolchain_info.app_intents_nl_training_tool,
             platform_prerequisites = platform_prerequisites,
             json_tool = ctx.attr._json_tool.files_to_run,
         ),
@@ -2916,6 +2922,7 @@ ios_application = rule_factory.create_apple_rule(
         ),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
+            supports_flexible_matching = True,
         ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
@@ -3106,6 +3113,7 @@ However, iOS 14 introduced Widget Extensions that use a traditional `main` entry
         ),
         rule_attrs.app_intents_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
+            supports_flexible_matching = True,
         ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,

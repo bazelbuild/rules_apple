@@ -80,15 +80,17 @@ def _common_exec_groups():
     """Returns a set of exec_groups"""
     return apple_toolchain_utils.use_apple_exec_group_toolchain()
 
-def _app_intents_attrs(*, deps_cfg):
+def _app_intents_attrs(*, deps_cfg, supports_flexible_matching = False):
     """Returns a dictionary with the attribute for Apple platform rules supporting AppIntents.
 
     Args:
         deps_cfg: Bazel split transition to use on binary attrs, such as deps and split toolchains.
             To satisfy native Bazel linking prerequisites, `deps` and this `deps_cfg` attribute must
             use the same transition.
+        supports_flexible_matching: Whether to add the attributes for App Shortcuts Flexible
+            Matching, which Xcode supports only for iOS.
     """
-    return {
+    attrs = {
         "app_intents": attr.label_list(
             doc = "List of dependencies implementing the AppIntents protocol.",
             cfg = deps_cfg,
@@ -101,6 +103,23 @@ def _app_intents_attrs(*, deps_cfg):
             executable = True,
         ),
     }
+    if supports_flexible_matching:
+        attrs.update({
+            "app_intents_flexible_matching": attr.bool(
+                default = True,
+                doc = """
+If `True` and `app_intents` is set, generates the assets for App Shortcuts Flexible Matching, which
+lets Siri and Spotlight run an App Shortcut when the user says a phrase similar to one declared in
+the `AppShortcutsProvider`. If `False`, only the declared phrases match. This mirrors Xcode's
+`APP_SHORTCUTS_ENABLE_FLEXIBLE_MATCHING` build setting. It has no effect with Xcode 14 or earlier.
+
+The assets are generated for each `.lproj` directory in the bundle and for the Info.plist's
+`CFBundleDevelopmentRegion`. Translated phrases are read from `AppShortcuts.strings` resources, and
+localized app names from `InfoPlist.strings` resources.
+""",
+            ),
+        })
+    return attrs
 
 def _common_linking_api_attrs(*, deps_cfg):
     """Returns dictionary of required attributes for Bazel Apple linking APIs.
