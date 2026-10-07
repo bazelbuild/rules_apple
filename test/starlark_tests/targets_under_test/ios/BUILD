@@ -4093,6 +4093,13 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":swiftmodule_xcframework_with_modulemap"],
 )
 
+apple_dynamic_xcframework_import(
+    name = "ios_imported_xcframework_swiftmodule_with_modulemap_implicit",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":swiftmodule_xcframework_with_modulemap"],
+)
+
 write_file(
     name = "import_swiftmodule_framework",
     out = "SwiftWithBinarySwiftmoduleFramework.swift",
@@ -4134,6 +4141,13 @@ swift_library(
     ],
     tags = common.fixture_tags,
     deps = [":ios_imported_xcframework_swiftmodule_with_modulemap"],
+)
+
+swift_library(
+    name = "swiftmodule_xcframework_with_modulemap_implicit_consumer",
+    srcs = [":use_swiftmodule_framework_with_modulemap"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_xcframework_swiftmodule_with_modulemap_implicit"],
 )
 
 # Swift app with imported Objective-C static framework.
