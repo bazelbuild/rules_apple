@@ -15,16 +15,8 @@
 """Bundling Task implementation for validating the AppleBundleInfo providers found in child bundles."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
     "apple_product_type",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
-    "AppleResourceValidationInfo",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -83,53 +75,51 @@ Consider addressing the minimum_os_version on {target_type} {target_label} to ma
 
 def _child_bundle_info_validation_bundling_task_impl(
         *,
-        frameworks,
+        framework_bundle_infos,
         platform_prerequisites,
         product_type,
         resource_validation_infos,
         rule_label):
     """Implementation for the child bundle info validation bundling task."""
 
-    if frameworks or resource_validation_infos:
+    if framework_bundle_infos or resource_validation_infos:
         target_type = "framework"
         check_less_than = False
 
         if product_type == apple_product_type.application:
             check_less_than = True
 
-        for framework in frameworks:
+        for framework_bundle_info in framework_bundle_infos:
             compare_min_os(
                 check_less_than = check_less_than,
-                target_label = framework.label,
-                target_min_os = framework[AppleBundleInfo].minimum_os_version,
+                target_label = framework_bundle_info.label,
+                target_min_os = framework_bundle_info.minimum_os_version,
                 target_type = target_type,
                 rule_label = rule_label,
                 rule_min_os = platform_prerequisites.minimum_os,
             )
 
         for resource_validation_info in resource_validation_infos:
-            if AppleResourceValidationInfo in resource_validation_info:
-                resource_validation_info = resource_validation_info[AppleResourceValidationInfo]
-                target_bundle_infos = resource_validation_info.transitive_target_bundle_infos
-                for target_bundle_info in target_bundle_infos.to_list():
-                    apple_bundle_info = target_bundle_info.apple_bundle_info
-                    compare_min_os(
-                        check_less_than = check_less_than,
-                        target_label = target_bundle_info.target_label,
-                        target_min_os = apple_bundle_info.minimum_os_version,
-                        target_type = target_type,
-                        rule_label = rule_label,
-                        rule_min_os = platform_prerequisites.minimum_os,
-                    )
+            target_bundle_infos = resource_validation_info.transitive_target_bundle_infos
+            for target_bundle_info in target_bundle_infos.to_list():
+                apple_bundle_info = target_bundle_info.apple_bundle_info
+                compare_min_os(
+                    check_less_than = check_less_than,
+                    target_label = target_bundle_info.target_label,
+                    target_min_os = apple_bundle_info.minimum_os_version,
+                    target_type = target_type,
+                    rule_label = rule_label,
+                    rule_min_os = platform_prerequisites.minimum_os,
+                )
 
     return struct()
 
 def child_bundle_info_validation_bundling_task(
         *,
-        frameworks,
+        framework_bundle_infos = [],
         platform_prerequisites,
         product_type,
-        resource_validation_infos,
+        resource_validation_infos = [],
         rule_label):
     """Constructor for the child bundle info validation bundling task.
 
@@ -142,22 +132,19 @@ def child_bundle_info_validation_bundling_task(
     In this case, we warn, rather than fail.
 
     Args:
-        frameworks: List of frameworks representing child bundles to validate for `AppleBundleInfo`
-            instances. These should come from the `frameworks` attribute as well as
-            `AppleBundleInfo` instances collected from framework rules in the resource aspect of
-            `deps`.
+        framework_bundle_infos: List of `AppleBundleInfo` providers from child framework bundles
+            to validate.
         platform_prerequisites: Struct containing information on the platform being targeted.
         product_type: Product type identifier used to describe the current bundle type.
-        resource_validation_infos: List of potential AppleResourceValidationInfo providers
-            signalling child bundles with sources referenced via `deps` or a resource-aligned
-            attribute.
+        resource_validation_infos: List of `AppleResourceValidationInfo` providers signalling child
+            bundles with sources referenced via `deps` or a resource-aligned attribute.
         rule_label: The label of the target being analyzed.
 
     Returns:
         A bundling task that validates the AppleBundleInfo of all child bundles against its parent.
     """
     return lambda *args, **kwargs: _child_bundle_info_validation_bundling_task_impl(
-        frameworks = frameworks,
+        framework_bundle_infos = framework_bundle_infos,
         platform_prerequisites = platform_prerequisites,
         product_type = product_type,
         resource_validation_infos = resource_validation_infos,

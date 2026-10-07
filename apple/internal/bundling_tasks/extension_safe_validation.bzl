@@ -23,21 +23,21 @@ visibility("@build_bazel_rules_apple//apple/...")
 
 def _extension_safe_validation_bundling_task_impl(
         *,
+        extension_safe_validation_providers,
         is_extension_safe,
-        rule_label,
-        targets_to_validate):
+        rule_label):
     """Implementation for the extension safety validation bundling task."""
 
     if is_extension_safe:
-        for target in targets_to_validate:
-            if not target[AppleExtensionSafeValidationInfo].is_extension_safe:
+        for provider in extension_safe_validation_providers:
+            if not provider.is_extension_safe:
                 # TODO(b/133173778): Revisit the extension_safe attribute, since it's currently
                 # not propagating the -fapplication-extension compilation flags to dependencies.
                 fail((
                     "The target {current_label} is for an extension but its framework " +
                     "dependency {target_label} is not marked extension-safe. " +
                     "Specify 'extension_safe = 1' on the framework target."
-                ).format(current_label = rule_label, target_label = target.label))
+                ).format(current_label = rule_label, target_label = provider.label))
 
     return struct(
         providers = [
@@ -50,26 +50,27 @@ def _extension_safe_validation_bundling_task_impl(
 
 def extension_safe_validation_bundling_task(
         *,
+        extension_safe_validation_providers = [],
         is_extension_safe,
-        rule_label,
-        targets_to_validate):
+        rule_label):
     """Constructor for the extension safety validation bundling task.
 
     This bundling task validates that the framework dependencies are extension safe iff the current
     target is also extension safe.
 
     Args:
+        extension_safe_validation_providers: List of `AppleExtensionSafeValidationInfo` providers
+            from dependencies to validate for extension safe code.
         is_extension_safe: Boolean indicating that the current target is extension safe or not.
         rule_label: The label of the target being analyzed.
-        targets_to_validate: List of targets to validate for extension safe code.
 
     Returns:
         A bundling task that validates extension safety.
     """
     return lambda *args, **kwargs: _extension_safe_validation_bundling_task_impl(
+        extension_safe_validation_providers = extension_safe_validation_providers,
         is_extension_safe = is_extension_safe,
         rule_label = rule_label,
-        targets_to_validate = targets_to_validate,
         *args,
         **kwargs
     )

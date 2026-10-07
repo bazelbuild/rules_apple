@@ -39,6 +39,8 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBinaryInfo",
     "AppleBundleInfo",
+    "AppleResourceInfo",
+    "AppleRunfilesInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal:required_minimum_os.bzl",
@@ -71,6 +73,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -115,8 +121,7 @@ def _apple_build_test_rule_impl(ctx):
         secure_features = ctx.attr.secure_features,
     )
 
-    targets = ctx.attr.targets
-    for target in targets:
+    for target in ctx.attr.targets:
         for p in _BLOCKED_PROVIDERS:
             if p in target:
                 fail((
@@ -152,16 +157,17 @@ def _apple_build_test_rule_impl(ctx):
         environment_plist = ctx.file._environment_plist,
         mac_exec_group = apple_toolchain_utils.get_mac_exec_group(),
         platform_prerequisites = platform_prerequisites,
-        resource_deps = ctx.attr.targets,
         resource_locales = None,
+        resource_providers = targets.providers(ctx.attr.targets, AppleResourceInfo),
         rule_descriptor = rule_descriptor,
         rule_label = ctx.label,
+        runfiles_providers = targets.providers(ctx.attr.targets, AppleRunfilesInfo),
         version = None,
         version_keys_required = False,
         xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(),
     )()
 
-    transitive_files = [target[DefaultInfo].files for target in targets]
+    transitive_files = [target[DefaultInfo].files for target in ctx.attr.targets]
     if hasattr(resource_artifacts, "bundle_files"):
         for _, _, files in resource_artifacts.bundle_files:
             transitive_files.append(files)

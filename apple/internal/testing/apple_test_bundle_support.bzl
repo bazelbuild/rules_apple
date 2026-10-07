@@ -22,6 +22,10 @@ load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
+load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
 load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
     "@build_bazel_rules_apple//apple/internal:apple_bundler.bzl",
@@ -58,7 +62,11 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
+    "AppleDsymBundleInfo",
     "AppleExecutableBinaryInfo",
+    "AppleFrameworkImportInfo",
+    "AppleLinkmapInfo",
+    "AppleResourceInfo",
     "AppleRunfilesInfo",
     "AppleTestInfo",
     "new_appleextraoutputsinfo",
@@ -86,12 +94,28 @@ load(
     "swift_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
+    "AppleEmbeddableInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embedded_framework_bundle_info.bzl",
+    "AppleEmbeddedFrameworkBundleInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:swift_dylibs_info.bzl",
+    "AppleSwiftDylibsInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
 )
 load(
     "@build_bazel_rules_swift//swift:providers.bzl",
@@ -495,14 +519,22 @@ def _apple_test_bundle_impl(*, ctx, product_type):
                 ),
             )
 
+    resource_providers = (
+        targets.providers(resource_deps, AppleResourceInfo) +
+        extra_resource_providers
+    )
+
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(
+                cc_toolchain_forwarder,
+                ApplePlatformInfo,
+            ),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
@@ -545,18 +577,25 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = debug_dependencies,
+            dsym_bundle_providers = targets.providers(debug_dependencies, AppleDsymBundleInfo),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(debug_dependencies, AppleLinkmapInfo),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
-            embeddable_targets = getattr(ctx.attr, "frameworks", []),
-            embedded_framework_targets = (
-                getattr(ctx.attr, "deps", []) +
-                getattr(ctx.attr, "resources", [])
+            embeddable_providers = targets.providers(
+                getattr(ctx.attr, "frameworks", []),
+                AppleEmbeddableInfo,
+            ),
+            embedded_framework_providers = targets.providers(
+                targets.target_set(
+                    getattr(ctx.attr, "deps", []),
+                    getattr(ctx.attr, "resources", []),
+                ),
+                AppleEmbeddedFrameworkBundleInfo,
             ),
         ),
         bundling_tasks.framework_import(
@@ -564,13 +603,19 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
+            framework_import_providers = targets.providers(
+                ctx.attr.deps,
+                AppleFrameworkImportInfo,
+            ),
+            framework_import_providers_to_avoid = targets.providers(
+                targets_to_avoid,
+                AppleFrameworkImportInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps,
-            targets_to_avoid = targets_to_avoid,
         ),
         bundling_tasks.resources(
             actions = actions,
@@ -580,15 +625,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            extra_resource_providers = extra_resource_providers,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            propagate_runfiles = False,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = resource_providers,
+            resource_providers_to_avoid = targets.providers(targets_to_avoid, AppleResourceInfo),
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            targets_to_avoid = targets_to_avoid,
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -601,10 +644,13 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
-            dependency_targets = getattr(ctx.attr, "frameworks", []),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            swift_dylibs_providers = targets.providers(
+                getattr(ctx.attr, "frameworks", []),
+                AppleSwiftDylibsInfo,
+            ),
             xplat_exec_group = xplat_exec_group,
         ),
     ]

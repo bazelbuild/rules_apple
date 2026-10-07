@@ -22,8 +22,6 @@ an `infoplists` field containing a list of plists that should be merged into the
 
 load(
     "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleBundleInfo",
-    "AppleResourceInfo",
     "AppleResourceLocalesInfo",
 )
 load(
@@ -44,7 +42,6 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "AppleRunfilesInfo",
     "new_applerunfilesinfo",
 )
 load(
@@ -324,47 +321,30 @@ def _resources_bundling_task_impl(
         environment_plist,
         extensionkit_keys_required,
         mac_exec_group,
-        extra_resource_providers = [],
         output_discriminator,
         platform_prerequisites,
         primary_icon_name,
-        propagate_runfiles = True,
-        resource_deps,
         resource_locales,
+        resource_providers,
         resource_providers_to_avoid,
         rule_descriptor,
         rule_label,
+        runfiles_providers,
+        targets_to_avoid_must_be_owned,
         top_level_infoplists,
         top_level_resources,
-        targets_to_avoid,
-        targets_to_avoid_must_be_owned,
         version,
         version_keys_required,
         xplat_exec_group):
     """Implementation for the resource processing bundling task."""
-    providers = []
+    providers = list(resource_providers)
     runfiles_provider = None
 
-    if propagate_runfiles:
-        runfiles_list = [
-            x[AppleRunfilesInfo].runfiles
-            for x in (resource_deps or []) + (targets_to_avoid or [])
-            if AppleRunfilesInfo in x
-        ]
-        if runfiles_list:
-            runfiles_provider = new_applerunfilesinfo(
-                runfiles = runfiles_list[0].merge_all(runfiles_list[1:]),
-            )
-
-    if resource_deps:
-        providers.extend([
-            x[AppleResourceInfo]
-            for x in resource_deps
-            if AppleResourceInfo in x
-        ])
-
-    if extra_resource_providers:
-        providers.extend(extra_resource_providers)
+    if runfiles_providers:
+        runfiles_list = [x.runfiles for x in runfiles_providers]
+        runfiles_provider = new_applerunfilesinfo(
+            runfiles = runfiles_list[0].merge_all(runfiles_list[1:]),
+        )
 
     if top_level_resources:
         providers.append(resources.bucketize(
@@ -393,21 +373,13 @@ def _resources_bundling_task_impl(
         providers = providers,
     )
 
-    avoid_providers = [
-        x[AppleResourceInfo]
-        for x in targets_to_avoid
-        if AppleResourceInfo in x
-    ]
-    if resource_providers_to_avoid:
-        avoid_providers.extend(resource_providers_to_avoid)
-
     avoid_provider = None
-    if avoid_providers:
+    if resource_providers_to_avoid:
         if targets_to_avoid_must_be_owned:
             # Call merge_providers with validate_all_resources_owned set, to ensure that all the
             # resources from dependency bundles have an owner.
             avoid_provider = resources.merge_providers(
-                providers = avoid_providers,
+                providers = resource_providers_to_avoid,
                 validate_all_resources_owned = True,
             )
         else:
@@ -416,7 +388,7 @@ def _resources_bundling_task_impl(
             # that's impossible to accidentally build a fully qualified label from.
             avoid_provider = resources.merge_providers(
                 default_owner = "avoid_deps_{}".format(str(rule_label)),
-                providers = avoid_providers,
+                providers = resource_providers_to_avoid,
             )
 
     # Map of resource provider fields to a tuple that contains the method to use to process those
@@ -594,13 +566,13 @@ with dependencies where applicable. Please add a bundle ID to your target defini
 
     if not avoid_root_infoplist:
         bundle_verification_infoplists = [
-            b.target[AppleBundleInfo].infoplist
+            b.apple_bundle_info.infoplist
             for b in bundle_verification_targets
         ]
 
         bundle_verification_required_values = [
             (
-                b.target[AppleBundleInfo].infoplist,
+                b.apple_bundle_info.infoplist,
                 [[b.parent_bundle_id_reference, bundle_id]],
             )
             for b in bundle_verification_targets
@@ -665,18 +637,16 @@ def resources_bundling_task(
         bundle_verification_targets = [],
         environment_plist,
         extensionkit_keys_required = False,
-        extra_resource_providers = [],
         mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         primary_icon_name = None,
-        propagate_runfiles = True,
-        resource_deps,
         resource_locales,
+        resource_providers = [],
         resource_providers_to_avoid = [],
         rule_descriptor,
         rule_label,
-        targets_to_avoid = [],
+        runfiles_providers = [],
         targets_to_avoid_must_be_owned = True,
         top_level_infoplists = [],
         top_level_resources = {},
@@ -698,7 +668,6 @@ def resources_bundling_task(
             any plists, including user input. This allows for overridable "default" values.
         apple_mac_toolchain_info: `struct` of Apple tools from the shared Apple toolchain.
         apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
-        extra_resource_providers: A list of AppleResourceInfo providers to process.
         avoid_root_infoplist: Bool. Indicates if the root Info.plist should not be generated for
             the given bundle target. In practice this only applies to a subset of Static Frameworks
             that are not compatible with Apple's Xcode 15 Static Frameworks.
@@ -708,10 +677,10 @@ def resources_bundling_task(
             occur.
         bundle_name: The name of the output bundle.
         bundle_verification_targets: List of structs that reference embedable targets that need to
-            be validated. The structs must have a `target` field with the target containing an
-            Info.plist file that will be validated. The structs may also have a
-            `parent_bundle_id_reference` field that contains the plist path, in list form, to the
-            plist entry that must contain this target's bundle ID.
+            be validated. The structs must have an `apple_bundle_info` field with the
+            `AppleBundleInfo` provider containing an Info.plist file that will be validated. The
+            structs may also have a `parent_bundle_id_reference` field that contains the plist path,
+            in list form, to the plist entry that must contain this target's bundle ID.
         extensionkit_keys_required: Whether to validate that the Info.plist ExtensionKit keys are
             correctly configured.
         environment_plist: File referencing a plist with the required variables about the versions
@@ -722,20 +691,20 @@ def resources_bundling_task(
         platform_prerequisites: Struct containing information on the platform being targeted.
         primary_icon_name: An optional String to identify the name of the primary app icon when
             alternate app icons have been provided for the app.
-        propagate_runfiles: Bool. Whether to propagate AppleRunfilesInfo from dependencies.
-        resource_deps: A list of dependencies that the resource aspect has been applied to.
         resource_locales: An allow list of locales to be included in the bundle.
-        resource_providers_to_avoid: List of AppleResourceInfo providers containing resources that
+        resource_providers: A list of `AppleResourceInfo` providers from dependencies and additional
+            generated resources to process.
+        resource_providers_to_avoid: List of `AppleResourceInfo` providers containing resources that
             should be deduplicated from the target being processed.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
         rule_label: The label of the target being analyzed.
-        targets_to_avoid: List of targets containing resources that should be deduplicated from the
-            target being processed.
-        targets_to_avoid_must_be_owned: Bool. Triggers validation confirming all `targets_to_avoid`
-            have been assigned owners. This is expected if `targets_to_avoid` comes from a framework
-            target rather than a list of library targets that might not have owners set during
-            resource processing. If this is `False`, unowned targets will be assigned an `owner`
-            that is fully distinct from any target in the workspace. `True` by default.
+        runfiles_providers: List of `AppleRunfilesInfo` providers from dependencies to propagate.
+        targets_to_avoid_must_be_owned: Bool. Triggers validation confirming all
+            `resource_providers_to_avoid` have been assigned owners. This is expected if
+            `resource_providers_to_avoid` comes from a framework target rather than a list of
+            library targets that might not have owners set during resource processing. If this is
+            `False`, unowned targets will be assigned an `owner` that is fully distinct from any
+            target in the workspace. `True` by default.
         top_level_infoplists: A list of collected resources found from Info.plist attributes.
         top_level_resources: A list of collected resources found from resource attributes.
         version: A label referencing AppleBundleVersionInfo, if provided by the rule.
@@ -760,18 +729,16 @@ def resources_bundling_task(
         bundle_verification_targets = bundle_verification_targets,
         environment_plist = environment_plist,
         extensionkit_keys_required = extensionkit_keys_required,
-        extra_resource_providers = extra_resource_providers,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         primary_icon_name = primary_icon_name,
-        propagate_runfiles = propagate_runfiles,
-        resource_deps = resource_deps,
         resource_locales = resource_locales,
+        resource_providers = resource_providers,
         resource_providers_to_avoid = resource_providers_to_avoid,
         rule_descriptor = rule_descriptor,
         rule_label = rule_label,
-        targets_to_avoid = targets_to_avoid,
+        runfiles_providers = runfiles_providers,
         targets_to_avoid_must_be_owned = targets_to_avoid_must_be_owned,
         top_level_infoplists = top_level_infoplists,
         top_level_resources = top_level_resources,

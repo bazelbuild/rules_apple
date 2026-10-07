@@ -81,7 +81,12 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleDsymBundleInfo",
     "AppleExecutableBinaryInfo",
+    "AppleFrameworkImportInfo",
+    "AppleLinkmapInfo",
+    "AppleResourceInfo",
+    "AppleRunfilesInfo",
     "MacosExtensionBundleInfo",
     "MacosFrameworkBundleInfo",
     "MacosXPCServiceBundleInfo",
@@ -151,8 +156,41 @@ load(
     "swift_const_values_aspect",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:app_extension_point_info.bzl",
+    "AppExtensionPointInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
+    "AppIntentsBundleInfo",
+    "AppIntentsInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_resource_validation_info.bzl",
+    "AppleResourceValidationInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embeddable_info.bzl",
+    "AppleEmbeddableInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embedded_codesigning_dossier_info.bzl",
+    "AppleEmbeddedCodesigningDossierInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:embedded_framework_bundle_info.bzl",
+    "AppleEmbeddedFrameworkBundleInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/providers:extension_foundation_info.bzl",
     "ExtensionFoundationInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:extension_safe_validation_info.bzl",
+    "AppleExtensionSafeValidationInfo",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:swift_dylibs_info.bzl",
+    "AppleSwiftDylibsInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
@@ -161,6 +199,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
@@ -210,7 +252,7 @@ def _macos_application_impl(ctx):
         shared_capabilities = ctx.attr.shared_capabilities,
     )
     bundle_verification_targets = [
-        struct(target = ext)
+        struct(apple_bundle_info = ext[AppleBundleInfo])
         for ext in ctx.attr.extensions + ctx.attr.xpc_services
     ]
     cc_configured_features = features_support.cc_configured_features(
@@ -218,6 +260,7 @@ def _macos_application_impl(ctx):
         extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    debug_dependencies = embeddable_targets + ctx.attr.additional_contents.keys()
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -283,10 +326,10 @@ def _macos_application_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.app_extension_point(
             actions = actions,
+            app_extension_point_providers = targets.providers(ctx.attr.deps, AppExtensionPointInfo),
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            deps = ctx.attr.deps,
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -294,22 +337,38 @@ def _macos_application_impl(ctx):
         ),
         bundling_tasks.extension_point_name_validation(
             actions = actions,
+            app_extension_point_providers = targets.providers(ctx.attr.deps, AppExtensionPointInfo),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            deps = ctx.attr.deps,
-            extensions = ctx.attr.extensions,
+            extension_foundation_providers = targets.providers(
+                ctx.attr.extensions,
+                ExtensionFoundationInfo,
+            ),
             label = label,
             xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
-            app_intents = [ctx.split_attr.deps],
+            app_intents_providers = targets.providers(
+                ctx.split_attr.deps,
+                AppIntentsInfo,
+                first_split_only = True,
+            ),
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = embeddable_targets,
-            frameworks = ctx.attr.frameworks,
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
+            embedded_bundle_app_intents_providers = targets.providers(
+                embeddable_targets,
+                AppIntentsBundleInfo,
+            ),
+            framework_app_intents_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppIntentsBundleInfo,
+            ),
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -317,11 +376,14 @@ def _macos_application_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(
+                cc_toolchain_forwarder,
+                ApplePlatformInfo,
+            ),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -348,13 +410,20 @@ def _macos_application_impl(ctx):
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
-            additional_contents = ctx.attr.additional_contents,
+            additional_contents_dossier_providers = {
+                target[AppleEmbeddedCodesigningDossierInfo]: relative_path
+                for target, relative_path in ctx.attr.additional_contents.items()
+                if AppleEmbeddedCodesigningDossierInfo in target
+            },
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = location_enum.bundle,
             bundle_name = bundle_name,
-            embedded_targets = embeddable_targets,
+            embedded_dossier_providers = targets.providers(
+                embeddable_targets,
+                AppleEmbeddedCodesigningDossierInfo,
+            ),
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -365,38 +434,48 @@ def _macos_application_impl(ctx):
             xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.child_bundle_info_validation(
-            frameworks = ctx.attr.frameworks,
+            framework_bundle_infos = targets.providers(
+                ctx.attr.frameworks,
+                AppleBundleInfo,
+            ),
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
+            resource_validation_infos = targets.providers(resource_deps, AppleResourceValidationInfo),
             rule_label = label,
         ),
         bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = embeddable_targets + ctx.attr.additional_contents.keys(),
+            dsym_bundle_providers = targets.providers(debug_dependencies, AppleDsymBundleInfo),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(debug_dependencies, AppleLinkmapInfo),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
             bundle_embedded_bundles = True,
-            embeddable_targets = embeddable_targets,
-            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
+            embeddable_providers = targets.providers(embeddable_targets, AppleEmbeddableInfo),
+            embedded_framework_providers = targets.providers(
+                resource_deps,
+                AppleEmbeddedFrameworkBundleInfo,
+            ),
         ),
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
+            framework_import_providers = targets.providers(
+                ctx.attr.deps + embeddable_targets,
+                AppleFrameworkImportInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            targets = ctx.attr.deps + embeddable_targets,
         ),
         bundling_tasks.macos_additional_contents(
             additional_contents = ctx.attr.additional_contents,
@@ -412,11 +491,15 @@ def _macos_application_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = targets.providers(resource_deps, AppleResourceInfo),
+            resource_providers_to_avoid = targets.providers(
+                ctx.attr.frameworks,
+                AppleResourceInfo,
+            ),
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            targets_to_avoid = ctx.attr.frameworks,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -428,10 +511,13 @@ def _macos_application_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             bundle_dylibs = True,
-            dependency_targets = embeddable_targets,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            swift_dylibs_providers = targets.providers(
+                embeddable_targets,
+                AppleSwiftDylibsInfo,
+            ),
             xplat_exec_group = xplat_exec_group,
         ),
     ]
@@ -624,11 +710,14 @@ def _macos_bundle_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(
+                cc_toolchain_forwarder,
+                ApplePlatformInfo,
+            ),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -655,7 +744,11 @@ def _macos_bundle_impl(ctx):
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
-            additional_contents = ctx.attr.additional_contents,
+            additional_contents_dossier_providers = {
+                target[AppleEmbeddedCodesigningDossierInfo]: relative_path
+                for target, relative_path in ctx.attr.additional_contents.items()
+                if AppleEmbeddedCodesigningDossierInfo in target
+            },
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
@@ -674,8 +767,15 @@ def _macos_bundle_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.additional_contents.keys(),
+            dsym_bundle_providers = targets.providers(
+                ctx.attr.additional_contents.keys(),
+                AppleDsymBundleInfo,
+            ),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(
+                ctx.attr.additional_contents.keys(),
+                AppleLinkmapInfo,
+            ),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -696,10 +796,11 @@ def _macos_bundle_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = targets.providers(resource_deps, AppleResourceInfo),
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -810,6 +911,7 @@ def _macos_framework_impl(ctx):
     predeclared_outputs = ctx.outputs
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
+    debug_dependencies = ctx.attr.frameworks + resource_deps
     signed_frameworks = []
     if provisioning_profile:
         signed_frameworks = [
@@ -863,13 +965,26 @@ def _macos_framework_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
-            app_intents = [ctx.split_attr.deps],
+            app_intents_providers = targets.providers(
+                ctx.split_attr.deps,
+                AppIntentsInfo,
+                first_split_only = True,
+            ),
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            cc_toolchains = cc_toolchain_forwarder,
-            embedded_bundles = ctx.attr.frameworks,
-            frameworks = ctx.attr.frameworks,
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
+            embedded_bundle_app_intents_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppIntentsBundleInfo,
+            ),
+            framework_app_intents_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppIntentsBundleInfo,
+            ),
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -877,11 +992,11 @@ def _macos_framework_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(cc_toolchain_forwarder, ApplePlatformInfo),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
@@ -894,32 +1009,39 @@ def _macos_framework_impl(ctx):
             label_name = label.name,
         ),
         bundling_tasks.child_bundle_info_validation(
-            frameworks = ctx.attr.frameworks,
+            framework_bundle_infos = targets.providers(ctx.attr.frameworks, AppleBundleInfo),
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
+            resource_validation_infos = targets.providers(resource_deps, AppleResourceValidationInfo),
             rule_label = label,
         ),
         bundling_tasks.debug_symbols(
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.frameworks + resource_deps,
+            dsym_bundle_providers = targets.providers(debug_dependencies, AppleDsymBundleInfo),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(debug_dependencies, AppleLinkmapInfo),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
-            embeddable_targets = ctx.attr.frameworks,
-            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
+            embeddable_providers = targets.providers(ctx.attr.frameworks, AppleEmbeddableInfo),
+            embedded_framework_providers = targets.providers(
+                resource_deps,
+                AppleEmbeddedFrameworkBundleInfo,
+            ),
             frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
         bundling_tasks.extension_safe_validation(
+            extension_safe_validation_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppleExtensionSafeValidationInfo,
+            ),
             is_extension_safe = ctx.attr.extension_safe,
             rule_label = label,
-            targets_to_validate = ctx.attr.frameworks,
         ),
         bundling_tasks.framework_provider(
             actions = actions,
@@ -939,11 +1061,15 @@ def _macos_framework_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = targets.providers(resource_deps, AppleResourceInfo),
+            resource_providers_to_avoid = targets.providers(
+                ctx.attr.frameworks,
+                AppleResourceInfo,
+            ),
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            targets_to_avoid = ctx.attr.frameworks,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -955,10 +1081,10 @@ def _macos_framework_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            swift_dylibs_providers = targets.providers(ctx.attr.frameworks, AppleSwiftDylibsInfo),
             xplat_exec_group = xplat_exec_group,
         ),
     ]
@@ -1035,6 +1161,7 @@ def _macos_extension_impl(ctx):
         ctx = ctx,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
+    debug_dependencies = ctx.attr.additional_contents.keys() + ctx.attr.frameworks
     label = ctx.label
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -1136,13 +1263,26 @@ def _macos_extension_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
-            app_intents = [ctx.split_attr.deps],
+            app_intents_providers = targets.providers(
+                ctx.split_attr.deps,
+                AppIntentsInfo,
+                first_split_only = True,
+            ),
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_id = bundle_id,
-            cc_toolchains = ctx.split_attr._cc_toolchain_forwarder,
-            embedded_bundles = ctx.attr.frameworks,
-            frameworks = ctx.attr.frameworks,
+            cc_toolchain_providers = targets.providers(
+                ctx.split_attr._cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
+            embedded_bundle_app_intents_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppIntentsBundleInfo,
+            ),
+            framework_app_intents_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppIntentsBundleInfo,
+            ),
             label = label,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1150,11 +1290,11 @@ def _macos_extension_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(cc_toolchain_forwarder, ApplePlatformInfo),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1168,10 +1308,10 @@ def _macos_extension_impl(ctx):
             label_name = label.name,
         ),
         bundling_tasks.child_bundle_info_validation(
-            frameworks = ctx.attr.frameworks,
+            framework_bundle_infos = targets.providers(ctx.attr.frameworks, AppleBundleInfo),
             platform_prerequisites = platform_prerequisites,
             product_type = rule_descriptor.product_type,
-            resource_validation_infos = ctx.attr.deps + ctx.attr.resources,
+            resource_validation_infos = targets.providers(resource_deps, AppleResourceValidationInfo),
             rule_label = label,
         ),
         bundling_tasks.clang_rt_dylibs(
@@ -1188,13 +1328,20 @@ def _macos_extension_impl(ctx):
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
-            additional_contents = ctx.attr.additional_contents,
+            additional_contents_dossier_providers = {
+                target[AppleEmbeddedCodesigningDossierInfo]: relative_path
+                for target, relative_path in ctx.attr.additional_contents.items()
+                if AppleEmbeddedCodesigningDossierInfo in target
+            },
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_location = bundle_location,
             bundle_name = bundle_name,
-            embedded_targets = ctx.attr.frameworks,
+            embedded_dossier_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppleEmbeddedCodesigningDossierInfo,
+            ),
             entitlements = entitlements,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1208,21 +1355,28 @@ def _macos_extension_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.additional_contents.keys() + ctx.attr.frameworks,
+            dsym_bundle_providers = targets.providers(debug_dependencies, AppleDsymBundleInfo),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(debug_dependencies, AppleLinkmapInfo),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
         bundling_tasks.embedded_bundles(
             build_settings = apple_xplat_toolchain_info.build_settings,
-            embeddable_targets = ctx.attr.frameworks,
-            embedded_framework_targets = ctx.attr.deps + ctx.attr.resources,
+            embeddable_providers = targets.providers(ctx.attr.frameworks, AppleEmbeddableInfo),
+            embedded_framework_providers = targets.providers(
+                resource_deps,
+                AppleEmbeddedFrameworkBundleInfo,
+            ),
             **embedded_bundles_args
         ),
         bundling_tasks.extension_safe_validation(
+            extension_safe_validation_providers = targets.providers(
+                ctx.attr.frameworks,
+                AppleExtensionSafeValidationInfo,
+            ),
             is_extension_safe = True,
             rule_label = label,
-            targets_to_validate = ctx.attr.frameworks,
         ),
         bundling_tasks.macos_additional_contents(
             additional_contents = ctx.attr.additional_contents,
@@ -1235,15 +1389,21 @@ def _macos_extension_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             environment_plist = ctx.file._environment_plist,
-            extra_resource_providers = extra_resource_providers,
             extensionkit_keys_required = is_extensionkit_extension,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = (
+                targets.providers(resource_deps, AppleResourceInfo) +
+                extra_resource_providers
+            ),
+            resource_providers_to_avoid = targets.providers(
+                ctx.attr.frameworks,
+                AppleResourceInfo,
+            ),
             rule_descriptor = rule_descriptor,
             rule_label = label,
-            targets_to_avoid = ctx.attr.frameworks,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,
@@ -1254,10 +1414,10 @@ def _macos_extension_impl(ctx):
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
-            dependency_targets = ctx.attr.frameworks,
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
+            swift_dylibs_providers = targets.providers(ctx.attr.frameworks, AppleSwiftDylibsInfo),
             xplat_exec_group = xplat_exec_group,
         ),
     ]
@@ -1412,11 +1572,11 @@ def _macos_xpc_service_impl(ctx):
     pending_bundling_tasks = [
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(cc_toolchain_forwarder, ApplePlatformInfo),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -1443,7 +1603,11 @@ def _macos_xpc_service_impl(ctx):
         ),
         bundling_tasks.codesigning_dossier(
             actions = actions,
-            additional_contents = ctx.attr.additional_contents,
+            additional_contents_dossier_providers = {
+                target[AppleEmbeddedCodesigningDossierInfo]: relative_path
+                for target, relative_path in ctx.attr.additional_contents.items()
+                if AppleEmbeddedCodesigningDossierInfo in target
+            },
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
@@ -1462,8 +1626,15 @@ def _macos_xpc_service_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = ctx.attr.additional_contents.keys(),
+            dsym_bundle_providers = targets.providers(
+                ctx.attr.additional_contents.keys(),
+                AppleDsymBundleInfo,
+            ),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(
+                ctx.attr.additional_contents.keys(),
+                AppleLinkmapInfo,
+            ),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -1484,10 +1655,11 @@ def _macos_xpc_service_impl(ctx):
             environment_plist = ctx.file._environment_plist,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = targets.providers(resource_deps, AppleResourceInfo),
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             version = ctx.attr.version,
             xplat_exec_group = xplat_exec_group,

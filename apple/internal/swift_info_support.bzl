@@ -18,10 +18,6 @@ load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
-load(
-    "@build_bazel_rules_swift//swift:providers.bzl",
-    "SwiftInfo",
-)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -45,11 +41,10 @@ frameworks expect a single swift_library dependency with `module_name` set to th
             expected = bundle_name,
         ))
 
-def _modules_from_avoid_deps(*, avoid_deps):
-    """Returns a Starlark set of module names found from the SwiftInfo providers of avoid_deps"""
-    avoid_swiftinfos = [t[SwiftInfo] for t in avoid_deps if SwiftInfo in t]
+def _modules_from_avoid_deps(*, avoid_swift_infos):
+    """Returns a Starlark set of module names found from the given SwiftInfo providers."""
     avoid_modules = set()
-    for swiftinfo in avoid_swiftinfos:
+    for swiftinfo in avoid_swift_infos:
         for module in swiftinfo.transitive_modules.to_list():
             if module.swift:
                 avoid_modules.add(module.name)

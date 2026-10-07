@@ -19,6 +19,10 @@ load(
     "apple_support",
 )
 load(
+    "@build_bazel_apple_support//lib:providers.bzl",
+    "ApplePlatformInfo",
+)
+load(
     "@build_bazel_apple_support//xcode:providers.bzl",
     "XcodeVersionInfo",
 )
@@ -61,6 +65,10 @@ load(
 )
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
+    "AppleDsymBundleInfo",
+    "AppleLinkmapInfo",
+    "AppleResourceInfo",
+    "AppleRunfilesInfo",
     "new_appleexecutablebinaryinfo",
     "new_visionosapplicationbundleinfo",
 )
@@ -107,6 +115,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
 )
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
@@ -228,11 +240,14 @@ def _visionos_application_impl(ctx):
         ),
         bundling_tasks.apple_bundle_info(
             actions = actions,
+            apple_platform_infos = targets.providers(
+                cc_toolchain_forwarder,
+                ApplePlatformInfo,
+            ),
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
-            cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
@@ -276,8 +291,9 @@ def _visionos_application_impl(ctx):
             actions = actions,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            debug_dependencies = resource_deps,
+            dsym_bundle_providers = targets.providers(resource_deps, AppleDsymBundleInfo),
             dsym_outputs = debug_outputs.dsym_outputs,
+            linkmap_info_providers = targets.providers(resource_deps, AppleLinkmapInfo),
             linkmaps = debug_outputs.linkmaps,
             platform_prerequisites = platform_prerequisites,
         ),
@@ -292,10 +308,11 @@ def _visionos_application_impl(ctx):
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
             primary_icon_name = ctx.attr.primary_app_icon,
-            resource_deps = resource_deps,
             resource_locales = ctx.attr.resource_locales,
+            resource_providers = targets.providers(resource_deps, AppleResourceInfo),
             rule_descriptor = rule_descriptor,
             rule_label = label,
+            runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
             top_level_infoplists = top_level_infoplists,
             top_level_resources = top_level_resources,
             version = ctx.attr.version,

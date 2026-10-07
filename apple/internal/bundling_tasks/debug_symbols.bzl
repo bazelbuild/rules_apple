@@ -27,11 +27,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleDsymBundleInfo",
-    "AppleLinkmapInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -266,33 +261,23 @@ def _debug_symbols_bundling_task_impl(
         actions,
         bundle_extension,
         bundle_name,
-        debug_dependencies = [],
         debug_discriminator = None,
+        dsym_bundle_providers = [],
         dsym_outputs = {},
+        linkmap_info_providers = [],
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites):
     """Implementation for the debug symbols processing bundling task."""
-    deps_dsym_bundle_providers = [
-        x[AppleDsymBundleInfo]
-        for x in debug_dependencies
-        if AppleDsymBundleInfo in x
-    ]
-    deps_linkmap_info_providers = [
-        x[AppleLinkmapInfo]
-        for x in debug_dependencies
-        if AppleLinkmapInfo in x
-    ]
-
     debug_output_filename = bundle_name
     if debug_discriminator:
         debug_output_filename += "_" + debug_discriminator
 
     direct_dsym_bundles = []
-    transitive_dsym_bundles = [x.transitive_dsyms for x in deps_dsym_bundle_providers]
+    transitive_dsym_bundles = [x.transitive_dsyms for x in dsym_bundle_providers]
 
     direct_linkmaps = []
-    transitive_linkmaps = [x.transitive_linkmaps for x in deps_linkmap_info_providers]
+    transitive_linkmaps = [x.transitive_linkmaps for x in linkmap_info_providers]
 
     output_providers = []
 
@@ -359,9 +344,10 @@ def debug_symbols_bundling_task(
         actions,
         bundle_extension,
         bundle_name,
-        debug_dependencies = [],
         debug_discriminator = None,
+        dsym_bundle_providers = [],
         dsym_outputs = {},
+        linkmap_info_providers = [],
         linkmaps = {},
         output_discriminator = None,
         platform_prerequisites):
@@ -379,12 +365,14 @@ def debug_symbols_bundling_task(
         actions: The actions provider from `ctx.actions`.
         bundle_extension: The extension for the bundle.
         bundle_name: The name of the output bundle.
-        debug_dependencies: List of targets from which to collect the transitive dependency debug
-            information to propagate them upstream.
         debug_discriminator: A suffix to distinguish between different debug output files, or
             `None`.
+        dsym_bundle_providers: List of `AppleDsymBundleInfo` providers from which to collect the
+            transitive dependency dSYM information to propagate upstream.
         dsym_outputs: A mapping of architectures to Files representing dsym outputs for each
             architecture.
+        linkmap_info_providers: List of `AppleLinkmapInfo` providers from which to collect the
+            transitive dependency linkmap information to propagate upstream.
         linkmaps: A mapping of architectures to Files representing linkmaps for each architecture.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
@@ -397,9 +385,10 @@ def debug_symbols_bundling_task(
         actions = actions,
         bundle_extension = bundle_extension,
         bundle_name = bundle_name,
-        debug_dependencies = debug_dependencies,
         debug_discriminator = debug_discriminator,
+        dsym_bundle_providers = dsym_bundle_providers,
         dsym_outputs = dsym_outputs,
+        linkmap_info_providers = linkmap_info_providers,
         linkmaps = linkmaps,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

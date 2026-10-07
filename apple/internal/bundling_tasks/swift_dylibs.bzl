@@ -159,12 +159,12 @@ def _swift_dylibs_bundling_task_impl(
         apple_xplat_toolchain_info,
         binary_artifact,
         bundle_dylibs,
-        dependency_targets,
         label_name,
         mac_exec_group,
         output_discriminator,
         package_swift_support_if_needed,
         platform_prerequisites,
+        swift_dylibs_providers,
         xplat_exec_group):
     """Implementation for the Swift dylibs processing bundling task."""
 
@@ -173,12 +173,7 @@ def _swift_dylibs_bundling_task_impl(
     # Collect transitive data.
     transitive_binary_files = []
     transitive_swift_support_files = []
-    for dependency in dependency_targets:
-        if AppleSwiftDylibsInfo not in dependency:
-            # Skip targets without the AppleSwiftDylibsInfo provider, as they don't use Swift
-            # (i.e. sticker extensions that have stubs).
-            continue
-        provider = dependency[AppleSwiftDylibsInfo]
+    for provider in swift_dylibs_providers:
         transitive_binary_files.append(provider.binary_files)
         transitive_swift_support_files.extend(provider.swift_support_files)
 
@@ -265,12 +260,12 @@ def swift_dylibs_bundling_task(
         apple_xplat_toolchain_info,
         binary_artifact,
         bundle_dylibs = False,
-        dependency_targets = [],
         label_name,
         mac_exec_group,
         output_discriminator = None,
         package_swift_support_if_needed = False,
         platform_prerequisites,
+        swift_dylibs_providers = [],
         xplat_exec_group):
     """Constructor for the Swift dylibs processing bundling task.
 
@@ -283,8 +278,6 @@ def swift_dylibs_bundling_task(
       binary_artifact: The main binary artifact for this target.
       bundle_dylibs: Whether the bundling task should return the Swift files to be bundled
         inside the target's bundle.
-      dependency_targets: List of targets that should be checked for binaries that might contain
-        Swift, so that the Swift dylibs can be collected.
       label_name: Name of the target being built.
       mac_exec_group: A String. The exec_group for actions using the mac toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -293,6 +286,9 @@ def swift_dylibs_bundling_task(
         dylib for each dependency platform into the SwiftSupport directory at the root of the
         archive. It might still not be included depending on what it is being built for.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      swift_dylibs_providers: List of `AppleSwiftDylibsInfo` providers from dependencies that
+        should be checked for binaries that might contain Swift, so that the Swift dylibs can be
+        collected.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
@@ -305,12 +301,12 @@ def swift_dylibs_bundling_task(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         binary_artifact = binary_artifact,
         bundle_dylibs = bundle_dylibs,
-        dependency_targets = dependency_targets,
         label_name = label_name,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         package_swift_support_if_needed = package_swift_support_if_needed,
         platform_prerequisites = platform_prerequisites,
+        swift_dylibs_providers = swift_dylibs_providers,
         xplat_exec_group = xplat_exec_group,
         *args,
         **kwargs

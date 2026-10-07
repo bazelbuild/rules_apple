@@ -15,10 +15,6 @@
 """Bundling Task implementation for the AppleBundleInfo provider."""
 
 load(
-    "@build_bazel_apple_support//lib:providers.bzl",
-    "ApplePlatformInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -32,11 +28,11 @@ visibility("@build_bazel_rules_apple//apple/...")
 def _apple_bundle_info_bundling_task_impl(
         *,
         actions,
+        apple_platform_infos,
         apple_xplat_toolchain_info,
         bundle_extension,
         bundle_id,
         bundle_name,
-        cc_toolchains,
         entitlements,
         output_discriminator,
         platform_prerequisites,
@@ -76,7 +72,7 @@ def _apple_bundle_info_bundling_task_impl(
             new_applebundleinfo(
                 archive = archive,
                 archive_root = archive_root,
-                archs = sorted([x[ApplePlatformInfo].target_arch for x in cc_toolchains.values()]),
+                archs = sorted([x.target_arch for x in apple_platform_infos]),
                 binary = binary,
                 bundle_id = bundle_id,
                 bundle_name = bundle_name,
@@ -97,11 +93,11 @@ def _apple_bundle_info_bundling_task_impl(
 def apple_bundle_info_bundling_task(
         *,
         actions,
+        apple_platform_infos = [],
         apple_xplat_toolchain_info,
         bundle_extension,
         bundle_id = None,
         bundle_name,
-        cc_toolchains,
         entitlements = None,
         output_discriminator = None,
         platform_prerequisites,
@@ -114,12 +110,12 @@ def apple_bundle_info_bundling_task(
 
     Args:
       actions: The actions provider from ctx.actions.
+      apple_platform_infos: List of `ApplePlatformInfo` providers from the target's split CC
+          toolchains to relay target platform architecture information.
       apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_id: The bundle ID to configure for this target.
       bundle_name: The name of the output bundle.
-      cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
-          transition to relay target platform information for related deps.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -133,11 +129,11 @@ def apple_bundle_info_bundling_task(
     """
     return lambda *args, **kwargs: _apple_bundle_info_bundling_task_impl(
         actions = actions,
+        apple_platform_infos = apple_platform_infos,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
-        cc_toolchains = cc_toolchains,
         entitlements = entitlements,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

@@ -23,10 +23,6 @@ load(
     "apple_support",
 )
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleFrameworkImportInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
     "codesigning_support",
 )
@@ -53,9 +49,9 @@ def _framework_provider_files_to_bundle(
         *,
         deduplicate_short_paths,
         field_name,
-        targets,
-        targets_to_avoid):
-    """Collect AppleFrameworkImportInfo files for the given field, subtracted by targets to avoid
+        framework_import_providers,
+        framework_import_providers_to_avoid):
+    """Collect AppleFrameworkImportInfo files for the given field, subtracted by providers to avoid.
 
     Args:
         deduplicate_short_paths: Boolean. Indicates if the returned set of files should be
@@ -65,34 +61,34 @@ def _framework_provider_files_to_bundle(
             detection of when the files aren't guaranteed to be the same in the process.
         field_name: A String representing the field name of the AppleFrameworkImportInfo provider to
             collect files from.
-        targets: A List of Targets to collect AppleFrameworkImportInfo providers from.
-        targets_to_avoid: A List of Targets to collect AppleFrameworkImportInfo provider that should
-            be subtracted from the information collected from `targets`.
+        framework_import_providers: A List of `AppleFrameworkImportInfo` providers to collect files
+            from.
+        framework_import_providers_to_avoid: A List of `AppleFrameworkImportInfo` providers whose
+            files should be subtracted from the information collected from
+            `framework_import_providers`.
 
     Returns:
         A List of Files from AppleFrameworkImportInfo providers as determined from the given
             arguments.
     """
     transitive_files_to_bundle = [
-        getattr(x[AppleFrameworkImportInfo], field_name)
-        for x in targets
-        if AppleFrameworkImportInfo in x and
-           hasattr(x[AppleFrameworkImportInfo], field_name)
+        getattr(x, field_name)
+        for x in framework_import_providers
+        if hasattr(x, field_name)
     ]
     files_to_bundle = depset(transitive = transitive_files_to_bundle).to_list()
 
-    if targets_to_avoid:
+    if framework_import_providers_to_avoid:
         avoid_transitive_files_to_bundle = [
-            getattr(x[AppleFrameworkImportInfo], field_name)
-            for x in targets_to_avoid
-            if AppleFrameworkImportInfo in x and
-               hasattr(x[AppleFrameworkImportInfo], field_name)
+            getattr(x, field_name)
+            for x in framework_import_providers_to_avoid
+            if hasattr(x, field_name)
         ]
         if avoid_transitive_files_to_bundle:
             avoid_files = depset(transitive = avoid_transitive_files_to_bundle).to_list()
 
-            # Remove any files present in the targets to avoid from framework files that need to be
-            # bundled.
+            # Remove any files present in the providers to avoid from framework files that need to
+            # be bundled.
             files_to_bundle = [x for x in files_to_bundle if x not in avoid_files]
 
     if deduplicate_short_paths:
@@ -111,50 +107,49 @@ def _framework_import_bundling_task_impl(
         apple_mac_toolchain_info,
         build_settings,
         cc_configured_features,
+        framework_import_providers,
+        framework_import_providers_to_avoid,
         label_name,
         mac_exec_group,
         output_discriminator,
         platform_prerequisites,
         provisioning_profile,
-        rule_descriptor,
-        targets,
-        targets_to_avoid):
+        rule_descriptor):
     """Implementation for the framework import file processing bundling task."""
 
     bundling_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
         field_name = "bundling_imports",
-        targets = targets,
-        targets_to_avoid = targets_to_avoid,
+        framework_import_providers = framework_import_providers,
+        framework_import_providers_to_avoid = framework_import_providers_to_avoid,
     )
 
     binary_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
         field_name = "binary_imports",
-        targets = targets,
-        targets_to_avoid = targets_to_avoid,
+        framework_import_providers = framework_import_providers,
+        framework_import_providers_to_avoid = framework_import_providers_to_avoid,
     )
 
     stub_binary_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = False,  # Required to handle stub dylibs for codeless frameworks.
         field_name = "stub_binary_imports",
-        targets = targets,
-        targets_to_avoid = targets_to_avoid,
+        framework_import_providers = framework_import_providers,
+        framework_import_providers_to_avoid = framework_import_providers_to_avoid,
     )
 
     signature_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
         field_name = "signature_files",
-        targets = targets,
-        targets_to_avoid = targets_to_avoid,
+        framework_import_providers = framework_import_providers,
+        framework_import_providers_to_avoid = framework_import_providers_to_avoid,
     )
 
     # Collect the architectures that we are using for the build.
     build_archs_found = [
         build_arch
-        for x in targets
-        if AppleFrameworkImportInfo in x
-        for build_arch in x[AppleFrameworkImportInfo].build_archs.to_list()
+        for x in framework_import_providers
+        for build_arch in x.build_archs.to_list()
     ]
 
     # Start assembling our bundling task's outputs.
@@ -334,14 +329,14 @@ def framework_import_bundling_task(
         apple_mac_toolchain_info,
         build_settings,
         cc_configured_features,
+        framework_import_providers = [],
+        framework_import_providers_to_avoid = [],
         label_name,
         mac_exec_group,
         output_discriminator = None,
         platform_prerequisites,
         provisioning_profile,
-        rule_descriptor,
-        targets,
-        targets_to_avoid = []):
+        rule_descriptor):
     """Constructor for the framework import file processing bundling task.
 
     This bundling task propagates framework import file bundle locations. The files are collected
@@ -353,6 +348,11 @@ def framework_import_bundling_task(
         build_settings: A `dict`-like struct describing build settings.
         cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
             to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
+        framework_import_providers: The list of `AppleFrameworkImportInfo` providers through which
+            to collect the framework import files.
+        framework_import_providers_to_avoid: The list of `AppleFrameworkImportInfo` providers from
+            targets that may already be bundling some of the frameworks, to be used when
+            deduplicating frameworks already bundled.
         label_name: Name of the target being built.
         mac_exec_group: Exec group associated with apple_mac_toolchain_info
         output_discriminator: A string to differentiate between different target intermediate files
@@ -360,9 +360,6 @@ def framework_import_bundling_task(
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
-        targets: The list of targets through which to collect the framework import files.
-        targets_to_avoid: The list of targets that may already be bundling some of the frameworks,
-            to be used when deduplicating frameworks already bundled.
 
     Returns:
         A bundling task that returns the bundle location of the framework import files.
@@ -372,14 +369,14 @@ def framework_import_bundling_task(
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         build_settings = build_settings,
         cc_configured_features = cc_configured_features,
+        framework_import_providers = framework_import_providers,
+        framework_import_providers_to_avoid = framework_import_providers_to_avoid,
         label_name = label_name,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
-        targets = targets,
-        targets_to_avoid = targets_to_avoid,
         *args,
         **kwargs
     )

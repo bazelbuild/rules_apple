@@ -19,16 +19,8 @@ load(
     "location_enum",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:app_extension_point_info.bzl",
-    "AppExtensionPointInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:exutil.bzl",
     "extract_extension_points",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
-    "targets",
 )
 
 visibility(["@build_bazel_rules_apple//apple/internal/..."])
@@ -36,23 +28,21 @@ visibility(["@build_bazel_rules_apple//apple/internal/..."])
 def _app_extension_point_bundling_task_impl(
         *,
         actions,
+        app_extension_point_providers,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
-        deps,
         label,
         mac_exec_group,
         platform_prerequisites,
         xplat_exec_group):
     """Bundling task for extracting .appexpt files for apps."""
-    deps_list = list(targets.target_set(deps))
 
     # Use a transitive depset to remove incoming duplicates.
     extension_point_inputs = depset(
         transitive = [
-            dep[AppExtensionPointInfo].extension_points
-            for dep in deps_list  # Only consider app module deps for extension points to promote.
-            if AppExtensionPointInfo in dep
+            provider.extension_points
+            for provider in app_extension_point_providers  # Only consider app module deps for extension points to promote.
         ],
         order = "postorder",
     )
@@ -86,20 +76,20 @@ def _app_extension_point_bundling_task_impl(
 def app_extension_point_bundling_task(
         *,
         actions,
+        app_extension_point_providers = [],
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
-        deps = [],
         label,
         mac_exec_group,
         platform_prerequisites,
         xplat_exec_group):
     return lambda *args, **kwargs: _app_extension_point_bundling_task_impl(
         actions = actions,
+        app_extension_point_providers = app_extension_point_providers,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        deps = deps,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,

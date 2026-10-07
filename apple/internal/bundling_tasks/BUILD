@@ -26,7 +26,6 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal/providers:app_intents_info",
         "//apple/internal/resource_actions:app_intents",
-        "@rules_cc//cc/common",
     ],
 )
 
@@ -39,7 +38,6 @@ bzl_library(
     deps = [
         "//apple/internal:outputs",
         "//apple/internal:providers",
-        "@build_bazel_apple_support//lib:providers",
     ],
 )
 
@@ -62,9 +60,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:apple_product_type",
-        "//apple/internal/providers:apple_resource_validation_info",
     ],
 )
 
@@ -107,7 +103,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:outputs",
         "//apple/internal:providers",
         "//apple/internal:shared_environment",
@@ -126,9 +121,7 @@ bzl_library(
     ],
     deps = [
         "//apple/internal:location_enum",
-        "//apple/internal/providers:app_extension_point_info",
         "//apple/internal/resource_actions:exutil",
-        "//apple/internal/utils:targets",
     ],
 )
 
@@ -185,7 +178,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:codesigning_support",
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
@@ -262,7 +254,6 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
-        "//apple:providers",
         "//apple/internal:location_enum",
         "//apple/internal:resources",
         "//apple/internal/utils:bundle_paths",
@@ -333,9 +324,5 @@ bzl_library(
     deps = [
         "//apple/internal:apple_product_type",
         "//apple/internal:intermediates",
-        "//apple/internal:providers",
-        "//apple/internal/providers:app_extension_point_info",
-        "//apple/internal/providers:extension_foundation_info",
-        "//apple/internal/utils:targets",
     ],
 )

@@ -33,25 +33,11 @@ def _embedded_bundles_bundling_task_impl(
         *,
         build_settings,
         bundle_embedded_bundles,
-        embeddable_targets,
-        embedded_framework_targets = [],
+        embeddable_providers,
+        embedded_framework_providers,
         signed_frameworks,
         **input_bundles_by_type):
     """Implementation for the embedded bundles processing bundling task."""
-
-    # Collect all _AppleEmbeddableInfo providers from the embeddable targets.
-    embeddable_providers = [
-        x[AppleEmbeddableInfo]
-        for x in embeddable_targets
-        if AppleEmbeddableInfo in x
-    ]
-
-    # Collect all AppleEmbeddedFrameworkBundleInfo providers from the embedded framework targets.
-    embedded_framework_providers = [
-        x[AppleEmbeddedFrameworkBundleInfo]
-        for x in embedded_framework_targets
-        if AppleEmbeddedFrameworkBundleInfo in x
-    ]
 
     # Map of embedded bundle type to their final location in the top-level bundle.
     bundle_type_to_location = {
@@ -173,8 +159,8 @@ def embedded_bundles_bundling_task(
         app_clips = [],
         build_settings,
         bundle_embedded_bundles = False,
-        embeddable_targets = [],
-        embedded_framework_targets = [],
+        embeddable_providers = [],
+        embedded_framework_providers = [],
         extensions = [],
         frameworks = [],
         plugins = [],
@@ -194,12 +180,12 @@ def embedded_bundles_bundling_task(
             target to bundle inside `AppClips`.
         build_settings: A `dict`-like struct describing build settings.
         bundle_embedded_bundles: If True, this target will embed all transitive embeddable_bundles
-            _only_ propagated through the targets given in embeddable_targets. If False, the
+            _only_ propagated through the providers given in embeddable_providers. If False, the
             embeddable bundles will be propagated downstream for a top level target to bundle them.
-        embeddable_targets: The list of targets that propagate embeddable bundles to bundle or
-            propagate.
-        embedded_framework_targets: The list of targets that propagate embedded frameworks to
-            bundle or propagate.
+        embeddable_providers: The list of `AppleEmbeddableInfo` providers that propagate embeddable
+            bundles to bundle or propagate.
+        embedded_framework_providers: The list of `AppleEmbeddedFrameworkBundleInfo` providers that
+            propagate embedded frameworks to bundle or propagate.
         extensions: List of ExtensionKit extension bundles that should be propagated downstream for
             a top level target to bundle inside `Extensions`.
         frameworks: List of framework bundles that should be propagated downstream for a top level
@@ -220,8 +206,8 @@ def embedded_bundles_bundling_task(
         app_clips = app_clips,
         build_settings = build_settings,
         bundle_embedded_bundles = bundle_embedded_bundles,
-        embeddable_targets = embeddable_targets,
-        embedded_framework_targets = embedded_framework_targets,
+        embeddable_providers = embeddable_providers,
+        embedded_framework_providers = embedded_framework_providers,
         extensions = extensions,
         frameworks = frameworks,
         plugins = plugins,

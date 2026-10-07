@@ -21,42 +21,17 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/providers:app_intents_info.bzl",
     "AppIntentsBundleInfo",
-    "AppIntentsInfo",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:app_intents.bzl",
     "generate_app_intents_metadata_bundle",
 )
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 visibility("@build_bazel_rules_apple//apple/...")
 
 _APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:app_intents_hint"
 _APP_INTENTS_HINT_DOCS = "See the aspect hint rule documentation for more information."
 _SHARED_LIBRARY_APP_INTENTS_HINT_TARGET = "@build_bazel_rules_apple//apple/hints:shared_library_app_intents_hint"
-
-def _find_app_intents_info(*, app_intents, first_cc_toolchain_key):
-    """Finds the AppIntentsInfo providers from the given app_intents.
-
-    Args:
-        app_intents: A list of dictionaries for targets under a split transition providing
-            AppIntentsInfo. The only supported targets are targets provided by a label list and
-            targets provided by labels from the bundle rule.
-        first_cc_toolchain_key: The key for the first cc_toolchain found in the split transition.
-    Returns:
-        A list of all AppIntentsInfo providers that were found.
-    """
-    app_intents_infos = []
-    for split_target in app_intents:
-        if not split_target:
-            continue
-        if not first_cc_toolchain_key in split_target:
-            continue
-        targets = split_target[first_cc_toolchain_key]
-        for target in targets:
-            if AppIntentsInfo in target:
-                app_intents_infos.append(target[AppIntentsInfo])
-    return app_intents_infos
 
 def _find_exclusively_owned_metadata_bundle_inputs(
         *,
@@ -191,7 +166,7 @@ def _validate_app_intents_conformances(
         *,
         actions,
         app_intents_infos,
-        frameworks,
+        framework_app_intents_providers,
         label,
         main_metadata_bundle_input,
         static_metadata_bundle_inputs,
@@ -202,7 +177,8 @@ def _validate_app_intents_conformances(
     Args:
         actions: The actions object from the rule context.
         app_intents_infos: List of AppIntentsInfo providers from dependencies.
-        frameworks: A list of framework targets that are dependencies of the current target.
+        framework_app_intents_providers: A list of `AppIntentsBundleInfo` providers from framework
+            targets that are dependencies of the current target.
         label: The label of the target being built.
         main_metadata_bundle_input: The MetadataBundleInput for the main application bundle.
         static_metadata_bundle_inputs: A list of MetadataBundleInputs for static library bundles.
@@ -214,9 +190,8 @@ def _validate_app_intents_conformances(
     """
     avoid_owners = [
         p.owner
-        for x in frameworks
-        if AppIntentsBundleInfo in x
-        for p in x[AppIntentsBundleInfo].owned_metadata_bundles.to_list()
+        for x in framework_app_intents_providers
+        for p in x.owned_metadata_bundles.to_list()
     ]
 
     framework_typename_files = set()
@@ -265,13 +240,13 @@ def _validate_app_intents_conformances(
 def _app_intents_metadata_bundle_bundling_task_impl(
         *,
         actions,
-        app_intents,
+        app_intents_providers,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
-        cc_toolchains,
-        embedded_bundles,
-        frameworks,
+        cc_toolchain_providers,
+        embedded_bundle_app_intents_providers,
+        framework_app_intents_providers,
         label,
         mac_exec_group,
         platform_prerequisites,
@@ -279,29 +254,13 @@ def _app_intents_metadata_bundle_bundling_task_impl(
     """Implementation of the AppIntents metadata bundle bundling task."""
 
     owned_embedded_metadata_bundles = [
-        x[AppIntentsBundleInfo].owned_metadata_bundles
-        for x in embedded_bundles
-        if AppIntentsBundleInfo in x
+        x.owned_metadata_bundles
+        for x in embedded_bundle_app_intents_providers
     ]
 
-    # Mirroring Xcode 15.x behavior, the metadata tool only looks at the first split for a given
-    # arch rather than every possible set of source files and inputs. Oddly, this only applies to
-    # the Swift source files and the swiftconstvalues files; the triples and other files do cover
-    # all available architectures.
-    #
-    # This was changed in Xcode 16.x to consider every architecture, effectively doubling or
-    # tripling the number of files that must be processed and validated. but the utility is unclear
-    # at this time.
-    first_cc_toolchain_key = cc_toolchains.keys()[0]
-
-    app_intents_infos = _find_app_intents_info(
-        app_intents = app_intents,
-        first_cc_toolchain_key = first_cc_toolchain_key,
-    )
-
-    if not app_intents_infos:
-        # No `app_intents` were set by the rule or any of its transitive deps; just propagate the
-        # embedded metadata bundles if any were found.
+    if not app_intents_providers:
+        # No `app_intents_providers` were set by the rule or any of its transitive deps; just
+        # propagate the embedded metadata bundles if any were found.
         if owned_embedded_metadata_bundles:
             return struct(
                 providers = [AppIntentsBundleInfo(
@@ -318,13 +277,12 @@ def _app_intents_metadata_bundle_bundling_task_impl(
     # a String based on the label of the swift_library target that provided the metadata bundle.
     main_metadata_bundle_input, static_metadata_bundle_inputs = (
         _find_exclusively_owned_metadata_bundle_inputs(
-            app_intents_infos = app_intents_infos,
+            app_intents_infos = app_intents_providers,
             label = label,
             metadata_bundles_to_avoid = [
                 p
-                for x in frameworks
-                if AppIntentsBundleInfo in x
-                for p in x[AppIntentsBundleInfo].owned_metadata_bundles.to_list()
+                for x in framework_app_intents_providers
+                for p in x.owned_metadata_bundles.to_list()
             ],
         )
     )
@@ -333,8 +291,8 @@ def _app_intents_metadata_bundle_bundling_task_impl(
     if apple_xplat_toolchain_info.build_settings.validate_app_intents:
         validation_output = _validate_app_intents_conformances(
             actions = actions,
-            app_intents_infos = app_intents_infos,
-            frameworks = frameworks,
+            app_intents_infos = app_intents_providers,
+            framework_app_intents_providers = framework_app_intents_providers,
             label = label,
             main_metadata_bundle_input = main_metadata_bundle_input,
             static_metadata_bundle_inputs = static_metadata_bundle_inputs,
@@ -344,8 +302,8 @@ def _app_intents_metadata_bundle_bundling_task_impl(
         validation_outputs.append(validation_output)
 
     target_triples = [
-        cc_toolchain[cc_common.CcToolchainInfo].target_gnu_system_name
-        for cc_toolchain in cc_toolchains.values()
+        cc_toolchain.target_gnu_system_name
+        for cc_toolchain in cc_toolchain_providers
     ]
 
     static_library_metadata_bundle_outputs = []
@@ -427,13 +385,13 @@ def _app_intents_metadata_bundle_bundling_task_impl(
 def app_intents_metadata_bundle_bundling_task(
         *,
         actions,
-        app_intents,
+        app_intents_providers = [],
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_id,
-        cc_toolchains,
-        embedded_bundles,
-        frameworks = [],
+        cc_toolchain_providers = [],
+        embedded_bundle_app_intents_providers = [],
+        framework_app_intents_providers = [],
         label,
         mac_exec_group,
         platform_prerequisites,
@@ -445,16 +403,18 @@ def app_intents_metadata_bundle_bundling_task(
 
     Args:
         actions: The actions provider from ctx.actions.
-        app_intents: A list of dictionaries for targets under a split transition providing
-            AppIntentsInfo.
+        app_intents_providers: A list of `AppIntentsInfo` providers collected from targets under a
+            split transition (typically the first split).
         apple_mac_toolchain_info: `struct` of tools from the shared Apple Mac toolchain.
         apple_xplat_toolchain_info: `struct` of tools from the shared Apple Xplat toolchain.
         bundle_id: The bundle ID to configure for this target.
-        cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
-            transition to relay target platform information.
-        embedded_bundles: A list of targets that can propagate app intents metadata bundles.
-        frameworks: A list of framework targets that are dependencies of the current target. These
-            will be a subset of the embedded_bundles.
+        cc_toolchain_providers: List of `CcToolchainInfo` providers under a split transition to
+            relay target platform information.
+        embedded_bundle_app_intents_providers: A list of `AppIntentsBundleInfo` providers from
+            targets that can propagate app intents metadata bundles.
+        framework_app_intents_providers: A list of `AppIntentsBundleInfo` providers from framework
+            targets that are dependencies of the current target. These will be a subset of
+            `embedded_bundle_app_intents_providers`.
         label: Label of the target being built.
         mac_exec_group: A String. The exec_group for actions using the mac toolchain.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -464,13 +424,13 @@ def app_intents_metadata_bundle_bundling_task(
     """
     return lambda *args, **kwargs: _app_intents_metadata_bundle_bundling_task_impl(
         actions = actions,
-        app_intents = app_intents,
+        app_intents_providers = app_intents_providers,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        cc_toolchains = cc_toolchains,
-        embedded_bundles = embedded_bundles,
-        frameworks = frameworks,
+        cc_toolchain_providers = cc_toolchain_providers,
+        embedded_bundle_app_intents_providers = embedded_bundle_app_intents_providers,
+        framework_app_intents_providers = framework_app_intents_providers,
         label = label,
         mac_exec_group = mac_exec_group,
         platform_prerequisites = platform_prerequisites,

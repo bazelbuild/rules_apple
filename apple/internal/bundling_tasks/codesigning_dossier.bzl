@@ -173,14 +173,14 @@ def _create_combined_zip_artifact(
 def _codesigning_dossier_bundling_task_impl(
         *,
         actions,
-        additional_contents = {},
+        additional_contents_dossier_providers = {},
         allow_combined_zip_output = True,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
-        embedded_targets = [],
+        embedded_dossier_providers = [],
         entitlements = None,
         mac_exec_group,
         output_discriminator,
@@ -198,25 +198,21 @@ def _codesigning_dossier_bundling_task_impl(
              bundle_location, _VALID_LOCATIONS_RELATIVE_CONTENTS)
 
     embedded_dossier_infos = [
-        x[AppleEmbeddedCodesigningDossierInfo].direct_embedded_dossier
-        for x in embedded_targets
-        if AppleEmbeddedCodesigningDossierInfo in x
+        provider.direct_embedded_dossier
+        for provider in embedded_dossier_providers
     ]
 
-    # If additional_contents were provided, then amend to the embedded_dossier_infos if any
-    # AppleEmbeddedCodesigningDossierInfo providers were found within, rewriting the bundle_location with
-    # the user specified content relative path while preserving bundle_filename and dossier_file.
+    # If additional_contents_dossier_providers were provided, then amend to the
+    # embedded_dossier_infos, rewriting the bundle_location with the user specified content relative
+    # path while preserving bundle_filename and dossier_file.
     embedded_dossier_infos.extend([
         struct(
             bundle_location = content_relative_path,
-            bundle_filename = (
-                x[AppleEmbeddedCodesigningDossierInfo].direct_embedded_dossier.bundle_filename
-            ),
-            dossier_file = x[AppleEmbeddedCodesigningDossierInfo].direct_embedded_dossier.dossier_file,
+            bundle_filename = provider.direct_embedded_dossier.bundle_filename,
+            dossier_file = provider.direct_embedded_dossier.dossier_file,
             user_defined_location = True,
         )
-        for x, content_relative_path in additional_contents.items()
-        if AppleEmbeddedCodesigningDossierInfo in x
+        for provider, content_relative_path in additional_contents_dossier_providers.items()
     ])
 
     embedded_codesign_dossiers = _embedded_codesign_dossiers_from_dossier_infos(
@@ -306,14 +302,14 @@ def _codesigning_dossier_bundling_task_impl(
 def codesigning_dossier_bundling_task(
         *,
         actions,
-        additional_contents = {},
+        additional_contents_dossier_providers = {},
         allow_combined_zip_output = True,
         apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         bundle_extension,
         bundle_location = None,
         bundle_name,
-        embedded_targets = [],
+        embedded_dossier_providers = [],
         entitlements = None,
         mac_exec_group,
         output_discriminator = None,
@@ -327,16 +323,16 @@ def codesigning_dossier_bundling_task(
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      additional_contents: Additional contents to include in the codesigning dossier, which can have
-            user specified paths into the bundle.
+      additional_contents_dossier_providers: Dictionary mapping `AppleEmbeddedCodesigningDossierInfo`
+            providers from additional contents to their user-specified relative paths in the bundle.
       allow_combined_zip_output: Whether or not to allow the creation of a combined zip output.
       apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundle_extension: The extension for the bundle.
       bundle_location: Optional location of this bundle if it is embedded in another bundle.
       bundle_name: The name of the output bundle.
-      embedded_targets: The list of targets that propagate codesigning dossiers to bundle or
-            propagate.
+      embedded_dossier_providers: List of `AppleEmbeddedCodesigningDossierInfo` providers from
+            embedded targets to bundle or propagate.
       entitlements: Optional entitlements for this bundle.
       mac_exec_group: The exec_group associated with apple_mac_toolchain
       output_discriminator: A string to differentiate between different target intermediate files
@@ -354,14 +350,14 @@ def codesigning_dossier_bundling_task(
 
     return lambda *args, **kwargs: _codesigning_dossier_bundling_task_impl(
         actions = actions,
-        additional_contents = additional_contents,
+        additional_contents_dossier_providers = additional_contents_dossier_providers,
         allow_combined_zip_output = allow_combined_zip_output,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_extension = bundle_extension,
         bundle_location = bundle_location,
         bundle_name = bundle_name,
-        embedded_targets = embedded_targets,
+        embedded_dossier_providers = embedded_dossier_providers,
         entitlements = entitlements,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,

@@ -22,32 +22,16 @@ load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
-load(
-    "@build_bazel_rules_apple//apple/internal:providers.bzl",
-    "AppleBundleInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:app_extension_point_info.bzl",
-    "AppExtensionPointInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/providers:extension_foundation_info.bzl",
-    "ExtensionFoundationInfo",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
-    "targets",
-)
 
 visibility(["@build_bazel_rules_apple//apple/internal/..."])
 
 def _extension_point_name_validation_bundling_task_impl(
         *,
         actions,
+        app_extension_point_providers,
         apple_xplat_toolchain_info,
         bundle_id,
-        deps,
-        extensions,
+        extension_foundation_providers,
         label,
         output_discriminator,
         xplat_exec_group):
@@ -55,17 +39,18 @@ def _extension_point_name_validation_bundling_task_impl(
     validation_outputs = []
 
     extension_bundle_ids = []
-    for ext in targets.target_set(extensions):
+    for ext_provider in extension_foundation_providers:
         # First validate the ExtensionFoundation bindings on the extension targets to check that
         # they are referencing a set of extension points that should be defined on the host app.
-        if ExtensionFoundationInfo not in ext or AppleBundleInfo not in ext:
+        if (ext_provider.product_type != apple_product_type.extensionkit_extension or
+            not ext_provider.bundle_id):
             continue
-        if ext[AppleBundleInfo].product_type != apple_product_type.extensionkit_extension:
-            continue
-        ext_swiftconstvalues = ext[ExtensionFoundationInfo].swiftconstvalues_files.to_list()
+        ext_swiftconstvalues = ext_provider.swiftconstvalues_files.to_list()
         if not ext_swiftconstvalues:
             continue
-        extension_bundle_id = ext[AppleBundleInfo].bundle_id
+        extension_bundle_id = ext_provider.bundle_id
+        if extension_bundle_id in extension_bundle_ids:
+            continue
         extension_bundle_ids.append(extension_bundle_id)
         validation_output = intermediates.file(
             actions = actions,
@@ -93,9 +78,8 @@ def _extension_point_name_validation_bundling_task_impl(
 
     app_swiftconstvalues = [
         f
-        for dep in targets.target_set(deps)
-        if AppExtensionPointInfo in dep
-        for point in dep[AppExtensionPointInfo].extension_points.to_list()
+        for provider in app_extension_point_providers
+        for point in provider.extension_points.to_list()
         for f in point.swiftconstvalues_files.to_list()
     ]
     if app_swiftconstvalues:
@@ -133,20 +117,20 @@ def _extension_point_name_validation_bundling_task_impl(
 def extension_point_name_validation_bundling_task(
         *,
         actions,
+        app_extension_point_providers = [],
         apple_xplat_toolchain_info,
         bundle_id,
-        deps = [],
-        extensions = [],
+        extension_foundation_providers = [],
         label,
         output_discriminator = None,
         xplat_exec_group):
     """Constructor for the extension point name validation bundling task."""
     return lambda *args, **kwargs: _extension_point_name_validation_bundling_task_impl(
         actions = actions,
+        app_extension_point_providers = app_extension_point_providers,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         bundle_id = bundle_id,
-        deps = deps,
-        extensions = extensions,
+        extension_foundation_providers = extension_foundation_providers,
         label = label,
         output_discriminator = output_discriminator,
         xplat_exec_group = xplat_exec_group,

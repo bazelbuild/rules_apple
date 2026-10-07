@@ -15,10 +15,6 @@
 """Bundling Task implementation for processing the settings bundle for iOS apps."""
 
 load(
-    "@build_bazel_rules_apple//apple:providers.bzl",
-    "AppleResourceInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:location_enum.bzl",
     "location_enum",
 )
@@ -41,11 +37,10 @@ def _settings_bundle_bundling_task_impl(
     if not settings_bundle:
         return struct()
 
-    provider = settings_bundle[AppleResourceInfo]
-    fields = resources.populated_resource_fields(provider)
+    fields = resources.populated_resource_fields(settings_bundle)
     bundle_files = []
     for field in fields:
-        for parent_dir, _, files in getattr(provider, field):
+        for parent_dir, _, files in getattr(settings_bundle, field):
             bundle_name = bundle_paths.farthest_parent(parent_dir, "bundle")
             parent_dir = parent_dir.replace(bundle_name, "Settings.bundle")
             bundle_files.append((location_enum.resource, parent_dir, files))
@@ -54,27 +49,19 @@ def _settings_bundle_bundling_task_impl(
 
 def settings_bundle_bundling_task(
         *,
-        actions,
-        platform_prerequisites,
-        rule_label,
-        settings_bundle):
+        settings_bundle = None):
     """Constructor for the settings bundles processing bundling task.
 
     This bundling task processes the settings bundle for Apple applications.
 
     Args:
-        actions: The actions provider from `ctx.actions`.
-        platform_prerequisites: Struct containing information on the platform being targeted.
-        rule_label: The label of the target being analyzed.
-        settings_bundle: A list of labels representing resource bundle targets that contain the
-            files that make up the application's settings bundle.
+        settings_bundle: An `AppleResourceInfo` provider from the resource bundle target that
+            contains the files that make up the application's settings bundle, or `None`.
 
     Returns:
         A bundling task that returns the bundle location of the settings bundle, if any were
         configured.
     """
-    _unused = (actions, platform_prerequisites, rule_label)  # @unused
-
     return lambda *args, **kwargs: _settings_bundle_bundling_task_impl(
         settings_bundle = settings_bundle,
         *args,

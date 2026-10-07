@@ -40,7 +40,7 @@ visibility("@build_bazel_rules_apple//apple/...")
 def _swift_framework_bundling_task_impl(
         *,
         actions,
-        avoid_deps,
+        avoid_swift_infos,
         bundle_name,
         framework_deps_names,
         framework_modulemap,
@@ -57,7 +57,9 @@ Internal error: Expected to find a SwiftInfo before entering this bundling task.
 issue with a reproducible error case.
 """)
 
-    avoid_modules = swift_info_support.modules_from_avoid_deps(avoid_deps = avoid_deps)
+    avoid_modules = swift_info_support.modules_from_avoid_deps(
+        avoid_swift_infos = avoid_swift_infos,
+    )
     bundle_files = []
     expected_module_name = bundle_name
     found_generated_header = None
@@ -196,7 +198,7 @@ issue with a reproducible error case.
 def swift_framework_bundling_task(
         *,
         actions,
-        avoid_deps = [],
+        avoid_swift_infos = [],
         bundle_name,
         framework_deps_names = [],
         framework_modulemap = True,
@@ -212,7 +214,8 @@ def swift_framework_bundling_task(
 
     Args:
         actions: The actions provider from `ctx.actions`.
-        avoid_deps: A list of library targets with modules to avoid, if specified. Optional.
+        avoid_swift_infos: A list of `SwiftInfo` providers from library targets with modules to
+            avoid, if specified. Optional.
         bundle_name: The name of the output bundle.
         framework_deps_names: A sequence of strings representing framework names that are expected
             to be declared as dependencies of the framework, if any.
@@ -237,7 +240,7 @@ def swift_framework_bundling_task(
 
     return lambda *args, **kwargs: _swift_framework_bundling_task_impl(
         actions = actions,
-        avoid_deps = avoid_deps,
+        avoid_swift_infos = avoid_swift_infos,
         bundle_name = bundle_name,
         framework_deps_names = framework_deps_names,
         framework_modulemap = framework_modulemap,

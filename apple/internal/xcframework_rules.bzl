@@ -72,6 +72,8 @@ load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
     "AppleBundleVersionInfo",
+    "AppleResourceInfo",
+    "AppleRunfilesInfo",
     "new_applebundleinfo",
     "new_applecodesigningdossierinfo",
     "new_applestaticxcframeworkbundleinfo",
@@ -144,6 +146,10 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/utils:files.bzl",
     "files",
+)
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
 )
 load("@build_bazel_rules_swift//swift:providers.bzl", "SwiftInfo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
@@ -597,14 +603,14 @@ def _deduplicated_files_by_basename(*, attr_names, split_attr, split_attr_keys):
     Returns:
         A list of deduplicated `File` objects from the unioned targets.
     """
-    targets = _unioned_attrs(
+    unioned_targets = _unioned_attrs(
         attr_names = attr_names,
         split_attr = split_attr,
         split_attr_keys = split_attr_keys,
     )
 
     files_by_basename = {}
-    for target in targets:
+    for target in unioned_targets:
         for f in target.files.to_list():
             files_by_basename[f.basename] = f
     return files_by_basename.values()
@@ -848,14 +854,14 @@ bundle_id on the target.
                 split_attr_keys = link_output.split_attr_keys,
             )
 
-        resource_providers_to_avoid = []
+        resource_providers_to_avoid = targets.providers(split_avoid_deps, AppleResourceInfo)
         if xcframework_deps:
-            resource_providers_to_avoid = [
+            resource_providers_to_avoid.extend([
                 xcframework_dep.apple_resource_info
                 for xcframework_dep in xcframework_deps
                 if apple_platform_info.target_os == xcframework_dep.target_os and
                    apple_platform_info.target_environment == xcframework_dep.target_environment
-            ]
+            ])
 
         environment_plist = files.get_file_with_name(
             name = "environment_plist_{platform}".format(
@@ -867,11 +873,14 @@ bundle_id on the target.
         pending_bundling_tasks = [
             bundling_tasks.apple_bundle_info(
                 actions = actions,
+                apple_platform_infos = targets.providers(
+                    [cc_toolchain_forwarder[i] for i in link_output.split_attr_keys],
+                    ApplePlatformInfo,
+                ),
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 bundle_extension = nested_bundle_extension,
                 bundle_id = nested_bundle_id,
                 bundle_name = bundle_name,
-                cc_toolchains = {i: cc_toolchain_forwarder[i] for i in link_output.split_attr_keys},
                 entitlements = None,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
@@ -897,12 +906,12 @@ bundle_id on the target.
                 mac_exec_group = mac_exec_group,
                 output_discriminator = library_identifier,
                 platform_prerequisites = platform_prerequisites,
-                resource_deps = resource_deps,
                 resource_locales = None,  # TODO(b/349899208): Implement support for xcframeworks.
+                resource_providers = targets.providers(resource_deps, AppleResourceInfo),
                 resource_providers_to_avoid = resource_providers_to_avoid,
                 rule_descriptor = rule_descriptor,
                 rule_label = rule_label,
-                targets_to_avoid = split_avoid_deps,
+                runfiles_providers = targets.providers(resource_deps, AppleRunfilesInfo),
                 targets_to_avoid_must_be_owned = targets_to_avoid_must_be_owned,
                 top_level_infoplists = top_level_infoplists,
                 top_level_resources = top_level_resources,
@@ -929,7 +938,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             pending_bundling_tasks.append(
                 bundling_tasks.swift_framework(
                     actions = actions,
-                    avoid_deps = split_avoid_deps,
+                    avoid_swift_infos = targets.providers(split_avoid_deps, SwiftInfo),
                     bundle_name = bundle_name,
                     framework_deps_names = framework_deps_names,
                     generated_headers = link_output.framework_swift_generated_headers,
@@ -1748,7 +1757,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
             # Generate headers, modulemaps, and swiftmodules
             interface_artifacts = bundling_tasks.swift_framework(
                 actions = actions,
-                avoid_deps = split_avoid_deps,
+                avoid_swift_infos = targets.providers(split_avoid_deps, SwiftInfo),
                 bundle_name = bundle_name,
                 framework_modulemap = False,
                 generated_headers = link_output.framework_swift_generated_headers,
