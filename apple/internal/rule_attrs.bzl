@@ -118,11 +118,6 @@ The assets are generated for each `.lproj` directory in the bundle and for the I
 localized app names from `InfoPlist.strings` resources.
 """,
             ),
-            "_app_intents_nl_training_tool": attr.label(
-                cfg = "exec",
-                default = "//tools/app_intents_nl_training_tool",
-                executable = True,
-            ),
         })
     return attrs
 

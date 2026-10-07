@@ -37,6 +37,10 @@ A `File` referencing a template for a shell script to process and sign.
 The files_to_run for a tool to insert alternate icons entries in the app
 bundle's `Info.plist`.
 """,
+        "app_intents_nl_training_tool": """\
+The files_to_run for a tool that generates the App Shortcuts Flexible Matching
+assets.
+""",
         "bundletool_experimental": """\
 The files_to_run for an experimental tool to create an Apple bundle by
 combining the bundling, post-processing, and signing steps into a single action that eliminates the
@@ -127,6 +131,7 @@ def _apple_mac_tools_toolchain_impl(ctx):
         dsym_info_plist_template = ctx.file.dsym_info_plist_template,
         process_and_sign_template = ctx.file.process_and_sign_template,
         alticonstool = ctx.attr.alticonstool.files_to_run,
+        app_intents_nl_training_tool = ctx.attr.app_intents_nl_training_tool.files_to_run,
         bundletool_experimental = ctx.attr.bundletool_experimental.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
         dossier_codesigningtool = ctx.attr.dossier_codesigningtool.files_to_run,
@@ -154,6 +159,13 @@ apple_mac_tools_toolchain = rule(
             executable = True,
             doc = """
 A `File` referencing a tool to insert alternate icons entries in the app bundle's `Info.plist`.
+""",
+        ),
+        "app_intents_nl_training_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that generates the App Shortcuts Flexible Matching assets.
 """,
         ),
         "bundletool_experimental": attr.label(
