@@ -1006,6 +1006,7 @@ apple_static_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "tvos": common.min_os_tvos.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -1023,11 +1024,22 @@ apple_static_xcframework(
             "arm64",
         ],
     },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
+            "arm64",
+        ],
+    },
     deps = [
         "//test/starlark_tests/resources:fmwk_lib",
         "//test/starlark_tests/resources:ios_device_dependent_resources",
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
         "//test/starlark_tests/resources:visionos_device_dependent_resources",
+        "//test/starlark_tests/resources:watchos_device_dependent_resources",
     ],
 )
 
@@ -1036,6 +1048,7 @@ apple_static_xcframework(
     avoid_deps = [
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
         "//test/starlark_tests/resources:visionos_device_dependent_resources",
+        "//test/starlark_tests/resources:watchos_device_dependent_resources",
     ],
     bundle_format = "framework",
     bundle_id = "com.google.example",
@@ -1050,6 +1063,7 @@ apple_static_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "tvos": common.min_os_tvos.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     public_hdrs = [
         "//test/starlark_tests/resources:shared.h",
@@ -1067,11 +1081,22 @@ apple_static_xcframework(
             "arm64",
         ],
     },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
+            "arm64",
+        ],
+    },
     deps = [
         "//test/starlark_tests/resources:fmwk_lib",
         "//test/starlark_tests/resources:ios_device_dependent_resources",
         "//test/starlark_tests/resources:tvos_device_dependent_resources",
         "//test/starlark_tests/resources:visionos_device_dependent_resources",
+        "//test/starlark_tests/resources:watchos_device_dependent_resources",
     ],
 )
 
@@ -1369,6 +1394,7 @@ apple_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "tvos": common.min_os_tvos.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     tags = common.fixture_tags,
     tvos = {
@@ -1383,6 +1409,16 @@ apple_xcframework(
             "arm64",
         ],
         "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
             "arm64",
         ],
     },
@@ -1417,6 +1453,7 @@ apple_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "tvos": common.min_os_tvos.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     tags = common.fixture_tags,
     tvos = {
@@ -1431,6 +1468,16 @@ apple_xcframework(
             "arm64",
         ],
         "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
             "arm64",
         ],
     },
@@ -1458,6 +1505,7 @@ apple_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
         "tvos": common.min_os_tvos.min_deployment_target,
         "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
     },
     tags = common.fixture_tags,
     tvos = {
@@ -1472,6 +1520,16 @@ apple_xcframework(
             "arm64",
         ],
         "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
             "arm64",
         ],
     },

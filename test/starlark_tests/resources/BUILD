@@ -384,6 +384,20 @@ write_file(
     tags = common.fixture_tags,
 )
 
+write_file(
+    name = "foo_watchos_device_text_file",
+    out = "watchos_foo_device.txt",
+    content = ["watchos_foo_device"],
+    tags = common.fixture_tags,
+)
+
+write_file(
+    name = "foo_watchos_sim_text_file",
+    out = "watchos_foo_sim.txt",
+    content = ["watchos_foo_sim"],
+    tags = common.fixture_tags,
+)
+
 apple_resource_bundle(
     name = "ios_device_dependent_text_file",
     resources = select({
@@ -434,6 +448,24 @@ objc_library(
     srcs = ["dummy.m"],
     data = select({
         "@platforms//os:visionos": [":visionos_device_dependent_text_file"],
+        "//conditions:default": [],
+    }),
+)
+
+apple_resource_bundle(
+    name = "watchos_device_dependent_text_file",
+    resources = select({
+        "@build_bazel_apple_support//constraints:device": ["watchos_foo_device.txt"],
+        "@build_bazel_apple_support//constraints:simulator": ["watchos_foo_sim.txt"],
+        "//conditions:default": [],
+    }),
+)
+
+objc_library(
+    name = "watchos_device_dependent_resources",
+    srcs = ["dummy.m"],
+    data = select({
+        "@platforms//os:watchos": [":watchos_device_dependent_text_file"],
         "//conditions:default": [],
     }),
 )
@@ -916,7 +948,7 @@ genrule(
     name = "generate_structured_image",
     srcs = [":sample.png"],
     outs = ["Images/foo.png"],
-    cmd = "cp $(location :sample.png) $@",
+    cmd = "cp $(execpath :sample.png) $@",
     tags = common.fixture_tags,
 )
 

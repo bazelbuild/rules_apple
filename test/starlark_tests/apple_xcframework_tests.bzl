@@ -420,6 +420,26 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    archive_contents_test(
+        name = "{}_watchos_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_dynamic_xcframework",
+        contains = [
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/Headers/watchos_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/Headers/shared.h",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/Headers/watchos_dynamic_xcframework.h",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/Modules/module.modulemap",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/Info.plist",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        tags = [name],
+    )
+
     # XCFrameworks do not provide a public AppleDsymBundleInfo provider for the following reasons:
     #
     #     - All dSYMs for embedded frameworks are provided in output groups when specified with the
@@ -909,6 +929,60 @@ def apple_xcframework_test_suite(name):
         tags = [name],
     )
 
+    # Test watchOS XCFramework binaries have the correct rpaths.
+    archive_contents_test(
+        name = "{}_watchos_simulator_binary_contains_arm64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_watchos_simulator_binary_contains_x86_64_rpaths_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+        binary_test_architecture = "x86_64",
+        macho_load_commands_contain = [
+            "name @rpath/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_watchos_device_binary_contains_arm64_rpaths_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+        binary_test_architecture = "arm64",
+        macho_load_commands_contain = [
+            "name @rpath/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_watchos_device_binary_contains_arm64_32_rpaths_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:watchos_dynamic_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_arm64_32/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework",
+        binary_test_architecture = "arm64_32",
+        macho_load_commands_contain = [
+            "name @rpath/watchos_dynamic_xcframework.framework/watchos_dynamic_xcframework (offset 24)",
+            "path @executable_path/Frameworks (offset 12)",
+            "path @loader_path/Frameworks (offset 12)",
+        ],
+        tags = [name],
+    )
+
     directory_test(
         name = "{}_ios_dynamic_xcframework_tree_artifact_test".format(name),
         build_settings = {
@@ -1060,6 +1134,30 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
         binary_not_contains_symbols = ["_frameworkDependent"],
         tags = [name],
     )
+    archive_contents_test(
+        name = "{}_watchos_avoid_frameworks_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/multiplatform_xcframework_with_avoid_frameworks.framework/multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent"],
+        tags = [name],
+    )
 
     # Test for transitive XCFramework dependencies honored by avoid_frameworks, for the linked
     # binaries and resources.
@@ -1160,6 +1258,40 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
             "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
         ],
         binary_test_file = "$BUNDLE_ROOT/xros-arm64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+        binary_test_architecture = "arm64",
+        binary_contains_symbols = ["_doUpperStuff"],
+        binary_not_contains_symbols = ["_frameworkDependent", "_doStuff"],
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_watchos_transitive_avoid_frameworks_test".format(name),
+        build_type = "device",
+        compilation_mode = "opt",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:upper_multiplatform_xcframework_with_avoid_frameworks",
+        contains = [
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/mapping_model.cdm",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/sample.png",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
+            "$BUNDLE_ROOT/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/watchos-arm64_arm64_32/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/Another.plist",
+            "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/resource_bundle.bundle/Info.plist",
+        ],
+        binary_test_file = "$BUNDLE_ROOT/watchos-arm64_x86_64-simulator/upper_multiplatform_xcframework_with_avoid_frameworks.framework/upper_multiplatform_xcframework_with_avoid_frameworks",
         binary_test_architecture = "arm64",
         binary_contains_symbols = ["_doUpperStuff"],
         binary_not_contains_symbols = ["_frameworkDependent", "_doStuff"],
