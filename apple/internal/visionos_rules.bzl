@@ -234,10 +234,10 @@ def _visionos_application_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,

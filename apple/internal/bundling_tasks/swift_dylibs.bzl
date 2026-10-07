@@ -34,24 +34,12 @@ load(
     "@build_bazel_rules_apple//apple/internal:shared_environment.bzl",
     "shared_environment",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:swift_dylibs_info.bzl",
+    "AppleSwiftDylibsInfo",
+)
 
 visibility("@build_bazel_rules_apple//apple/...")
-
-_AppleSwiftDylibsInfo = provider(
-    doc = """
-Private provider to propagate the transitive binary `File`s that depend on Swift.
-""",
-    fields = {
-        "binary_files": """
-Depset of binary `File`s containing the transitive dependency binaries to verify for Swift support.
-""",
-        "swift_support_files": """
-List of 2-element tuples that represent which files should be bundled as part of the SwiftSupport
-archive directory. The first element of the tuple is the platform name, and the second element is a
-File object that represents a directory containing the Swift dylibs to package for that platform.
-""",
-    },
-)
 
 # For each platform, the minimum OS version at which we no longer need to bundle any Swift dylibs
 # with the application -- either the pre-ABI-stable runtime or back-deployed runtimes (e.g.,
@@ -186,11 +174,11 @@ def _swift_dylibs_bundling_task_impl(
     transitive_binary_files = []
     transitive_swift_support_files = []
     for dependency in dependency_targets:
-        if _AppleSwiftDylibsInfo not in dependency:
-            # Skip targets without the _AppleSwiftDylibsInfo provider, as they don't use Swift
+        if AppleSwiftDylibsInfo not in dependency:
+            # Skip targets without the AppleSwiftDylibsInfo provider, as they don't use Swift
             # (i.e. sticker extensions that have stubs).
             continue
-        provider = dependency[_AppleSwiftDylibsInfo]
+        provider = dependency[AppleSwiftDylibsInfo]
         transitive_binary_files.append(provider.binary_files)
         transitive_swift_support_files.extend(provider.swift_support_files)
 
@@ -264,7 +252,7 @@ def _swift_dylibs_bundling_task_impl(
 
     return struct(
         bundle_files = bundle_files,
-        providers = [_AppleSwiftDylibsInfo(
+        providers = [AppleSwiftDylibsInfo(
             binary_files = propagated_binaries,
             swift_support_files = transitive_swift_support_files,
         )],

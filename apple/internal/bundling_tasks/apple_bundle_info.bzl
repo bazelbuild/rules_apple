@@ -38,11 +38,11 @@ def _apple_bundle_info_bundling_task_impl(
         bundle_name,
         cc_toolchains,
         entitlements,
-        label_name,
         output_discriminator,
         platform_prerequisites,
         predeclared_outputs,
-        product_type):
+        product_type,
+        rule_label):
     """Implementation for the AppleBundleInfo processing bundling task."""
 
     archive = outputs.archive(
@@ -58,7 +58,7 @@ def _apple_bundle_info_bundling_task_impl(
     binary = outputs.binary(
         actions = actions,
         bundle_name = bundle_name,
-        label_name = label_name,
+        label_name = rule_label.name,
         output_discriminator = output_discriminator,
     )
 
@@ -67,7 +67,7 @@ def _apple_bundle_info_bundling_task_impl(
         # Only add the infoplist if there is a bundle ID, otherwise, do not create the output file.
         infoplist = outputs.infoplist(
             actions = actions,
-            label_name = label_name,
+            label_name = rule_label.name,
             output_discriminator = output_discriminator,
         )
 
@@ -84,6 +84,7 @@ def _apple_bundle_info_bundling_task_impl(
                 device_families = platform_prerequisites.device_families,
                 entitlements = entitlements,
                 infoplist = infoplist,
+                label = rule_label,
                 minimum_os_version = platform_prerequisites.minimum_os,
                 platform_type = platform_prerequisites.platform_type,
                 product_type = product_type,
@@ -102,11 +103,11 @@ def apple_bundle_info_bundling_task(
         bundle_name,
         cc_toolchains,
         entitlements = None,
-        label_name,
         output_discriminator = None,
         platform_prerequisites,
         predeclared_outputs,
-        product_type):
+        product_type,
+        rule_label):
     """Constructor for the AppleBundleInfo processing bundling task.
 
     This bundling task propagates the AppleBundleInfo provider for this target.
@@ -120,12 +121,12 @@ def apple_bundle_info_bundling_task(
       cc_toolchains: Dictionary of CcToolchainInfo and ApplePlatformInfo providers under a split
           transition to relay target platform information for related deps.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
-      label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       platform_prerequisites: Struct containing information on the platform being targeted.
       predeclared_outputs: Outputs declared by the owning context. Typically from `ctx.outputs`.
       product_type: Product type identifier used to describe the current bundle type.
+      rule_label: The label of the target being built.
 
     Returns:
       A bundling task that returns the AppleBundleInfo provider.
@@ -138,11 +139,11 @@ def apple_bundle_info_bundling_task(
         bundle_name = bundle_name,
         cc_toolchains = cc_toolchains,
         entitlements = entitlements,
-        label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
         predeclared_outputs = predeclared_outputs,
         product_type = product_type,
+        rule_label = rule_label,
         *args,
         **kwargs
     )

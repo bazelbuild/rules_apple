@@ -25,6 +25,14 @@ relays the raw files necessary for the extension rule to generate the
 `EXAppExtensionAttributes.plist` metadata block it needs in its Info.plist.
 """,
     fields = {
+        "bundle_id": """
+Optional `String`. The bundle identifier of the extension target propagating this provider when
+propagated by an extension bundle rule, or `None` when propagated by a library target.
+""",
+        "product_type": """
+Optional `String`. The product type of the extension target propagating this provider when
+propagated by an extension bundle rule, or `None` when propagated by a library target.
+""",
         "swiftconstvalues_files": """
 A `depset` of `.swiftconstvalues` files carrying metadata from the concrete implementation
 of this extension and its transitive dependencies.

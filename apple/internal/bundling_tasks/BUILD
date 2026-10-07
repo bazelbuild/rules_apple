@@ -95,6 +95,7 @@ bzl_library(
         "//apple/internal:location_enum",
         "//apple/internal:outputs",
         "//apple/internal:providers",
+        "//apple/internal/providers:embedded_codesigning_dossier_info",
         "@bazel_skylib//lib:paths",
     ],
 )
@@ -149,6 +150,9 @@ bzl_library(
     srcs = ["extension_safe_validation.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
+    ],
+    deps = [
+        "//apple/internal/providers:extension_safe_validation_info",
     ],
 )
 
@@ -275,6 +279,7 @@ bzl_library(
         "//apple/internal:intermediates",
         "//apple/internal:location_enum",
         "//apple/internal:shared_environment",
+        "//apple/internal/providers:swift_dylibs_info",
         "@bazel_skylib//lib:paths",
         "@build_bazel_apple_support//lib:apple_support",
     ],

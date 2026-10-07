@@ -356,6 +356,8 @@ def _swift_const_values_aspect_impl(target, ctx):
         direct_extension_foundation.append(const_values)
     if direct_extension_foundation or transitive_extension_foundation:
         providers.append(ExtensionFoundationInfo(
+            bundle_id = None,
+            product_type = None,
             swiftconstvalues_files = depset(
                 transitive = direct_extension_foundation + transitive_extension_foundation,
                 order = "postorder",

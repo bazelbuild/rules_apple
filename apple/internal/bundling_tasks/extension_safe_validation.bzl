@@ -14,11 +14,9 @@
 
 """Bundling Task implementation for extension safety validation."""
 
-_AppleExtensionSafeValidationInfo = provider(
-    doc = "Private provider that propagates whether the target is marked as extension safe or not.",
-    fields = {
-        "is_extension_safe": "Boolean indicating that the target is extension safe or not.",
-    },
+load(
+    "@build_bazel_rules_apple//apple/internal/providers:extension_safe_validation_info.bzl",
+    "AppleExtensionSafeValidationInfo",
 )
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -32,7 +30,7 @@ def _extension_safe_validation_bundling_task_impl(
 
     if is_extension_safe:
         for target in targets_to_validate:
-            if not target[_AppleExtensionSafeValidationInfo].is_extension_safe:
+            if not target[AppleExtensionSafeValidationInfo].is_extension_safe:
                 # TODO(b/133173778): Revisit the extension_safe attribute, since it's currently
                 # not propagating the -fapplication-extension compilation flags to dependencies.
                 fail((
@@ -42,7 +40,12 @@ def _extension_safe_validation_bundling_task_impl(
                 ).format(current_label = rule_label, target_label = target.label))
 
     return struct(
-        providers = [_AppleExtensionSafeValidationInfo(is_extension_safe = is_extension_safe)],
+        providers = [
+            AppleExtensionSafeValidationInfo(
+                is_extension_safe = is_extension_safe,
+                label = rule_label,
+            ),
+        ],
     )
 
 def extension_safe_validation_bundling_task(

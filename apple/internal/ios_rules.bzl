@@ -365,10 +365,10 @@ def _ios_application_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -697,10 +697,10 @@ def _ios_app_clip_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -1006,10 +1006,10 @@ def _ios_framework_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -1293,10 +1293,10 @@ def _ios_extension_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -1439,6 +1439,8 @@ def _ios_extension_impl(ctx):
 
     if extension_foundation and extension_foundation.swiftconstvalues_files:
         result_providers.append(ExtensionFoundationInfo(
+            bundle_id = bundle_id,
+            product_type = rule_descriptor.product_type,
             swiftconstvalues_files = depset(extension_foundation.swiftconstvalues_files),
         ))
 
@@ -1513,10 +1515,10 @@ def _ios_static_framework_impl(ctx):
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
@@ -1735,10 +1737,10 @@ def _ios_imessage_extension_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,

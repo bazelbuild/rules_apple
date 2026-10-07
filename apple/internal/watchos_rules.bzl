@@ -291,10 +291,10 @@ def _watchos_extension_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
@@ -451,6 +451,8 @@ def _watchos_extension_impl(ctx):
 
     if extension_foundation and extension_foundation.swiftconstvalues_files:
         result_providers.append(ExtensionFoundationInfo(
+            bundle_id = bundle_id,
+            product_type = rule_descriptor.product_type,
             swiftconstvalues_files = depset(extension_foundation.swiftconstvalues_files),
         ))
 
@@ -578,10 +580,10 @@ def _watchos_application_impl(ctx):
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
             entitlements = entitlements,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.app_intents_metadata_bundle(
             actions = actions,
@@ -885,10 +887,10 @@ def _watchos_framework_impl(ctx):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,

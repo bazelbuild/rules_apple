@@ -145,6 +145,9 @@ extension-safe APIs only.
         "infoplist": """
 `File`. The complete (binary-formatted) `Info.plist` file for the bundle.
 """,
+        "label": """
+`Label`. The label of the target that propagated this provider.
+""",
         "minimum_os_version": """
 `String`. The minimum OS version (as a dotted version
 number like "9.0") that this bundle was built to support.

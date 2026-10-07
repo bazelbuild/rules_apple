@@ -503,10 +503,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             cc_toolchains = cc_toolchain_forwarder,
-            label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
+            rule_label = label,
         ),
         bundling_tasks.binary(
             actions = actions,
