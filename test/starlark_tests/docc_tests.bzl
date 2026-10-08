@@ -142,6 +142,99 @@ def docc_test_suite(name):
         tags = [name],
     )
 
+    # Verify doccarchive bundle is created for an Objective-C library, including the symbols of
+    # its public headers but not those of its Objective-C dependencies (which are separate modules).
+    archive_contents_test(
+        name = "{}_contains_doccarchive_when_objc_library".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:docc_objc_greeter_lib.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/doccobjcgreeter/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/doccobjcgreeter/salutation/index.html",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/documentation/doccobjcsalutation/index.html",
+        ],
+        text_test_file = "$BUNDLE_ROOT/metadata.json",
+        text_test_values = [
+            "\"bundleDisplayName\":\"DocCObjcGreeter\"",
+            "\"bundleID\":\"com.google.example.objc.greeter\"",
+        ],
+        tags = [name],
+    )
+
+    # Verify doccarchive bundle is created for an Objective-C library which includes a .docc bundle.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_with_docc_bundle_when_objc_library".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:docc_objc_salutation_lib_with_docc_bundle.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcsalutation/readme/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcsalutation/doccobjcsalutation/text/index.html",
+        ],
+        text_test_file = "$BUNDLE_ROOT/metadata.json",
+        text_test_values = [
+            "\"bundleDisplayName\":\"DocCObjcSalutation\"",
+            "\"bundleID\":\"com.google.example.objc.salutation\"",
+        ],
+        tags = [name],
+    )
+
+    # Verify doccarchive bundle is created for an iOS framework with Objective-C deps.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_when_ios_objc_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:docc_objc_greeter_framework.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/doccobjcgreeter/index.html",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/documentation/doccobjcsalutation/index.html",
+        ],
+        text_test_file = "$BUNDLE_ROOT/metadata.json",
+        text_test_values = [
+            "\"bundleDisplayName\":\"DocCObjcGreeter\"",
+            "\"bundleID\":\"com.google.example.objc.greeter.framework\"",
+        ],
+        tags = [name],
+    )
+
+    # Verify that an Objective-C library without public headers forwards the symbol graphs of its
+    # direct dependencies, so it can be used to attach a .docc bundle to another library.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_with_docc_bundle_when_objc_library_without_headers".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:docc_objc_greeter_docs.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/readme/index.html",
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/doccobjcgreeter/index.html",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/documentation/doccobjcsalutation/index.html",
+        ],
+        tags = [name],
+    )
+
+    # Verify that symbols link to their source files when a source service is set.
+    archive_contents_test(
+        name = "{}_contains_doccarchive_with_source_service".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:docc_objc_greeter_lib_with_source_service.doccarchive",
+        contains = [
+            "$BUNDLE_ROOT/documentation/doccobjcgreeter/doccobjcgreeter/index.html",
+        ],
+        text_test_file = "$BUNDLE_ROOT/data/documentation/doccobjcgreeter/doccobjcgreeter.json",
+        text_test_values = [
+            "github.com.*example.*repo.*blob.*main.*test.*starlark_tests.*resources.*DocCObjcGreeter.h#L[0-9]",
+        ],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

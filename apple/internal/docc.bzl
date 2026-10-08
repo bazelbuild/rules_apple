@@ -53,6 +53,11 @@ load(
     "docc_symbol_graphs_aspect",
 )
 
+# The checkout path that symbol graph source locations are anchored at when
+# `source_service` is set. It doesn't need to exist, since `docc` only uses it
+# to compute the paths of source files relative to the repository.
+_SOURCE_CHECKOUT_PATH = "/__docc_checkout__"
+
 def _docc_archive_impl(ctx):
     """Builds a .doccarchive for the given module.
     """
@@ -71,6 +76,8 @@ def _docc_archive_impl(ctx):
         unsupported_features = ctx.disabled_features,
     )
     hosting_base_path = ctx.attr.hosting_base_path
+    source_service = ctx.attr.source_service
+    source_service_base_url = ctx.attr.source_service_base_url
     kinds = ctx.attr.kinds
     transform_for_static_hosting = ctx.attr.transform_for_static_hosting
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -104,6 +111,9 @@ def _docc_archive_impl(ctx):
     if not symbol_graphs_info and not docc_bundle_info:
         fail("At least one of DocCSymbolGraphsInfo or DocCBundleInfo must be provided for target %s" % ctx.attr.name)
 
+    if bool(source_service) != bool(source_service_base_url):
+        fail("`source_service` and `source_service_base_url` must be set together for target %s" % ctx.attr.name)
+
     symbol_graphs = symbol_graphs_info.symbol_graphs.to_list() if symbol_graphs_info else []
 
     if ctx.attr.name.endswith(".doccarchive"):
@@ -133,6 +143,10 @@ def _docc_archive_impl(ctx):
         arguments.add("--transform-for-static-hosting")
     if hosting_base_path:
         arguments.add("--hosting-base-path", hosting_base_path)
+    if source_service:
+        arguments.add("--source-service", source_service)
+        arguments.add("--source-service-base-url", source_service_base_url)
+        arguments.add("--checkout-path", _SOURCE_CHECKOUT_PATH)
 
     # Add symbol graphs.
     #
@@ -147,6 +161,7 @@ def _docc_archive_impl(ctx):
         )
         combine_arguments = ctx.actions.args()
         combine_arguments.add(combined_symbol_graphs.path)
+        combine_arguments.add(_SOURCE_CHECKOUT_PATH if source_service else "")
         combine_arguments.add_all(symbol_graphs, expand_directories = False)
         ctx.actions.run_shell(
             inputs = symbol_graphs,
@@ -156,12 +171,27 @@ def _docc_archive_impl(ctx):
             command = """\
 set -eu
 output_dir="$1"
-shift
+checkout_path="$2"
+shift 2
 index=0
 for symbol_graph_dir in "$@"; do
-    cp -R "$symbol_graph_dir" "$output_dir/$index"
+    cp -RL "$symbol_graph_dir" "$output_dir/$index"
     index=$((index + 1))
 done
+
+# Symbol graphs reference source files relative to the execution root, which
+# `docc` can't map to the source service. Anchor those paths (except for
+# generated and external files) at a fixed checkout path instead.
+if [ -n "$checkout_path" ]; then
+    chmod -R u+w "$output_dir"
+    find "$output_dir" -type f -name '*.json' | while read -r symbol_graph; do
+        sed -E \
+            -e 's#("uri" *: *"file://)(\\./)?([^/"])#\\1'"$checkout_path"'/\\3#g' \
+            -e 's#file://'"$checkout_path"'/(bazel-out|external)/#file://\\1/#g' \
+            "$symbol_graph" > "$symbol_graph.tmp"
+        mv "$symbol_graph.tmp" "$symbol_graph"
+    done
+fi
 """,
             arguments = [combine_arguments],
         )
@@ -239,7 +269,15 @@ docc_archive = rule(
 Builds a .doccarchive for the given dependency.
 The target created by this rule can also be `run` to preview the generated documentation in Xcode.
 
-NOTE: At this time Swift is the only supported language for this rule.
+Both Swift and Objective-C are supported. Symbol graphs for Swift targets are extracted with
+`swift-symbolgraph-extract`, and symbol graphs for `objc_library` targets are extracted from their
+public headers (`hdrs`) with `clang -extract-api`.
+
+The symbol graphs of transitive Swift dependencies are included. Because a DocC archive documents a
+single module, the symbol graphs of Objective-C dependencies are not included, unless the `dep`
+doesn't define a module itself: bundling rules (e.g. `ios_framework`) and `objc_library` targets
+without public headers use the Objective-C symbol graphs of their direct `deps`. The latter can be
+used to attach a `.docc` bundle (in its `data`) to an existing library.
 
 Example:
 
@@ -286,6 +324,9 @@ emitted in addition to the default symbol graph information.
 This value must be either `"0"` or `"1"`.When the value is `"1"`, the symbol
 graph information for `extension` blocks will be emitted in addition to
 the default symbol graph information. The default value is `"0"`.
+
+For Objective-C targets, a value of `"1"` includes the members of categories
+on types from other modules (e.g. a category on `NSString`).
                 """,
                 values = ["0", "1"],
             ),
@@ -317,6 +358,7 @@ the default symbol graph information. The default value is `"0"`.
                 doc = """"
 The minimum access level of the declarations that should be emitted in the symbol graphs.
 This value must be either `fileprivate`, `internal`, `private`, or `public`. The default value is `public`.
+This only applies to Swift targets; Objective-C symbol graphs always contain the declarations of the public headers.
                 """,
                 values = [
                     "fileprivate",
@@ -324,6 +366,20 @@ This value must be either `fileprivate`, `internal`, `private`, or `public`. The
                     "private",
                     "public",
                 ],
+            ),
+            "source_service": attr.string(
+                doc = """
+The source code service used to link the documentation of symbols to their source files.
+Must be one of "github", "gitlab", or "bitbucket". Requires `source_service_base_url` to be set.
+Only source files in the main repository are linked, generated and external files are not.
+                """,
+                values = ["", "github", "gitlab", "bitbucket"],
+            ),
+            "source_service_base_url": attr.string(
+                doc = """
+The base URL where the source files of the main repository are browsable, for example
+`https://github.com/<org>/<repo>/blob/main`. Requires `source_service` to be set.
+                """,
             ),
             "transform_for_static_hosting": attr.bool(
                 default = True,
