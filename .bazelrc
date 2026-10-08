@@ -16,6 +16,9 @@ common --check_direct_dependencies=off
 build --spawn_strategy=sandboxed,local
 build --worker_sandboxing=true
 
+# https://github.com/bazelbuild/bazel/issues/19981
+common --incompatible_auto_exec_groups
+
 build:ci --//apple/build_settings:ios_simulator_device="iPhone 16"
 build:ci --local_test_jobs=2
 build:ci --modify_execution_info=AssetCatalogCompile=+exclusive
