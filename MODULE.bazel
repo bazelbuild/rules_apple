@@ -61,6 +61,14 @@ use_repo(system_sdk, "system_sdk")
 
 bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
 
+# Protobuf's protoc actions need to identify their toolchain for AEGs.
+# Remove once the resolved protobuf release includes these fixes.
+single_version_override(
+    module_name = "protobuf",
+    patch_strip = 1,
+    patches = ["//patches:protobuf_auto_exec_groups.patch"],
+)
+
 provisioning_profile_repository = use_extension("//apple:apple.bzl", "provisioning_profile_repository_extension")
 use_repo(provisioning_profile_repository, "local_provisioning_profiles")
 

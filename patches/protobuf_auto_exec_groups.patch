@@ -1,0 +1,22 @@
+diff --git a/bazel/private/oss/toolchains/prebuilt/protoc_authenticity.bzl b/bazel/private/oss/toolchains/prebuilt/protoc_authenticity.bzl
+--- a/bazel/private/oss/toolchains/prebuilt/protoc_authenticity.bzl
++++ b/bazel/private/oss/toolchains/prebuilt/protoc_authenticity.bzl
+@@ -19,6 +19,7 @@ def _protoc_authenticity_impl(ctx):
+         mnemonic = "ProtocAuthenticityCheck",
+         outputs = [validation_output],
+         tools = [proto_lang_toolchain_info.proto_compiler],
++        toolchain = toolchains.PROTO_TOOLCHAIN,
+         command = """\
+         {protoc} --version > {validation_output}
+         grep -q -e "-dev$" {validation_output} && {{
+diff --git a/protobuf.bzl b/protobuf.bzl
+--- a/protobuf.bzl
++++ b/protobuf.bzl
+@@ -344,6 +344,7 @@ def _internal_gen_well_known_protos_java_impl(ctx):
+         outputs = [srcjar],
+         arguments = [args],
+         mnemonic = "ProtoCompile",
++        toolchain = toolchains.PROTO_TOOLCHAIN if proto_common.INCOMPATIBLE_ENABLE_PROTO_TOOLCHAIN_RESOLUTION else None,
+         use_default_shell_env = True,
+     )
+ 
