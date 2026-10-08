@@ -752,6 +752,7 @@ def _post_process_and_sign_archive_action(
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
+            toolchain = None,
         )
 
 def _sign_binary_action(
