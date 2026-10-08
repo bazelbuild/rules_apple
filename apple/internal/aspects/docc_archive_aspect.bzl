@@ -42,6 +42,13 @@ load(
     "DocCSymbolGraphsInfo",
 )
 
+_DocCObjcSymbolGraphsInfo = provider(
+    doc = "The Objective-C symbol graphs of the module defined (or forwarded) by a target.",
+    fields = {
+        "symbol_graphs": "A `depset` of directories containing Objective-C symbol graphs.",
+    },
+)
+
 def _objc_symbol_graph(*, target, ctx):
     """Extracts a symbol graph from the public headers of an `objc_library` target.
 
@@ -128,34 +135,41 @@ def _first_docc_bundle(*, target, ctx):
 def _docc_symbol_graphs_aspect_impl(target, ctx):
     """Creates a DocCSymbolGraphsInfo provider for Swift and Objective-C targets (or targets which bundle them)."""
 
-    direct_symbol_graphs = []
+    swift_symbol_graphs = []
+    has_own_symbol_graph = False
 
     if SwiftSymbolGraphInfo in target:
-        direct_symbol_graphs.extend([
+        swift_symbol_graph_info = target[SwiftSymbolGraphInfo]
+        swift_symbol_graphs = [
             symbol_graph.symbol_graph_dir
-            for symbol_graph in target[SwiftSymbolGraphInfo].direct_symbol_graphs
-        ])
+            for symbol_graph in swift_symbol_graph_info.transitive_symbol_graphs.to_list()
+        ]
+        has_own_symbol_graph = bool(swift_symbol_graph_info.direct_symbol_graphs)
+
+    # A DocC archive documents a single module, so unlike Swift symbol graphs, the Objective-C
+    # symbol graphs of transitive dependencies are not included. Targets which don't define a module
+    # themselves (e.g. bundling rules or `objc_library` targets without public headers) forward the
+    # Objective-C symbol graphs of their direct dependencies instead.
+    objc_symbol_graphs = depset()
     if ctx.rule.kind == "objc_library" and CcInfo in target:
         objc_symbol_graph = _objc_symbol_graph(target = target, ctx = ctx)
         if objc_symbol_graph:
-            direct_symbol_graphs.append(objc_symbol_graph)
+            objc_symbol_graphs = depset([objc_symbol_graph])
+            has_own_symbol_graph = True
+    if not has_own_symbol_graph:
+        objc_symbol_graphs = depset(transitive = [
+            dep[_DocCObjcSymbolGraphsInfo].symbol_graphs
+            for dep in getattr(ctx.rule.attr, "deps", [])
+            if _DocCObjcSymbolGraphsInfo in dep
+        ])
 
-    transitive_symbol_graphs = [
-        dep[DocCSymbolGraphsInfo].symbol_graphs
-        for dep in getattr(ctx.rule.attr, "deps", [])
-        if DocCSymbolGraphsInfo in dep
-    ]
-
-    if not direct_symbol_graphs and not transitive_symbol_graphs:
+    symbol_graphs = depset(swift_symbol_graphs, transitive = [objc_symbol_graphs])
+    if not symbol_graphs:
         return []
 
     return [
-        DocCSymbolGraphsInfo(
-            symbol_graphs = depset(
-                direct_symbol_graphs,
-                transitive = transitive_symbol_graphs,
-            ),
-        ),
+        DocCSymbolGraphsInfo(symbol_graphs = symbol_graphs),
+        _DocCObjcSymbolGraphsInfo(symbol_graphs = objc_symbol_graphs),
     ]
 
 def _docc_bundle_info_aspect_impl(target, ctx):

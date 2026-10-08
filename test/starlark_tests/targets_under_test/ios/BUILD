@@ -7340,6 +7340,33 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+objc_library(
+    name = "docc_objc_greeter_docs",
+    data = ["//test/starlark_tests/resources:basic_docc_bundle_files"],
+    tags = common.fixture_tags,
+    deps = [":docc_objc_greeter_lib"],
+)
+
+docc_archive(
+    name = "docc_objc_greeter_docs.doccarchive",
+    dep = ":docc_objc_greeter_docs",
+    fallback_bundle_identifier = "com.google.example.objc.greeter",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "DocCObjcGreeter",
+    tags = common.fixture_tags,
+)
+
+docc_archive(
+    name = "docc_objc_greeter_lib_with_source_service.doccarchive",
+    dep = ":docc_objc_greeter_lib",
+    fallback_bundle_identifier = "com.google.example.objc.greeter",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "DocCObjcGreeter",
+    source_service = "github",
+    source_service_base_url = "https://github.com/example/repo/blob/main",
+    tags = common.fixture_tags,
+)
+
 docc_archive(
     name = "docc_objc_greeter_lib.doccarchive",
     dep = ":docc_objc_greeter_lib",
