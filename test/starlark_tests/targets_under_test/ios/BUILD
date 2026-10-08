@@ -7314,6 +7314,74 @@ docc_archive(
     fallback_display_name = "BasicFramework",
 )
 
+objc_library(
+    name = "docc_objc_salutation_lib",
+    srcs = ["//test/starlark_tests/resources:DocCObjcSalutation.m"],
+    hdrs = ["//test/starlark_tests/resources:DocCObjcSalutation.h"],
+    module_name = "DocCObjcSalutation",
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "docc_objc_greeter_lib",
+    srcs = ["//test/starlark_tests/resources:DocCObjcGreeter.m"],
+    hdrs = ["//test/starlark_tests/resources:DocCObjcGreeter.h"],
+    enable_modules = True,
+    module_name = "DocCObjcGreeter",
+    tags = common.fixture_tags,
+    deps = [":docc_objc_salutation_lib"],
+)
+
+objc_library(
+    name = "docc_objc_salutation_lib_with_docc_bundle",
+    hdrs = ["//test/starlark_tests/resources:DocCObjcSalutation.h"],
+    data = ["//test/starlark_tests/resources:basic_docc_bundle_files"],
+    module_name = "DocCObjcSalutation",
+    tags = common.fixture_tags,
+)
+
+docc_archive(
+    name = "docc_objc_greeter_lib.doccarchive",
+    dep = ":docc_objc_greeter_lib",
+    fallback_bundle_identifier = "com.google.example.objc.greeter",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "DocCObjcGreeter",
+    tags = common.fixture_tags,
+)
+
+docc_archive(
+    name = "docc_objc_salutation_lib_with_docc_bundle.doccarchive",
+    dep = ":docc_objc_salutation_lib_with_docc_bundle",
+    fallback_bundle_identifier = "com.google.example.objc.salutation",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "DocCObjcSalutation",
+    tags = common.fixture_tags,
+)
+
+ios_framework(
+    name = "docc_objc_greeter_framework",
+    bundle_id = "com.google.example.objc.greeter.framework",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [":docc_objc_greeter_lib"],
+)
+
+docc_archive(
+    name = "docc_objc_greeter_framework.doccarchive",
+    dep = ":docc_objc_greeter_framework",
+    fallback_bundle_identifier = "com.google.example.objc.greeter.framework",
+    fallback_bundle_version = "1.0",
+    fallback_display_name = "DocCObjcGreeter",
+    tags = common.fixture_tags,
+)
+
 # ---------------------------------------------------------------------------------------
 # Target for extension resource bundling.
 

@@ -239,7 +239,10 @@ docc_archive = rule(
 Builds a .doccarchive for the given dependency.
 The target created by this rule can also be `run` to preview the generated documentation in Xcode.
 
-NOTE: At this time Swift is the only supported language for this rule.
+Both Swift and Objective-C are supported. Symbol graphs for Swift targets are extracted with
+`swift-symbolgraph-extract`, and symbol graphs for `objc_library` targets are extracted from their
+public headers (`hdrs`) with `clang -extract-api`. Symbol graphs of transitive dependencies are
+included as well.
 
 Example:
 
@@ -286,6 +289,9 @@ emitted in addition to the default symbol graph information.
 This value must be either `"0"` or `"1"`.When the value is `"1"`, the symbol
 graph information for `extension` blocks will be emitted in addition to
 the default symbol graph information. The default value is `"0"`.
+
+For Objective-C targets, a value of `"1"` includes the members of categories
+on types from other modules (e.g. a category on `NSString`).
                 """,
                 values = ["0", "1"],
             ),
@@ -317,6 +323,7 @@ the default symbol graph information. The default value is `"0"`.
                 doc = """"
 The minimum access level of the declarations that should be emitted in the symbol graphs.
 This value must be either `fileprivate`, `internal`, `private`, or `public`. The default value is `public`.
+This only applies to Swift targets; Objective-C symbol graphs always contain the declarations of the public headers.
                 """,
                 values = [
                     "fileprivate",
