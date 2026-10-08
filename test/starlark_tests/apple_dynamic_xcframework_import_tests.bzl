@@ -23,6 +23,10 @@ load(
     "build_settings_labels",
 )
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:action_inputs_test.bzl",
     "make_action_inputs_test_rule",
 )
@@ -64,6 +68,14 @@ analysis_output_group_info_files_with_xcframework_processor_test = make_analysis
 
 action_inputs_with_ios_x86_64_platform_test = make_action_inputs_test_rule({
     "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_x86_64")),
+})
+
+action_inputs_with_ios_sim_arm64_platform_test = make_action_inputs_test_rule({
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_sim_arm64")),
+})
+
+action_command_line_with_ios_sim_arm64_platform_test = make_action_command_line_test_rule({
+    "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_sim_arm64")),
 })
 
 action_inputs_with_ios_x86_64_import_via_swiftinterface_platform_test = make_action_inputs_test_rule({
@@ -283,6 +295,39 @@ def apple_dynamic_xcframework_import_test_suite(name):
         name = "{}_swiftmodule_xcframework_with_modulemap_build_test".format(name),
         minimum_os_version = common.min_os_ios.baseline,
         targets = ["//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_with_modulemap_consumer"],
+        tags = [name],
+    )
+
+    # Framework Modules directories must not also become ordinary Swift import
+    # paths: that changes the underlying Clang module's root when Swift falls
+    # back to a textual interface from a different compiler version (#3097).
+    action_command_line_with_ios_sim_arm64_platform_test(
+        name = "{}_swiftmodule_implicit_framework_search_path".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_with_modulemap_implicit_consumer",
+        mnemonic = "SwiftCompile",
+        expected_argv = [
+            "with_modulemap/Swift3PFmwkBinarySwiftmodule.xcframework/ios-arm64_x86_64-simulator",
+        ],
+        not_expected_argv = [
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules",
+        ],
+        tags = [name],
+    )
+    action_inputs_with_ios_sim_arm64_platform_test(
+        name = "{}_swiftmodule_implicit_framework_inputs".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_with_modulemap_implicit_consumer",
+        mnemonic = "SwiftCompile",
+        expected_inputs = [
+            "Swift3PFmwkBinarySwiftmodule.framework/Headers/Swift3PFmwkBinarySwiftmodule.h",
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules/module.modulemap",
+            "Swift3PFmwkBinarySwiftmodule.framework/Modules/Swift3PFmwkBinarySwiftmodule.swiftmodule/arm64.swiftmodule",
+        ],
+        tags = [name],
+    )
+    ios_build_test(
+        name = "{}_swiftmodule_implicit_framework_build_test".format(name),
+        minimum_os_version = common.min_os_ios.baseline,
+        targets = ["//test/starlark_tests/targets_under_test/ios:swiftmodule_xcframework_with_modulemap_implicit_consumer"],
         tags = [name],
     )
     ios_build_test(

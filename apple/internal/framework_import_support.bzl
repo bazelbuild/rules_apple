@@ -678,15 +678,31 @@ def _swift_info_from_swiftmodule(
         )
         extra_module_contexts = []
 
+    swift_module = None
+    if not framework_includes or any([
+        swift_common.is_enabled(
+            feature_configuration = feature_configuration,
+            feature_name = feature,
+        )
+        for feature in ["swift.use_c_modules", "swift.use_explicit_swift_module_map"]
+    ]):
+        swift_module = create_swift_module_inputs(
+            swiftdoc = None,
+            swiftinterface = None,
+            swiftmodule = swiftmodule_files[0],
+        )
+
+    # Implicit framework imports must resolve the Swift module through -F.
+    # Propagating its binary module here also adds -I<framework>/Modules, which
+    # changes the underlying Clang module's root when loading a swiftinterface
+    # from a different compiler version. CcInfo already carries the module files
+    # as action inputs. Explicit modules still need the binary Swift module to
+    # distinguish it from the underlying Clang module with the same name.
     module_context = create_swift_module_context(
         name = module_name,
         clang = clang_module,
         is_framework = bool(framework_includes),
-        swift = create_swift_module_inputs(
-            swiftdoc = None,
-            swiftinterface = None,
-            swiftmodule = swiftmodule_files[0],
-        ),
+        swift = swift_module,
     )
 
     return SwiftInfo(
