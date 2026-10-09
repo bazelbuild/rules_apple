@@ -93,10 +93,17 @@ load(
 )
 
 _CACHEABLE_PROVIDER_FIELDS = [
+    "asset_catalogs",
+    "datamodels",
     "infoplists",
+    "metals",
+    "mlmodels",
     "plists",
     "pngs",
+    "storyboards",
     "strings",
+    "texture_atlases",
+    "xibs",
 ]
 
 def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
