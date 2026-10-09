@@ -15,6 +15,10 @@
 """apple_mergeable_strings Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
@@ -24,6 +28,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:plisttool_action_test.bzl",
+    "make_plisttool_action_test",
     "plisttool_action_test",
 )
 load(
@@ -32,6 +37,18 @@ load(
 )
 
 visibility("private")
+
+_swift_plisttool_enabled_action_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_swift_plisttool: True,
+    },
+)
+
+_swift_plisttool_disabled_action_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_swift_plisttool: False,
+    },
+)
 
 def apple_mergeable_strings_test_suite(name):
     """Test suite for apple_mergeable_strings.
@@ -125,6 +142,36 @@ def apple_mergeable_strings_test_suite(name):
             "skip_substitutions": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
             "plists": ["*"],
+        }),
+        tags = [name],
+    )
+
+    # Tests that use_swift_plisttool = True is propagated to the plisttool control JSON.
+    _swift_plisttool_enabled_action_test(
+        name = "{}_merge_strings_swift_plisttool_enabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        target_mnemonic = "MergeStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "skip_substitutions": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+            "plists": ["*"],
+            "use_swift_plisttool": True,
+        }),
+        tags = [name],
+    )
+
+    # Tests that use_swift_plisttool = False is propagated to the plisttool control JSON.
+    _swift_plisttool_disabled_action_test(
+        name = "{}_merge_strings_swift_plisttool_disabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        target_mnemonic = "MergeStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "skip_substitutions": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+            "plists": ["*"],
+            "use_swift_plisttool": False,
         }),
         tags = [name],
     )

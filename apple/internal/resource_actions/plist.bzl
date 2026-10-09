@@ -23,6 +23,10 @@ load(
     "shell",
 )
 load(
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -72,10 +76,13 @@ def plisttool_action(
       platform_prerequisites: Struct containing information on the platform being targeted.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
+    control_dict = structs.to_dict(control)
+    control_dict["use_swift_plisttool"] = (
+        apple_xplat_toolchain_info.build_settings.use_swift_plisttool
+    )
     control_args = actions.args()
+    control_args.add(json.encode(control_dict))
     if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac:
-        control_args.add(json.encode(control))
-
         apple_support.run(
             actions = actions,
             apple_platform_info = platform_prerequisites.apple_platform_info,
@@ -89,8 +96,6 @@ def plisttool_action(
             xcode_config = platform_prerequisites.xcode_version_config,
         )
     else:
-        control_args.add(json.encode(control))
-
         actions.run(
             arguments = [control_args],
             env = shared_environment.default_env,

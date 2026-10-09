@@ -64,6 +64,13 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
+    "use_swift_plisttool": struct(
+        doc = """
+Indicates that the Swift implementation of `plisttool` should be used instead of the legacy Python
+implementation when invoked via `plisttool_wrapper`.
+""",
+        default = False,
+    ),
     "use_tree_artifacts_outputs": struct(
         doc = """
 Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).

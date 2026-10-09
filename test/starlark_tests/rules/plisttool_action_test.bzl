@@ -72,10 +72,24 @@ def _plisttool_action_test_impl(ctx):
 
     return analysistest.end(env)
 
-plisttool_action_test = analysistest.make(
-    _plisttool_action_test_impl,
-    attrs = {
-        "target_mnemonic": attr.string(mandatory = True),
-        "expected_control_dict": attr.string(mandatory = True, doc = "JSON encoded dict of expected values."),
-    },
-)
+def make_plisttool_action_test(config_settings = {}):
+    """Returns a new `plisttool_action_test`-like rule with custom configs.
+
+    Args:
+        config_settings: A dictionary of configuration settings and their values
+            that should be applied during tests.
+
+    Returns:
+        A rule returned by `analysistest.make` that has the
+        `plisttool_action_test` interface and the given config settings.
+    """
+    return analysistest.make(
+        _plisttool_action_test_impl,
+        attrs = {
+            "target_mnemonic": attr.string(mandatory = True),
+            "expected_control_dict": attr.string(mandatory = True, doc = "JSON encoded dict of expected values."),
+        },
+        config_settings = config_settings,
+    )
+
+plisttool_action_test = make_plisttool_action_test()
