@@ -14,6 +14,7 @@
 
 """macos_unit_test Starlark tests."""
 
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
@@ -156,6 +157,14 @@ def macos_unit_test_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.unit-test-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    build_test(
+        name = "{}_swift_explicit_modules_build_test".format(name),
+        targets = [
+            "//test/starlark_tests/targets_under_test/macos:unit_test_with_swift_explicit_modules_transitioned",
+        ],
         tags = [name],
     )
 
