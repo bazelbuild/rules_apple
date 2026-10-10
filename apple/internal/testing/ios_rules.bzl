@@ -150,6 +150,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
@@ -226,6 +227,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
