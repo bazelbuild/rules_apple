@@ -38,11 +38,16 @@ load(
     "@rules_apple//apple/testing/default_runner:ios_xctestrun_runner.bzl",
     "ios_xctestrun_runner"
 )
+load("@rules_cc//cc:objc_import.bzl", "objc_import")
 load("@rules_cc//cc:objc_library.bzl", "objc_library")
 
 ios_xctestrun_runner(
     name = "ios_x86_64_sim_runner",
     device_type = "iPhone Xs",
+)
+
+ios_xctestrun_runner(
+    name = "ios_profile_sim_runner",
 )
 
 EOF
@@ -53,12 +58,66 @@ function create_ios_app() {
     fail "create_sim_runners must be called first."
   fi
 
+  local clang_resource_dir
+  clang_resource_dir="$(xcrun --sdk iphonesimulator clang -print-resource-dir)"
+  cp \
+    "$clang_resource_dir/lib/darwin/libclang_rt.profile_iossim.a" \
+    ios/libclang_rt.profile_iossim.a
+
   cat > ios/main.m <<EOF
 #import <UIKit/UIKit.h>
 
 int main(int argc, char * argv[]) {
   @autoreleasepool {
     return UIApplicationMain(argc, argv, nil, nil);
+  }
+}
+EOF
+
+  cat > ios/profiled_main.m <<EOF
+#import <UIKit/UIKit.h>
+
+#if !__LLVM_INSTR_PROFILE_GENERATE
+#error "profiled_app_lib must be compiled with profile instrumentation"
+#endif
+
+extern int __llvm_profile_write_file(void);
+
+typedef int (*ProfileOperation)(int);
+
+__attribute__((noinline))
+static int ProfileTarget(int value) {
+  return value + 1;
+}
+
+__attribute__((noinline))
+static int InvokeProfileTarget(ProfileOperation operation, int value) {
+  return operation(value);
+}
+
+@interface ProfiledAppDelegate : UIResponder <UIApplicationDelegate>
+
+@property(nonatomic, strong) UIWindow *window;
+
+@end
+
+@implementation ProfiledAppDelegate
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+  (void)application;
+  NSCAssert(InvokeProfileTarget(ProfileTarget, 1) == 2, @"unexpected result");
+  NSCAssert(__llvm_profile_write_file() == 0, @"profile write failed");
+}
+
+@end
+
+int main(int argc, char * argv[]) {
+  @autoreleasepool {
+    return UIApplicationMain(
+        argc,
+        argv,
+        nil,
+        NSStringFromClass([ProfiledAppDelegate class]));
   }
 }
 EOF
@@ -89,6 +148,34 @@ ios_application(
     minimum_os_version = "${MIN_OS_IOS_NPLUS1}",
     provisioning_profile = "@rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     deps = [":app_lib"],
+)
+
+objc_library(
+    name = "profiled_app_lib",
+    copts = ["-fprofile-generate"],
+    srcs = ["profiled_main.m"],
+)
+
+objc_import(
+    name = "profile_runtime",
+    archives = ["libclang_rt.profile_iossim.a"],
+)
+
+ios_application(
+    name = "profiled_app",
+    bundle_id = "my.profiled.bundle.id",
+    families = ["iphone"],
+    infoplists = ["Info.plist"],
+    linkopts = [
+        "-u",
+        "___llvm_profile_runtime",
+    ],
+    minimum_os_version = "${MIN_OS_IOS}",
+    provisioning_profile = "@rules_apple//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    deps = [
+        ":profile_runtime",
+        ":profiled_app_lib",
+    ],
 )
 EOF
 }
@@ -234,6 +321,15 @@ ios_ui_test(
     minimum_os_version = "${MIN_OS_IOS}",
     test_host = ":app",
     runner = ":ios_x86_64_sim_runner",
+)
+
+ios_ui_test(
+    name = "ProfiledUITest",
+    infoplists = ["PassUITest-Info.plist"],
+    deps = [":pass_ui_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":profiled_app",
+    runner = ":ios_profile_sim_runner",
 )
 
 swift_library(
@@ -447,6 +543,33 @@ function test_ios_ui_test_with_env() {
   do_ios_test --test_env=ENV_KEY1=ENV_VALUE2 //ios:EnvUITest || fail "should pass"
 
   expect_log "Test Suite 'EnvUITest' passed"
+}
+
+function test_ios_ui_test_collects_target_app_profiles() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test \
+    --test_env=DEBUG_XCTESTRUNNER=1 \
+    '--test_env=LLVM_PROFILE_FILE_FOR_TARGET_APP=%t/rules-apple-%p.profraw' \
+    //ios:ProfiledUITest || fail "should pass"
+
+  expect_log "<key>UITargetAppEnvironmentVariables</key>"
+  expect_log "<key>LLVM_PROFILE_FILE</key>"
+  expect_log "<string>%t/rules-apple-%p.profraw</string>"
+  expect_not_log "<key>ClangProfileDataDirectoryPath</key>"
+  expect_not_log "<key>CodeCoverageBuildableInfos</key>"
+  expect_log "Collected 2 target app profile(s)"
+
+  local profile_report="$TEST_TMPDIR/target-app-profile.txt"
+  xcrun llvm-profdata show \
+    --all-functions \
+    --counts \
+    --ic-targets \
+    test-testlogs/ios/ProfiledUITest/test.outputs/Coverage.profdata \
+    > "$profile_report"
+  grep -q "Indirect Call Site Count: 1" "$profile_report" ||
+    fail "target app profile should contain indirect call target values"
 }
 
 function test_ios_ui_test_default_attachment_lifetime_arg() {
