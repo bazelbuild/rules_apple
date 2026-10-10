@@ -49,6 +49,16 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "developer_framework_import_info",
+    srcs = ["developer_framework_import_info.bzl"],
+    visibility = [
+        # The provider is part of the public API (re-exported from apple/providers.bzl),
+        # so it must be visible to the top-level apple package as well.
+        "//apple:__subpackages__",
+    ],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
