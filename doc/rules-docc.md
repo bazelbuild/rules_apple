@@ -19,16 +19,6 @@ docc_archive(<a href="#docc_archive-name">name</a>, <a href="#docc_archive-defau
 Builds a .doccarchive for the given dependency.
 The target created by this rule can also be `run` to preview the generated documentation in Xcode.
 
-Both Swift and Objective-C are supported. Symbol graphs for Swift targets are extracted with
-`swift-symbolgraph-extract`, and symbol graphs for `objc_library` targets are extracted from their
-public headers (`hdrs`) with `clang -extract-api`.
-
-The symbol graphs of transitive Swift dependencies are included. Because a DocC archive documents a
-single module, the symbol graphs of Objective-C dependencies are not included, unless the `dep`
-doesn't define a module itself: bundling rules (e.g. `ios_framework`) and `objc_library` targets
-without public headers use the Objective-C symbol graphs of their direct `deps`. The latter can be
-used to attach a `.docc` bundle (in its `data`) to an existing library.
-
 Example:
 
 ```starlark
