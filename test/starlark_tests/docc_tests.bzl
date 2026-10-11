@@ -68,6 +68,21 @@ def docc_test_suite(name):
         tags = [name],
     )
 
+    # Verify the .docc bundle in the data of a library is not copied into the framework.
+    archive_contents_test(
+        name = "{}_ios_framework_does_not_contain_docc_bundle".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:basic_framework_with_docc_bundle",
+        contains = [
+            "$BUNDLE_ROOT/BasicFrameworkWithDocCBundle",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/basic.docc",
+            "$BUNDLE_ROOT/README.md",
+        ],
+        tags = [name],
+    )
+
     # Verify doccarchive bundle is created for Swift library which includes a .docc bundle.
     archive_contents_test(
         name = "{}_contains_doccarchive_with_docc_bundle_when_swift_library".format(name),

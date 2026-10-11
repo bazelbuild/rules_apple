@@ -189,6 +189,7 @@ def _bucketize_data(
     If no bucket was detected based on the short path for a specific resource, it will be placed
     into the "unprocessed" bucket. Resources in this bucket will not be processed and will be copied
     as is. Once all resources have been placed in buckets, each of the lists will be minimized.
+    Files in DocC documentation catalogs (`.docc`) are not placed in any bucket.
 
     Finally, it will return a AppleResourceInfo provider with the resources bucketed per type.
 
@@ -221,6 +222,11 @@ def _bucketize_data(
         for resource in target_resources:
             # Local cache of the resource short path since it gets used quite a bit below.
             resource_short_path = resource.short_path
+
+            # Ignore DocC documentation catalogs, which are only used by `docc_archive` to build
+            # documentation and are not bundled by Xcode either.
+            if ".docc/" in resource_short_path or resource_short_path.endswith(".docc"):
+                continue
 
             if owner:
                 owners.append((resource_short_path, owner))
