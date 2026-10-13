@@ -56,7 +56,7 @@ an emergency valve so the default can be flipped if we ever have a problem with 
 `provisioning_profile_tool` binary on Linux, and should not be used or set by anyone except Apple
 BUILD rule maintainers.
 """,
-        default = True,
+        default = False,
     ),
     "signing_certificate_name": struct(
         doc = """
