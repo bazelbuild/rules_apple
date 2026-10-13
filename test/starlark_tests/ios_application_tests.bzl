@@ -32,6 +32,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_files_attr_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -71,6 +72,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:linkmap_test.bzl",
+    "linkmap_attr_test",
     "linkmap_test",
 )
 load(
@@ -1006,6 +1008,32 @@ def ios_application_test_suite(name):
         expected_outputs = [
             "app_x86_64.linkmap",
             "app_arm64.linkmap",
+        ],
+        tags = [name],
+    )
+    linkmap_attr_test(
+        name = "{}_generate_linkmap_attr_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_generate_linkmap",
+        expected_linkmap_names = ["app_with_generate_linkmap"],
+        tags = [name],
+    )
+    analysis_output_group_info_files_attr_test(
+        name = "{}_generate_linkmap_attr_output_group_info_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_generate_linkmap",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "app_with_generate_linkmap_x86_64.linkmap",
+            "app_with_generate_linkmap_arm64.linkmap",
+        ],
+        tags = [name],
+    )
+    action_command_line_test(
+        name = "{}_generate_linkmap_attr_link_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_generate_linkmap",
+        mnemonic = "ObjcLink",
+        expected_argv = [
+            "-Xlinker -map",
+            "app_with_generate_linkmap.linkmap",
         ],
         tags = [name],
     )
