@@ -38,7 +38,7 @@ Indicates that `derq` should be run on the Mac, rather than on Linux. This is an
 valve so the default can be flipped if we ever have a problem with the Apple `derq` binary on
 Linux, and should not be used or set by anyone except Apple BUILD rule maintainers.
 """,
-        default = True,
+        default = False,
     ),
     "force_plisttool_on_mac": struct(
         doc = """
