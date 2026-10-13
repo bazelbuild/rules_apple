@@ -3,6 +3,7 @@
 load(
     "//apple:visionos.bzl",
     "visionos_application",
+    "visionos_unit_test",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -27,6 +28,15 @@ visionos_application(
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+visionos_unit_test(
+    name = "unit_test",
+    minimum_os_version = common.min_os_visionos.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
     ],
 )
 

@@ -93,13 +93,19 @@ def _visionos_unit_test_bundle_impl(ctx):
 
 def _visionos_ui_test_impl(ctx):
     """Implementation of visionos_ui_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xcuitest") + [
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        test_type = "xcuitest",
+    ) + [
         new_visionosxctestbundleinfo(),
     ]
 
 def _visionos_unit_test_impl(ctx):
     """Implementation of visionos_unit_test."""
-    return apple_test_rule_support.apple_test_rule_impl(ctx, "xctest") + [
+    return apple_test_rule_support.apple_test_rule_impl(
+        ctx = ctx,
+        test_type = "xctest",
+    ) + [
         new_visionosxctestbundleinfo(),
     ]
 

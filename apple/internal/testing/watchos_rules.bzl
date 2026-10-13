@@ -89,7 +89,6 @@ def _watchos_ui_test_impl(ctx):
     """Implementation of watchos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xcuitest",
     ) + [
         new_watchosxctestbundleinfo(),
@@ -99,7 +98,6 @@ def _watchos_unit_test_impl(ctx):
     """Implementation of watchos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xctest",
     ) + [
         new_watchosxctestbundleinfo(),

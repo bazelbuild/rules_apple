@@ -27,6 +27,15 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
+    "make_analysis_runfiles_test_rule",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
 )
@@ -47,6 +56,18 @@ load(
     "common",
 )
 
+_analysis_target_actions_with_dossier_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:features": ["disable_legacy_signing"],
+    },
+)
+
+_analysis_runfiles_with_dossier_test = make_analysis_runfiles_test_rule(
+    config_settings = {
+        "//command_line_option:features": ["disable_legacy_signing"],
+    },
+)
+
 def ios_unit_test_test_suite(name):
     """Test suite for ios_unit_test.
 
@@ -58,6 +79,30 @@ def ios_unit_test_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_does_not_generate_codesigning_dossier_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test.__internal__.__test_bundle",
+        not_expected_mnemonic = ["GenerateCodesigningDossier"],
+        target_mnemonic = "ObjcLink",
+        tags = [name],
+    )
+
+    _analysis_target_actions_with_dossier_test(
+        name = "{}_generates_codesigning_dossier_when_legacy_signing_disabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test.__internal__.__test_bundle",
+        target_mnemonic = "GenerateCodesigningDossier",
+        tags = [name],
+    )
+
+    _analysis_runfiles_with_dossier_test(
+        name = "{}_includes_codesigning_dossier_when_legacy_signing_disabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_runfiles = [
+            "test/starlark_tests/targets_under_test/ios/unit_test.__internal__.__test_bundle_dossier.zip",
+        ],
         tags = [name],
     )
 
