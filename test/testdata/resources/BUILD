@@ -12,8 +12,6 @@ licenses(["notice"])
 
 exports_files(
     [
-        "launch_screen_ios.storyboard",
-        "launch_screen_ios.xib",
         "nonlocalized.plist",
         "nonlocalized.strings",
         "nonlocalized_resource.txt",
@@ -22,59 +20,6 @@ exports_files(
         "view_ios.xib",
     ],
     visibility = ["//test:__subpackages__"],
-)
-
-# A convenience target that can be passed into the data attribute of an Apple
-# shell test to make the iOS-compatible resources available to builds under
-# test.
-filegroup(
-    name = "resource_data_deps_ios",
-    srcs = [
-        "BUILD",
-        "launch_screen_ios.storyboard",
-        "launch_screen_ios.xib",
-        "storyboard_ios.storyboard",
-        "view_ios.xib",
-        ":app_icons_ios",
-        ":app_icons_ios_with_bad_size",
-        ":assets2_ios",
-        ":assets_ios",
-        ":imageset_missing_child",
-        ":imageset_with_invalid_json",
-        ":imageset_with_unassigned_child",
-        ":localized_storyboards_ios",
-        ":localized_xibs_ios",
-        ":message_ext_app_icon_ios",
-        ":settings_bundle_ios_files",
-    ],
-)
-
-filegroup(
-    name = "resource_data_deps_platform_independent",
-    srcs = [
-        "BUILD",
-        "Info-template.plist",
-        "nonlocalized.plist",
-        "nonlocalized.strings",
-        "nonlocalized_resource.txt",
-        "sample.png",
-        ":basic_bundle_files",
-        ":localized_generic_resources",
-        ":localized_plists",
-        ":localized_strings",
-        ":mapping_model",
-        ":structured",
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
-    ],
-)
-
-filegroup(
-    name = "texture_atlas_data_deps",
-    srcs = [
-        "BUILD",
-        ":star_atlas_files",
-    ],
 )
 
 filegroup(
@@ -121,66 +66,10 @@ genrule(
     cmd = "cp $< $@",
 )
 
-apple_resource_bundle(
-    name = "bundle_library_ios",
-    infoplists = [
-        "Info-template.plist",
-    ],
-    resources = [
-        "generated.strings",
-        "nonlocalized.plist",
-        "nonlocalized.strings",
-        "nonlocalized_resource.txt",
-        "sample.png",
-        "storyboard_ios.storyboard",
-        "view_ios.xib",
-        ":assets_ios",
-        ":basic_bundle",
-        ":localized_generic_resources",
-        ":localized_plists",
-        ":localized_storyboards_ios",
-        ":localized_strings",
-        ":localized_xibs_ios",
-        ":mapping_model",
-        ":unversioned_datamodel",
-        ":versioned_datamodel",
-    ],
-    structured_resources = [
-        ":generate_structured_strings",
-        ":structured",
-    ],
-)
-
-apple_resource_bundle(
-    name = "bundle_library_macos",
-    bundle_name = "bundle_library_macos",
-    infoplists = [
-        "Info-template.plist",
-    ],
-    resources = [
-        "generated.strings",
-        "nonlocalized.plist",
-        "nonlocalized.strings",
-        "nonlocalized_resource.txt",
-        "sample.png",
-        ":basic_bundle",
-        ":localized_generic_resources",
-        ":localized_plists",
-        ":localized_strings",
-        ":mapping_model",
-    ],
-    structured_resources = [
-        ":generate_structured_strings",
-        ":structured",
-    ],
-)
-
-# This is just like :bundle_library_* but with a subset of the resources. The
-# subset are all the resources that don't require Apple's processing tools
-# (actool, ibtool, etc.) which some times fail for "reasons". This then
-# provides a bundle that does get some processing, but is less likely to cause
-# build/test flake. It is useful for some of the simpler tests looking at
-# resource deduping, etc.
+# A resource bundle containing only resources that don't require Apple's
+# processing tools (actool, ibtool, etc.), which can occasionally flake. This
+# provides a bundle that still undergoes basic resource processing for tests
+# checking resource deduplication, etc.
 apple_resource_bundle(
     name = "simple_bundle_library",
     bundle_name = "simple_bundle_library",
@@ -227,46 +116,6 @@ filegroup(
 filegroup(
     name = "localized_xibs_ios",
     srcs = glob(["*.lproj/*.xib"]),
-)
-
-filegroup(
-    name = "mapping_model",
-    srcs = glob(["mapping_model.xcmappingmodel/**"]),
-)
-
-apple_bundle_import(
-    name = "settings_bundle_ios",
-    bundle_imports = [":settings_bundle_ios_files"],
-)
-
-filegroup(
-    name = "settings_bundle_ios_files",
-    srcs = glob(["settings_ios.bundle/**"]),
-)
-
-filegroup(
-    name = "star_atlas_files",
-    srcs = glob(["star.atlas/**"]),
-)
-
-filegroup(
-    name = "imageset_missing_child",
-    srcs = glob(["imageset_missing_child.xcassets/**"]),
-)
-
-filegroup(
-    name = "imageset_with_unassigned_child",
-    srcs = glob(["imageset_with_unassigned_child.xcassets/**"]),
-)
-
-filegroup(
-    name = "app_icons_ios_with_bad_size",
-    srcs = glob(["app_icons_ios_with_bad_size.xcassets/**"]),
-)
-
-filegroup(
-    name = "imageset_with_invalid_json",
-    srcs = glob(["imageset_with_invalid_json.xcassets/**"]),
 )
 
 filegroup(

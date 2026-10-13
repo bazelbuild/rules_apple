@@ -5,8 +5,3 @@ package(
 )
 
 licenses(["notice"])
-
-filegroup(
-    name = "srcs",
-    srcs = ["BUILD"],
-)

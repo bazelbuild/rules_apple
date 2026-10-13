@@ -95,11 +95,6 @@ macos_application(
     ],
 )
 
-filegroup(
-    name = "all_files",
-    srcs = glob(["**"]),
-)
-
 # Not normally needed, just done for rules_apple's examples so a
 # 'bazel test examples/...' ensures all Examples still build.
 build_test(

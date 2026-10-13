@@ -71,13 +71,3 @@ build_test(
     name = "signature_tool_build_test",
     targets = [":signature_tool_osx"],
 )
-
-# Consumed by bazel tests.
-filegroup(
-    name = "for_bazel_tests",
-    testonly = 1,
-    srcs = glob(["**"]),
-    visibility = [
-        "//tools:__pkg__",
-    ],
-)
