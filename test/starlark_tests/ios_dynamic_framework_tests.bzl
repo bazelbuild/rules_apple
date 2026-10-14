@@ -166,7 +166,9 @@ def ios_dynamic_framework_test_suite(name):
         ],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/Frameworks/",
+            "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/Modules",
             "$BUNDLE_ROOT/Frameworks/swift_transitive_lib.framework/nonlocalized.plist",
+            "$BUNDLE_ROOT/Frameworks/swift_shared_lib.framework/Modules",
             "$BUNDLE_ROOT/framework_resources/nonlocalized.plist",
         ],
         binary_contains_symbols = ["_$s20swift_transitive_lib21anotherFunctionSharedyyF"],
