@@ -69,7 +69,7 @@ Declare a code signing identity, to be used in all code signing flows related to
 Indicates that the Swift implementation of `plisttool` should be used instead of the legacy Python
 implementation when invoked via `plisttool_wrapper`.
 """,
-        default = False,
+        default = True,
     ),
     "use_tree_artifacts_outputs": struct(
         doc = """
