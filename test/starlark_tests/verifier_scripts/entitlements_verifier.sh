@@ -19,6 +19,9 @@ set -euo pipefail
 TEMP_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_output.XXXXXX")"
 TEMP_DER_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_der_output.XXXXXX")"
 
+BINARY=$(eval echo ${BINARY_TEST_FILE:-$BINARY})
+BUNDLE_ROOT=$(eval echo ${BUNDLE_TEST_ROOT:-$BUNDLE_ROOT})
+
 # If ENTITLEMENT_KEYS, ENTITLEMENTS_KEY, ABSENT_ENTITLEMENT_KEYS, or
 # ENTITLEMENT_VALUES was provided via the test's `env` attribute, check those
 # keys/values. Otherwise fall back to the default entitlement key from

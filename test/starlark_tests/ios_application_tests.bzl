@@ -1478,10 +1478,9 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         name = "{}_no_get_task_allow_entitlements_by_default_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_provisioning_profile",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["get-task-allow"],
+            "ABSENT_ENTITLEMENT_KEYS": ["get-task-allow"],
         },
         tags = [
             name,
@@ -1494,7 +1493,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "ENTITLEMENTS_KEY": ["get-task-allow"],
         },
@@ -1506,7 +1505,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         name = "{}_get_task_allow_entitlements_by_default_with_provisioning_profile_simulator_test".format(name),
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "ENTITLEMENTS_KEY": ["get-task-allow"],
         },
@@ -1521,7 +1520,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         name = "{}_enhanced_security_features_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
         },
@@ -1533,9 +1532,9 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
         tags = [
             name,
@@ -1587,9 +1586,13 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_pointer_authentication_entitlements_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
         },
         tags = [
             name,
@@ -1599,9 +1602,13 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
         tags = [
             name,
@@ -1640,11 +1647,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
         },
         tags = [
             name,
@@ -1654,11 +1664,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
         },
         tags = [
             name,
@@ -1682,10 +1695,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
         },
         tags = [
             name,
@@ -1695,10 +1712,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/simple_pointer_authentication_extension.appex/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
         tags = [
             name,
@@ -1731,32 +1752,6 @@ Apple enhanced security features were requested, but the build is missing the re
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_pointer_authentication_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
-        env = {
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
-        },
-        tags = [
-            name,
-        ],
-    )
-    apple_verification_test(
-        name = "{}_xcode_26_entitlements_framework_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
-        env = {
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Frameworks/fmwk_min_os_baseline.framework/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
-        },
-        tags = [
-            name,
-        ],
     )
 
     archive_contents_test(
@@ -1798,11 +1793,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
         },
         tags = [
             name,
@@ -1812,11 +1810,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
         },
         tags = [
             name,
@@ -1840,10 +1841,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
         },
         tags = [
             name,
@@ -1853,10 +1858,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip_with_pointer_authentication.app/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
         tags = [
             name,
@@ -1881,11 +1890,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
         },
         tags = [
             name,
@@ -1895,11 +1907,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_no_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
-            "CHECK_FOR_ABSENT_ENTITLEMENTS": ["True"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
         },
         tags = [
             name,
@@ -1923,10 +1938,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.pointer-authentication"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process"],
         },
         tags = [
             name,
@@ -1936,10 +1955,14 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
-        verifier_script = "verifier_scripts/entitlements_key_verifier.sh",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": ["arm64", "arm64e"],
+        },
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
         env = {
             "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/simple_pointer_authentication_app.app/"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version"],
+            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
         },
         tags = [
             name,
