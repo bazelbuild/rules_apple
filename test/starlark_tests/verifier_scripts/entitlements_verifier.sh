@@ -72,9 +72,10 @@ done
 for kv in "${ENTITLEMENT_VALUES[@]}"; do
   if [[ -n "$kv" ]]; then
     key="${kv%%=*}"
+    top_key="${key%%:*}"
     expected_value="${kv#*=}"
-    assert_contains "<key>$key</key>" "$TEMP_OUTPUT"
-    assert_contains "$key" "$TEMP_DER_OUTPUT"
+    assert_contains "<key>$top_key</key>" "$TEMP_OUTPUT"
+    assert_contains "$top_key" "$TEMP_DER_OUTPUT"
     actual_value="$(/usr/libexec/PlistBuddy -c "Print :$key" "$TEMP_OUTPUT" 2>/dev/null || true)"
     assert_equals "$expected_value" "$actual_value"
   fi

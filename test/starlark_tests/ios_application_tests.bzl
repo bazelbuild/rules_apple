@@ -1514,6 +1514,139 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         ],
     )
 
+    # Tests that get-task-allow is not added to the entitlements if the provisioning profile does
+    # not declare get-task-allow.
+    apple_verification_test(
+        name = "{}_no_get_task_allow_from_provisioning_profile_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_get_task_allow_provisioning_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["get-task-allow"],
+            "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_no_get_task_allow_from_provisioning_profile_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_get_task_allow_provisioning_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["get-task-allow"],
+            "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that get-task-allow is added from the provisioning profile even when custom
+    # entitlements are provided.
+    apple_verification_test(
+        name = "{}_get_task_allow_from_provisioning_profile_with_custom_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_keychain_access_groups_entitlements",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+            "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_get_task_allow_from_provisioning_profile_with_custom_entitlements_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_keychain_access_groups_entitlements",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+            "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that the add_debugger_entitlement build setting forces or omits get-task-allow.
+    for setting_value, should_be_present in [
+        ("false", False),
+        ("true", True),
+    ]:
+        for build_type in ["device", "simulator"]:
+            apple_verification_test(
+                name = "{}_debugger_entitlements_forced_{}_{}_test".format(
+                    name,
+                    setting_value,
+                    build_type,
+                ),
+                build_type = build_type,
+                build_settings = {
+                    build_settings_labels.add_debugger_entitlement: setting_value,
+                },
+                target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_no_get_task_allow_provisioning_profile",
+                verifier_script = "verifier_scripts/entitlements_verifier.sh",
+                env = {
+                    "ENTITLEMENTS_KEY": ["get-task-allow"],
+                    "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+                } if should_be_present else {
+                    "ABSENT_ENTITLEMENT_KEYS": ["get-task-allow"],
+                    "ENTITLEMENT_VALUES": ["keychain-access-groups:0=FOOBARBAZ1.com.google.example"],
+                },
+                tags = [
+                    name,
+                ],
+            )
+
+    # Tests that custom pass-type-identifiers entitlements are verified against a narrowly scoped
+    # provisioning profile and do not include unrelated entitlement keys.
+    apple_verification_test(
+        name = "{}_pass_type_identifiers_custom_entitlements_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_pass_type_identifiers_entitlements",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["keychain-access-groups"],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.developer.pass-type-identifiers:0=FOOBARBAZ1.com.google.example",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_pass_type_identifiers_custom_entitlements_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_pass_type_identifiers_entitlements",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["keychain-access-groups"],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.developer.pass-type-identifiers:0=FOOBARBAZ1.com.google.example",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    # Tests that a target name with hyphens is properly sanitized when embedding entitlements in a
+    # simulator binary.
+    apple_verification_test(
+        name = "{}_target_name_with_hyphen_entitlements_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [
+            name,
+        ],
+    )
+
     # Tests that the required Xcode 26 entitlements are added when enhanced security features are
     # assigned to a target.
     apple_verification_test(
