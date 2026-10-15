@@ -25,14 +25,6 @@
     </array>
     <key>Entitlements</key>
     <dict>
-        <key>com.apple.developer.pass-type-identifiers</key>
-        <array>
-            <string>FOOBARBAZ1.*</string>
-        </array>
-        <key>keychain-access-groups</key>
-        <array>
-            <string>FOOBARBAZ1.*</string>
-        </array>
         <key>get-task-allow</key>
         <true/>
         <key>com.apple.application-identifier</key>

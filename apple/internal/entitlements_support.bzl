@@ -96,24 +96,26 @@ def _new_entitlements_artifact(*, actions, extension, label_name):
         "entitlements/%s%s" % (label_name, extension),
     )
 
-def _force_debug_entitlements(*, platform_prerequisites):
+def _force_debug_entitlements(*, build_settings, platform_prerequisites):
     """Returns a value indicating whether the `get-task-allow` debug entitlements should be forced.
 
     Debug entitlements are not forced on macOS at this level, regardless of the
-    apple.add_debugger_entitlement define.
+    `add_debugger_entitlement` build setting or `apple.add_debugger_entitlement` define.
 
-    Debug entitlements are forced if the apple.add_debugger_entitlement define indicates that they
-    should be included, and if it is not present, they are not.
+    Debug entitlements are forced if the `add_debugger_entitlement` build setting or
+    `apple.add_debugger_entitlement` define indicates that they should be included, and if neither
+    is present, they are not.
 
     Note however that if `get-task-allow` is in the provisioning profile, `get-task-allow` will
     still be included in the evaluated entitlements file for code signing even if this function
     returns False, on account of plisttool's behavior.
 
     Therefore, the ONLY practical effect of this function is to allow for debugging simulator
-    targets that don't have provisioning profiles assigned if apple.add_debugger_entitlement is set
-    to True.
+    targets that don't have provisioning profiles assigned if `add_debugger_entitlement` or
+    `apple.add_debugger_entitlement` is set to True.
 
     Args:
+      build_settings: The `build_settings` struct from `apple_xplat_toolchain_info`.
       platform_prerequisites: Struct containing information on the platform being targeted.
 
     Returns:
@@ -121,6 +123,8 @@ def _force_debug_entitlements(*, platform_prerequisites):
     """
     if platform_prerequisites.platform_type == "macos":
         return False
+    if build_settings.add_debugger_entitlement:
+        return True
     add_debugger_entitlement = defines.bool_value(
         config_vars = platform_prerequisites.config_vars,
         default = None,
@@ -337,7 +341,10 @@ def _process_entitlements(
     entitlements_from_secure_features = []
     if signing_info.entitlements:
         plists.append(signing_info.entitlements)
-    if _force_debug_entitlements(platform_prerequisites = platform_prerequisites):
+    if _force_debug_entitlements(
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        platform_prerequisites = platform_prerequisites,
+    ):
         get_task_allow = {"get-task-allow": True}
         forced_plists.append(struct(**get_task_allow))
     if _include_app_clip_entitlements(product_type = product_type):

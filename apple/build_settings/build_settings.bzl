@@ -24,6 +24,12 @@ _BUILD_SETTINGS_PACKAGE = "@build_bazel_rules_apple//apple/build_settings"
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
+    "add_debugger_entitlement": struct(
+        doc = """
+Forces adding the `get-task-allow` debugger entitlement when true.
+""",
+        default = False,
+    ),
     "force_clangrttool_on_mac": struct(
         doc = """
 Indicates that `clangrttool` should be run on the Mac, rather than on Linux. This is an emergency
