@@ -286,9 +286,6 @@ def _link_multi_arch_binary(
         for dep in avoid_deps
         if AppleExecutableBinaryInfo in dep
     ])
-    avoid_cc_linking_contexts.extend(
-        [dep[CcInfo].linking_context for dep in avoid_deps if CcInfo in dep],
-    )
 
     linker_outputs = []
 

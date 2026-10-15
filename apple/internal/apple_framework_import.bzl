@@ -61,10 +61,6 @@ load(
     "SwiftUsageInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "AppleDynamicFrameworkInfo",
-)
-load(
     "@build_bazel_rules_swift//swift:swift_clang_module_aspect.bzl",
     "swift_clang_module_aspect",
 )
@@ -182,11 +178,6 @@ There should only be one valid framework binary, given a name that matches its f
         libraries = binary_imports,
     )
     providers.append(cc_info)
-
-    # Create AppleDynamicFramework provider.
-    providers.append(AppleDynamicFrameworkInfo(
-        framework_linking_context = cc_info.linking_context,
-    ))
 
     if framework.swift_interface_imports:
         # Create SwiftInfo provider

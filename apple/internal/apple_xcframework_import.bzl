@@ -49,10 +49,6 @@ load(
     "SwiftUsageInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:apple_dynamic_framework_info.bzl",
-    "AppleDynamicFrameworkInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -805,11 +801,6 @@ Files found:
     )
     providers.append(cc_info)
 
-    # Create AppleDynamicFrameworkInfo provider
-    providers.append(AppleDynamicFrameworkInfo(
-        framework_linking_context = cc_info.linking_context,
-    ))
-
     if xcframework_library.swift_module_interface:
         # Create SwiftInfo provider
         swift_toolchains = swift_common.find_all_toolchains(ctx)
@@ -1040,7 +1031,6 @@ on this target.
     provides = [
         AppleFrameworkImportInfo,
         CcInfo,
-        AppleDynamicFrameworkInfo,
     ],
     toolchains = swift_common.use_all_toolchains() + use_cpp_toolchain(),
 )
