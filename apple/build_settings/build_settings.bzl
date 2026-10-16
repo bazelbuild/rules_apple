@@ -72,8 +72,7 @@ Declare a code signing identity, to be used in all code signing flows related to
     ),
     "use_swift_plisttool": struct(
         doc = """
-Indicates that the Swift implementation of `plisttool` should be used instead of the legacy Python
-implementation when invoked via `plisttool_wrapper`.
+This build setting is a no-op and will be removed entirely in a future iteration of the Apple rules.
 """,
         default = True,
     ),

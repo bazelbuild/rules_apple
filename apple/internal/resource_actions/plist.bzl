@@ -76,10 +76,12 @@ def plisttool_action(
       platform_prerequisites: Struct containing information on the platform being targeted.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
+
+    # TODO(b/493928590): Remove `use_swift_plisttool` from the control dict and
+    # encode `control` directly once the prebuilt `plisttool` binary no longer
+    # uses the wrapper.
     control_dict = structs.to_dict(control)
-    control_dict["use_swift_plisttool"] = (
-        apple_xplat_toolchain_info.build_settings.use_swift_plisttool
-    )
+    control_dict["use_swift_plisttool"] = True
     control_args = actions.args()
     control_args.add(json.encode(control_dict))
     if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac:
