@@ -5105,6 +5105,26 @@ ios_ui_test(
 )
 
 ios_ui_test(
+    name = "ui_test_with_fmwk_importing_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk_with_imported_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app_with_imported_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_ui_test(
     name = "ui_test_dummy_runner",
     families = [
         "iphone",
@@ -5279,6 +5299,45 @@ ios_unit_test(
     ],
     frameworks = [
         ":fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_host_and_fmwk_importing_same_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk_with_imported_fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    test_host = ":app_with_imported_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_fmwk_importing_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk_with_imported_fmwk",
     ],
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
