@@ -12,6 +12,10 @@ load(
     "apple_xcframework",
 )
 load(
+    "//apple:dmg.bzl",
+    "macos_dmg",
+)
+load(
     "//apple:macos.bzl",
     "macos_application",
     "macos_bundle",
@@ -3418,4 +3422,73 @@ apple_static_xcframework(
     ],
     tags = common.fixture_tags,
     deps = [":fmwk_lib"],
+)
+
+# ---------------------------------------------------------------------------------------
+# Targets for macos_dmg tests.
+
+macos_dmg(
+    name = "app_dmg",
+    app = ":app_min_os_baseline",
+    tags = common.fixture_tags,
+)
+
+macos_dmg(
+    name = "app_dmg_custom",
+    app = ":app_min_os_baseline",
+    background = "//test/starlark_tests/resources:sample.png",
+    format = "UDRO",
+    partition_map = False,
+    tags = common.fixture_tags,
+    timestamp = 1234567890,
+    volume_name = "Minimal App",
+)
+
+macos_dmg(
+    name = "bundle_dmg",
+    app = ":bundle",
+    tags = common.fixture_tags,
+)
+
+filegroup(
+    name = "app_zip",
+    srcs = [":app_min_os_baseline"],
+    tags = common.fixture_tags,
+)
+
+genrule(
+    name = "app_tar_gz",
+    srcs = [":app_zip"],
+    outs = ["app_min_os_baseline-1.0-arm64.tar.gz"],
+    cmd = """
+        tmp="$$(mktemp -d)"
+        unzip -q "$<" -d "$$tmp"
+        tar -czf "$@" -C "$$tmp" app_min_os_baseline.app
+        rm -rf "$$tmp"
+    """,
+    tags = common.fixture_tags,
+)
+
+macos_dmg(
+    name = "zip_archive_dmg",
+    archive = ":app_zip",
+    tags = common.fixture_tags,
+)
+
+macos_dmg(
+    name = "tar_gz_archive_dmg",
+    archive = ":app_tar_gz",
+    tags = common.fixture_tags,
+)
+
+macos_dmg(
+    name = "app_and_archive_dmg",
+    app = ":app_min_os_baseline",
+    archive = ":app_zip",
+    tags = common.fixture_tags,
+)
+
+macos_dmg(
+    name = "no_input_dmg",
+    tags = common.fixture_tags,
 )

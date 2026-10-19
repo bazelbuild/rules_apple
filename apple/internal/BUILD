@@ -866,6 +866,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "dmg",
+    srcs = ["dmg.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple:providers",
+    ],
+)
+
+bzl_library(
     name = "xcarchive",
     srcs = ["xcarchive.bzl"],
     visibility = [

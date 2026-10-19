@@ -9,6 +9,7 @@ licenses(["notice"])
 exports_files(
     [
         "apple.bzl",
+        "dmg.bzl",
         "docc.bzl",
         "dtrace.bzl",
         "header_map.bzl",
@@ -256,6 +257,12 @@ bzl_library(
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
     ],
+)
+
+bzl_library(
+    name = "dmg",
+    srcs = ["dmg.bzl"],
+    deps = ["//apple/internal:dmg"],
 )
 
 bzl_library(

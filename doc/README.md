@@ -107,7 +107,7 @@ below.
   </thead>
   <tbody>
     <tr>
-      <th align="left" valign="top" rowspan="6">General</th>
+      <th align="left" valign="top" rowspan="7">General</th>
       <tr>
         <td valign="top"><code>@rules_apple//apple:apple.bzl</code></td>
         <td valign="top">
@@ -122,6 +122,12 @@ below.
           <code><a href="rules-apple.md#local_provisioning_profile">local_provisioning_profile</a></code><br/>
           <code><a href="rules-apple.md#provisioning_profile_repository_extension">provisioning_profile_repository_extension</a></code><br/>
           <code><a href="rules-apple.md#provisioning_profile_repository">provisioning_profile_repository</a></code><br/>
+        </td>
+      </tr>
+      <tr>
+        <td valign="top"><code>@rules_apple//apple:dmg.bzl</code></td>
+        <td valign="top">
+          <code><a href="rules-dmg.md#macos_dmg">macos_dmg</a></code>
         </td>
       </tr>
       <tr>

@@ -1,0 +1,13 @@
+github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
+github.com/jetbrains/go-dmg-packer v0.1.0 h1:QbhZNbk89gEsFXO5GUfBOdvZXiLQ6oSWTq408VqpQYM=
+github.com/jetbrains/go-dmg-packer v0.1.0/go.mod h1:x35zmSoey3ElC8G43ulvjCv0fvFn1CAoHrvzUkjaxqk=
+github.com/jetbrains/go-dmg-writer v0.0.0-20260907121604-149c5f3195fe h1:IM/oPNe5IUdlgqXl3BUlWyuXYEEz24wom6sLWN55Oxk=
+github.com/jetbrains/go-dmg-writer v0.0.0-20260907121604-149c5f3195fe/go.mod h1:g31OUIXrVJljP/dc167gOa5cum92xNIBM7Rwrj7tCBk=
+golang.org/x/sys v0.44.0 h1:ildZl3J4uzeKP07r2F++Op7E9B29JRUy+a27EibtBTQ=
+golang.org/x/sys v0.44.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
+golang.org/x/text v0.41.0 h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=
+golang.org/x/text v0.41.0/go.mod h1:jvf1O8ajNzZqhSrQBPbutR/EB83Cc0CFrezNQIwbb5M=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0/go.mod h1:WDnlLJ4WF5VGsH/HVa3CI79GS0ol3YnhVnKP89i0kNg=
+howett.net/plist v1.0.1 h1:37GdZ8tP09Q35o9ych3ehygcsL+HqKSwzctveSlarvM=
+howett.net/plist v1.0.1/go.mod h1:lqaXoTrLY4hg8tnEzNru53gicrbv7rrk+2xJA/7hw9g=

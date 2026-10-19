@@ -13,6 +13,7 @@ load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite
 load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
 load(":apple_xcframework_import_tests.bzl", "apple_xcframework_import_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
+load(":dmg_tests.bzl", "dmg_test_suite")
 load(":docc_tests.bzl", "docc_test_suite")
 load(":dtrace_compile_tests.bzl", "dtrace_compile_test_suite")
 load(":generate_dynamic_xcframework_tests.bzl", "generate_dynamic_xcframework_test_suite")
@@ -224,6 +225,8 @@ watchos_unit_test_test_suite(name = "watchos_unit_test")
 xcarchive_test_suite(name = "xcarchive")
 
 xctrunner_test_suite(name = "xctrunner")
+
+dmg_test_suite(name = "dmg")
 
 docc_test_suite(name = "docc")
 
