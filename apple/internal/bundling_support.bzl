@@ -470,6 +470,16 @@ def _generate_tree_artifact_bundle_action(
 
     run_on_darwin = any([code_signing_commands, post_processor])
     if run_on_darwin:
+        execution_requirements = {}
+        if code_signing_commands:
+            execution_requirements = {
+                # Added so that the output of this action is not cached remotely, in case multiple
+                # developers sign the same artifact with different identities.
+                "no-remote": "1",
+                # Unsure, but may be needed for keychain access, especially for files that live in
+                # $HOME.
+                "no-sandbox": "1",
+            }
         apple_support.run(
             actions = actions,
             apple_platform_info = apple_platform_info,
@@ -479,14 +489,7 @@ def _generate_tree_artifact_bundle_action(
             env = shared_environment.default_env,
             exec_group = mac_exec_group,
             executable = apple_mac_toolchain_info.bundletool_mac,
-            execution_requirements = {
-                # Added so that the output of this action is not cached remotely, in case multiple
-                # developers sign the same artifact with different identities.
-                "no-remote": "1",
-                # Unsure, but may be needed for keychain access, especially for files that live in
-                # $HOME.
-                "no-sandbox": "1",
-            },
+            execution_requirements = execution_requirements,
             inputs = bundletool_final_inputs,
             mnemonic = mnemonic,
             outputs = [output_archive],

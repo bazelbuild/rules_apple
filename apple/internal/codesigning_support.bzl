@@ -737,12 +737,8 @@ def _post_process_and_sign_archive_action(
 
     run_on_darwin = any([signing_command_lines, ipa_post_processor_path])
     if run_on_darwin:
-        apple_support.run(
-            actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
-            arguments = arguments,
-            env = shared_environment.default_env,
-            executable = process_and_sign_expanded_template,
+        execution_requirements = {}
+        if signing_command_lines:
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -750,7 +746,14 @@ def _post_process_and_sign_archive_action(
                 # Unsure, but may be needed for keychain access, especially for files that live in
                 # $HOME.
                 "no-sandbox": "1",
-            },
+            }
+        apple_support.run(
+            actions = actions,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
+            arguments = arguments,
+            env = shared_environment.default_env,
+            executable = process_and_sign_expanded_template,
+            execution_requirements = execution_requirements,
             exec_group = mac_exec_group,
             inputs = input_files,
             mnemonic = mnemonic,

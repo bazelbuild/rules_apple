@@ -2185,7 +2185,10 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_process_and_sign_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         target_mnemonic = "ProcessAndSign",
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 
@@ -2210,6 +2213,10 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
         target_mnemonic = "ProcessAndSign",
         expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-cache",
+            "no-sandbox",
+        ],
         tags = [name],
     )
 
@@ -2240,7 +2247,10 @@ Apple enhanced security features were requested, but the build is missing the re
         name = "{}_bundle_tree_app_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         target_mnemonic = "BundleTreeApp",
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 
@@ -2257,6 +2267,10 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
         target_mnemonic = "BundleTreeApp",
         expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-remote",
+            "no-sandbox",
+        ],
         tags = [name],
     )
 
