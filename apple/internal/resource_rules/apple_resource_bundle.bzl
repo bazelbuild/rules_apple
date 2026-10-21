@@ -83,6 +83,13 @@ You can also add other `apple_resource_bundle` and `apple_bundle_import` targets
 and the resource bundle structures will be propagated into the final bundle.
 """,
         ),
+        "swift_module": attr.string(
+            doc = """
+The Swift module name to use when compiling resources such as Core Data models and Interface Builder
+files. Set this to the module that defines the Swift classes referenced by the resources. If omitted,
+resources use the Swift module of the consuming Apple bundle.
+""",
+        ),
         "strip_structured_resources_prefixes": attr.string_list(
             doc = """
 A list of prefixes to strip from the paths of structured resources. For each
