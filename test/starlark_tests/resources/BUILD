@@ -1592,3 +1592,24 @@ cc_library(
         ":ccinfo_dylibs_mylib-import-with-data",
     ],
 )
+
+# The bundle name and consuming app/test module deliberately differ from the resource module.
+apple_resource_bundle(
+    name = "resource_bundle_with_swift_module",
+    bundle_name = "ResourceModelBundle",
+    resources = [
+        "//test/testdata/resources:storyboard_ios.storyboard",
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:view_ios.xib",
+    ],
+    swift_module = "ResourceModel",
+    tags = common.fixture_tags,
+)
+
+swift_library(
+    name = "resource_bundle_swift_module_lib",
+    srcs = ["Common.swift"],
+    data = [":resource_bundle_with_swift_module"],
+    module_name = "ResourceModel",
+    tags = common.fixture_tags,
+)
