@@ -118,7 +118,7 @@ def watchos_framework_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/watchos/frameworks:fmwk_dead_stripped",
         binary_test_file = "$BUNDLE_ROOT/fmwk_dead_stripped",
         compilation_mode = "opt",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         binary_not_contains_symbols = ["_dontCallMeShared", "_anticipatedDeadCode"],
         tags = [name],
@@ -129,7 +129,7 @@ def watchos_framework_test_suite(name):
     binary_contents_test(
         name = "{}_defines_static_library_impl".format(name),
         build_type = "simulator",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_imported_static_framework.framework/fmwk_with_imported_static_framework",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
@@ -145,7 +145,7 @@ def watchos_framework_test_suite(name):
     binary_contents_test(
         name = "{}_associated_watchos_application_does_not_define_static_library_impl".format(name),
         build_type = "simulator",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_test_file = "$BINARY",
         binary_not_contains_symbols = [
             "-[SharedClass doSomethingShared]",

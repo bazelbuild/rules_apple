@@ -345,7 +345,7 @@ apple_xcframework(
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
     macos = {
         "device": [
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -417,7 +417,7 @@ apple_xcframework(
     infoplists = ["//test/starlark_tests/resources:Info.plist"],
     macos = {
         "device": [
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {

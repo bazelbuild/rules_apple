@@ -57,7 +57,7 @@ def macos_dylib_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
         binary_test_file = "$BINARY",
         compilation_mode = "opt",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         binary_not_contains_symbols = ["_dontCallMeShared"],
         tags = [name],

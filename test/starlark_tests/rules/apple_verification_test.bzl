@@ -66,18 +66,18 @@ _CPU_TO_PLATFORM = {
 def _apple_verification_transition_impl(settings, attr):
     """Implementation of the apple_verification_transition transition."""
 
-    platforms = [_CPU_TO_PLATFORM["darwin_x86_64"]]
+    platforms = [_CPU_TO_PLATFORM["darwin_arm64"]]
     output_dictionary = {
         "//command_line_option:platforms": platforms,
-        "//command_line_option:macos_cpus": "x86_64",
+        "//command_line_option:macos_cpus": "arm64",
         "//command_line_option:compilation_mode": attr.compilation_mode,
         "//command_line_option:apple_generate_dsym": getattr(attr, "apple_generate_dsym", "False"),
     }
     if attr.build_type == "simulator":
         output_dictionary.update({
-            "//command_line_option:ios_multi_cpus": "x86_64",
-            "//command_line_option:tvos_cpus": "x86_64",
-            "//command_line_option:watchos_cpus": "x86_64",
+            "//command_line_option:ios_multi_cpus": "sim_arm64",
+            "//command_line_option:tvos_cpus": "sim_arm64",
+            "//command_line_option:watchos_cpus": "sim_arm64",
             "//command_line_option:visionos_cpus": "sim_arm64",
         })
     else:

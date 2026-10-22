@@ -391,7 +391,7 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_special_linkopts",
         binary_test_file = "$CONTENT_ROOT/MacOS/app_special_linkopts",
         compilation_mode = "opt",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_linkopts_test_main"],
         tags = [name],
     )
@@ -759,7 +759,7 @@ Apple enhanced security features were requested, but the build is missing the re
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:bundled_app_to_test_building_apple_bundle",
         binary_test_file = "$CONTENT_ROOT/MacOS/bundled_app_to_test_building_apple_bundle",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_IsBuildingAppleBundle"],
         binary_not_contains_symbols = ["_IsNotBuildingAppleBundle"],
         tags = [name],

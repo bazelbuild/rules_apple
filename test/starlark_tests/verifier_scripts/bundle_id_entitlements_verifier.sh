@@ -26,14 +26,18 @@ if [[ "$BUILD_TYPE" == "simulator" ]]; then
   # First check the legacy xml plist section.
   xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-      -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_OUTPUT"
+      -e 'tx' -e 'd' -e ':x' \
+      -e 's/\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)/\4\3\2\1/g' | \
+      xxd -r -p > "$TEMP_OUTPUT"
 
   assert_contains ".$TEST_BUNDLE_ID_STRING</string>" "$TEMP_OUTPUT"
 
   # Then check the new DER encoded section.
   xcrun llvm-objdump --macho --section=__TEXT,__ents_der "$BINARY" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-      -e 'tx' -e 'd' -e ':x' | xxd -r -p > "$TEMP_DER_OUTPUT"
+      -e 'tx' -e 'd' -e ':x' \
+      -e 's/\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)/\4\3\2\1/g' | \
+      xxd -r -p > "$TEMP_DER_OUTPUT"
 
   assert_contains ".$TEST_BUNDLE_ID_STRING" "$TEMP_DER_OUTPUT"
 

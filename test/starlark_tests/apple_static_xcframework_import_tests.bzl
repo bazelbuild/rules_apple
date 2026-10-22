@@ -62,7 +62,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_static_library",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
@@ -91,7 +91,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_xcframework_with_static_library",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
@@ -110,7 +110,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
@@ -122,7 +122,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_xcframework_with_static_library",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
@@ -138,7 +138,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework_with_static_library_without_swiftmodule",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC54generated_swift_static_xcframework_without_swiftmodule11SharedClass",
         ],
@@ -241,6 +241,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
     archive_contents_test(
         name = "{}_links_imported_tvos_xcframework_to_application_simulator_x86_64_build".format(name),
         build_type = "simulator",
+        cpus = {"tvos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_static_xcframework",
         binary_test_file = "$BINARY",
         binary_test_architecture = "x86_64",
@@ -345,6 +346,7 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
     archive_contents_test(
         name = "{}_bundles_imported_macos_versioned_framework_xcframework_to_application_x86_64_build".format(name),
         build_type = "device",
+        cpus = {"macos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
         binary_test_architecture = "x86_64",

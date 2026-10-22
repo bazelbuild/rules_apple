@@ -836,7 +836,7 @@ apple_static_xcframework(
     tags = common.fixture_tags,
     watchos = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     deps = [

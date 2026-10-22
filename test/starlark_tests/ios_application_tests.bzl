@@ -389,7 +389,7 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_fmwk",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
@@ -403,7 +403,7 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_static_fmwk",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass",
         ],
@@ -415,7 +415,7 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_static_fmwk_without_module_interface_files",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_OBJC_CLASS_$__TtC46iOSSwiftStaticFrameworkWithoutModuleInterfaces11SharedClass",
         ],
@@ -430,7 +430,7 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_static_fmwk",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",
@@ -446,7 +446,7 @@ All requested architectures must be either device or simulator architectures."""
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_app_with_imported_swift_static_fmwk",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_OBJC_CLASS_$__TtC23iOSSwiftStaticFramework11SharedClass"],
         not_contains = [
             "$BUNDLE_ROOT/Frameworks/libswiftCore.dylib",
@@ -986,11 +986,11 @@ App Intents bundles were defined by the following framework-referenced targets:
         text_test_file = "$BUNDLE_ROOT/Metadata.appintents/extract.actionsdata",
         text_test_values = [
             ".*HelloWorldIntent.*",
-            ".*IntelIntent.*",
+            ".*ArmIntent.*",
             ".*iOSIntent.*",
         ],
         text_file_not_contains = [
-            ".*ArmIntent.*",
+            ".*IntelIntent.*",
             ".*macOSIntent.*",
             ".*tvOSIntent.*",
             ".*watchOSIntent.*",

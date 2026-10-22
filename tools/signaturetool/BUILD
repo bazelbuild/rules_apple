@@ -9,7 +9,6 @@ apple_universal_binary(
     name = "signature_tool_osx",
     binary = ":signature_tool",
     forced_cpus = [
-        "x86_64",
         "arm64",
     ],
     minimum_os_version = "13.0",

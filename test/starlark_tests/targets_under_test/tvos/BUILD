@@ -696,7 +696,7 @@ apple_xcframework(
     tags = common.fixture_tags,
     tvos = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     deps = [
@@ -755,7 +755,7 @@ apple_static_xcframework(
     tags = common.fixture_tags,
     tvos = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     deps = [

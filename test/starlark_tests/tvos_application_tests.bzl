@@ -367,7 +367,7 @@ def tvos_application_test_suite(name):
             "$BUNDLE_ROOT/Images/foo.png",
         ],
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_transitive_structured_resources.framework/fmwk_with_transitive_structured_resources",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "_dontCallMeShared",
             "_anotherFunctionShared",
@@ -380,7 +380,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_transitive_structured_resources",
         binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_with_transitive_structured_resources",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_not_contains_symbols = [
             "_dontCallMeShared",
             "_anotherFunctionShared",
@@ -456,7 +456,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
         tags = [name],
     )
@@ -465,7 +465,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_with_fmwk.framework/fmwk_with_fmwk",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_not_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
         tags = [name],
     )
@@ -474,7 +474,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_fmwk_with_fmwk",
         binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_with_fmwk",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_not_contains_symbols = ["-[ObjectiveCCommonClass doSomethingCommon]"],
         tags = [name],
     )
@@ -524,7 +524,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_min_os_nplus1",
         binary_test_file = "$BUNDLE_ROOT/PlugIns/ext_min_os_nplus1.appex/ext_min_os_nplus1",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_not_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
     )
@@ -533,7 +533,7 @@ def tvos_application_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_min_os_nplus1",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk.framework/fmwk",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = ["_anotherFunctionShared"],
         tags = [name],
     )

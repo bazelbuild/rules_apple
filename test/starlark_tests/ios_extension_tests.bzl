@@ -200,7 +200,7 @@ def ios_extension_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_static_fmwk_and_ext",
         binary_test_file = "$BINARY",
-        binary_test_architecture = "x86_64",
+        binary_test_architecture = "arm64",
         binary_contains_symbols = [
             "-[SharedClass doSomethingShared]",
             "_OBJC_CLASS_$_SharedClass",

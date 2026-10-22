@@ -131,6 +131,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     binary_contents_test(
         name = "{}_xcframework_binary_file_info_test_x86_64".format(name),
         build_type = "simulator",
+        cpus = {"ios_multi_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
         binary_contains_file_info = ["Mach-O 64-bit dynamically linked shared library x86_64"],
@@ -177,7 +178,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
         build_type = "simulator",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_swift_xcframework",
         binary_test_file = "$BUNDLE_ROOT/Frameworks/Swift3PFmwkWithGenHeader.framework/Swift3PFmwkWithGenHeader",
-        binary_contains_file_info = ["Mach-O 64-bit dynamically linked shared library x86_64"],
+        binary_contains_file_info = ["Mach-O 64-bit dynamically linked shared library arm64"],
         tags = [name],
     )
 
@@ -313,6 +314,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_imported_tvos_xcframework_to_application_simulator_x86_64_build".format(name),
         build_type = "simulator",
+        cpus = {"tvos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_dynamic_xcframework",
         contains = [
             "$BUNDLE_ROOT/Frameworks/generated_dynamic_tvos_xcframework.framework/Info.plist",
@@ -328,6 +330,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_imported_macos_xcframework_to_application_x86_64_build".format(name),
         build_type = "device",
+        cpus = {"macos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "x86_64",
@@ -372,6 +375,7 @@ def apple_dynamic_xcframework_import_test_suite(name):
     archive_contents_test(
         name = "{}_bundles_imported_macos_versioned_xcframework_to_application_x86_64_build".format(name),
         build_type = "device",
+        cpus = {"macos_cpus": ["x86_64"]},
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
         binary_test_file = "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
         binary_test_architecture = "x86_64",

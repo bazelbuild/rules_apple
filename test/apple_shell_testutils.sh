@@ -537,7 +537,9 @@ function print_debug_entitlements() {
   # against.
   xcrun llvm-objdump --macho --section=__TEXT,__entitlements "$binary" | \
       sed -e 's/^[0-9a-f][0-9a-f]*[[:space:]][[:space:]]*//' \
-          -e 'tx' -e 'd' -e ':x' | xxd -r -p
+          -e 'tx' -e 'd' -e ':x' \
+          -e 's/\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)\([0-9a-f]\{2\}\)/\4\3\2\1/g' | \
+      xxd -r -p
 }
 
 

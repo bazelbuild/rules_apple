@@ -968,7 +968,7 @@ apple_static_xcframework(
     ],
     ios = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -2428,7 +2428,7 @@ apple_static_xcframework(
     ios = {
         "simulator": [
             # buildifier: disable=platform-specific-binaries
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -2447,8 +2447,8 @@ genrule(
     outs = [
         "iOSSwiftStaticFramework.framework/Headers/iOSSwiftStaticFramework.h",
         "iOSSwiftStaticFramework.framework/Info.plist",
-        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftdoc",
-        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftinterface",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/arm64.swiftdoc",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/arm64.swiftinterface",
         "iOSSwiftStaticFramework.framework/Modules/module.modulemap",
         "iOSSwiftStaticFramework.framework/iOSSwiftStaticFramework",
     ],
@@ -2466,7 +2466,7 @@ apple_static_xcframework(
     ],
     ios = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -2487,8 +2487,8 @@ genrule(
         "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Headers/iOSSwiftStaticFrameworkWithoutModuleInterfaces-Swift.h",
         "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Headers/iOSSwiftStaticFrameworkWithoutModuleInterfaces.h",
         "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Info.plist",
-        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/x86_64.swiftdoc",
-        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/x86_64.swiftinterface",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/arm64.swiftdoc",
+        "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/iOSSwiftStaticFrameworkWithoutModuleInterfaces.swiftmodule/arm64.swiftinterface",
         "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/Modules/module.modulemap",
         "iOSSwiftStaticFrameworkWithoutModuleInterfaces.framework/iOSSwiftStaticFrameworkWithoutModuleInterfaces",
     ],
@@ -2998,7 +2998,7 @@ apple_static_xcframework(
     bundle_name = "generated_swift_static_xcframework_without_swiftmodule",
     ios = {
         "simulator": [
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -3016,11 +3016,11 @@ genrule(
     # buildifier: disable=platform-specific-binaries
     outs = [
         "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/Info.plist",
-        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/SharedObjCClass.h",
-        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule-Swift.h",
-        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.h",
-        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/module.modulemap",
-        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework_without_swiftmodule.a",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/SharedObjCClass.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule-Swift.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.h",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework_without_swiftmodule/module.modulemap",
+        "generated_swift_static_xcframework_without_swiftmodule/generated_swift_static_xcframework_without_swiftmodule.xcframework/ios-arm64-simulator/generated_swift_static_xcframework_without_swiftmodule.a",
     ],
     cmd = common.extract_xcframework_cmd("generated_swift_static_xcframework_without_swiftmodule"),
     tags = common.fixture_tags,
@@ -3173,7 +3173,7 @@ apple_static_xcframework(
     ios = {
         "simulator": [
             # buildifier: disable=platform-specific-binaries
-            "x86_64",
+            "arm64",
         ],
     },
     minimum_os_versions = {
@@ -3191,13 +3191,13 @@ genrule(
     # buildifier: disable=platform-specific-binaries
     outs = [
         "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/Info.plist",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.a",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/SharedObjCClass.h",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework.h",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework-Swift.h",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/Headers/generated_swift_static_xcframework/module.modulemap",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftdoc",
-        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-x86_64-simulator/generated_swift_static_xcframework.swiftmodule/x86_64.swiftinterface",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/generated_swift_static_xcframework.a",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework/SharedObjCClass.h",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework.h",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework/generated_swift_static_xcframework-Swift.h",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/Headers/generated_swift_static_xcframework/module.modulemap",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/generated_swift_static_xcframework.swiftmodule/arm64.swiftdoc",
+        "generated_swift_static_xcframework/generated_swift_static_xcframework.xcframework/ios-arm64-simulator/generated_swift_static_xcframework.swiftmodule/arm64.swiftinterface",
     ],
     cmd = common.extract_xcframework_cmd("generated_swift_static_xcframework"),
     tags = common.fixture_tags,
