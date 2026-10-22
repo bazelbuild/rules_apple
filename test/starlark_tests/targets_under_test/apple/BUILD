@@ -2054,3 +2054,22 @@ apple_static_xcframework(
     version = ":static_xcframework_version",
     deps = [":fmwk_lib"],
 )
+
+swift_library(
+    name = "xcframework_metal_resources_lib",
+    srcs = ["DummyFmwk.swift"],
+    data = ["//test/starlark_tests/resources:resource_bundle_with_metal"],
+    module_name = "ios_static_xcframework_with_metal_resources",
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework(
+    name = "ios_static_xcframework_with_metal_resources",
+    ios = {
+        "simulator": ["arm64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {"ios": common.min_os_ios.baseline},
+    tags = common.fixture_tags,
+    deps = [":xcframework_metal_resources_lib"],
+)

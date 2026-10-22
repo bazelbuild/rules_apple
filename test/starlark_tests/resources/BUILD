@@ -928,6 +928,15 @@ objc_library(
 )
 
 apple_resource_bundle(
+    name = "resource_bundle_with_metal",
+    resources = [
+        "//test/testdata/resources:metal_hdrs",
+        "//test/testdata/resources:metal_srcs",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
     name = "bundle_library_ios",
     infoplists = [
         "Info-template.plist",
