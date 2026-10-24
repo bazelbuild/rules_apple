@@ -66,6 +66,7 @@ apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
     build_settings = build_settings_labels.all_labels,
     bundletool = "//tools/bundletool",
+    derq_tool = "//tools/derq",
     versiontool = "//tools/versiontool",
     # Used by the rule implementations, so it needs to be public; but
     # should be considered an implementation detail of the rules and
