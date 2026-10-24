@@ -557,10 +557,7 @@ if [[ -n "$screen_capture_format" ]]; then
   fi
 fi
 
-# Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
-SIMULATOR_UDID="$simulator_id" \
-  "$pre_action_binary"
 
 if [[ "$should_use_xcodebuild" == true ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
@@ -615,6 +612,11 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     echo
   fi
 
+  # Run a pre-action binary, if provided.
+  TEST_XCTESTRUN_FILE="$xctestrun_file" \
+    SIMULATOR_UDID="$simulator_id" \
+    "$pre_action_binary"
+
   args=(
     -xctestrun "$xctestrun_file" \
   )
@@ -653,6 +655,10 @@ if [[ "$should_use_xcodebuild" == true ]]; then
   xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
+  # Run a pre-action binary, if provided.
+  SIMULATOR_UDID="$simulator_id" \
+    "$pre_action_binary"
+
   developer_dir=$(xcode-select -p)
   platform_developer_dir="$developer_dir/Platforms/$test_execution_platform/Developer"
   xctest_binary="$platform_developer_dir/Library/Xcode/Agents/xctest"
