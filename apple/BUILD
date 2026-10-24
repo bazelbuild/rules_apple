@@ -154,6 +154,7 @@ bzl_library(
     name = "linker",
     srcs = ["linker.bzl"],
     deps = [
+        "//apple/internal:exported_symbols_list",
         "//apple/internal:order_file",
     ],
 )
