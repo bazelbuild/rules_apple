@@ -33,9 +33,6 @@ bzl_library(
 bzl_library(
     name = "framework_provider_aspect",
     srcs = ["framework_provider_aspect.bzl"],
-    visibility = [
-        "//apple:__subpackages__",
-    ],
     deps = [
         "//apple:providers",
         "//apple/internal:providers",
