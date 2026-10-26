@@ -28,6 +28,10 @@ load(
     "apple_dsym_bundle_info_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_test_coverage_test.bzl",
+    "apple_test_coverage_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -300,6 +304,60 @@ def ios_unit_test_test_suite(name):
         name = "{}_apple_runfiles_data_in_resource_rule_fails_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_resource_group_with_runfiles",
         expected_error = "apple_runfiles_data targets cannot be included in Apple resource rules because runfiles reside on the host filesystem (TEST_SRCDIR) and are not bundled into Apple packages.",
+        tags = [name],
+    )
+
+    # Coverage: `TEST_BINARIES_FOR_LLVM_COV` must list the binary of every bundle whose code can run
+    # in the test (the test bundle, its test host, and any embedded frameworks), and those binaries
+    # must be in the runfiles. Sources from dependencies are not needed by `llvm-cov`.
+    coverage_targets_dir = "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios"
+    test_lib_source = "third_party/bazel_rules/rules_apple/test/starlark_tests/resources/test.m"
+
+    apple_test_coverage_test(
+        name = "{}_coverage_no_host_test".format(name),
+        expected_covered_binaries = [
+            coverage_targets_dir + "/unit_test_no_host.__internal__.__test_bundle-intermediates/unit_test_no_host",
+        ],
+        not_expected_env_keys = ["APPLE_COVERAGE"],
+        not_expected_runfiles = [test_lib_source],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_no_host",
+        tags = [name],
+    )
+
+    apple_test_coverage_test(
+        name = "{}_coverage_with_host_test".format(name),
+        expected_covered_binaries = [
+            coverage_targets_dir + "/app-intermediates/app",
+            coverage_targets_dir + "/unit_test.__internal__.__test_bundle-intermediates/unit_test",
+        ],
+        not_expected_env_keys = ["APPLE_COVERAGE"],
+        not_expected_runfiles = [test_lib_source],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        tags = [name],
+    )
+
+    apple_test_coverage_test(
+        name = "{}_coverage_with_fmwk_test".format(name),
+        expected_covered_binaries = [
+            coverage_targets_dir + "/fmwk-intermediates/fmwk",
+            coverage_targets_dir + "/unit_test_with_fmwk.__internal__.__test_bundle-intermediates/unit_test_with_fmwk",
+        ],
+        not_expected_env_keys = ["APPLE_COVERAGE"],
+        not_expected_runfiles = [test_lib_source],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_fmwk",
+        tags = [name],
+    )
+
+    apple_test_coverage_test(
+        name = "{}_coverage_with_fmwk_and_host_with_fmwk_test".format(name),
+        expected_covered_binaries = [
+            coverage_targets_dir + "/app_with_fmwk-intermediates/app_with_fmwk",
+            coverage_targets_dir + "/fmwk-intermediates/fmwk",
+            coverage_targets_dir + "/unit_test_with_fmwk_and_host_with_fmwk.__internal__.__test_bundle-intermediates/unit_test_with_fmwk_and_host_with_fmwk",
+        ],
+        not_expected_env_keys = ["APPLE_COVERAGE"],
+        not_expected_runfiles = [test_lib_source],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_with_fmwk_and_host_with_fmwk",
         tags = [name],
     )
 

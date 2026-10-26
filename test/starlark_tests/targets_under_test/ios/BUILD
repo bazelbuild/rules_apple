@@ -3831,6 +3831,27 @@ ios_unit_test(
 )
 
 ios_unit_test(
+    name = "unit_test_with_fmwk_and_host_with_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [
+        ":fmwk",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
     name = "unit_test_with_imported_fmwk",
     families = [
         "iphone",

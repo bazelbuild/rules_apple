@@ -27,6 +27,10 @@ load(
     "apple_dsym_bundle_info_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_test_coverage_test.bzl",
+    "apple_test_coverage_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -209,6 +213,23 @@ def ios_ui_test_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
+    )
+
+    # Coverage: a UI test reports the binaries of the test bundle, its test host, and the
+    # frameworks that the test bundle embeds.
+    apple_test_coverage_test(
+        name = "{}_coverage_with_fmwk_test".format(name),
+        expected_covered_binaries = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/app-intermediates/app",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/fmwk-intermediates/fmwk",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/ios/ui_test_with_fmwk.__internal__.__test_bundle-intermediates/ui_test_with_fmwk",
+        ],
+        not_expected_env_keys = ["APPLE_COVERAGE"],
+        not_expected_runfiles = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/resources/test.m",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ui_test_with_fmwk",
         tags = [name],
     )
 

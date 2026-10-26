@@ -29,14 +29,13 @@ visibility("@build_bazel_rules_apple//apple/...")
 _CoverageFilesInfo = provider(
     doc = """
 Internal provider used by the `coverage_files_aspect` aspect to propagate the
-transitive closure of sources and binaries that a test depends on. These files
-are then made available during the coverage action as they are required by the
-coverage infrastructure. The sources are provided in the `coverage_files` field,
-and the binaries in the `covered_binaries` field. This provider is only available
-when coverage collecting is enabled.
+transitive closure of Mach-O binaries that a test loads. `collect_coverage.sh`
+passes each of these binaries to `llvm-cov export` as an `-object`, since the
+coverage mapping data for an Apple test is spread across the test bundle, its
+test host, and any frameworks they embed. This provider is only available when
+coverage collecting is enabled.
 """,
     fields = {
-        "coverage_files": "`depset` of files required to be present during a coverage run.",
         "covered_binaries": """
 `depset` of files representing the binaries that are being tested under a coverage run.
 """,
@@ -53,44 +52,29 @@ def _coverage_files_aspect_impl(target, ctx):
     if not ctx.configuration.coverage_enabled:
         return []
 
-    coverage_files = []
-
-    # Collect this target's coverage files.
-    for attr in ["srcs", "hdrs", "non_arc_srcs"]:
-        for files in [x[DefaultInfo].files for x in getattr(ctx.rule.attr, attr, [])]:
-            coverage_files.append(files)
-
     # Collect the binaries themselves from the various bundles involved in the test. These will be
     # passed through the test environment so that `llvm-cov` can access the coverage mapping data
     # embedded in them.
     direct_binaries = []
     transitive_binaries_sets = []
-    if AppleBundleInfo in target:
+    if AppleBundleInfo in target and target[AppleBundleInfo].binary:
         direct_binaries.append(target[AppleBundleInfo].binary)
 
     rule_attrs = ctx.rule.attr
 
-    # Collect dependencies coverage files.
-    for dep in getattr(rule_attrs, "deps", []):
-        if _CoverageFilesInfo in dep:
-            coverage_files.append(dep[_CoverageFilesInfo].coverage_files)
-
     for fmwk in getattr(rule_attrs, "frameworks", []):
         if _CoverageFilesInfo in fmwk:
-            coverage_files.append(fmwk[_CoverageFilesInfo].coverage_files)
             transitive_binaries_sets.append(fmwk[_CoverageFilesInfo].covered_binaries)
 
     if (hasattr(rule_attrs, "test_host") and
         rule_attrs.test_host and
         _CoverageFilesInfo in rule_attrs.test_host):
-        coverage_files.append(rule_attrs.test_host[_CoverageFilesInfo].coverage_files)
         transitive_binaries_sets.append(
             rule_attrs.test_host[_CoverageFilesInfo].covered_binaries,
         )
 
     return [
         _CoverageFilesInfo(
-            coverage_files = depset(transitive = coverage_files),
             covered_binaries = depset(
                 direct = direct_binaries,
                 transitive = transitive_binaries_sets,
@@ -99,11 +83,13 @@ def _coverage_files_aspect_impl(target, ctx):
     ]
 
 coverage_files_aspect = aspect(
-    attr_aspects = ["deps", "frameworks", "test_host"],
+    # Only bundle-to-bundle edges are walked. Binaries are never collected through `deps`, and
+    # walking `deps` would visit every library in the test's transitive closure.
+    attr_aspects = ["frameworks", "test_host"],
     doc = """
-This aspect walks the dependency graph through the dependency graph and collects all the sources and
-headers that are depended upon transitively. These files are needed to calculate test coverage on a
-test run.
+This aspect walks the bundle graph of a test (the test bundle, its test host, and any frameworks
+they embed) and collects the binary of each bundle. These binaries carry the coverage mapping data
+that `llvm-cov` needs to calculate test coverage on a test run.
 
 This aspect propagates a `_CoverageFilesInfo` provider.
 """,
@@ -166,8 +152,8 @@ def _get_coverage_execution_environment(*, covered_binaries):
     """Returns environment variables required for test coverage support.
 
     Args:
-        covered_binaries: String. The `depset` of files representing the binaries that are being
-            tested under a coverage run.
+        covered_binaries: The `depset` of files representing the binaries that are being tested
+            under a coverage run.
 
     Returns:
         A new dictionary with the required environment variables for retrieving Apple coverage
@@ -176,7 +162,6 @@ def _get_coverage_execution_environment(*, covered_binaries):
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
-        "APPLE_COVERAGE": "1",
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
@@ -313,10 +298,9 @@ def _apple_test_rule_impl(
             covered_binaries = covered_binaries,
         )
 
-        transitive_runfiles.extend([
-            covered_binaries,
-            test_bundle_target[_CoverageFilesInfo].coverage_files,
-        ])
+        # `collect_coverage.sh` resolves each `TEST_BINARIES_FOR_LLVM_COV` entry relative to the
+        # runfiles directory, so the binaries themselves must be in the runfiles.
+        transitive_runfiles.append(covered_binaries)
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
     ctx.actions.expand_template(
