@@ -52,6 +52,13 @@ ios_xctestrun_runner(
     reuse_simulator = False,
 )
 
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_disable_aggressive_symbolication_runner",
+    device_type = "iPhone Xs",
+    disable_aggressive_symbolication = True,
+    reuse_simulator = False,
+)
+
 genrule(
   name = "pre_action_gen",
   executable = True,
@@ -480,6 +487,61 @@ ios_unit_test(
     deps = [":env_unit_test_lib"],
     minimum_os_version = "${MIN_OS_IOS}",
     runner = ":ios_x86_64_sim_runner_with_test_environment",
+)
+EOF
+}
+
+function create_ios_unit_symbolication_test() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/symbolication_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface SymbolicationUnitTest : XCTestCase
+
+@end
+
+@implementation SymbolicationUnitTest
+
+- (void)testAggressiveSymbolicationDisabled {
+  XCTAssertTrue([[NSUserDefaults standardUserDefaults] boolForKey:@"XCTDisableAggressiveSymbolication"], @"should pass");
+}
+
+@end
+EOF
+
+  cat >ios/SymbolicationUnitTest-Info.plist <<EOF
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>SymbolicationUnitTest</string>
+</dict>
+</plist>
+EOF
+
+  cat >> ios/BUILD <<EOF
+objc_library(
+    name = "symbolication_unit_test_lib",
+    srcs = ["symbolication_unit_test.m"],
+)
+
+ios_unit_test(
+    name = 'SymbolicationUnitTest',
+    infoplists = ["SymbolicationUnitTest-Info.plist"],
+    deps = [":symbolication_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_x86_64_sim_disable_aggressive_symbolication_runner",
+)
+
+ios_unit_test(
+    name = 'SymbolicationWithHost',
+    infoplists = ["SymbolicationUnitTest-Info.plist"],
+    deps = [":symbolication_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    test_host = ":app",
+    runner = ":ios_x86_64_sim_disable_aggressive_symbolication_runner",
 )
 EOF
 }
@@ -990,6 +1052,23 @@ function test_ios_unit_test_with_runner_test_environment_overriding_test_env() {
     || fail "should pass"
 
   expect_log "Test Suite 'EnvUnitTest' passed"
+}
+
+function test_ios_unit_test_disable_aggressive_symbolication() {
+  create_sim_runners
+  create_ios_unit_symbolication_test
+  do_ios_test //ios:SymbolicationUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'SymbolicationUnitTest' passed"
+}
+
+function test_ios_unit_test_with_host_disable_aggressive_symbolication() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_symbolication_test
+  do_ios_test //ios:SymbolicationWithHost || fail "should pass"
+
+  expect_log "Test Suite 'SymbolicationUnitTest' passed"
 }
 
 function test_ios_unit_test_with_env_inherit() {
