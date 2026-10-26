@@ -1948,11 +1948,14 @@ def _macos_command_line_application_impl(ctx):
             rule_descriptor = rule_descriptor,
         )
     else:
-        ctx.actions.run_shell(
+        args = actions.args()
+        args.add(binary_artifact)
+        args.add(output_file)
+        actions.run_shell(
             inputs = [binary_artifact],
             outputs = [output_file],
             command = "cp -f \"$1\" \"$2\"",
-            arguments = [binary_artifact.path, output_file.path],
+            arguments = [args],
             env = shared_environment.default_env,
             mnemonic = "CopyBinary",
             progress_message = "Copying binary",
@@ -2141,11 +2144,14 @@ def _macos_dylib_impl(ctx):
             rule_descriptor = rule_descriptor,
         )
     else:
-        ctx.actions.run_shell(
+        args = actions.args()
+        args.add(binary_artifact)
+        args.add(output_file)
+        actions.run_shell(
             inputs = [binary_artifact],
             outputs = [output_file],
             command = "cp -f \"$1\" \"$2\"",
-            arguments = [binary_artifact.path, output_file.path],
+            arguments = [args],
             env = shared_environment.default_env,
             mnemonic = "CopyDylib",
             progress_message = "Copying dylib",
