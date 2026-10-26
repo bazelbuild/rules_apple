@@ -312,15 +312,18 @@ def _generate_bundle_archive_action(
         actions,
         apple_xplat_toolchain_info,
         bundletool_inputs,
+        compression_level = 0,
         control_file_name,
         control_merge_files = [],
         control_merge_zips = [],
+        control_schema_version = 1,
         enable_zip64_support = False,
         label_name,
         mnemonic,
         output_archive,
         output_discriminator,
         progress_message,
+        stored_extensions = [],
         xplat_exec_group):
     """Generates an action that creates a archive for a bundle rule output.
 
@@ -328,6 +331,8 @@ def _generate_bundle_archive_action(
       actions: The actions provider from `ctx.actions`.
       apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       bundletool_inputs: A depset of files to pass to the bundletool.
+      compression_level: An integer specifying the zlib compression level (0 for STORED, 1-9 for
+          DEFLATE). Defaults to 0.
       control_file_name: The name of the control file to generate.
       control_merge_files: A list of structs representing files that should be merged into the
           bundle. Each struct contains two fields: "src", the path of the file that should be merged
@@ -338,6 +343,9 @@ def _generate_bundle_archive_action(
           whose contents should be merged into the bundle; and "dest", the path inside the bundle
           where the ZIPs contents should be placed. The destination path is relative to the bundle
           root.
+      control_schema_version: Version of the control file schema required by this invocation
+          (1 or 2). Defaults to 1, and is automatically upgraded to 2 when `compression_level != 0`
+          or `stored_extensions` is non-empty.
       enable_zip64_support: Whether to enable ZIP64 support in the bundletool. If not set, then
           ZIP64 support will be disabled.
       label_name: Name of the target being built.
@@ -346,6 +354,9 @@ def _generate_bundle_archive_action(
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
       progress_message: A String. The progress message to use for the action.
+      stored_extensions: A list of file extensions (without leading dot) that should remain STORED
+          even when `compression_level` is non-zero. Defaults to `[]` pending b/521344061 archive
+          size and CPU tradeoff measurements.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
 
@@ -360,9 +371,19 @@ def _generate_bundle_archive_action(
     )
     args.add(control_file.path)
 
+    effective_schema_version = control_schema_version
+    if (compression_level != 0 or stored_extensions) and effective_schema_version < 2:
+        effective_schema_version = 2
+    if effective_schema_version > 1:
+        args.add("--control_schema_version=%d" % effective_schema_version)
+
     additional_control_options = {
         "enable_zip64_support": enable_zip64_support,
     }
+    if compression_level != 0:
+        additional_control_options["compression_level"] = compression_level
+    if stored_extensions:
+        additional_control_options["stored_extensions"] = stored_extensions
 
     control = struct(
         bundle_merge_files = control_merge_files,

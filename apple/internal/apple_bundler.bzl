@@ -207,6 +207,8 @@ def _bundle_task_output_files(
         bundle_extension,
         bundle_name,
         codesigning_command = None,
+        compression_level = 0,
+        control_schema_version = 1,
         embedding = False,
         extra_input_files = [],
         ipa_post_processor = None,
@@ -228,6 +230,10 @@ def _bundle_task_output_files(
       bundle_name: The name of the output bundle.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
+      compression_level: An integer specifying the zlib compression level (0 for STORED, 1-9 for
+          DEFLATE). Defaults to 0.
+      control_schema_version: Version of the control file schema required by this invocation
+          (1 or 2). Defaults to 1.
       embedding: Whether outputs are being bundled to be embedded.
       extra_input_files: Extra files to include in the bundling action.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
@@ -364,15 +370,167 @@ Please file a bug against the Apple BUILD rules with repro steps.
             actions = actions,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_inputs = depset(bundletool_inputs),
+            compression_level = compression_level,
             control_file_name = control_file_name,
             control_merge_files = control_files,
             control_merge_zips = control_zips,
+            control_schema_version = control_schema_version,
             enable_zip64_support = enable_zip64_support,
             label_name = label_name,
             mnemonic = "BundleApp",
             output_archive = output_file,
             output_discriminator = output_discriminator,
             progress_message = "Bundling %s" % label_name,
+            xplat_exec_group = xplat_exec_group,
+        )
+
+def _bundle_and_sign_archive(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        archive_codesigning_path,
+        bundle_extension,
+        bundle_name,
+        cc_configured_features,
+        embedding = False,
+        entitlements,
+        frameworks_path,
+        ipa_post_processor,
+        mac_exec_group,
+        output_archive,
+        output_discriminator,
+        platform_prerequisites,
+        process_and_sign_template,
+        provisioning_profile,
+        rule_descriptor,
+        rule_label,
+        task_outputs,
+        transitive_signed_frameworks,
+        unprocessed_archive_file_name,
+        xplat_exec_group):
+    """Bundles an archive directly with bundletool or via an intermediate archive and ProcessAndSign.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: A AppleMacToolsToolchainInfo provider.
+        apple_xplat_toolchain_info: A AppleXPlatToolsToolchainInfo provider.
+        archive_codesigning_path: The path to the bundle inside the archive for codesigning.
+        bundle_extension: The extension for the bundle.
+        bundle_name: The name of the output bundle.
+        cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+            from the rule implementation function.
+        embedding: Whether this archive is being created for embedding into another bundle.
+        entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
+        frameworks_path: The path to the Frameworks directory inside the archive.
+        ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
+        mac_exec_group: A String. The exec_group for actions using the mac toolchain.
+        output_archive: The file representing the final bundled, post-processed and signed archive.
+        output_discriminator: A string to differentiate between different target intermediate files
+            or `None`.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        process_and_sign_template: A template for a shell script to process and sign as a file.
+        provisioning_profile: File for the provisioning profile.
+        rule_descriptor: A rule descriptor for platform and product types from the rule context.
+        rule_label: The label of the target being analyzed.
+        task_outputs: The outputs of the bundling tasks used to process this target's bundle.
+        transitive_signed_frameworks: Depset of already-signed framework paths.
+        unprocessed_archive_file_name: Filename for the intermediate unprocessed archive when
+            `ProcessAndSign` is used.
+        xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
+    """
+    direct_bundle_archive = False
+    codesigning_command = None
+    if apple_xplat_toolchain_info.build_settings.direct_bundle_archive and not ipa_post_processor:
+        codesigning_command = codesigning_support.codesigning_command(
+            bundle_path = archive_codesigning_path,
+            build_settings = apple_xplat_toolchain_info.build_settings,
+            cc_configured_features = cc_configured_features,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
+            entitlements = entitlements,
+            frameworks_path = frameworks_path,
+            label_name = rule_label.name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            signed_frameworks = transitive_signed_frameworks,
+        )
+        direct_bundle_archive = not codesigning_command
+
+    if direct_bundle_archive:
+        should_compress = codesigning_support.should_compress_archive(
+            build_settings = apple_xplat_toolchain_info.build_settings,
+            platform_prerequisites = platform_prerequisites,
+        )
+        _bundle_task_output_files(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            compression_level = 6 if should_compress else 0,
+            control_schema_version = 2,
+            embedding = embedding,
+            ipa_post_processor = ipa_post_processor,
+            mac_exec_group = mac_exec_group,
+            output_discriminator = output_discriminator,
+            output_file = output_archive,
+            platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
+            rule_label = rule_label,
+            task_outputs = task_outputs,
+            xplat_exec_group = xplat_exec_group,
+        )
+    else:
+        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
+        # provider, is used by Tulsi for custom processing logic. (b/120221708)
+        unprocessed_archive = intermediates.file(
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            file_name = unprocessed_archive_file_name,
+        )
+        _bundle_task_output_files(
+            actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            bundle_extension = bundle_extension,
+            bundle_name = bundle_name,
+            embedding = embedding,
+            ipa_post_processor = ipa_post_processor,
+            mac_exec_group = mac_exec_group,
+            output_discriminator = output_discriminator,
+            output_file = unprocessed_archive,
+            platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
+            rule_label = rule_label,
+            task_outputs = task_outputs,
+            xplat_exec_group = xplat_exec_group,
+        )
+
+        output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
+
+        codesigning_support.post_process_and_sign_archive_action(
+            actions = actions,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            archive_codesigning_path = archive_codesigning_path,
+            cc_configured_features = cc_configured_features,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
+            entitlements = entitlements,
+            frameworks_path = frameworks_path,
+            input_archive = unprocessed_archive,
+            ipa_post_processor = ipa_post_processor,
+            label_name = rule_label.name,
+            mac_exec_group = mac_exec_group,
+            output_archive = output_archive,
+            output_archive_root_path = output_archive_root_path,
+            output_discriminator = output_discriminator,
+            platform_prerequisites = platform_prerequisites,
+            process_and_sign_template = process_and_sign_template,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            signed_frameworks = transitive_signed_frameworks,
+            signing_command_lines = codesigning_command,
             xplat_exec_group = xplat_exec_group,
         )
 
@@ -504,56 +662,28 @@ def _bundle_post_process_and_sign(
             content = "This is dummy file because tree artifacts are enabled",
         )
     else:
-        # This output, while an intermediate artifact not exposed through the AppleBundleInfo
-        # provider, is used by Tulsi for custom processing logic. (b/120221708)
-        unprocessed_archive = intermediates.file(
-            actions = actions,
-            target_name = rule_label.name,
-            output_discriminator = output_discriminator,
-            file_name = "unprocessed_archive.zip",
-        )
-        _bundle_task_output_files(
+        _bundle_and_sign_archive(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            archive_codesigning_path = archive_paths[location_enum.bundle],
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            ipa_post_processor = ipa_post_processor,
-            mac_exec_group = mac_exec_group,
-            output_discriminator = output_discriminator,
-            output_file = unprocessed_archive,
-            platform_prerequisites = platform_prerequisites,
-            rule_descriptor = rule_descriptor,
-            rule_label = rule_label,
-            task_outputs = task_outputs,
-            xplat_exec_group = xplat_exec_group,
-        )
-
-        archive_codesigning_path = archive_paths[location_enum.bundle]
-        frameworks_path = archive_paths[location_enum.framework]
-
-        output_archive_root_path = outputs.root_path_from_archive(archive = output_archive)
-
-        codesigning_support.post_process_and_sign_archive_action(
-            actions = actions,
-            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-            archive_codesigning_path = archive_codesigning_path,
             cc_configured_features = cc_configured_features,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             entitlements = entitlements,
-            frameworks_path = frameworks_path,
-            input_archive = unprocessed_archive,
+            frameworks_path = archive_paths[location_enum.framework],
             ipa_post_processor = ipa_post_processor,
-            label_name = rule_label.name,
             mac_exec_group = mac_exec_group,
             output_archive = output_archive,
-            output_archive_root_path = output_archive_root_path,
             output_discriminator = output_discriminator,
             platform_prerequisites = platform_prerequisites,
             process_and_sign_template = process_and_sign_template,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
-            signed_frameworks = transitive_signed_frameworks,
+            rule_label = rule_label,
+            task_outputs = task_outputs,
+            transitive_signed_frameworks = transitive_signed_frameworks,
+            unprocessed_archive_file_name = "unprocessed_archive.zip",
             xplat_exec_group = xplat_exec_group,
         )
 
@@ -578,55 +708,29 @@ def _bundle_post_process_and_sign(
                 rule_descriptor = rule_descriptor,
                 tree_artifact_is_enabled = tree_artifact_is_enabled,
             )
-            embedding_archive_codesigning_path = embedding_archive_paths[location_enum.bundle]
-            embedding_frameworks_path = embedding_archive_paths[location_enum.framework]
-            embedding_archive_root_path = outputs.root_path_from_archive(
-                archive = embedding_archive,
-            )
-            unprocessed_embedded_archive = intermediates.file(
-                actions = actions,
-                target_name = rule_label.name,
-                output_discriminator = output_discriminator,
-                file_name = "unprocessed_embedded_archive.zip",
-            )
-            _bundle_task_output_files(
+            _bundle_and_sign_archive(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
                 apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                archive_codesigning_path = embedding_archive_paths[location_enum.bundle],
                 bundle_extension = bundle_extension,
                 bundle_name = bundle_name,
-                embedding = True,
-                ipa_post_processor = ipa_post_processor,
-                mac_exec_group = mac_exec_group,
-                output_discriminator = output_discriminator,
-                output_file = unprocessed_embedded_archive,
-                platform_prerequisites = platform_prerequisites,
-                rule_descriptor = rule_descriptor,
-                rule_label = rule_label,
-                task_outputs = task_outputs,
-                xplat_exec_group = xplat_exec_group,
-            )
-
-            codesigning_support.post_process_and_sign_archive_action(
-                actions = actions,
-                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-                archive_codesigning_path = embedding_archive_codesigning_path,
                 cc_configured_features = cc_configured_features,
-                codesigningtool = apple_mac_toolchain_info.codesigningtool,
+                embedding = True,
                 entitlements = entitlements,
-                frameworks_path = embedding_frameworks_path,
-                input_archive = unprocessed_embedded_archive,
+                frameworks_path = embedding_archive_paths[location_enum.framework],
                 ipa_post_processor = ipa_post_processor,
-                label_name = rule_label.name,
                 mac_exec_group = mac_exec_group,
                 output_archive = embedding_archive,
-                output_archive_root_path = embedding_archive_root_path,
                 output_discriminator = output_discriminator,
                 platform_prerequisites = platform_prerequisites,
                 process_and_sign_template = process_and_sign_template,
                 provisioning_profile = provisioning_profile,
                 rule_descriptor = rule_descriptor,
-                signed_frameworks = transitive_signed_frameworks,
+                rule_label = rule_label,
+                task_outputs = task_outputs,
+                transitive_signed_frameworks = transitive_signed_frameworks,
+                unprocessed_archive_file_name = "unprocessed_embedded_archive.zip",
                 xplat_exec_group = xplat_exec_group,
             )
 

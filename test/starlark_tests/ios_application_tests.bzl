@@ -117,6 +117,32 @@ analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_t
     },
 )
 
+analysis_target_actions_direct_bundle_archive_legacy_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.direct_bundle_archive: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.direct_bundle_archive: True,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.direct_bundle_archive: True,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.require_pointer_authentication_attribute: True,
@@ -2166,6 +2192,71 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
+    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test(
+        name = "{}_direct_bundle_archive_disable_legacy_signing_skips_process_and_sign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleApp",
+        expected_argv = ["--control_schema_version=2"],
+        expected_content = ["app_minimal.ipa"],
+        not_expected_content = ['"compression_level"', "unprocessed_archive.zip"],
+        not_expected_mnemonic = ["ProcessAndSign"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test(
+        name = "{}_direct_bundle_archive_disable_legacy_signing_compressed_skips_process_and_sign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleApp",
+        expected_argv = ["--control_schema_version=2"],
+        expected_content = ["app_minimal.ipa", '"compression_level":6'],
+        not_expected_content = ["unprocessed_archive.zip"],
+        not_expected_mnemonic = ["ProcessAndSign"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test(
+        name = "{}_direct_bundle_archive_disable_legacy_signing_with_post_processor_keeps_process_and_sign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        target_mnemonic = "ProcessAndSign",
+        expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-cache",
+            "no-sandbox",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_direct_bundle_archive_legacy_signing_test(
+        name = "{}_direct_bundle_archive_legacy_signing_keeps_process_and_sign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test(
+        name = "{}_direct_bundle_archive_disable_legacy_signing_app_clip_skips_process_and_sign_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip_with_pointer_authentication",
+        target_mnemonic = "BundleApp",
+        expected_argv = ["--control_schema_version=2"],
+        expected_content = [
+            "app_clip_with_pointer_authentication.ipa",
+            "app_clip_with_pointer_authentication.embedding.zip",
+        ],
+        not_expected_content = [
+            "unprocessed_archive.zip",
+            "unprocessed_embedded_archive.zip",
+        ],
+        not_expected_mnemonic = ["ProcessAndSign"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
     analysis_target_actions_tree_artifacts_outputs_test(
         name = "{}_bundle_tree_app_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
@@ -2211,6 +2302,25 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
             "$BUNDLE_ROOT/app_minimal",
         ],
         tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_direct_bundle_archive_disable_legacy_signing_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_features = ["disable_legacy_signing"],
+        build_settings = {
+            build_settings_labels.direct_bundle_archive: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/PkgInfo",
+            "$BUNDLE_ROOT/app_minimal",
+        ],
+        tags = [
+            name,
+            "needs-latest-apple-tools",
+        ],
     )
 
     analysis_failure_message_test(

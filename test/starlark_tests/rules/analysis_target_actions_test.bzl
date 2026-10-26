@@ -60,6 +60,19 @@ Target: {target}
 Actual execution_info: {actual_execution_info}
 """
 
+_TARGET_CONTAINS_ACTION_WITH_CONTENT_FAIL_MSG = """
+Expected content could not be found in action or input FileWrite content for target mnemonic '{target_mnemonic}'.
+Target: {target}
+Expected content substring: {expected_content}
+Actual contents: {actual_contents}
+"""
+
+_TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_CONTENT_FAIL_MSG = """
+Expected target mnemonic '{target_mnemonic}' (and its input FileWrite actions) to not contain '{not_expected_content}', but it did.
+Target: {target}
+Actual contents: {actual_contents}
+"""
+
 def _analysis_target_actions_test_impl(ctx):
     """Implementation of analysis_target_actions_test."""
     env = analysistest.begin(ctx)
@@ -179,6 +192,53 @@ def _analysis_target_actions_test_impl(ctx):
             )
             return analysistest.end(env)
 
+    if ctx.attr.expected_content or ctx.attr.not_expected_content:
+        target_mnemonic_inputs = {
+            f: True
+            for f in depset(
+                transitive = [a.inputs for a in target_mnemonic_actions],
+            ).to_list()
+        }
+        target_mnemonic_contents = [
+            a.content
+            for a in target_actions
+            if a.content != None and (
+                a.mnemonic == target_mnemonic or
+                any([out in target_mnemonic_inputs for out in a.outputs.to_list()])
+            )
+        ]
+        if not target_mnemonic_contents:
+            unittest.fail(
+                env,
+                "Could not find any action or input FileWrite content for mnemonic: %s" % target_mnemonic,
+            )
+            return analysistest.end(env)
+        for expected_content in ctx.attr.expected_content:
+            if not any([expected_content in content for content in target_mnemonic_contents]):
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_CONTENT_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        target = target_under_test,
+                        expected_content = expected_content,
+                        actual_contents = target_mnemonic_contents,
+                    ),
+                )
+                return analysistest.end(env)
+
+        for not_expected_content in ctx.attr.not_expected_content:
+            if any([not_expected_content in content for content in target_mnemonic_contents]):
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_CONTENT_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        target = target_under_test,
+                        not_expected_content = not_expected_content,
+                        actual_contents = target_mnemonic_contents,
+                    ),
+                )
+                return analysistest.end(env)
+
     return analysistest.end(env)
 
 def make_analysis_target_actions_test(config_settings = {}):
@@ -207,6 +267,17 @@ This will also assert at least one action exists with the given mnemonic.
 A list of strings representing substrings expected to appear in the action
 command line, after concatenating all command line arguments into a single
 space-delimited string.""",
+            ),
+            "expected_content": attr.string_list(
+                doc = """
+A list of substrings expected to appear in the content of the matching action
+(or any FileWrite action whose output is an input to the matching action).""",
+            ),
+            "not_expected_content": attr.string_list(
+                doc = """
+A list of substrings not expected to appear in the content of the matching
+action (or any FileWrite action whose output is an input to the matching
+action).""",
             ),
             "expected_env": attr.string_dict(
                 doc = """

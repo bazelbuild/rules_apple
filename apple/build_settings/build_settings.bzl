@@ -37,6 +37,15 @@ optimized builds, using `individual_plist` and `binary=True`.
 """,
         default = False,
     ),
+    "direct_bundle_archive": struct(
+        doc = """
+When true, `BundleApp` (`bundletool_swift archive`) directly produces the final archive (including
+optional DEFLATE compression) without spawning `ProcessAndSign` whenever legacy signing is disabled
+and no `ipa_post_processor` is present. Enabling this setting requires a `bundletool_swift` binary
+that supports `--control_schema_version=2`.
+""",
+        default = False,
+    ),
     "force_clangrttool_on_mac": struct(
         doc = """
 Indicates that `clangrttool` should be run on the Mac, rather than on Linux. This is an emergency

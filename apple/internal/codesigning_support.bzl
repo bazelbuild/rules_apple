@@ -611,6 +611,7 @@ def _post_process_and_sign_archive_action(
         provisioning_profile,
         rule_descriptor,
         signed_frameworks,
+        signing_command_lines = None,
         xplat_exec_group):
     """Post-processes and signs an archived bundle.
 
@@ -638,25 +639,28 @@ def _post_process_and_sign_archive_action(
       provisioning_profile: The provisioning profile file. May be `None`.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
       signed_frameworks: Depset containing each framework that has already been signed.
+      signing_command_lines: Optional precomputed codesigning command lines string; if `None`,
+          `_codesigning_command` will be evaluated.
       xplat_exec_group: The exec_group for action using xplat toolchain.
       """
     build_settings = apple_xplat_toolchain_info.build_settings
     input_files = [input_archive]
     processing_tools = []
 
-    signing_command_lines = _codesigning_command(
-        build_settings = build_settings,
-        bundle_path = archive_codesigning_path,
-        cc_configured_features = cc_configured_features,
-        codesigningtool = codesigningtool.executable,
-        entitlements = entitlements,
-        frameworks_path = frameworks_path,
-        label_name = label_name,
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-        rule_descriptor = rule_descriptor,
-        signed_frameworks = signed_frameworks,
-    )
+    if signing_command_lines == None:
+        signing_command_lines = _codesigning_command(
+            build_settings = build_settings,
+            bundle_path = archive_codesigning_path,
+            cc_configured_features = cc_configured_features,
+            codesigningtool = codesigningtool.executable,
+            entitlements = entitlements,
+            frameworks_path = frameworks_path,
+            label_name = label_name,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+            signed_frameworks = signed_frameworks,
+        )
     if signing_command_lines:
         processing_tools.append(codesigningtool)
         if entitlements:
@@ -671,17 +675,10 @@ def _post_process_and_sign_archive_action(
 
     # Compress the IPA when requested. By default, enable compression for optimized (release) builds
     # to reduce file size, and disable compression for debug builds to speed up the build.
-    config_vars = platform_prerequisites.config_vars
-    if build_settings.compress_zip == "true":
-        should_compress = True
-    elif build_settings.compress_zip == "false":
-        should_compress = False
-    else:
-        should_compress = defines.bool_value(
-            config_vars = config_vars,
-            define_name = "apple.compress_ipa",
-            default = (config_vars["COMPILATION_MODE"] == "opt"),
-        )
+    should_compress = _should_compress_archive(
+        build_settings = build_settings,
+        platform_prerequisites = platform_prerequisites,
+    )
 
     # These mnemonics are kept the same for the three different actions that could be run to ensure
     # anything keying off these values (e.g. Bazel scheduler, metrics collection) continues to work.
@@ -851,11 +848,26 @@ def _sign_binary_action(
         exec_group = mac_exec_group,
     )
 
+def _should_compress_archive(*, build_settings, platform_prerequisites):
+    """Returns True if the output archive should be DEFLATE-compressed."""
+    config_vars = platform_prerequisites.config_vars
+    if build_settings.compress_zip == "true":
+        return True
+    elif build_settings.compress_zip == "false":
+        return False
+    else:
+        return defines.bool_value(
+            config_vars = config_vars,
+            define_name = "apple.compress_ipa",
+            default = (config_vars["COMPILATION_MODE"] == "opt"),
+        )
+
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
     generate_dossier_file = _generate_dossier_file,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     preferred_codesigning_identity = _preferred_codesigning_identity,
+    should_compress_archive = _should_compress_archive,
     sign_binary_action = _sign_binary_action,
 )
