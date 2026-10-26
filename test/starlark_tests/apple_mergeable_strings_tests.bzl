@@ -15,6 +15,10 @@
 """apple_mergeable_strings Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
 )
@@ -24,7 +28,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:plisttool_action_test.bzl",
-    "plisttool_action_test",
+    "make_plisttool_action_test",
 )
 load(
     "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
@@ -32,6 +36,18 @@ load(
 )
 
 visibility("private")
+
+_merge_strings_flags_off_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.validate_strings_with_plisttool: False,
+    },
+)
+
+_merge_strings_validate_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.validate_strings_with_plisttool: True,
+    },
+)
 
 def apple_mergeable_strings_test_suite(name):
     """Test suite for apple_mergeable_strings.
@@ -116,7 +132,7 @@ def apple_mergeable_strings_test_suite(name):
     )
 
     # Tests that the MergeStrings action is registered and gets a shell quoted JSON string.
-    plisttool_action_test(
+    _merge_strings_flags_off_test(
         name = "{}_merge_strings_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
         target_mnemonic = "MergeStrings",
@@ -125,10 +141,31 @@ def apple_mergeable_strings_test_suite(name):
             "skip_substitutions": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
             "plists": ["*"],
-            # TODO(b/493928590): Remove `use_swift_plisttool` once the prebuilt `plisttool` binary
-            # no longer uses the wrapper.
-            "use_swift_plisttool": True,
         }),
+        unexpected_control_keys = [
+            "copy_input_on_success",
+            "use_swift_plisttool",
+            "validate_strings",
+        ],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # Tests that MergeStrings emits binary and enables validation on Linux when
+    # validate_strings_with_plisttool is enabled.
+    _merge_strings_validate_test(
+        name = "{}_merge_strings_validate_opt_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        target_mnemonic = "MergeStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "skip_substitutions": True,
+            "validate_strings": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+            "plists": ["*"],
+        }),
+        unexpected_control_keys = ["copy_input_on_success"],
+        not_expected_execution_requirements = ["requires-darwin"],
         tags = [name],
     )
 

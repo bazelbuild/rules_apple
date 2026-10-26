@@ -30,6 +30,13 @@ Forces adding the `get-task-allow` debugger entitlement when true.
 """,
         default = False,
     ),
+    "compile_strings_with_plisttool": struct(
+        doc = """
+Compiles `.strings` and `.stringsdict` files with `plisttool` on the Mac instead of `plutil` in
+optimized builds, using `individual_plist` and `binary=True`.
+""",
+        default = False,
+    ),
     "force_clangrttool_on_mac": struct(
         doc = """
 Indicates that `clangrttool` should be run on the Mac, rather than on Linux. This is an emergency
@@ -94,6 +101,14 @@ Enables App Intents validation to verify that all necessary targets correctly
 advertise their required App Intents aspect hints.
 """,
         default = True,
+    ),
+    "validate_strings_with_plisttool": struct(
+        doc = """
+Validates `.strings` and `.stringsdict` files with the Linux `plisttool` in non-optimized builds
+(validating and then copying the original bytes). Non-optimized `MergeStrings` emits XML, and
+strings validation is added to `MergeStrings` in both modes.
+""",
+        default = False,
     ),
 }
 

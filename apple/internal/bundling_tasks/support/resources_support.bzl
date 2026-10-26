@@ -418,36 +418,69 @@ def _mlmodels(
         infoplists = infoplists,
     )
 
+def _is_strings_file(file):
+    """Returns whether `file` is a `.strings` or `.stringsdict` file."""
+    return file.basename.endswith((".strings", ".stringsdict"))
+
 def _plists_and_strings(
         *,
         actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
         files,
+        mac_exec_group,
         output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
+        xplat_exec_group,
         **_kwargs):
     """Processes plists and string files.
 
     If compilation mode is `opt`, the plist files will be compiled into binary to make them smaller.
-    Otherwise, they will be copied verbatim to avoid the extra processing time.
+    Otherwise, they will be copied verbatim to avoid the extra processing time, or validated and
+    copied by `plisttool` when `validate_strings_with_plisttool` is enabled. Targets on the strings
+    validation allowlist skip validation.
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        apple_mac_toolchain_info: `struct` of mac tools from the shared Apple toolchain.
+        apple_xplat_toolchain_info: `struct` of xplat tools from the shared Apple toolchain.
         files: The plist or string files to process.
+        mac_exec_group: The exec group associated with apple_mac_toolchain.
         output_discriminator: A string to differentiate between different target intermediate files
             or `None`.
         parent_dir: The path under which the files should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        xplat_exec_group: The exec group associated with apple_xplat_toolchain.
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
         A struct containing a `files` field with tuples as described in apple_bundler.bzl.
     """
+    is_opt = platform_prerequisites.config_vars["COMPILATION_MODE"] == "opt"
+    build_settings = apple_xplat_toolchain_info.build_settings
+    file_list = files.to_list()
+    if is_opt:
+        strings_use_plisttool = build_settings.compile_strings_with_plisttool
+    else:
+        strings_use_plisttool = build_settings.validate_strings_with_plisttool
 
-    # If this is not an optimized build, then just copy the files
-    if platform_prerequisites.config_vars["COMPILATION_MODE"] != "opt":
+    # Only consult the allowlist when there are strings to validate, since it warns for listed
+    # targets.
+    validation_exempt = (
+        strings_use_plisttool and
+        any([_is_strings_file(f) for f in file_list]) and
+        resource_actions.is_strings_validation_exempt(
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            rule_label = rule_label,
+        )
+    )
+
+    # If this is not an optimized build and the strings won't be validated, then just copy the
+    # files.
+    if not is_opt and (not strings_use_plisttool or validation_exempt):
         return _noop(
             parent_dir = parent_dir,
             files = files,
@@ -455,7 +488,13 @@ def _plists_and_strings(
 
     plist_files = []
     processed_origins = {}
-    for file in files.to_list():
+    for file in file_list:
+        is_strings = _is_strings_file(file)
+        if not is_opt and not is_strings:
+            processed_origins[file.short_path] = [file.short_path]
+            plist_files.append(file)
+            continue
+
         plist_file = intermediates.file(
             actions = actions,
             target_name = rule_label.name,
@@ -463,12 +502,28 @@ def _plists_and_strings(
             file_name = paths.join(parent_dir or "", file.basename),
         )
         processed_origins[plist_file.short_path] = [file.short_path]
-        resource_actions.compile_plist(
-            actions = actions,
-            input_file = file,
-            output_file = plist_file,
-            platform_prerequisites = platform_prerequisites,
-        )
+        if is_strings and strings_use_plisttool:
+            resource_actions.process_strings_with_plisttool(
+                actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+                binary = is_opt,
+                copy_input_on_success = not is_opt,
+                input_file = file,
+                mac_exec_group = mac_exec_group,
+                output_file = plist_file,
+                platform_prerequisites = platform_prerequisites,
+                rule_label = rule_label,
+                validate_strings = not validation_exempt,
+                xplat_exec_group = xplat_exec_group,
+            )
+        else:
+            resource_actions.compile_plist(
+                actions = actions,
+                input_file = file,
+                output_file = plist_file,
+                platform_prerequisites = platform_prerequisites,
+            )
         plist_files.append(plist_file)
 
     return struct(
@@ -702,8 +757,13 @@ def _mergeable_strings(
         rule_label,
         xplat_exec_group,
         **_kwargs):
-    """Merges mergeable strings into a single file."""
+    """Merges mergeable strings into a single file.
+
+    Mergeable strings are only processed by the bundling rule, so the strings validation allowlist
+    is checked against the bundle's label, not the labels of the targets that own the files.
+    """
     merged = []
+    build_settings = apple_xplat_toolchain_info.build_settings
 
     # Group the mergeable strings files by table name.
     # ["a/baz.mergeable.strings", "a/qux.mergeable.strings"] ->
@@ -714,6 +774,15 @@ def _mergeable_strings(
         table_name = mergeable_file.basename.removesuffix(".mergeable.strings") + ".strings"
         mergeable_tables.setdefault(table_name, []).append(mergeable_file)
 
+    validate_strings = (
+        build_settings.validate_strings_with_plisttool and
+        bool(mergeable_tables) and
+        not resource_actions.is_strings_validation_exempt(
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            rule_label = rule_label,
+        )
+    )
+
     for table_name, table_files in mergeable_tables.items():
         merged_strings_dir = rule_label.name + "_merged_strings"
         if parent_dir:
@@ -722,13 +791,19 @@ def _mergeable_strings(
             merged_lproj_dir = merged_strings_dir
 
         merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + table_name)
-        plisttool_control = struct(
-            binary = True,
-            output = merged_strings_file.path,
-            plists = [f.path for f in table_files],
-            skip_substitutions = True,
-            target = str(rule_label),
-        )
+        control_fields = {
+            "binary": True,
+            "output": merged_strings_file.path,
+            "plists": [f.path for f in table_files],
+            "skip_substitutions": True,
+            "target": str(rule_label),
+        }
+        if validate_strings:
+            control_fields["validate_strings"] = True
+        plisttool_control = struct(**control_fields)
+
+        # TODO(b/493902338): Route opt (binary) MergeStrings to the Mac to avoid the Linux binary
+        # plist size regression.
         resource_actions.plisttool_action(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

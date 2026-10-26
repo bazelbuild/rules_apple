@@ -6140,3 +6140,91 @@ ios_unit_test(
     tags = common.fixture_tags,
     deps = [":objc_lib_with_resource_group_with_runfiles"],
 )
+
+ios_application(
+    name = "app_with_top_level_strings",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    strings = [
+        "//test/starlark_tests/resources:nonlocalized.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_top_level_stringsdict",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:en.lproj/files.stringsdict",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_top_level_plist",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        "//test/starlark_tests/resources:nonlocalized.plist",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+write_file(
+    name = "invalid_escape_strings_file",
+    out = "invalid_escape.strings",
+    content = ['"bad_key" = "\\Uključite";\n'],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "objc_lib_with_invalid_escape_strings",
+    data = [
+        ":invalid_escape.strings",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_common_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_invalid_escape_strings_in_lib",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":objc_lib_with_invalid_escape_strings",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)

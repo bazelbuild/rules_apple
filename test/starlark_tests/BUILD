@@ -6,6 +6,7 @@ load(":apple_mergeable_strings_tests.bzl", "apple_mergeable_strings_test_suite")
 load(":apple_static_library_tests.bzl", "apple_static_library_test_suite")
 load(":apple_static_xcframework_import_tests.bzl", "apple_static_xcframework_import_test_suite")
 load(":apple_static_xcframework_tests.bzl", "apple_static_xcframework_test_suite")
+load(":apple_strings_plisttool_tests.bzl", "apple_strings_plisttool_test_suite")
 load(":apple_universal_binary_tests.bzl", "apple_universal_binary_test_suite")
 load(":apple_xcframework_tests.bzl", "apple_xcframework_test_suite")
 load(":ios_app_clip_tests.bzl", "ios_app_clip_test_suite")
@@ -55,6 +56,8 @@ apple_static_library_test_suite(name = "apple_static_library")
 apple_static_xcframework_import_test_suite(name = "apple_static_xcframework_import")
 
 apple_static_xcframework_test_suite(name = "apple_static_xcframework")
+
+apple_strings_plisttool_test_suite(name = "apple_strings_plisttool")
 
 apple_universal_binary_test_suite(name = "apple_universal_binary")
 
@@ -131,6 +134,7 @@ bzl_library(
         "//apple:linker",
         "//apple/build_settings",
         "//apple/internal:secure_features_support",
+        "//apple/internal/aspects:resource_aspect",
         "//test/starlark_tests/rules:test_rules",
         "//tools/build_defs/build_test",
         "//tools/build_defs/write_file:bzl_lib",

@@ -32,9 +32,11 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:plist.bzl",
     _compile_plist = "compile_plist",
+    _is_strings_validation_exempt = "is_strings_validation_exempt",
     _merge_resource_infoplists = "merge_resource_infoplists",
     _merge_root_infoplists = "merge_root_infoplists",
     _plisttool_action = "plisttool_action",
+    _process_strings_with_plisttool = "process_strings_with_plisttool",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:png.bzl",
@@ -59,8 +61,10 @@ resource_actions = struct(
     compile_texture_atlas = _compile_texture_atlas,
     compile_xib = _compile_xib,
     copy_png = _copy_png,
+    is_strings_validation_exempt = _is_strings_validation_exempt,
     link_storyboards = _link_storyboards,
     merge_resource_infoplists = _merge_resource_infoplists,
     merge_root_infoplists = _merge_root_infoplists,
     plisttool_action = _plisttool_action,
+    process_strings_with_plisttool = _process_strings_with_plisttool,
 )

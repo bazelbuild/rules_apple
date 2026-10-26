@@ -56,6 +56,7 @@ ADDITIONAL_PROPAGATION_ATTRS = {}
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
+    "@build_bazel_rules_apple//test/...",
 ])
 
 _RESOURCE_ASPECT_BASE_ATTRS = [

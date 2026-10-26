@@ -23,10 +23,6 @@ load(
     "shell",
 )
 load(
-    "@bazel_skylib//lib:structs.bzl",
-    "structs",
-)
-load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -46,6 +42,9 @@ load(
 
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
+_ALLOWED_USERS_OF_UNVALIDATED_STRINGS = []
+_UNVALIDATED_STRINGS_ALLOWLIST = "the strings validation allowlist"
+
 def plisttool_action(
         *,
         actions,
@@ -57,6 +56,7 @@ def plisttool_action(
         mnemonic = None,
         outputs,
         platform_prerequisites,
+        run_on_mac = False,
         xplat_exec_group):
     """Registers an action that invokes `plisttool`.
 
@@ -74,17 +74,12 @@ def plisttool_action(
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      run_on_mac: If True, runs `plisttool` on macOS using `apple_mac_toolchain_info`.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
-
-    # TODO(b/493928590): Remove `use_swift_plisttool` from the control dict and
-    # encode `control` directly once the prebuilt `plisttool` binary no longer
-    # uses the wrapper.
-    control_dict = structs.to_dict(control)
-    control_dict["use_swift_plisttool"] = True
     control_args = actions.args()
-    control_args.add(json.encode(control_dict))
-    if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac:
+    control_args.add(json.encode(control))
+    if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac or run_on_mac:
         apple_support.run(
             actions = actions,
             apple_platform_info = platform_prerequisites.apple_platform_info,
@@ -107,6 +102,96 @@ def plisttool_action(
             mnemonic = mnemonic,
             outputs = outputs,
         )
+
+def is_strings_validation_exempt(*, apple_xplat_toolchain_info, rule_label):
+    """Returns whether a target is exempt from strings validation, warning if it is.
+
+    Call this only where the target's strings would otherwise be validated, since an exempt target
+    gets an analysis-time warning (or failure, with `warnings_as_errors`) on every call.
+
+    Args:
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+      rule_label: The label of the target whose strings are being processed.
+
+    Returns:
+      True if the target is on the strings validation allowlist and must not be validated.
+    """
+    full_label = "//{package}:{name}".format(
+        package = rule_label.package,
+        name = rule_label.name,
+    )
+    if full_label not in _ALLOWED_USERS_OF_UNVALIDATED_STRINGS:
+        return False
+    apple_xplat_toolchain_info.warning_handler(
+        ("Skipping .strings and .stringsdict validation for {label}, which is listed in " +
+         "{allowlist}. Fix its strings (see b/493928590) and remove it from the list.").format(
+            allowlist = _UNVALIDATED_STRINGS_ALLOWLIST,
+            label = full_label,
+        ),
+    )
+    return True
+
+def process_strings_with_plisttool(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        binary,
+        copy_input_on_success = False,
+        input_file,
+        mac_exec_group,
+        output_file,
+        platform_prerequisites,
+        rule_label,
+        validate_strings,
+        xplat_exec_group):
+    """Validates and/or compiles a `.strings` or `.stringsdict` file using `plisttool`.
+
+    Args:
+      actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
+      binary: Whether the output should be encoded as a binary property list.
+      copy_input_on_success: If True, writes the original input bytes after validation.
+      input_file: The `.strings` or `.stringsdict` file to process.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
+      output_file: The output file reference.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      rule_label: The label of the target being analyzed.
+      validate_strings: If True, `plisttool` validates the strings and fails on any finding.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
+    """
+    if not binary:
+        mnemonic = "ValidateStrings"
+    elif input_file.basename.endswith(".stringsdict"):
+        mnemonic = "CompilePlist"
+    else:
+        mnemonic = "CompileStrings"
+
+    control_fields = {
+        "binary": binary,
+        "individual_plist": input_file.path,
+        "output": output_file.path,
+        "target": str(rule_label),
+    }
+    if copy_input_on_success:
+        control_fields["copy_input_on_success"] = True
+    if validate_strings:
+        control_fields["validate_strings"] = True
+
+    plisttool_action(
+        actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        control = struct(**control_fields),
+        inputs = [input_file],
+        mac_exec_group = mac_exec_group,
+        mnemonic = mnemonic,
+        outputs = [output_file],
+        platform_prerequisites = platform_prerequisites,
+        run_on_mac = binary,
+        xplat_exec_group = xplat_exec_group,
+    )
 
 def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
     """Creates an action that compiles plist and strings files.
