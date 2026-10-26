@@ -201,6 +201,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "coverage_support",
+    srcs = ["coverage_support.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        ":providers",
+    ],
+)
+
+bzl_library(
     name = "entitlements_support",
     srcs = ["entitlements_support.bzl"],
     visibility = [
@@ -591,7 +602,6 @@ bzl_library(
     deps = [
         ":providers",
         ":rule_attrs",
-        "//apple/internal/testing:apple_test_rule_support",
         "//apple/internal/toolchains:apple_toolchains",
         "@bazel_tools//tools/cpp:toolchain_utils",
     ],

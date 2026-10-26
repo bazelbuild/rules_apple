@@ -25,10 +25,6 @@ load(
     "rule_attrs",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/testing:apple_test_rule_support.bzl",
-    "coverage_files_aspect",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -61,7 +57,6 @@ AppleTestRunnerInfo provider.
     # This is an implementation detail attribute, so it's not documented on purpose.
     "deps": attr.label_list(
         mandatory = True,
-        aspects = [coverage_files_aspect],
         providers = [AppleBundleInfo],
     ),
 }
@@ -156,7 +151,7 @@ def _create_apple_test_rule(*, cfg = None, doc, implementation, platform_type):
         # The private environment plist attr is omitted as it's of no use to IDE experiences.
         rule_attrs.platform_attrs(platform_type = platform_type) |
         # The aspect is withheld to avoid unnecessary overhead in this instance of `test_host`, and
-        # the provider is unnecessarily generic to accomodate any possible value of `test_host`.
+        # the provider is unnecessarily generic to accommodate any possible value of `test_host`.
         rule_attrs.test_host_attrs(aspects = [], providers = [[AppleBundleInfo]])
     )
 

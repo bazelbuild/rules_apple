@@ -535,6 +535,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_extension = bundle_extension,
             bundle_id = bundle_id,
             bundle_name = bundle_name,
+            coverage_enabled = ctx.configuration.coverage_enabled,
+            covered_binaries_targets = (
+                getattr(ctx.attr, "frameworks", []) + ([test_host] if test_host else [])
+            ),
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,

@@ -15,6 +15,10 @@
 """Bundling Task implementation for the AppleBundleInfo provider."""
 
 load(
+    "@build_bazel_rules_apple//apple/internal:coverage_support.bzl",
+    "coverage_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:outputs.bzl",
     "outputs",
 )
@@ -33,6 +37,8 @@ def _apple_bundle_info_bundling_task_impl(
         bundle_extension,
         bundle_id,
         bundle_name,
+        coverage_enabled,
+        covered_binaries_targets,
         entitlements,
         output_discriminator,
         platform_prerequisites,
@@ -87,7 +93,11 @@ def _apple_bundle_info_bundling_task_impl(
                 target_environment = platform_prerequisites.target_environment,
                 uses_swift = platform_prerequisites.uses_swift,
             ),
-        ],
+        ] + coverage_support.coverage_binaries_info(
+            binary = binary,
+            coverage_enabled = coverage_enabled,
+            covered_binaries_targets = covered_binaries_targets,
+        ),
     )
 
 def apple_bundle_info_bundling_task(
@@ -98,6 +108,8 @@ def apple_bundle_info_bundling_task(
         bundle_extension,
         bundle_id = None,
         bundle_name,
+        coverage_enabled = False,
+        covered_binaries_targets = [],
         entitlements = None,
         output_discriminator = None,
         platform_prerequisites,
@@ -106,7 +118,9 @@ def apple_bundle_info_bundling_task(
         rule_label):
     """Constructor for the AppleBundleInfo processing bundling task.
 
-    This bundling task propagates the AppleBundleInfo provider for this target.
+    This bundling task propagates the AppleBundleInfo provider for this target. When coverage
+    collection is enabled, it also propagates the binaries that `llvm-cov` needs for this bundle and
+    for `covered_binaries_targets`; see `coverage_support.bzl`.
 
     Args:
       actions: The actions provider from ctx.actions.
@@ -116,6 +130,11 @@ def apple_bundle_info_bundling_task(
       bundle_extension: Extension for the Apple bundle inside the archive.
       bundle_id: The bundle ID to configure for this target.
       bundle_name: The name of the output bundle.
+      coverage_enabled: Whether coverage collection is enabled, from
+          `ctx.configuration.coverage_enabled`. Optional. False by default.
+      covered_binaries_targets: A list of bundle targets whose binaries must be reported for
+          coverage together with this bundle's binary, such as the targets in `frameworks` and
+          `test_host`. Optional. Empty by default.
       entitlements: The entitlements file to sign with. Can be `None` if one was not provided.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -134,6 +153,8 @@ def apple_bundle_info_bundling_task(
         bundle_extension = bundle_extension,
         bundle_id = bundle_id,
         bundle_name = bundle_name,
+        coverage_enabled = coverage_enabled,
+        covered_binaries_targets = covered_binaries_targets,
         entitlements = entitlements,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,

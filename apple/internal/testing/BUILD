@@ -58,6 +58,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        "//apple/internal:coverage_support",
         "//apple/internal:providers",
         "@build_bazel_apple_support//xcode:providers",
     ],

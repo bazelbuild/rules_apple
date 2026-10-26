@@ -36,6 +36,7 @@ bzl_library(
         "//apple/internal:__pkg__",
     ],
     deps = [
+        "//apple/internal:coverage_support",
         "//apple/internal:outputs",
         "//apple/internal:providers",
     ],

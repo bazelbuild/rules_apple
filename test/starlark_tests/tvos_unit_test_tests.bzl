@@ -31,6 +31,10 @@ load(
     "apple_dsym_bundle_info_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_test_coverage_test.bzl",
+    "apple_test_coverage_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -207,6 +211,16 @@ def tvos_unit_test_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.unit-test-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    apple_test_coverage_test(
+        name = "{}_coverage_with_fmwk_test".format(name),
+        expected_covered_binaries = [
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/tvos/fmwk-intermediates/fmwk",
+            "third_party/bazel_rules/rules_apple/test/starlark_tests/targets_under_test/tvos/unit_test_with_fmwk.__internal__.__test_bundle-intermediates/unit_test_with_fmwk",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/tvos:unit_test_with_fmwk",
         tags = [name],
     )
 
