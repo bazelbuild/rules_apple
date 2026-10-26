@@ -33,10 +33,6 @@ part on the language used for XCFramework library identifiers:
 """
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "@build_bazel_rules_apple//apple/internal:base_transition_support.bzl",
     "base_transition_support",
 )
@@ -59,16 +55,10 @@ def _apple_platform_split_transition_impl(settings, attr):
         name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
-    resolved_environment_archs = secure_features_support.environment_archs_from_secure_features(
-        environment_archs = base_transition_support.environment_archs(
-            platform_type = platform_type,
-            minimum_os_version = minimum_os_version,
-            settings = settings,
-        ),
-        require_pointer_authentication_attribute = (
-            settings[build_settings_labels.require_pointer_authentication_attribute]
-        ),
-        secure_features = requested_features,
+    resolved_environment_archs = base_transition_support.environment_archs(
+        platform_type = platform_type,
+        minimum_os_version = minimum_os_version,
+        settings = settings,
     )
 
     output_dictionary = {}

@@ -350,15 +350,15 @@ def _process_entitlements(
     if _include_app_clip_entitlements(product_type = product_type):
         app_clip = {"com.apple.developer.on-demand-install-capable": True}
         forced_plists.append(struct(**app_clip))
-    if secure_features:
-        # Check that the requested secure features are supported and enabled for each toolchain.
-        secure_features_support.validate_secure_features_support(
-            cc_configured_features = cc_configured_features,
-            cc_toolchain_forwarder = cc_toolchains,
-            rule_label = rule_label,
-            secure_features = secure_features,
-        )
 
+    # Check that the requested secure features are supported and enabled for each toolchain.
+    secure_features_support.validate_secure_features_support(
+        cc_configured_features = cc_configured_features,
+        cc_toolchain_forwarder = cc_toolchains,
+        rule_label = rule_label,
+        secure_features = secure_features,
+    )
+    if secure_features:
         # Retrieve the entitlements required by the requested secure features, if there are any.
         secure_features_entitlements = (
             secure_features_support.entitlements_from_secure_features(

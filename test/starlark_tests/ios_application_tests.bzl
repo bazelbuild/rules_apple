@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "analysis_failure_message_with_arm64e_target_test",
     "make_analysis_failure_message_test",
 )
 load(
@@ -83,6 +84,20 @@ visibility("private")
 
 analysis_failure_message_with_mismatched_universal_architechtures_test = make_analysis_failure_message_test(
     config_settings = {"//command_line_option:ios_multi_cpus": "arm64,x86_64"},
+)
+
+analysis_failure_message_with_arm64_and_arm64e_target_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:ios_multi_cpus": ["arm64", "arm64e"],
+        "//command_line_option:watchos_cpus": [],
+    },
+)
+
+analysis_failure_message_with_arm64_and_arm64e_ios_and_watchos_target_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:ios_multi_cpus": ["arm64", "arm64e"],
+        "//command_line_option:watchos_cpus": ["arm64", "arm64e"],
+    },
 )
 
 analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actions_test(
@@ -1702,10 +1717,32 @@ Apple enhanced security features were requested, but the build is missing the re
         ],
     )
 
+    analysis_failure_message_with_arm64e_target_test(
+        name = "{}_arm64e_without_enhanced_security_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/ios:app_minimal` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
+        tags = [name],
+    )
+
+    analysis_failure_message_with_arm64_and_arm64e_target_test(
+        name = "{}_arm64_and_arm64e_without_enhanced_security_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/ios:app_minimal` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_device_archs_app_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1718,7 +1755,7 @@ Apple enhanced security features were requested, but the build is missing the re
     apple_verification_test(
         name = "{}_pointer_authentication_entitlements_app_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1734,7 +1771,7 @@ Apple enhanced security features were requested, but the build is missing the re
     apple_verification_test(
         name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1751,7 +1788,7 @@ Apple enhanced security features were requested, but the build is missing the re
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_device_archs_app_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1762,53 +1799,15 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
-    archive_contents_test(
-        name = "{}_no_pointer_authentication_arm64_device_archs_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
+    analysis_failure_message_with_arm64_and_arm64e_target_test(
+        name = "{}_no_pointer_authentication_extension_with_pointer_authentication_arm64e_app_should_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        binary_test_file = "$BUNDLE_ROOT/PlugIns/ext.appex/ext",
-        binary_test_architecture = "arm64",
-        binary_not_contains_architectures = ["arm64e"],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/ios:ext` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
         tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_no_pointer_authentication_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
-        },
-        tags = [
-            name,
-        ],
-    )
-    apple_verification_test(
-        name = "{}_no_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/PlugIns/ext.appex/"],
-        },
-        tags = [
-            name,
-        ],
     )
 
     archive_contents_test(
@@ -1876,7 +1875,7 @@ Apple enhanced security features were requested, but the build is missing the re
     archive_contents_test(
         name = "{}_pointer_authentication_arm64e_framework_in_app_and_extension_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1890,7 +1889,7 @@ Apple enhanced security features were requested, but the build is missing the re
     archive_contents_test(
         name = "{}_pointer_authentication_arm64_framework_in_app_and_extension_test".format(name),
         build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_fmwk_and_standard_extension",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
             "ios_multi_cpus": ["arm64", "arm64e"],
             "watchos_cpus": [],
@@ -1908,53 +1907,15 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
-    archive_contents_test(
-        name = "{}_no_pointer_authentication_arm64_device_archs_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
+    analysis_failure_message_with_arm64_and_arm64e_target_test(
+        name = "{}_no_pointer_authentication_app_clip_with_pointer_authentication_arm64e_app_should_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        binary_test_file = "$BUNDLE_ROOT/AppClips/app_clip.app/app_clip",
-        binary_test_architecture = "arm64",
-        binary_not_contains_architectures = ["arm64e"],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/ios:app_clip` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
         tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_no_pointer_authentication_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
-        },
-        tags = [
-            name,
-        ],
-    )
-    apple_verification_test(
-        name = "{}_no_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": [],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/AppClips/app_clip.app/"],
-        },
-        tags = [
-            name,
-        ],
     )
 
     archive_contents_test(
@@ -2005,53 +1966,15 @@ Apple enhanced security features were requested, but the build is missing the re
         ],
     )
 
-    archive_contents_test(
-        name = "{}_no_pointer_authentication_arm64_device_archs_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
+    analysis_failure_message_with_arm64_and_arm64e_ios_and_watchos_target_test(
+        name = "{}_no_pointer_authentication_watch_app_with_pointer_authentication_arm64e_app_should_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": ["arm64", "arm64e"],
-        },
-        binary_test_file = "$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/single_target_app_with_generic_ext",
-        binary_test_architecture = "arm64",
-        binary_not_contains_architectures = ["arm64e"],
-        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform WATCHOS"],
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/watchos:generic_ext` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
         tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_no_pointer_authentication_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": ["arm64", "arm64e"],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
-        },
-        tags = [
-            name,
-        ],
-    )
-    apple_verification_test(
-        name = "{}_no_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_watchos_app",
-        cpus = {
-            "ios_multi_cpus": ["arm64", "arm64e"],
-            "watchos_cpus": ["arm64", "arm64e"],
-        },
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.enhanced-security-version-string"],
-            "BUNDLE_TEST_ROOT": ["$BUNDLE_ROOT/Watch/single_target_app_with_generic_ext.app/"],
-        },
-        tags = [
-            name,
-        ],
     )
 
     archive_contents_test(

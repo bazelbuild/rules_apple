@@ -371,18 +371,12 @@ def _apple_rule_base_transition_impl(settings, attr):
         name = attr.name,
         secure_features = getattr(attr, "secure_features", None),
     )
-    resolved_environment_archs = secure_features_support.environment_archs_from_secure_features(
-        environment_archs = _environment_archs(
-            platform_type = platform_type,
-            minimum_os_version = minimum_os_version,
-            settings = settings,
-        ),
-        require_pointer_authentication_attribute = (
-            settings[build_settings_labels.require_pointer_authentication_attribute]
-        ),
-        secure_features = requested_features,
+    environment_archs = _environment_archs(
+        platform_type = platform_type,
+        minimum_os_version = minimum_os_version,
+        settings = settings,
     )
-    if not resolved_environment_archs:
+    if not environment_archs:
         fail("""
 ERROR: Target {target} requested to build for {platform_type}, but no architectures were \
 requested for that platform.
@@ -390,19 +384,22 @@ requested for that platform.
 Set of environment architectures found: {environment_archs}
 """.format(
             target = str(attr.name),
-            environment_archs = str(_environment_archs(
-                platform_type = platform_type,
-                minimum_os_version = minimum_os_version,
-                settings = settings,
-            )),
+            environment_archs = str(environment_archs),
             platform_type = platform_type,
         ))
 
-    # Rule-level transition always gets the first architecture, which needs to match exactly one of
+    # Make sure any arm64e environment arch is considered first for the 1:1 rule-level transition so
+    # that environment_arch_specific_features preserves pointer_authentication in ctx.features.
+    arm64e_archs = [arch for arch in environment_archs if arch.endswith("arm64e")]
+    first_environment_arch = (
+        arm64e_archs[0] if arm64e_archs and "pointer_authentication" in requested_features else environment_archs[0]
+    )
+
+    # Rule-level transition always gets a single architecture, which needs to match exactly one of
     # the attribute level split transition's architectures in order to take advantage of caching.
     return _command_line_options(
         building_apple_bundle = building_apple_bundle,
-        environment_arch = resolved_environment_archs[0],
+        environment_arch = first_environment_arch,
         features = requested_features,
         force_bundle_outputs = force_bundle_outputs,
         minimum_os_version = minimum_os_version,

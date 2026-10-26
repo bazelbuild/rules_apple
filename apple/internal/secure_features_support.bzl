@@ -25,6 +25,8 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+_ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY = []
+
 # The name of the secure feature that opts into Guard Objects on Xcode 27.0 or later by removing the
 # default "com.apple.security.hardened-process.no-guard-objects" opt-out entitlement.
 _ADOPT_GUARD_OBJECTS = "apple.adopt_guard_objects"
@@ -257,29 +259,13 @@ Please add it to the "secure_features" rule attribute at `{rule_label}`.
 
     return required_entitlements
 
-def _environment_archs_from_secure_features(
-        *,
-        environment_archs,
-        require_pointer_authentication_attribute,
-        secure_features):
-    # TODO(b/501040710, b/315525043) - Remove this "require_pointer_authentication_attribute" check
-    # once pointer_authentication is fully onboarded.
-    if not require_pointer_authentication_attribute:
-        return environment_archs
+def _is_allowed_arm64e_without_enhanced_security(rule_label):
+    label_name = rule_label.name.removesuffix(".__internal__.__test_bundle")
+    label_str = "//{}:{}".format(rule_label.package, label_name)
+    return label_str in _ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY
 
-    # Make sure the arm64e environment archs are first, for the benefit of the rule-level
-    # transition, which always picks the first architecture in the list. That way, we can pass
-    # forward the pointer_authentication feature.
-    arm64e_archs = []
-    other_archs = []
-    for environment_arch in environment_archs:
-        if environment_arch.endswith("arm64e"):
-            arm64e_archs.append(environment_arch)
-        else:
-            other_archs.append(environment_arch)
-    if "pointer_authentication" not in secure_features:
-        return other_archs
-    return arm64e_archs + other_archs
+def _is_arm64e_arch(target_arch):
+    return target_arch == "arm64e" or target_arch.startswith("arm64e.")
 
 def _validate_expected_secure_features(
         *,
@@ -318,12 +304,40 @@ def _validate_secure_features_support(
         *,
         cc_configured_features,
         cc_toolchain_forwarder,
+        require_enhanced_security_for_arm64e = True,
         rule_label,
         secure_features):
-    if not secure_features:
-        return
+    has_enhanced_security_opt_in = (
+        bool(secure_features) and _REQUIRED_XCODE_26_OPT_IN in secure_features
+    )
 
     for cc_toolchain in cc_toolchain_forwarder.values():
+        target_arch = cc_toolchain[ApplePlatformInfo].target_arch
+        if (
+            require_enhanced_security_for_arm64e and
+            _is_arm64e_arch(target_arch) and
+            not has_enhanced_security_opt_in and
+            not _is_allowed_arm64e_without_enhanced_security(rule_label)
+        ):
+            fail(
+                """
+Building `{rule_label}` for the `{target_arch}` architecture requires opting into Apple Enhanced \
+Security by adding "{required_xcode_26_opt_in}" to the target's `secure_features` attribute.
+
+Please add `secure_features = ["{required_xcode_26_opt_in}"]` (along with any other desired \
+Enhanced Security features) to `{rule_label}`, or remove `{target_arch}` from the requested target \
+CPUs. Note that for App Store distribution, `{target_arch}` must be built alongside `arm64` (for \
+example, `--ios_multi_cpus=arm64,{target_arch}`).
+                """.format(
+                    required_xcode_26_opt_in = _REQUIRED_XCODE_26_OPT_IN,
+                    rule_label = str(rule_label),
+                    target_arch = target_arch,
+                ),
+            )
+
+        if not secure_features:
+            continue
+
         cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
 
         # Calculate the effective set of Crosstool features for this toolchain, as we do want to
@@ -342,7 +356,7 @@ def _validate_secure_features_support(
         ]
         for feature_name in crosstool_secure_features:
             if feature_name == "pointer_authentication" and (
-                cc_toolchain[ApplePlatformInfo].target_arch != "arm64e"
+                not _is_arm64e_arch(target_arch)
             ):
                 # Pointer authentication is only applied to arm64e, so the check will fail for any
                 # other architecture since we're dropping that feature for non-arm64e at this time.
@@ -375,7 +389,6 @@ secure_features_support = struct(
     crosstool_features_from_secure_features = _crosstool_features_from_secure_features,
     entitlements_from_secure_features = _entitlements_from_secure_features,
     environment_arch_specific_features = _environment_arch_specific_features,
-    environment_archs_from_secure_features = _environment_archs_from_secure_features,
     validate_expected_secure_features = _validate_expected_secure_features,
     validate_secure_features_support = _validate_secure_features_support,
 )

@@ -1408,6 +1408,7 @@ def _apple_xcframework_impl(ctx):
     secure_features_support.validate_secure_features_support(
         cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
+        require_enhanced_security_for_arm64e = False,
         rule_label = rule_label,
         secure_features = secure_features,
     )
@@ -1908,6 +1909,7 @@ def _apple_static_xcframework_impl(ctx):
     secure_features_support.validate_secure_features_support(
         cc_configured_features = cc_configured_features,
         cc_toolchain_forwarder = cc_toolchain_forwarder,
+        require_enhanced_security_for_arm64e = False,
         rule_label = rule_label,
         secure_features = secure_features,
     )

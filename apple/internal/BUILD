@@ -653,10 +653,7 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [
-        ":intermediates",
-        "@build_bazel_rules_swift//swift:providers",
-    ],
+    deps = [":intermediates"],
 )
 
 bzl_library(
@@ -697,7 +694,6 @@ bzl_library(
     deps = [
         ":base_transition_support",
         ":secure_features_support",
-        "//apple/build_settings",
     ],
 )
 

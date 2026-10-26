@@ -1864,6 +1864,13 @@ def _macos_command_line_application_impl(ctx):
         )
     elif ctx.attr.secure_features:
         fail("secure_features require a bundle ID to be set to apply required entitlements.")
+    else:
+        secure_features_support.validate_secure_features_support(
+            cc_configured_features = cc_configured_features,
+            cc_toolchain_forwarder = cc_toolchain_forwarder,
+            rule_label = label,
+            secure_features = ctx.attr.secure_features,
+        )
 
     link_result = linking_support.register_binary_linking_action(
         ctx,
