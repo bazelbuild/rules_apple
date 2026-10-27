@@ -240,6 +240,17 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_tree_artifact_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     # Verify that Swift dylibs are no longer packaged with the application for iOS 15+, when the
     # application uses Swift.
     archive_contents_test(

@@ -332,27 +332,29 @@ function assert_is_codesigned() {
 # asserts that the frameworks in the bundle have not been resigned.
 function assert_frameworks_not_resigned_given_output() {
   local bundle="$1"
+  local codesign_fmwks_original_output
+  local framework_dir
 
-  WORKDIR="$1"
-  if [ "$APPLE_SDK_PLATFORM" != "MacOSX" ]; then
-    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/codesign_v_fmwks_output.txt"
-    FRAMEWORK_DIR="$bundle/Frameworks"
+  if [[ "${APPLE_SDK_PLATFORM:-}" == "MacOSX" || -d "$bundle/Contents" ]]; then
+    codesign_fmwks_original_output="$bundle/Contents/Resources/codesign_v_fmwks_output.txt"
+    framework_dir="$bundle/Contents/Frameworks"
   else
-    CODESIGN_FMWKS_ORIGINAL_OUTPUT="$bundle/Contents/Resources/codesign_v_fmwks_output.txt"
-    FRAMEWORK_DIR="$bundle/Contents/Frameworks"
+    codesign_fmwks_original_output="$bundle/codesign_v_fmwks_output.txt"
+    framework_dir="$bundle/Frameworks"
   fi
 
-  if [[ -d "$CODESIGN_FMWKS_ORIGINAL_OUTPUT" ]]; then
-    CODESIGN_FMWKS_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
+  if [[ -f "$codesign_fmwks_original_output" ]]; then
+    local codesign_fmwks_output
+    codesign_fmwks_output="$(mktemp "${TMPDIR:-/tmp}/codesign_fmwks_output.XXXXXX")"
 
-    for fmwk in \
-        $(find "$FRAMEWORK_DIR" -type d -maxdepth 1 -mindepth 1); do
-      /usr/bin/codesign --display --verbose=3 "$fmwk" 2>&1 | egrep "^[^Executable=]" >> "$CODESIGN_FMWKS_OUTPUT"
-    done
+    local fmwk
+    while IFS= read -r -d '' fmwk; do
+      /usr/bin/codesign --display --verbose=3 "$fmwk" </dev/null 2>&1 | grep -E -v "^Executable=" >> "$codesign_fmwks_output"
+    done < <(find "$framework_dir" -type d -maxdepth 1 -mindepth 1 -print0)
 
-    assert_equals "$(cat $CODESIGN_FMWKS_OUTPUT)" "$(cat $CODESIGN_FMWKS_ORIGINAL_OUTPUT)"
+    assert_equals "$(cat "$codesign_fmwks_output")" "$(cat "$codesign_fmwks_original_output")"
 
-    rm -rf "$CODESIGN_FMWKS_OUTPUT"
+    rm -rf "$codesign_fmwks_output"
   fi
 }
 

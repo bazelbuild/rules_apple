@@ -226,6 +226,17 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_tree_artifact_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     analysis_failure_message_test(
         name = "{}_imported_unversioned_fmwk_failure_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_unversioned_fmwk",
