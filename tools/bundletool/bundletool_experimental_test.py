@@ -117,6 +117,130 @@ class BundlerExperimentalTest(unittest.TestCase):
     self._assert_symlink(os.path.join(
         bundled_framework, "Resources"), "Versions/Current/Resources")
 
+  def test_bundle_merge_files_copies_sandboxed_inputs(self):
+    binary = self._scratch_file("execroot/tool", "executable-content")
+    assets = self._scratch_file("execroot/xcassets/Assets.car", "asset-content")
+    self._scratch_symlink("sandbox/tool", binary)
+    self._scratch_symlink("sandbox/xcassets/Assets.car", assets)
+
+    output = self._run_bundler({
+        "bundle_merge_files": [{
+            "src": os.path.join(self._scratch_dir, "sandbox"),
+            "dest": "",
+            "executable": True,
+        }],
+    })
+
+    for relative_path, content in [
+        ("tool", "executable-content"),
+        ("xcassets/Assets.car", "asset-content"),
+    ]:
+      path = os.path.join(output, relative_path)
+      self.assertFalse(os.path.islink(path))
+      with open(path, encoding="utf-8") as fp:
+        self.assertEqual(content, fp.read())
+      self.assertEqual(0o755, stat.S_IMODE(os.stat(path).st_mode))
+
+  def test_bundle_merge_files_copies_symlinked_input_directories(self):
+    self._scratch_file("execroot/resources/Info.plist", "plist-content")
+    resources = os.path.join(self._scratch_dir, "execroot/resources")
+    source = self._scratch_symlink("sandbox/resources", resources)
+
+    for src in [source, os.path.dirname(source)]:
+      with self.subTest(src=src):
+        output = self._run_bundler({
+            "bundle_merge_files": [{
+                "src": src,
+                "dest": "",
+            }],
+        })
+        relative_path = "Info.plist" if src == source else "resources/Info.plist"
+        with open(os.path.join(output, relative_path), encoding="utf-8") as fp:
+          self.assertEqual("plist-content", fp.read())
+        self.assertFalse(os.path.islink(os.path.join(output, "resources")))
+
+  def test_bundle_merge_files_preserves_framework_links_behind_sandbox_links(self):
+    framework = os.path.join(self._scratch_dir, "execroot/Foo.framework")
+    self._scratch_file("execroot/Foo.framework/Versions/A/Foo", "framework-binary")
+    self._scratch_symlink("execroot/Foo.framework/Versions/Current", "A")
+    self._scratch_symlink("execroot/Foo.framework/Foo", "Versions/Current/Foo")
+    for relative_path in ["Versions/A/Foo", "Versions/Current", "Foo"]:
+      self._scratch_symlink(
+          os.path.join("sandbox/Foo.framework", relative_path),
+          os.path.join(framework, relative_path),
+      )
+
+    output = self._run_bundler({
+        "bundle_merge_files": [{
+            "src": os.path.join(self._scratch_dir, "sandbox/Foo.framework"),
+            "dest": "Foo.framework",
+        }],
+    })
+
+    bundled_framework = os.path.join(output, "Foo.framework")
+    self._assert_symlink(os.path.join(
+        bundled_framework, "Versions/Current"), "A")
+    self._assert_symlink(os.path.join(
+        bundled_framework, "Foo"), "Versions/Current/Foo")
+    self.assertFalse(os.path.islink(os.path.join(
+        bundled_framework, "Versions/A/Foo")))
+    with open(os.path.join(bundled_framework, "Foo"), encoding="utf-8") as fp:
+      self.assertEqual("framework-binary", fp.read())
+
+  def test_bundle_merge_files_rejects_broken_absolute_symlinks(self):
+    missing = os.path.join(self._scratch_dir, "missing")
+    broken = self._scratch_symlink("input/broken", missing)
+    chain = self._scratch_symlink("chain", broken)
+
+    for src in [broken, chain, os.path.dirname(broken)]:
+      with self.subTest(src=src):
+        with self.assertRaises(FileNotFoundError) as error:
+          self._run_bundler({
+              "bundle_merge_files": [{"src": src, "dest": "Resources"}],
+          })
+        self.assertEqual(missing, error.exception.filename)
+
+  def test_bundle_merge_files_rejects_absolute_symlink_cycles(self):
+    first = os.path.join(self._scratch_dir, "input/first")
+    second = self._scratch_symlink("input/second", first)
+    self._scratch_symlink("input/first", second)
+
+    for src in [first, os.path.dirname(first)]:
+      with self.subTest(src=src):
+        with self.assertRaisesRegex(ValueError, "Cyclic input symlink"):
+          self._run_bundler({
+              "bundle_merge_files": [{"src": src, "dest": "Resources"}],
+          })
+
+  def test_bundle_merge_files_rejects_absolute_directory_symlink_cycles(self):
+    directory = os.path.join(self._scratch_dir, "input")
+    self._scratch_file("input/Resources/Info.plist", "plist-content")
+    self._scratch_symlink("input/Resources/parent", directory)
+
+    with self.assertRaisesRegex(ValueError, "Cyclic input symlink"):
+      self._run_bundler({
+          "bundle_merge_files": [{"src": directory, "dest": "Resources"}],
+      })
+
+  def test_bundle_merge_files_copies_repeated_absolute_symlink_targets(self):
+    self._scratch_file("execroot/Resources/Info.plist", "plist-content")
+    resources = os.path.join(self._scratch_dir, "execroot/Resources")
+    shared = self._scratch_symlink("shared", resources)
+    self._scratch_symlink("input/first", shared)
+    self._scratch_symlink("input/second", shared)
+
+    output = self._run_bundler({
+        "bundle_merge_files": [{
+            "src": os.path.join(self._scratch_dir, "input"),
+            "dest": "",
+        }],
+    })
+
+    for directory in ["first", "second"]:
+      with open(os.path.join(output, directory, "Info.plist"),
+                encoding="utf-8") as fp:
+        self.assertEqual("plist-content", fp.read())
+
   def test_bundle_symlinks(self):
     output = self._run_bundler({
         "bundle_merge_files": [{
@@ -159,6 +283,60 @@ class BundlerExperimentalTest(unittest.TestCase):
         bundled_framework, "Foo"), "Versions/Current/Foo")
     self._assert_symlink(os.path.join(
         bundled_framework, "Resources"), "Versions/Current/Resources")
+
+  def test_bundle_merge_zips_copies_sandboxed_nested_apps(self):
+    files = [
+        ("Contents/MacOS/Nested", "executable-content", 0o755),
+        ("Contents/Info.plist", "plist-content", 0o644),
+        ("Contents/Resources/Assets.car", "asset-content", 0o644),
+    ]
+    for relative_path, content, mode in files:
+      source = self._scratch_file(
+          os.path.join("execroot/Nested.app", relative_path), content)
+      os.chmod(source, mode)
+      self._scratch_symlink(
+          os.path.join("sandbox/Nested.app", relative_path), source)
+    alias = self._scratch_symlink(
+        "execroot/Nested.app/Contents/MacOS/Alias", "Nested")
+    self._scratch_symlink("sandbox/Nested.app/Contents/MacOS/Alias", alias)
+    os.makedirs(os.path.join(
+        self._scratch_dir, "sandbox/Nested.app/Contents/Resources/Empty"))
+    directory_modes = [
+        ("", 0o750),
+        ("Contents", 0o700),
+        ("Contents/Resources", 0o750),
+        ("Contents/Resources/Empty", 0o710),
+    ]
+    for relative_path, mode in directory_modes:
+      os.chmod(os.path.join(
+          self._scratch_dir, "sandbox/Nested.app", relative_path), mode)
+
+    output = self._run_bundler({
+        "bundle_merge_zips": [{
+            "src": os.path.join(self._scratch_dir, "sandbox/Nested.app"),
+            "dest": "Contents/Library",
+        }],
+    })
+
+    shutil.rmtree(os.path.join(self._scratch_dir, "execroot"))
+    shutil.rmtree(os.path.join(self._scratch_dir, "sandbox"))
+    nested_app = os.path.join(output, "Contents/Library/Nested.app")
+    for relative_path, content, mode in files:
+      path = os.path.join(nested_app, relative_path)
+      self.assertFalse(os.path.islink(path))
+      with open(path, encoding="utf-8") as fp:
+        self.assertEqual(content, fp.read())
+      self.assertEqual(mode, stat.S_IMODE(os.stat(path).st_mode))
+    self._assert_symlink(
+        os.path.join(nested_app, "Contents/MacOS/Alias"), "Nested")
+    self.assertTrue(os.path.isfile(os.path.join(
+        nested_app, "Contents/MacOS/Alias")))
+    self.assertTrue(os.path.isdir(os.path.join(
+        nested_app, "Contents/Resources/Empty")))
+    for relative_path, mode in directory_modes:
+      self.assertEqual(
+          mode, stat.S_IMODE(os.stat(
+              os.path.join(nested_app, relative_path)).st_mode))
 
   def test_bundle_merge_zips_rejects_absolute_symlink_targets(self):
     framework_zip = os.path.join(self._scratch_dir, "Foo.zip")

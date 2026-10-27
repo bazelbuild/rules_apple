@@ -148,6 +148,7 @@ class Bundler(object):
           the moduledoc for a description of the format of this dictionary.
     """
     self._control = control
+    self._active_symlinks = set()
 
   def run(self):
     """Performs the operations requested by the control struct."""
@@ -194,22 +195,32 @@ class Bundler(object):
           directory, it represents the directory into which the files underneath
           `src` will be recursively added.
       executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
+          be made executable, or None to preserve file and directory permissions.
       bundle_root: The bundle root directory into which the files should be
           added.
     """
     if os.path.islink(src) and os.path.isdir(src):
-      self._copy_symlink(src, dest, bundle_root)
+      self._copy_symlink(src, dest, executable, bundle_root)
     elif os.path.isdir(src):
-      for root, dirs, files in os.walk(src):
+      def raise_walk_error(error):
+        raise error
+
+      directory_modes = []
+      for root, dirs, files in os.walk(src, onerror=raise_walk_error):
         relpath = os.path.relpath(root, src)
+        if executable is None:
+          full_dest = os.path.normpath(os.path.join(bundle_root, dest, relpath))
+          self._validate_dest_in_bundle(full_dest, bundle_root, dest)
+          self._makedirs_safely(full_dest)
+          directory_modes.append(
+              (full_dest, stat.S_IMODE(os.stat(root).st_mode)))
         symlink_dirs = []
         for dirname in dirs:
           dirsrc = os.path.join(root, dirname)
           if os.path.islink(dirsrc):
             symlink_dirs.append(dirname)
             dirdest = os.path.normpath(os.path.join(dest, relpath, dirname))
-            self._copy_symlink(dirsrc, dirdest, bundle_root)
+            self._copy_symlink(dirsrc, dirdest, executable, bundle_root)
 
         for dirname in symlink_dirs:
           dirs.remove(dirname)
@@ -218,13 +229,18 @@ class Bundler(object):
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
           if os.path.islink(fsrc):
-            self._copy_symlink(fsrc, fdest, bundle_root)
+            self._copy_symlink(fsrc, fdest, executable, bundle_root)
           else:
             self._copy_file(fsrc, fdest, executable, bundle_root)
+
+      # Restore permissions after copying, children first, so restrictive parent
+      # permissions do not prevent access to their children.
+      for directory, mode in reversed(directory_modes):
+        os.chmod(directory, mode)
     elif os.path.isfile(src):
       self._copy_file(src, dest, executable, bundle_root)
     elif os.path.islink(src):
-      self._copy_symlink(src, dest, bundle_root)
+      self._copy_symlink(src, dest, executable, bundle_root)
 
   def _add_zip_contents(self, src, dest, bundle_root):
     """Adds the contents of another ZIP file/App to the bundle.
@@ -241,11 +257,12 @@ class Bundler(object):
     # into the current bundle.
     _, ext = os.path.splitext(src)
     if ext == ".app":
-        # If so, we can just copy those into the expected location
-        # without any additional processing
         app_name = os.path.basename(src)
-        shutil.copytree(
-            src, os.path.join(bundle_root, dest, app_name), symlinks=True)
+        src = os.path.realpath(src)
+        if not stat.S_ISDIR(os.stat(src).st_mode):
+            raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), src)
+        self._add_files(
+            src, os.path.join(dest, app_name), None, bundle_root)
     else:
         with zipfile.ZipFile(src, "r") as src_zip:
             for src_zipinfo in src_zip.infolist():
@@ -267,9 +284,32 @@ class Bundler(object):
                 data = src_zip.read(src_zipinfo)
                 self._write_entry(file_dest, data, executable, bundle_root)
 
-  def _copy_symlink(self, src, dest, bundle_root):
-    """Copies a symbolic link into the bundle."""
-    self._write_symlink(dest, os.readlink(src), bundle_root)
+  def _copy_symlink(self, src, dest, executable, bundle_root):
+    """Copies an input symlink.
+
+    Absolute input links are treated as staging links and dereferenced. Relative
+    links are preserved so versioned framework links keep their bundle layout.
+    """
+    visited = set()
+    try:
+      while os.path.islink(src):
+        target = os.readlink(src)
+        if not os.path.isabs(target):
+          self._write_symlink(dest, target, bundle_root)
+          return
+
+        info = os.lstat(src)
+        identity = (info.st_dev, info.st_ino)
+        if identity in self._active_symlinks:
+          raise ValueError(f"Cyclic input symlink: {src}")
+        visited.add(identity)
+        self._active_symlinks.add(identity)
+        src = target
+
+      os.stat(src)
+      self._add_files(src, dest, executable, bundle_root)
+    finally:
+      self._active_symlinks.difference_update(visited)
 
   def _copy_file(self, src, dest, executable, bundle_root):
     """Copies a file into the bundle.
@@ -279,7 +319,7 @@ class Bundler(object):
       dest: The path relative to the bundle root where the file should be
           stored.
       executable: A Boolean value indicating whether or not the file(s) should
-          be made executable.
+          be made executable, or None to preserve the source permissions.
       bundle_root: The bundle root directory into which the files should be
           added.
     """
@@ -302,7 +342,11 @@ class Bundler(object):
           raise Exception(f"failed to clonefile {src} to {full_dest}")
     else:
       shutil.copy(src, full_dest)
-    os.chmod(full_dest, 0o755 if executable else 0o644)
+    if executable is None:
+      mode = stat.S_IMODE(os.stat(src).st_mode)
+    else:
+      mode = 0o755 if executable else 0o644
+    os.chmod(full_dest, mode)
 
   def _write_symlink(self, dest, target, bundle_root):
     """Writes the given symbolic link in the output bundle."""
