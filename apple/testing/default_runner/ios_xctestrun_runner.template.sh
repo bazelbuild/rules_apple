@@ -507,6 +507,10 @@ if [[ "$build_for_device" == false ]]; then
   fi
 
   simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
+
+  if [[ "%(disable_aggressive_symbolication)s" == true ]]; then
+    xcrun simctl spawn "$simulator_id" defaults write -g XCTDisableAggressiveSymbolication -bool YES
+  fi
 fi
 
 test_exit_code=0
