@@ -207,6 +207,7 @@ def _bundle_task_output_files(
         bundle_extension,
         bundle_name,
         codesigning_command = None,
+        codesigning_config = None,
         compression_level = 0,
         control_schema_version = 1,
         embedding = False,
@@ -230,6 +231,8 @@ def _bundle_task_output_files(
       bundle_name: The name of the output bundle.
       codesigning_command: When building tree artifact outputs, the command to codesign the output
           bundle.
+      codesigning_config: Optional struct returned by
+          `codesigning_support.resolve_codesigning_config`.
       compression_level: An integer specifying the zlib compression level (0 for STORED, 1-9 for
           DEFLATE). Defaults to 0.
       control_schema_version: Version of the control file schema required by this invocation
@@ -351,6 +354,7 @@ Please file a bug against the Apple BUILD rules with repro steps.
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             bundletool_inputs = depset(bundletool_inputs),
             code_signing_commands = codesigning_command or "",
+            codesigning_config = codesigning_config,
             control_file_name = control_file_name,
             control_merge_files = control_files,
             control_merge_zips = control_zips,
@@ -439,6 +443,13 @@ def _bundle_and_sign_archive(
             `ProcessAndSign` is used.
         xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
+    codesigning_config = codesigning_support.resolve_codesigning_config(
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        force_sign_on_mac = bool(ipa_post_processor),
+        mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+    )
     direct_bundle_archive = False
     codesigning_command = None
     if apple_xplat_toolchain_info.build_settings.direct_bundle_archive and not ipa_post_processor:
@@ -446,7 +457,7 @@ def _bundle_and_sign_archive(
             bundle_path = archive_codesigning_path,
             build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
+            codesigning_config = codesigning_config,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             label_name = rule_label.name,
@@ -515,7 +526,7 @@ def _bundle_and_sign_archive(
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             archive_codesigning_path = archive_codesigning_path,
             cc_configured_features = cc_configured_features,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool,
+            codesigning_config = codesigning_config,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             input_archive = unprocessed_archive,
@@ -617,10 +628,17 @@ def _bundle_post_process_and_sign(
             ),
         )
 
+        codesigning_config = codesigning_support.resolve_codesigning_config(
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+            force_sign_on_mac = bool(ipa_post_processor),
+            mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
+            platform_prerequisites = platform_prerequisites,
+            provisioning_profile = provisioning_profile,
+        )
         codesigning_command = codesigning_support.codesigning_command(
             build_settings = apple_xplat_toolchain_info.build_settings,
             cc_configured_features = cc_configured_features,
-            codesigningtool = apple_mac_toolchain_info.codesigningtool.executable,
+            codesigning_config = codesigning_config,
             entitlements = entitlements,
             frameworks_path = archive_paths[location_enum.framework],
             label_name = rule_label.name,
@@ -635,7 +653,7 @@ def _bundle_post_process_and_sign(
             if entitlements:
                 extra_input_files.append(entitlements)
 
-            if provisioning_profile:
+            if provisioning_profile and codesigning_config.sign_on_mac:
                 extra_input_files.append(provisioning_profile)
 
         _bundle_task_output_files(
@@ -645,6 +663,7 @@ def _bundle_post_process_and_sign(
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
             codesigning_command = codesigning_command,
+            codesigning_config = codesigning_config,
             extra_input_files = extra_input_files,
             ipa_post_processor = ipa_post_processor,
             mac_exec_group = mac_exec_group,

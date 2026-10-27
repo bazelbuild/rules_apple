@@ -124,6 +124,15 @@ analysis_target_actions_direct_bundle_archive_legacy_signing_test = make_analysi
     },
 )
 
+analysis_target_actions_direct_bundle_archive_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.direct_bundle_archive: True,
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
@@ -148,6 +157,44 @@ analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = mak
         build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_codesigning_device_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:ios_multi_cpus": "arm64",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_device_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.signing_certificate_name: "",
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:ios_multi_cpus": "arm64",
         "//command_line_option:macos_cpus": "arm64",
     },
 )
@@ -235,6 +282,22 @@ All requested architectures must be either device or simulator architectures."""
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that a bundle ad-hoc signed on Linux via adhoc_sign (ProcessAndSign on xplat) passes
+    # `codesign --verify` on macOS.
+    # TODO: b/565907020 - Add an end-to-end verification test for tree-artifact (BundleTreeApp)
+    # outputs in a follow-up CL once `apple_verification_test` dereferences Bazel runfiles
+    # symlinks when staging tree-artifact bundles for `codesign --verify`.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -2180,6 +2243,46 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
+    # Simulator builds (the default configuration) always use ad-hoc signing ("-"), so
+    # ProcessAndSign runs on xplat when force_codesigningtool_on_mac is False and does not stage the
+    # provisioning profile as an action input.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_process_and_sign_xplat_codesigning_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_process_and_sign_xplat_codesigning_with_post_processor_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign", "should_process"],
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    # Device builds of app_minimal use its declared provisioning_profile, which requires macOS
+    # signing even when force_codesigningtool_on_mac is False.
+    analysis_target_actions_xplat_codesigning_device_test(
+        name = "{}_process_and_sign_xplat_codesigning_with_provisioning_profile_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["/usr/bin/codesign", "--mobileprovision"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_ios.mobileprovision"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_disable_legacy_signing_archive_contents_test".format(name),
         build_type = "device",
@@ -2250,6 +2353,21 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
+    analysis_target_actions_direct_bundle_archive_xplat_codesigning_test(
+        name = "{}_direct_bundle_archive_xplat_codesigning_keeps_process_and_sign_on_xplat_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        not_expected_execution_requirements = [
+            "no-cache",
+            "no-sandbox",
+            "requires-darwin",
+        ],
+        tags = [name],
+    )
+
     analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test(
         name = "{}_direct_bundle_archive_disable_legacy_signing_app_clip_skips_process_and_sign_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip_with_pointer_authentication",
@@ -2296,6 +2414,38 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
             "no-remote",
             "no-sandbox",
         ],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test(
+        name = "{}_bundle_tree_app_xplat_codesigning_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleTreeApp",
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test(
+        name = "{}_bundle_tree_app_xplat_codesigning_with_post_processor_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
+        target_mnemonic = "BundleTreeApp",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_device_test(
+        name = "{}_bundle_tree_app_xplat_codesigning_with_provisioning_profile_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleTreeApp",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_ios.mobileprovision"],
+        expected_execution_requirements = {"requires-darwin": ""},
         tags = [name],
     )
 

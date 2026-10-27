@@ -15,12 +15,21 @@
 """macos_dylib Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
@@ -36,6 +45,15 @@ load(
 )
 
 visibility("private")
+
+analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
 
 def macos_dylib_test_suite(name):
     """Test suite for macos_dylib.
@@ -133,6 +151,38 @@ def macos_dylib_test_suite(name):
         binary_test_file = "$BINARY",
         binary_test_architecture = "arm64",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform MACOS"],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_sign_binary_legacy_signing_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    # dylib_dead_stripped has no provisioning_profile, so with an empty signing_certificate_name it
+    # is ad-hoc signed ("-") via adhoc_sign on xplat when force_codesigningtool_on_mac is False.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_sign_binary_xplat_codesigning_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign", "--identity '-'"],
+        not_expected_argv = ["--codesign /usr/bin/codesign"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # dylib declares a provisioning_profile, which requires macOS signing.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_sign_binary_xplat_codesigning_with_provisioning_profile_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_inputs = ["_macos.provisionprofile"],
+        expected_execution_requirements = {"requires-darwin": ""},
         tags = [name],
     )
 

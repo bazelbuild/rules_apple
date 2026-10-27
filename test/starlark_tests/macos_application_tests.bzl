@@ -226,6 +226,19 @@ def macos_application_test_suite(name):
         tags = [name],
     )
 
+    # Verifies that a macOS app with a versioned framework, ad-hoc signed on Linux via adhoc_sign
+    # (ProcessAndSign on xplat), passes `codesign --verify` on macOS.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_with_fmwk_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_tree_artifact_codesign_test".format(name),
         build_type = "device",
@@ -247,6 +260,19 @@ def macos_application_test_suite(name):
     apple_verification_test(
         name = "{}_entitlements_test".format(name),
         build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that XML and DER entitlements embedded on Linux via adhoc_sign (ProcessAndSign on
+    # xplat) are readable via `codesign --display` on macOS.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_entitlements_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
         tags = [name],

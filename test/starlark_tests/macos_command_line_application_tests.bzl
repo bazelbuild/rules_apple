@@ -15,12 +15,21 @@
 """macos_command_line_application Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
     "analysis_output_group_info_files_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_runfiles_test.bzl",
     "analysis_runfiles_dsym_test",
+)
+load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
@@ -41,6 +50,24 @@ load(
 
 visibility("private")
 
+analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_codesigning_with_signing_certificate_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        build_settings_labels.signing_certificate_name: "Apple Development",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 def macos_command_line_application_test_suite(name):
     """Test suite for macos_command_line_application.
 
@@ -50,6 +77,19 @@ def macos_command_line_application_test_suite(name):
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that a binary ad-hoc signed on Linux via adhoc_sign (SignBinary on xplat) passes
+    # `codesign --verify` on macOS.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -230,6 +270,19 @@ def macos_command_line_application_test_suite(name):
         tags = [name],
     )
 
+    # Verifies that XML and DER entitlements embedded into a standalone binary on Linux via
+    # adhoc_sign (SignBinary on xplat) are readable via `codesign --display` on macOS.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_bundle_id_entitlements_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_info_plists",
+        verifier_script = "verifier_scripts/bundle_id_entitlements_verifier.sh",
+        tags = [name],
+    )
+
     binary_contents_test(
         name = "{}_is_building_apple_bundle_test".format(name),
         build_type = "device",
@@ -238,6 +291,47 @@ def macos_command_line_application_test_suite(name):
         binary_test_architecture = "arm64",
         binary_contains_symbols = ["_IsNotBuildingAppleBundle"],
         binary_not_contains_symbols = ["_IsBuildingAppleBundle"],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_sign_binary_legacy_signing_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    # cmd_app_basic has no provisioning_profile, so with an empty signing_certificate_name it is
+    # ad-hoc signed ("-") via adhoc_sign on xplat when force_codesigningtool_on_mac is False.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_sign_binary_xplat_codesigning_does_not_require_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign", "--identity '-'"],
+        not_expected_argv = ["--codesign /usr/bin/codesign"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # cmd_app_info_plists declares a provisioning_profile, which requires macOS signing.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_sign_binary_xplat_codesigning_with_provisioning_profile_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_info_plists",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_inputs = ["_macos.provisionprofile"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_with_signing_certificate_test(
+        name = "{}_sign_binary_xplat_codesigning_with_signing_certificate_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:cmd_app_basic",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_execution_requirements = {"requires-darwin": ""},
         tags = [name],
     )
 

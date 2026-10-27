@@ -107,6 +107,9 @@ This toolchain is for the tools (and support files) for actions that can run on 
 i.e. - they do *not* have to run on a Mac.
 """,
     fields = {
+        "adhoc_sign": """\
+The files_to_run for a tool that performs ad-hoc code signing for Apple binaries and bundles.
+""",
         "build_settings": """\
 A `struct` containing custom build settings values, where fields are the name of the build setting
 target name and values are retrieved from the BuildSettingInfo provider for each label provided.
@@ -119,6 +122,10 @@ directory structure for those files.
 """,
         "clangrttool": """\
 The files_to_run for a tool that finds the set of Clang libraries needed for an application bundle.
+""",
+        "codesigningtool": """\
+The files_to_run for a tool to select the appropriate signing identity for Apple apps and Apple
+executable bundles.
 """,
         "derq": """\
 The files_to_run for a tool that DER-encodes entitlements.
@@ -191,6 +198,7 @@ A `File` referencing a tool to create an Apple bundle that is expected to always
         "codesigningtool": attr.label(
             cfg = "exec",
             executable = True,
+            mandatory = True,
             doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
         "dossier_codesigningtool": attr.label(
@@ -291,9 +299,11 @@ def _apple_xplat_tools_toolchain_impl(ctx):
     )
 
     xplat_info = AppleXPlatToolsToolchainInfo(
+        adhoc_sign = ctx.attr.adhoc_sign.files_to_run,
         build_settings = build_settings_struct,
         bundletool_swift = ctx.attr.bundletool_swift,
         clangrttool = ctx.attr.clangrttool.files_to_run,
+        codesigningtool = ctx.attr.codesigningtool.files_to_run,
         derq = ctx.attr.derq.files_to_run,
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
@@ -312,6 +322,14 @@ def _apple_xplat_tools_toolchain_impl(ctx):
 
 apple_xplat_tools_toolchain = rule(
     attrs = {
+        "adhoc_sign": attr.label(
+            cfg = "exec",
+            executable = True,
+            mandatory = True,
+            doc = """
+A `File` referencing a tool that performs ad-hoc code signing for Apple binaries and bundles.
+""",
+        ),
         "build_settings": attr.label_list(
             providers = [BuildSettingInfo],
             mandatory = True,
@@ -333,6 +351,12 @@ paths to build the directory structure for those files.
             doc = """
 A `File` referencing a tool that finds the set of Clang libraries needed for an application bundle.
 """,
+        ),
+        "codesigningtool": attr.label(
+            cfg = "exec",
+            executable = True,
+            mandatory = True,
+            doc = "A `File` referencing a tool to assist in signing bundles.",
         ),
         "derq": attr.label(
             cfg = "exec",

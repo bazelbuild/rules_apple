@@ -416,6 +416,7 @@ def _generate_tree_artifact_bundle_action(
         apple_xplat_toolchain_info,
         bundletool_inputs,
         code_signing_commands = "",
+        codesigning_config = None,
         control_file_name,
         control_merge_files,
         control_merge_zips,
@@ -438,6 +439,8 @@ def _generate_tree_artifact_bundle_action(
       bundletool_inputs: A depset of files to pass to the bundletool.
       code_signing_commands: String. The sequence of code signing commands to execute, or an empty
           string if codesigning should not be performed.
+      codesigning_config: Optional struct returned by
+          `codesigning_support.resolve_codesigning_config`.
       control_file_name: The name of the control file to generate.
       control_merge_files: A list of structs representing files that should be merged into the
           bundle. Each struct contains two fields: "src", the path of the file that should be merged
@@ -460,12 +463,19 @@ def _generate_tree_artifact_bundle_action(
       xcode_config: The `XcodeVersionInfo` provider from the context.
       xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
+    if code_signing_commands and not codesigning_config:
+        fail(
+            "Internal Error: codesigning_config must be provided when " +
+            "code_signing_commands is non-empty.",
+        )
+    sign_on_mac = codesigning_config.sign_on_mac if codesigning_config else True
+
+    run_on_darwin = any([code_signing_commands and sign_on_mac, post_processor])
 
     additional_bundling_tools = []
     additional_control_options = {}
     if code_signing_commands:
-        codesigningtool = apple_mac_toolchain_info.codesigningtool
-        additional_bundling_tools.append(codesigningtool)
+        additional_bundling_tools.extend(codesigning_config.tools)
         additional_control_options["code_signing_commands"] = code_signing_commands
     if post_processor:
         additional_bundling_tools.append(post_processor)
@@ -489,7 +499,6 @@ def _generate_tree_artifact_bundle_action(
     )
     bundletool_final_inputs = depset([bundletool_control_file], transitive = [bundletool_inputs])
 
-    run_on_darwin = any([code_signing_commands, post_processor])
     if run_on_darwin:
         execution_requirements = {}
         if code_signing_commands:
@@ -530,6 +539,7 @@ def _generate_tree_artifact_bundle_action(
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
+            tools = additional_bundling_tools,
         )
 
 def _path_is_under_fragments(path, path_fragments):

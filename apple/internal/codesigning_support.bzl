@@ -62,6 +62,7 @@ visibility([
 
 # The adhoc signature used as an identity, partially documented at https://developer.apple.com/documentation/security/seccodesignatureflags/1397793-adhoc
 _ADHOC_PSEUDO_IDENTITY = "-"
+_MACOS_CODESIGN_PATH = "/usr/bin/codesign"
 
 def _double_quote(raw_string):
     """Add double quotes around the string and preserve existing quote characters.
@@ -95,9 +96,100 @@ def _preferred_codesigning_identity(
         return build_settings.signing_certificate_name
     return None
 
+def _resolve_signing_identity(
+        *,
+        build_settings,
+        platform_prerequisites,
+        provisioning_profile):
+    """Resolves how codesigningtool should select the signing identity.
+
+    This is the single source of truth for identity selection, shared by the code signing command
+    lines and by the decision of whether signing can execute on xplat with ad-hoc signing.
+
+    Args:
+      build_settings: A `dict`-like struct describing build settings.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: The provisioning profile file. May be `None`.
+
+    Returns:
+      A `struct` with the following fields:
+        identity: The identity to pass via `--identity`, or `None` if codesigningtool should
+            select the identity from the provisioning profile.
+        use_mobileprovision: Whether `--mobileprovision` should be passed to codesigningtool.
+    """
+    identity = _preferred_codesigning_identity(
+        build_settings = build_settings,
+        requires_adhoc_signing = not platform_prerequisites.platform.is_device,
+    )
+    if identity:
+        return struct(identity = identity, use_mobileprovision = False)
+    if provisioning_profile:
+        return struct(identity = None, use_mobileprovision = True)
+    return struct(identity = _ADHOC_PSEUDO_IDENTITY, use_mobileprovision = False)
+
+def _is_adhoc_signing(
+        *,
+        build_settings,
+        platform_prerequisites,
+        provisioning_profile):
+    """Returns True if the signing operation uses the ad-hoc pseudo-identity ("-")."""
+    signing_identity = _resolve_signing_identity(
+        build_settings = build_settings,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+    )
+    return signing_identity.identity == _ADHOC_PSEUDO_IDENTITY
+
+def _should_sign_on_mac(
+        *,
+        apple_xplat_toolchain_info,
+        platform_prerequisites,
+        provisioning_profile):
+    """Returns True if code signing must execute on macOS rather than on xplat."""
+    build_settings = apple_xplat_toolchain_info.build_settings
+    if build_settings.force_codesigningtool_on_mac:
+        return True
+
+    return not _is_adhoc_signing(
+        build_settings = build_settings,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+    )
+
+def _resolve_codesigning_config(
+        *,
+        apple_xplat_toolchain_info,
+        force_sign_on_mac = False,
+        mac_codesigningtool,
+        platform_prerequisites,
+        provisioning_profile):
+    """Resolves the execution mode, tool targets, and codesign binary path for signing."""
+    sign_on_mac = force_sign_on_mac or _should_sign_on_mac(
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+    )
+    if sign_on_mac:
+        return struct(
+            codesign_path = _MACOS_CODESIGN_PATH,
+            codesigningtool = mac_codesigningtool,
+            sign_on_mac = True,
+            tools = [mac_codesigningtool],
+        )
+    return struct(
+        codesign_path = apple_xplat_toolchain_info.adhoc_sign.executable.path,
+        codesigningtool = apple_xplat_toolchain_info.codesigningtool,
+        sign_on_mac = False,
+        tools = [
+            apple_xplat_toolchain_info.codesigningtool,
+            apple_xplat_toolchain_info.adhoc_sign,
+        ],
+    )
+
 def _codesign_args_for_path(
         *,
         build_settings,
+        codesign_path,
         entitlements_file,
         path_to_sign,
         platform_prerequisites,
@@ -107,6 +199,7 @@ def _codesign_args_for_path(
 
     Args:
       build_settings: A `dict`-like struct describing build settings.
+      codesign_path: Path to the underlying `codesign` or `adhoc_sign` binary.
       entitlements_file: The entitlements file to pass to codesign. May be `None`
           for non-app binaries (e.g. test bundles).
       path_to_sign: A struct indicating the path that should be signed and its
@@ -129,7 +222,7 @@ def _codesign_args_for_path(
 
     cmd_codesigning = [
         "--codesign",
-        "/usr/bin/codesign",
+        codesign_path,
     ]
 
     # Add quotes for sanitizing inputs when they're invoked directly from a shell script, for
@@ -138,25 +231,23 @@ def _codesign_args_for_path(
     maybe_double_quote = _double_quote if shell_quote else _no_op
 
     # First, try to use the identity passed on the command line, if any. If it's a simulator build,
-    # use an ad hoc identity.
-    identity = _preferred_codesigning_identity(
+    # use an ad hoc identity. Otherwise, select the identity from the provisioning profile, falling
+    # back to an ad hoc identity if there is no provisioning profile.
+    signing_identity = _resolve_signing_identity(
         build_settings = build_settings,
-        requires_adhoc_signing = not platform_prerequisites.platform.is_device,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
     )
-    if not identity:
-        if provisioning_profile:
-            cmd_codesigning.extend([
-                "--mobileprovision",
-                maybe_quote(provisioning_profile.path),
-            ])
+    if signing_identity.use_mobileprovision:
+        cmd_codesigning.extend([
+            "--mobileprovision",
+            maybe_quote(provisioning_profile.path),
+        ])
 
-        else:
-            identity = _ADHOC_PSEUDO_IDENTITY
-
-    if identity:
+    if signing_identity.identity:
         cmd_codesigning.extend([
             "--identity",
-            maybe_quote(identity),
+            maybe_quote(signing_identity.identity),
         ])
 
     if platform_prerequisites.platform.is_device:
@@ -233,7 +324,7 @@ def _validate_provisioning_profile(
 def _signing_command_lines(
         *,
         build_settings,
-        codesigningtool,
+        codesigning_config,
         entitlements_file,
         paths_to_sign,
         platform_prerequisites,
@@ -246,7 +337,7 @@ def _signing_command_lines(
 
     Args:
       build_settings: A `dict`-like struct describing build settings.
-      codesigningtool: The executable `File` representing the code signing tool.
+      codesigning_config: Struct returned by `_resolve_codesigning_config`.
       entitlements_file: The entitlements file to pass to codesign.
       paths_to_sign: A list of values returned from `path_to_sign` that indicate
           paths that should be code-signed.
@@ -262,9 +353,10 @@ def _signing_command_lines(
     # this remains the case, we do have to split the "paths to sign" between multiple invocations
     # of codesign.
     for path_to_sign in paths_to_sign:
-        codesign_command = [codesigningtool.path]
+        codesign_command = [codesigning_config.codesigningtool.executable.path]
         codesign_command.extend(_codesign_args_for_path(
             build_settings = build_settings,
+            codesign_path = codesigning_config.codesign_path,
             entitlements_file = entitlements_file,
             path_to_sign = path_to_sign,
             platform_prerequisites = platform_prerequisites,
@@ -368,6 +460,7 @@ def _codesigning_args(
 
     return _codesign_args_for_path(
         build_settings = build_settings,
+        codesign_path = _MACOS_CODESIGN_PATH,
         entitlements_file = entitlements,
         path_to_sign = _path_to_sign(path = full_archive_path),
         platform_prerequisites = platform_prerequisites,
@@ -380,7 +473,7 @@ def _codesigning_command(
         build_settings,
         bundle_path = "",
         cc_configured_features,
-        codesigningtool,
+        codesigning_config,
         entitlements,
         frameworks_path,
         label_name,
@@ -395,7 +488,7 @@ def _codesigning_command(
       bundle_path: The location of the bundle, relative to the archive.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
-      codesigningtool: The executable `File` representing the code signing tool.
+      codesigning_config: Struct returned by `_resolve_codesigning_config`.
       entitlements: The entitlements file to sign with. Can be None.
       frameworks_path: The location of the Frameworks directory, relative to the archive.
       label_name: Name of the target being built.
@@ -434,7 +527,12 @@ def _codesigning_command(
 
             # Following the exact parameters required by
             # https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle#Support-a-single-framework-version-on-macOS
-            commands.extend(symlink_support.macos_framework_symlink_commands(target_dir, is_macos = True))
+            commands.extend(
+                symlink_support.macos_framework_symlink_commands(
+                    target_dir,
+                    is_macos = codesigning_config.sign_on_mac,
+                ),
+            )
 
     should_sign_bundles = _should_sign_bundles(
         cc_configured_features = cc_configured_features,
@@ -479,7 +577,7 @@ def _codesigning_command(
 
         signing_commands = _signing_command_lines(
             build_settings = build_settings,
-            codesigningtool = codesigningtool,
+            codesigning_config = codesigning_config,
             entitlements_file = entitlements,
             paths_to_sign = paths_to_sign,
             platform_prerequisites = platform_prerequisites,
@@ -596,7 +694,7 @@ def _post_process_and_sign_archive_action(
         apple_xplat_toolchain_info,
         archive_codesigning_path,
         cc_configured_features,
-        codesigningtool,
+        codesigning_config,
         entitlements = None,
         frameworks_path,
         input_archive,
@@ -621,14 +719,14 @@ def _post_process_and_sign_archive_action(
       archive_codesigning_path: The codesigning path relative to the archive.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
-      codesigningtool: The files_to_run for the code signing tool.
+      codesigning_config: Struct returned by `_resolve_codesigning_config`.
       entitlements: Optional file representing the entitlements to sign with.
       frameworks_path: The Frameworks path relative to the archive.
       input_archive: The `File` representing the archive containing the bundle
           that has not yet been processed or signed.
       ipa_post_processor: A file that acts as a bundle post processing tool. May be `None`.
       label_name: Name of the target being built.
-      mac_exec_group: The exec_group associated with codesigningtool.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_archive: The `File` representing the processed and signed archive.
       output_archive_root_path: The `string` path to where the processed, uncompressed archive
           should be located.
@@ -646,13 +744,14 @@ def _post_process_and_sign_archive_action(
     build_settings = apple_xplat_toolchain_info.build_settings
     input_files = [input_archive]
     processing_tools = []
+    sign_on_mac = codesigning_config.sign_on_mac
 
     if signing_command_lines == None:
         signing_command_lines = _codesigning_command(
             build_settings = build_settings,
             bundle_path = archive_codesigning_path,
             cc_configured_features = cc_configured_features,
-            codesigningtool = codesigningtool.executable,
+            codesigning_config = codesigning_config,
             entitlements = entitlements,
             frameworks_path = frameworks_path,
             label_name = label_name,
@@ -662,10 +761,10 @@ def _post_process_and_sign_archive_action(
             signed_frameworks = signed_frameworks,
         )
     if signing_command_lines:
-        processing_tools.append(codesigningtool)
+        processing_tools.extend(codesigning_config.tools)
         if entitlements:
             input_files.append(entitlements)
-        if provisioning_profile:
+        if provisioning_profile and sign_on_mac:
             input_files.append(provisioning_profile)
 
     ipa_post_processor_path = ""
@@ -732,7 +831,7 @@ def _post_process_and_sign_archive_action(
     if should_compress:
         arguments.append("should_compress")
 
-    run_on_darwin = any([signing_command_lines, ipa_post_processor_path])
+    run_on_darwin = any([signing_command_lines and sign_on_mac, ipa_post_processor_path])
     if run_on_darwin:
         execution_requirements = {}
         if signing_command_lines:
@@ -768,39 +867,50 @@ def _post_process_and_sign_archive_action(
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
+            tools = processing_tools,
             exec_group = xplat_exec_group,
         )
 
 def _sign_binary_action(
         *,
         actions,
-        build_settings,
-        codesigningtool,
+        apple_xplat_toolchain_info,
         entitlements,
         input_binary,
+        mac_codesigningtool,
         mac_exec_group,
         output_binary,
         platform_prerequisites,
         provisioning_profile,
-        rule_descriptor):
+        rule_descriptor,
+        xplat_exec_group):
     """Signs the input binary file, copying it into the given output binary file.
 
     Args:
       actions: The actions provider from `ctx.actions`.
-      build_settings: A `dict`-like struct describing build settings.
+      apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       entitlements: The `File` representing entitlements to use for signing. May be `None`.
       input_binary: The `File` representing the binary to be signed.
+      mac_codesigningtool: The files_to_run for the Mac code signing tool.
       mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
       provisioning_profile: The provisioning profile file. May be `None`.
-      codesigningtool: The files_to_run for the code signing tool.
       rule_descriptor: A rule descriptor for platform and product types from the rule context.
+      xplat_exec_group: The exec group associated with apple_xplat_toolchain.
     """
     _validate_provisioning_profile(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
+    )
+
+    build_settings = apple_xplat_toolchain_info.build_settings
+    codesigning_config = _resolve_codesigning_config(
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        mac_codesigningtool = mac_codesigningtool,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
     )
 
     # It's not hermetic to sign the binary that was built by the apple_binary
@@ -809,7 +919,7 @@ def _sign_binary_action(
     path_to_sign = _path_to_sign(path = output_binary.path)
     signing_commands = _signing_command_lines(
         build_settings = build_settings,
-        codesigningtool = codesigningtool.executable,
+        codesigning_config = codesigning_config,
         entitlements_file = entitlements,
         paths_to_sign = [path_to_sign],
         platform_prerequisites = platform_prerequisites,
@@ -819,34 +929,50 @@ def _sign_binary_action(
     direct_inputs = [input_binary]
     if entitlements:
         direct_inputs.append(entitlements)
+    if provisioning_profile and codesigning_config.sign_on_mac:
+        direct_inputs.append(provisioning_profile)
 
-    apple_support.run_shell(
-        actions = actions,
-        apple_platform_info = platform_prerequisites.apple_platform_info,
-        env = shared_environment.default_env,
-        command = [
-            "/bin/bash",
-            "-c",
-            "cp {input_binary} {output_binary}".format(
-                input_binary = input_binary.path,
-                output_binary = output_binary.path,
-            ) + "\n" + signing_commands,
-        ],
-        execution_requirements = {
-            # Added so that the output of this action is not cached remotely, in case multiple
-            # developers sign the same artifact with different identities.
-            "no-cache": "1",
-            # Unsure, but may be needed for keychain access, especially for files that live in
-            # $HOME.
-            "no-sandbox": "1",
-        },
-        inputs = direct_inputs,
-        mnemonic = "SignBinary",
-        outputs = [output_binary],
-        tools = [codesigningtool],
-        xcode_config = platform_prerequisites.xcode_version_config,
-        exec_group = mac_exec_group,
-    )
+    command = [
+        "/bin/bash",
+        "-c",
+        "cp {input_binary} {output_binary}".format(
+            input_binary = input_binary.path,
+            output_binary = output_binary.path,
+        ) + "\n" + signing_commands,
+    ]
+    mnemonic = "SignBinary"
+
+    if codesigning_config.sign_on_mac:
+        apple_support.run_shell(
+            actions = actions,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
+            env = shared_environment.default_env,
+            command = command,
+            execution_requirements = {
+                # Added so that the output of this action is not cached remotely, in case multiple
+                # developers sign the same artifact with different identities.
+                "no-cache": "1",
+                # Unsure, but may be needed for keychain access, especially for files that live in
+                # $HOME.
+                "no-sandbox": "1",
+            },
+            inputs = direct_inputs,
+            mnemonic = mnemonic,
+            outputs = [output_binary],
+            tools = codesigning_config.tools,
+            xcode_config = platform_prerequisites.xcode_version_config,
+            exec_group = mac_exec_group,
+        )
+    else:
+        actions.run_shell(
+            command = command,
+            env = shared_environment.default_env,
+            exec_group = xplat_exec_group,
+            inputs = direct_inputs,
+            mnemonic = mnemonic,
+            outputs = [output_binary],
+            tools = codesigning_config.tools,
+        )
 
 def _should_compress_archive(*, build_settings, platform_prerequisites):
     """Returns True if the output archive should be DEFLATE-compressed."""
@@ -868,6 +994,7 @@ codesigning_support = struct(
     generate_dossier_file = _generate_dossier_file,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     preferred_codesigning_identity = _preferred_codesigning_identity,
+    resolve_codesigning_config = _resolve_codesigning_config,
     should_compress_archive = _should_compress_archive,
     sign_binary_action = _sign_binary_action,
 )

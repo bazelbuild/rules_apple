@@ -16,9 +16,11 @@ toolchain(
 
 apple_xplat_tools_toolchain(
     name = "xplat_tools_toolchain",
+    adhoc_sign = "//tools/adhoc_sign_tool:adhoc_sign_exec",
     build_settings = build_settings_labels.all_labels,
     bundletool_swift = "//tools/bundletool:bundletool_exec",
     clangrttool = "//tools/clangrttool:clangrttool_swift",
+    codesigningtool = "//tools/codesigningtool:codesigntool_swift",
     derq = "//tools/derq_tool:derq_exec",
     plisttool = "//tools/plist_tool:plisttool",
     provisioning_profile_tool = "//tools/provisioning_profile_tool:provisioning_profile_tool_swift",

@@ -33,6 +33,12 @@ Expected action argv: {expected_argv}
 Actual action argv: {actual_argv}
 """
 
+_TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_ARGV_FAIL_MSG = """
+Expected target mnemonic '{target_mnemonic}' to not contain argv '{not_expected_argv}', but it did.
+Target: {target}
+Actual action argv: {actual_argv}
+"""
+
 _TARGET_CONTAINS_ACTION_WITH_ENV_FAIL_MSG = """
 Expected env could not be found on actual action env list for target mnemonic '{target_mnemonic}'.
 Target: {target}
@@ -71,6 +77,18 @@ _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_CONTENT_FAIL_MSG = """
 Expected target mnemonic '{target_mnemonic}' (and its input FileWrite actions) to not contain '{not_expected_content}', but it did.
 Target: {target}
 Actual contents: {actual_contents}
+"""
+
+_TARGET_CONTAINS_ACTION_WITH_INPUT_FAIL_MSG = """
+Expected input '{expected_input}' could not be found in action inputs for target mnemonic '{target_mnemonic}'.
+Target: {target}
+Actual inputs: {actual_inputs}
+"""
+
+_TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_INPUT_FAIL_MSG = """
+Expected target mnemonic '{target_mnemonic}' to not contain input '{not_expected_input}', but it did.
+Target: {target}
+Actual inputs: {actual_inputs}
 """
 
 def _analysis_target_actions_test_impl(ctx):
@@ -114,6 +132,24 @@ def _analysis_target_actions_test_impl(ctx):
                 ),
             )
             return analysistest.end(env)
+
+    for not_expected_argv in ctx.attr.not_expected_argv:
+        for action_argv in [
+            " ".join(a.argv) + " "
+            for a in target_mnemonic_actions
+            if a.argv != None
+        ]:
+            if not_expected_argv + " " in action_argv:
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_ARGV_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        target = target_under_test,
+                        not_expected_argv = not_expected_argv,
+                        actual_argv = action_argv,
+                    ),
+                )
+                return analysistest.end(env)
 
     for expected_env_key, expected_env_value in ctx.attr.expected_env.items():
         target_mnemonic_actions_env = [a.env for a in target_mnemonic_actions]
@@ -239,6 +275,44 @@ def _analysis_target_actions_test_impl(ctx):
                 )
                 return analysistest.end(env)
 
+    if ctx.attr.expected_inputs or ctx.attr.not_expected_inputs:
+        target_mnemonic_input_files = depset(
+            transitive = [a.inputs for a in target_mnemonic_actions],
+        ).to_list()
+        target_mnemonic_input_short_paths = [f.short_path for f in target_mnemonic_input_files]
+
+        for expected_input in ctx.attr.expected_inputs:
+            if not any([
+                f.basename == expected_input or f.short_path.endswith(expected_input)
+                for f in target_mnemonic_input_files
+            ]):
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_INPUT_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        target = target_under_test,
+                        expected_input = expected_input,
+                        actual_inputs = target_mnemonic_input_short_paths,
+                    ),
+                )
+                return analysistest.end(env)
+
+        for not_expected_input in ctx.attr.not_expected_inputs:
+            if any([
+                f.basename == not_expected_input or f.short_path.endswith(not_expected_input)
+                for f in target_mnemonic_input_files
+            ]):
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_INPUT_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        target = target_under_test,
+                        not_expected_input = not_expected_input,
+                        actual_inputs = target_mnemonic_input_short_paths,
+                    ),
+                )
+                return analysistest.end(env)
+
     return analysistest.end(env)
 
 def make_analysis_target_actions_test(config_settings = {}):
@@ -268,6 +342,12 @@ A list of strings representing substrings expected to appear in the action
 command line, after concatenating all command line arguments into a single
 space-delimited string.""",
             ),
+            "not_expected_argv": attr.string_list(
+                doc = """
+A list of strings representing substrings not expected to appear in any matching
+action command line, after concatenating all command line arguments into a
+single space-delimited string.""",
+            ),
             "expected_content": attr.string_list(
                 doc = """
 A list of substrings expected to appear in the content of the matching action
@@ -278,6 +358,16 @@ A list of substrings expected to appear in the content of the matching action
 A list of substrings not expected to appear in the content of the matching
 action (or any FileWrite action whose output is an input to the matching
 action).""",
+            ),
+            "expected_inputs": attr.string_list(
+                doc = """
+A list of file basenames or short_path suffixes expected to be present in the
+inputs of the matching action.""",
+            ),
+            "not_expected_inputs": attr.string_list(
+                doc = """
+A list of file basenames or short_path suffixes not expected to be present in
+the inputs of the matching action.""",
             ),
             "expected_env": attr.string_dict(
                 doc = """
@@ -310,7 +400,7 @@ analysis_target_actions_test = make_analysis_target_actions_test(
     },
 )
 
-# The folowing test rules are used in more than one test suite and thus they are defined here.
+# The following test rules are used in more than one test suite and thus they are defined here.
 analysis_target_actions_tree_artifacts_outputs_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.require_pointer_authentication_attribute: True,
