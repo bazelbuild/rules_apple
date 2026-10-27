@@ -7515,3 +7515,23 @@ ios_kernel_extension(
         "//test/starlark_tests/resources/kext_resources:kext_lib",
     ],
 )
+
+ios_application(
+    name = "app_with_resource_bundle_swift_module",
+    bundle_id = "com.google.example.resource-model",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+        "//test/starlark_tests/resources:resource_bundle_swift_module_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_resource_bundle_swift_module",
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:resource_bundle_swift_module_lib"],
+)
