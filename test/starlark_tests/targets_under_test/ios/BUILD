@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load(
     "@build_bazel_rules_swift//swift:swift_library.bzl",
@@ -2514,7 +2515,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -2588,7 +2588,7 @@ func swift_with_framework_function() {
 apple_dynamic_xcframework_import(
     name = "ios_imported_dynamic_xcframework",
     expected_secure_features = [
-        "pointer_authentication",
+        "cpp_typed_allocator_support",
     ],
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
@@ -2627,7 +2627,6 @@ apple_xcframework(
     ],
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -2873,7 +2872,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -3064,7 +3062,7 @@ func static_xcframework_depending_swift_lib_function_function() {
 apple_static_xcframework_import(
     name = "ios_imported_static_xcframework",
     expected_secure_features = [
-        "pointer_authentication",
+        "cpp_typed_allocator_support",
     ],
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
@@ -3095,9 +3093,6 @@ apple_static_xcframework(
         "ios": common.min_os_ios.min_deployment_target,
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
-    secure_features = [
-        "pointer_authentication",
-    ],
     tags = common.fixture_tags,
     deps = [
         ":generated_static_xcframework_with_headers_lib",
@@ -3642,7 +3637,6 @@ ios_ui_test(
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     test_host = ":simple_pointer_authentication_app_and_extension_with_fmwk",
@@ -3982,11 +3976,10 @@ ios_unit_test(
     runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
-    # The test_host should be similarly configured with "pointer_authentication", otherwise the
-    # arm64e slice within the host binary will be dropped.
+    # The test_host should be similarly configured with "apple.enable_enhanced_security" so that it
+    # can also be built for arm64e.
     test_host = ":simple_pointer_authentication_app_and_extension_with_fmwk",
     deps = [
         "//test/starlark_tests/resources:objc_test_lib",
@@ -5213,7 +5206,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5234,7 +5226,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5253,7 +5244,6 @@ ios_extension(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5273,7 +5263,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5293,7 +5282,6 @@ ios_app_clip(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5313,7 +5301,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -5332,7 +5319,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     watch_application = "//test/starlark_tests/targets_under_test/watchos:single_target_app_with_generic_ext",
@@ -5352,7 +5338,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     watch_application = "//test/starlark_tests/targets_under_test/watchos:simple_pointer_authentication_app",
@@ -5402,11 +5387,43 @@ ios_static_framework(
     minimum_os_version = common.min_os_ios.min_deployment_target,
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
         "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+bool_flag(
+    name = "enable_enhanced_security_test_flag",
+    build_setting_default = True,
+)
+
+config_setting(
+    name = "enable_enhanced_security_test_flag_off",
+    flag_values = {
+        ":enable_enhanced_security_test_flag": "False",
+    },
+)
+
+ios_application(
+    name = "simple_enhanced_security_app_with_flag_select",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = select({
+        ":enable_enhanced_security_test_flag_off": [],
+        "//conditions:default": [
+            "apple.enable_enhanced_security",
+        ],
+    }),
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
@@ -5421,24 +5438,55 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
+        "cpp_typed_allocator_support",
     ],
     tags = common.fixture_tags,
     deps = [
-        ":dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        ":dynamic_xcframework_with_missing_expected_secure_features_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 objc_library(
-    name = "dynamic_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    name = "dynamic_xcframework_with_missing_expected_secure_features_depending_lib",
     srcs = [":dynamic_xcframework_depending_lib_file"],
     tags = common.fixture_tags,
-    deps = [":ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features"],
+    deps = [":ios_imported_dynamic_xcframework_with_missing_expected_secure_features"],
 )
 
 apple_dynamic_xcframework_import(
-    name = "ios_imported_dynamic_xcframework_with_missing_pointer_authentication_secure_features",
+    name = "ios_imported_dynamic_xcframework_with_missing_expected_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "app_with_imported_dynamic_xcframework_and_unsupported_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":dynamic_xcframework_with_unsupported_expected_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "dynamic_xcframework_with_unsupported_expected_secure_features_depending_lib",
+    srcs = [":dynamic_xcframework_depending_lib_file"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_dynamic_xcframework_with_unsupported_expected_secure_features"],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_unsupported_expected_secure_features",
+    expected_secure_features = ["pointer_authentication"],
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
@@ -5474,24 +5522,55 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
+        "cpp_typed_allocator_support",
     ],
     tags = common.fixture_tags,
     deps = [
-        ":static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+        ":static_xcframework_with_missing_expected_secure_features_depending_lib",
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
 
 objc_library(
-    name = "static_xcframework_with_missing_pointer_authentication_secure_features_depending_lib",
+    name = "static_xcframework_with_missing_expected_secure_features_depending_lib",
     srcs = [":objc_with_static_xcframework_src"],
     tags = common.fixture_tags,
-    deps = [":ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features"],
+    deps = [":ios_imported_static_xcframework_with_missing_expected_secure_features"],
 )
 
 apple_static_xcframework_import(
-    name = "ios_imported_static_xcframework_with_missing_pointer_authentication_secure_features",
+    name = "ios_imported_static_xcframework_with_missing_expected_secure_features",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_static_xcframework_with_headers"],
+)
+
+ios_application(
+    name = "app_with_imported_static_xcframework_and_unsupported_expected_secure_features",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [
+        ":static_xcframework_with_unsupported_expected_secure_features_depending_lib",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+objc_library(
+    name = "static_xcframework_with_unsupported_expected_secure_features_depending_lib",
+    srcs = [":objc_with_static_xcframework_src"],
+    tags = common.fixture_tags,
+    deps = [":ios_imported_static_xcframework_with_unsupported_expected_secure_features"],
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_static_xcframework_with_unsupported_expected_secure_features",
+    expected_secure_features = ["pointer_authentication"],
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_xcframework_with_headers"],
@@ -5856,7 +5935,6 @@ apple_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources/frameworks:SharedClass.h",
     ],
-    secure_features = ["pointer_authentication"],
     tags = common.fixture_tags,
     deps = [
         ":xcframework_shared_class",
@@ -5883,7 +5961,6 @@ apple_static_xcframework(
     public_hdrs = [
         "//test/starlark_tests/resources/frameworks:SharedClass.h",
     ],
-    secure_features = ["pointer_authentication"],
     tags = common.fixture_tags,
     deps = [
         ":xcframework_shared_class",
@@ -5915,7 +5992,6 @@ apple_xcframework(
         "//test/starlark_tests/resources/frameworks:SharedClass.h",
         "//test/starlark_tests/targets_under_test/apple:dummy_fmwk_objc_hdr",
     ],
-    secure_features = ["pointer_authentication"],
     tags = common.fixture_tags,
     deps = [
         ":xcframework_shared_class",
@@ -5943,7 +6019,6 @@ apple_static_xcframework(
         "//test/starlark_tests/resources/frameworks:SharedClass.h",
         "//test/starlark_tests/targets_under_test/apple:dummy_fmwk_objc_hdr",
     ],
-    secure_features = ["pointer_authentication"],
     tags = common.fixture_tags,
     deps = [
         ":xcframework_shared_class",

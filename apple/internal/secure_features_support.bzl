@@ -26,6 +26,12 @@ visibility([
 ])
 
 _ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY = []
+_ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE = []
+
+_ALLOWED_TARGET_NAMES_OF_POINTER_AUTHENTICATION_SECURE_FEATURE = set([
+    label.rpartition(":")[2]
+    for label in list(_ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE)
+])
 
 # The name of the secure feature that opts into Guard Objects on Xcode 27.0 or later by removing the
 # default "com.apple.security.hardened-process.no-guard-objects" opt-out entitlement.
@@ -91,7 +97,6 @@ _ENTITLEMENTS_FROM_SECURE_FEATURES = {
         "com.apple.security.hardened-process.hardened-heap": True,
     },
     "libcxx_hardened_mode": {},
-    "pointer_authentication": {},
     "security_compiler_warnings": {},
     "trivial_auto_var_init": {},
     "typed_allocator_support": {
@@ -140,19 +145,6 @@ _POSSIBLE_DISABLED_SECURE_FEATURES = set([
 
 _NONE_TYPE = type(None)
 
-def _environment_arch_specific_features(
-        *,
-        environment_arch,
-        features):
-    arch_features = list(features)
-
-    # If pointer_authentication is requested, remove it if the environment architecture is Intel,
-    # since it's not supported on Intel at all. Further, we choose to remove it for standard arm64
-    # at this time, mirroring xcbuild/swift-build behavior, even though Clang allows it.
-    if "pointer_authentication" in features and not environment_arch.endswith("arm64e"):
-        arch_features.remove("pointer_authentication")
-    return arch_features
-
 def _crosstool_features_from_secure_features(*, features, name, secure_features):
     # If this rule does not allow for enhanced security features to be specified as an attribute,
     # which is interpreted as "secure_features" being exactly "None", return the features as-is,
@@ -161,6 +153,11 @@ def _crosstool_features_from_secure_features(*, features, name, secure_features)
         return features
 
     requested_secure_features = set(secure_features)
+    if (
+        "pointer_authentication" in requested_secure_features and
+        _is_allowed_target_name_for_pointer_authentication_secure_feature(name)
+    ):
+        requested_secure_features.remove("pointer_authentication")
 
     # Check that all of the requested secure features are supported.
     unsupported_secure_features = requested_secure_features - _SUPPORTED_SECURE_FEATURES
@@ -231,6 +228,12 @@ def _entitlements_from_secure_features(
     has_mandatory_xcode_26_opt_in = False
     requires_xcode_26_opt_in = False
     for feature_name in secure_features:
+        if (
+            feature_name == "pointer_authentication" and
+            _is_allowed_pointer_authentication_secure_feature(rule_label)
+        ):
+            requires_xcode_26_opt_in = True
+            continue
         if feature_name == _REQUIRED_XCODE_26_OPT_IN:
             has_mandatory_xcode_26_opt_in = True
         if feature_name not in _SECURE_FEATURES_WITHOUT_XCODE_26_OPT_IN_REQUIREMENT:
@@ -264,6 +267,17 @@ def _is_allowed_arm64e_without_enhanced_security(rule_label):
     label_str = "//{}:{}".format(rule_label.package, label_name)
     return label_str in _ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY
 
+def _is_allowed_pointer_authentication_secure_feature(rule_label):
+    label_name = rule_label.name.removesuffix(".__internal__.__test_bundle")
+    label_str = "//{}:{}".format(rule_label.package, label_name)
+    return label_str in _ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE
+
+def _is_allowed_target_name_for_pointer_authentication_secure_feature(name):
+    if not name:
+        return False
+    target_name = name.removesuffix(".__internal__.__test_bundle")
+    return target_name in _ALLOWED_TARGET_NAMES_OF_POINTER_AUTHENTICATION_SECURE_FEATURE
+
 def _is_arm64e_arch(target_arch):
     return target_arch == "arm64e" or target_arch.startswith("arm64e.")
 
@@ -272,6 +286,31 @@ def _validate_expected_secure_features(
         cc_configured_features,
         expected_secure_features,
         rule_label):
+    declared_expected_secure_features = set(expected_secure_features)
+    if (
+        "pointer_authentication" in declared_expected_secure_features and
+        _is_allowed_pointer_authentication_secure_feature(rule_label)
+    ):
+        declared_expected_secure_features.remove("pointer_authentication")
+
+    unsupported_expected_secure_features = (
+        declared_expected_secure_features - _SUPPORTED_SECURE_FEATURES
+    )
+    if unsupported_expected_secure_features:
+        fail("""
+Unsupported expected_secure_features declared at `{rule_label}`:
+{unsupported_features}
+
+Please remove these from this target's "expected_secure_features" attribute.
+
+The full list of supported secure_features is:
+{all_supported_features}
+""".format(
+            all_supported_features = str(sorted(list(_SUPPORTED_SECURE_FEATURES))),
+            rule_label = str(rule_label),
+            unsupported_features = str(sorted(list(unsupported_expected_secure_features))),
+        ))
+
     requested_secure_features = cc_configured_features.enabled_features & _SUPPORTED_SECURE_FEATURES
     if not requested_secure_features:
         return
@@ -280,7 +319,7 @@ def _validate_expected_secure_features(
     # the vendor of the framework or SDK, and fail if they've not been called out by the
     # `expected_secure_features` list.
     missing_expected_secure_features = (
-        requested_secure_features - set(expected_secure_features)
+        requested_secure_features - declared_expected_secure_features
     ) - _SECURE_FEATURES_WITHOUT_CLANG_REQUIREMENTS
 
     if missing_expected_secure_features:
@@ -307,6 +346,29 @@ def _validate_secure_features_support(
         require_enhanced_security_for_arm64e = True,
         rule_label,
         secure_features):
+    requested_secure_features = set(secure_features) if secure_features else set()
+    if (
+        "pointer_authentication" in requested_secure_features and
+        _is_allowed_pointer_authentication_secure_feature(rule_label)
+    ):
+        requested_secure_features.remove("pointer_authentication")
+
+    unsupported_secure_features = requested_secure_features - _SUPPORTED_SECURE_FEATURES
+    if unsupported_secure_features:
+        fail("""
+Unsupported secure_features requested at `{rule_label}`:
+{unsupported_features}
+
+Please remove these from this target's "secure_features" attribute.
+
+The full list of supported secure_features is:
+{all_supported_features}
+        """.format(
+            all_supported_features = str(list(_SUPPORTED_SECURE_FEATURES)),
+            rule_label = str(rule_label),
+            unsupported_features = str(list(unsupported_secure_features)),
+        ))
+
     has_enhanced_security_opt_in = (
         bool(secure_features) and _REQUIRED_XCODE_26_OPT_IN in secure_features
     )
@@ -335,7 +397,7 @@ example, `--ios_multi_cpus=arm64,{target_arch}`).
                 ),
             )
 
-        if not secure_features:
+        if not requested_secure_features:
             continue
 
         cc_toolchain_info = cc_toolchain[cc_common.CcToolchainInfo]
@@ -351,17 +413,10 @@ example, `--ios_multi_cpus=arm64,{target_arch}`).
         # the feature is explicitly enabled in the current configuration.
         crosstool_secure_features = [
             feature_name
-            for feature_name in secure_features
+            for feature_name in list(requested_secure_features)
             if not feature_name.startswith("apple.")
         ]
         for feature_name in crosstool_secure_features:
-            if feature_name == "pointer_authentication" and (
-                not _is_arm64e_arch(target_arch)
-            ):
-                # Pointer authentication is only applied to arm64e, so the check will fail for any
-                # other architecture since we're dropping that feature for non-arm64e at this time.
-                continue
-
             if not (
                 cc_common.is_enabled(
                     feature_configuration = feature_configuration,
@@ -388,7 +443,6 @@ secure_features_support = struct(
     ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS = _ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS,
     crosstool_features_from_secure_features = _crosstool_features_from_secure_features,
     entitlements_from_secure_features = _entitlements_from_secure_features,
-    environment_arch_specific_features = _environment_arch_specific_features,
     validate_expected_secure_features = _validate_expected_secure_features,
     validate_secure_features_support = _validate_secure_features_support,
 )

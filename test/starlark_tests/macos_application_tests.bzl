@@ -176,6 +176,7 @@ def _secure_features_entitlements_unit_test_impl(ctx):
             ],
         ),
     )
+
     asserts.true(
         env,
         "com.apple.security.hardened-process.no-guard-objects" in secure_features_support.ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS,

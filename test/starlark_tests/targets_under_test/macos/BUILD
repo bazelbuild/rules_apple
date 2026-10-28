@@ -504,9 +504,6 @@ apple_xcframework(
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     resources = ["//test/starlark_tests/resources:Another.plist"],
-    secure_features = [
-        "pointer_authentication",
-    ],
     tags = common.fixture_tags + ["requires-darwin"],
     deps = [
         ":generated_dynamic_macos_unversioned_xcframework_lib",
@@ -550,7 +547,6 @@ macos_application(
     minimum_os_version = common.min_os_macos.min_deployment_target,
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -571,7 +567,6 @@ apple_dynamic_xcframework_import(
     name = "imported_dynamic_versioned_xcframework",
     expected_secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_dynamic_macos_versioned_xcframework"],
@@ -601,9 +596,6 @@ apple_xcframework(
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     resources = ["//test/starlark_tests/resources:Another.plist"],
-    secure_features = [
-        "pointer_authentication",
-    ],
     tags = common.fixture_tags + ["requires-darwin"],
     deps = [
         ":generated_dynamic_macos_versioned_xcframework_lib",
@@ -638,7 +630,6 @@ macos_application(
     minimum_os_version = common.min_os_macos.nplus1,
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -659,7 +650,6 @@ apple_static_xcframework_import(
     name = "imported_static_unversioned_xcframework",
     expected_secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_macos_unversioned_xcframework"],
@@ -690,9 +680,6 @@ apple_static_xcframework(
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     resources = ["//test/starlark_tests/resources:Another.plist"],
-    secure_features = [
-        "pointer_authentication",
-    ],
     tags = common.fixture_tags + ["requires-darwin"],
     deps = [
         ":generated_static_macos_unversioned_xcframework_lib",
@@ -733,7 +720,6 @@ macos_application(
     minimum_os_version = common.min_os_macos.nplus1,
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [
@@ -754,7 +740,6 @@ apple_static_xcframework_import(
     name = "imported_static_versioned_xcframework",
     expected_secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_static_macos_versioned_xcframework"],
@@ -785,9 +770,6 @@ apple_static_xcframework(
     },
     public_hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     resources = ["//test/starlark_tests/resources:Another.plist"],
-    secure_features = [
-        "pointer_authentication",
-    ],
     tags = common.fixture_tags + ["requires-darwin"],
     deps = [
         ":generated_static_macos_versioned_xcframework_lib",
@@ -1446,7 +1428,6 @@ macos_dylib(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_macos.provisionprofile",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [

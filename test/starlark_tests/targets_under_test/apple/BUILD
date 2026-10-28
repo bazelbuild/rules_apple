@@ -549,7 +549,6 @@ apple_xcframework(
     ],
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:fmwk_lib"],
@@ -1864,7 +1863,6 @@ apple_static_xcframework(
     ],
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:fmwk_lib"],

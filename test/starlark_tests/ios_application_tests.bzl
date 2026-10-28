@@ -100,6 +100,31 @@ analysis_failure_message_with_arm64_and_arm64e_ios_and_watchos_target_test = mak
     },
 )
 
+analysis_failure_message_with_arm64_and_arm64e_flag_select_off_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:ios_multi_cpus": ["arm64", "arm64e"],
+        "//command_line_option:watchos_cpus": [],
+        "//test/starlark_tests/targets_under_test/ios:enable_enhanced_security_test_flag": False,
+    },
+)
+
+analysis_target_actions_multi_cpus_default_platform_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:ios_multi_cpus": "arm64,arm64e",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_multi_cpus_ios_arm64e_platform_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.require_pointer_authentication_attribute: True,
+        "//command_line_option:ios_multi_cpus": "arm64,arm64e",
+        "//command_line_option:macos_cpus": "arm64",
+        "//command_line_option:platforms": "//buildenv/platforms/apple:ios_arm64e",
+    },
+)
+
 analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.require_pointer_authentication_attribute: True,
@@ -2123,6 +2148,60 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [
             name,
         ],
+    )
+
+    # Tests that a target with secure_features = ["apple.enable_enhanced_security"] builds both
+    # arm64 and arm64e slices (running AppleLipo) under --ios_multi_cpus=arm64,arm64e both with the
+    # default host platform (without --platforms=ios_arm64e) and with --platforms=ios_arm64e.
+    analysis_target_actions_multi_cpus_default_platform_test(
+        name = "{}_enhanced_security_multi_cpus_default_platform_lipo_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        target_mnemonic = "AppleLipo",
+        tags = [name],
+    )
+    analysis_target_actions_multi_cpus_ios_arm64e_platform_test(
+        name = "{}_enhanced_security_multi_cpus_ios_arm64e_platform_lipo_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
+        target_mnemonic = "AppleLipo",
+        tags = [name],
+    )
+
+    # Tests that a target using secure_features = select(...) keyed on a config-stable user build
+    # flag builds both arm64 and arm64e slices when enabled, and fails analysis when disabled.
+    analysis_target_actions_multi_cpus_default_platform_test(
+        name = "{}_enhanced_security_flag_select_on_lipo_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_flag_select",
+        target_mnemonic = "AppleLipo",
+        tags = [name],
+    )
+    analysis_target_actions_multi_cpus_ios_arm64e_platform_test(
+        name = "{}_enhanced_security_flag_select_on_ios_arm64e_platform_lipo_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_flag_select",
+        target_mnemonic = "AppleLipo",
+        tags = [name],
+    )
+    analysis_failure_message_with_arm64_and_arm64e_flag_select_off_test(
+        name = "{}_enhanced_security_flag_select_off_arm64e_should_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_flag_select",
+        expected_error = """
+Building `//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_flag_select` \
+for the `arm64e` architecture requires opting into Apple Enhanced Security by adding \
+"apple.enable_enhanced_security" to the target's `secure_features` attribute.
+""",
+        tags = [name],
+    )
+    archive_contents_test(
+        name = "{}_enhanced_security_flag_select_arm64_and_arm64e_device_archs_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_with_flag_select",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e"],
+            "watchos_cpus": [],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [name],
     )
 
     # Test that an app with a compiled binary resource coming from a resource attribute will fail to

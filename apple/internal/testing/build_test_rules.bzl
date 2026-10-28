@@ -217,7 +217,7 @@ def apple_build_test_rule(doc, platform_type):
             "secure_features": attr.string_list(
                 doc = """
 A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
-this target.
+this target. Including `"apple.enable_enhanced_security"` is required when building for `arm64e`.
 """,
             ),
             "targets": attr.label_list(

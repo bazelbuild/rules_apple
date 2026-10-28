@@ -279,7 +279,8 @@ def _test_bundle_attrs():
         "secure_features": attr.string_list(
             doc = """
 A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
-this test bundle, independent of the test host (if any).
+this test bundle, independent of the test host (if any). Including
+`"apple.enable_enhanced_security"` is required when building for `arm64e`.
 """,
         ),
         # We need to add an explicit output attribute so that the output file name from the test
@@ -405,7 +406,7 @@ the provisioning profile to ensure they are supported.
             "secure_features": attr.string_list(
                 doc = """
 A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
-this target.
+this target. Including `"apple.enable_enhanced_security"` is required when building for `arm64e`.
 """,
             ),
             "shared_capabilities": attr.label_list(

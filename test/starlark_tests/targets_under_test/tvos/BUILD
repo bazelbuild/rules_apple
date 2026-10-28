@@ -1530,7 +1530,6 @@ tvos_static_framework(
     minimum_os_version = common.min_os_tvos.min_deployment_target,
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [

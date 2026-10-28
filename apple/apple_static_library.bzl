@@ -191,7 +191,7 @@ binaries/libraries will be created combining all architectures specified by
             "secure_features": attr.string_list(
                 doc = """
 A list of strings representing Apple Enhanced Security crosstool features that should be enabled for
-this target.
+this target. Including `"apple.enable_enhanced_security"` is required when building for `arm64e`.
 """,
             ),
             "sdk_frameworks": attr.string_list(

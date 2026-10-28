@@ -266,7 +266,6 @@ ios_application(
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     watch_application = ":app_arm64_support",
@@ -687,7 +686,6 @@ watchos_application(
     ],
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [

@@ -46,7 +46,6 @@ apple_static_library(
     platform_type = "ios",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [":main_lib"],
@@ -92,7 +91,6 @@ apple_static_library(
     platform_type = "ios",
     secure_features = [
         "apple.enable_enhanced_security",
-        "pointer_authentication",
     ],
     tags = common.fixture_tags,
     deps = [":main_lib"],
