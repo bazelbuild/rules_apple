@@ -62,9 +62,6 @@ def compile_storyboard(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
-    # causes no issues for a period of three or four weeks.
-    args.add("--treat-warnings-as-errors", "true")
     args.add_all([
         # Downgrade errors for storyboards targeting a version older than the deployment target,
         # which can happen when a shared library's storyboard is compiled into an app with a newer
@@ -138,9 +135,6 @@ def link_storyboards(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
-    # causes no issues for a period of three or four weeks.
-    args.add("--treat-warnings-as-errors", "true")
     args.add("--link", xctoolrunner_support.prefixed_path(output_dir.path))
 
     # Standard ibtool options.
@@ -196,9 +190,6 @@ def compile_xib(
     args.add("ibtool")
 
     # Custom xctoolrunner options.
-    # TODO: b/447391969 - Flip to "true" by default in the ibtool wrapper and remove this if it
-    # causes no issues for a period of three or four weeks.
-    args.add("--treat-warnings-as-errors", "true")
     args.add(
         "--compile",
         xctoolrunner_support.prefixed_path(paths.join(output_dir.path, nib_name)),
