@@ -566,6 +566,18 @@ pre_action_binary=%(pre_action_binary)s
 SIMULATOR_UDID="$simulator_id" \
   "$pre_action_binary"
 
+# Run a background-action binary, if provided, while the tests run. It starts
+# right before the test command and gets SIGTERM once that command returns.
+background_action_binary="%(background_action_binary)s"
+background_action_pid=""
+start_background_action() {
+  if [[ -n "$background_action_binary" ]]; then
+    SIMULATOR_UDID="$simulator_id" TEST_LOG_FILE="$testlog" XCTESTRUN_RUNNER_PID="$$" \
+      "$background_action_binary" &
+    background_action_pid=$!
+  fi
+}
+
 if [[ "$should_use_xcodebuild" == true ]]; then
   if [[ -z "$test_host_path" && "$intel_simulator_hack" == true ]]; then
     echo "error: running x86_64 tests on arm64 macs using 'xcodebuild' requires a test host" >&2
@@ -654,6 +666,7 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     args+=("${custom_xcodebuild_args[@]}")
   fi
 
+  start_background_action
   xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 else
@@ -667,6 +680,7 @@ else
     xctest_binary=$sliced_xctest_binary
   fi
 
+  start_background_action
   SIMCTL_CHILD_DYLD_LIBRARY_PATH="$platform_developer_dir/usr/lib" \
     SIMCTL_CHILD_DYLD_FALLBACK_FRAMEWORK_PATH="$platform_developer_dir/Library/Frameworks" \
     SIMCTL_CHILD_DYLD_INSERT_LIBRARIES="$sanitizer_dyld_env" \
@@ -679,6 +693,11 @@ else
     -XCTest All \
     "$test_tmp_dir/$test_bundle_name.xctest" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
+fi
+
+if [[ -n "$background_action_pid" ]]; then
+  kill -TERM "$background_action_pid" 2>/dev/null || true
+  wait "$background_action_pid" 2>/dev/null || true
 fi
 
 profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
