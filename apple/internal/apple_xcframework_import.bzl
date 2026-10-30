@@ -486,13 +486,26 @@ def _get_library_identifier(
         if target_architecture not in architectures:
             continue
 
-        # Extra handling of path matching for arm64* architectures.
+        # Extra handling of substring matching for arm64* architectures:
+        # "arm64" is a prefix of "arm64e", "arm64e.x1", and "arm64_32" (checking
+        # arm64_index == arm64e_index also catches "arm64e.x1" since "arm64e" is a
+        # prefix of "arm64e.x1").
         if target_architecture == "arm64":
             arm64_index = architectures.find(target_architecture)
             arm64e_index = architectures.find("arm64e")
             arm64_32_index = architectures.find("arm64_32")
 
             if arm64_index == arm64e_index or arm64_index == arm64_32_index:
+                continue
+
+        # Similarly, "arm64e" is a prefix of "arm64e.x1", so prevent a build
+        # targeting "arm64e" from falsely matching an "arm64e.x1"-only slice
+        # (e.g. "ios-arm64e.x1").
+        if target_architecture == "arm64e":
+            arm64e_index = architectures.find(target_architecture)
+            arm64e_x1_index = architectures.find("arm64e.x1")
+
+            if arm64e_index == arm64e_x1_index:
                 continue
 
         if target_environment == "device" and not environment:

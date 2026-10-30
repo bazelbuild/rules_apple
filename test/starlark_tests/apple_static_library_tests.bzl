@@ -216,6 +216,25 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) arm64e.x1 static
+    # library archive via the Mach-O load command LC_BUILD_VERSION for an Arm binary when
+    # specifying the outputs via the platforms command line option.
+    binary_contents_test(
+        name = "{}_ios_binary_contents_device_arm64e_x1_apple_platforms_test".format(name),
+        cpus = {
+            "platforms": ["//buildenv/platforms/apple:ios_arm64e_x1"],
+            "ios_multi_cpus": [],
+        },
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e.x1",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
+        tags = [
+            name,
+        ],
+    )
+
     # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
     # command LC_BUILD_VERSION for an Arm binary.
     binary_contents_test(
@@ -259,6 +278,23 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
         tags = [name],
+    )
+
+    # Test that the output binary is identified as iOS device (PLATFORM_IOS) via the Mach-O load
+    # command LC_BUILD_VERSION for an arm64 + arm64e + arm64e.x1 binary on the arm64e.x1 slice.
+    binary_contents_test(
+        name = "{}_ios_binary_contents_device_multiarch_arm64e_x1_platform_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_library_arm_sim_support",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e", "arm64e.x1"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e.x1",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "minos " + common.min_os_ios.min_deployment_target, "platform IOS"],
+        tags = [
+            name,
+        ],
     )
 
     # Test that the output multi-arch binary is identified as iOS simulator (PLATFORM_IOSSIMULATOR)
@@ -440,6 +476,20 @@ All requested architectures must be either device or simulator architectures."""
         binary_test_architecture = "arm64e",
         macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
         tags = [name],
+    )
+    binary_contents_test(
+        name = "{}_pointer_authentication_arm64e_x1_slice_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple/static_library:example_arm64e_capable_ios_library",
+        cpus = {
+            "ios_multi_cpus": ["arm64", "arm64e.x1"],
+        },
+        binary_test_file = "$BINARY",
+        binary_test_architecture = "arm64e.x1",
+        macho_load_commands_contain = ["cmd LC_BUILD_VERSION", "platform IOS"],
+        tags = [
+            name,
+        ],
     )
 
     # Tests secure features support for validating features at the rule level.

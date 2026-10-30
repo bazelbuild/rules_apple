@@ -43,6 +43,7 @@ _IOS_ARCH_TO_EARLIEST_WATCHOS = {
     "sim_arm64": "sim_arm64",
     "arm64": "arm64_32",
     "arm64e": "arm64_32",
+    "arm64e.x1": "arm64_32",
 }
 
 _IOS_ARCH_TO_64_BIT_WATCHOS = {
@@ -50,6 +51,7 @@ _IOS_ARCH_TO_64_BIT_WATCHOS = {
     "sim_arm64": "sim_arm64",
     "arm64": "arm64",
     "arm64e": "arm64",
+    "arm64e.x1": "arm64",
 }
 
 # Following map provides and ad-hoc platform mapping
@@ -57,10 +59,12 @@ _CPU_TO_PLATFORM = {
     "darwin_x86_64": "//buildenv/platforms/apple:darwin_x86_64",
     "darwin_arm64": "//buildenv/platforms/apple:darwin_arm64",
     "darwin_arm64e": "//buildenv/platforms/apple:darwin_arm64e",
+    "darwin_arm64e.x1": "//buildenv/platforms/apple:darwin_arm64e_x1",
     "ios_x86_64": "//buildenv/platforms/apple/simulator:ios_x86_64",
     "ios_arm64": "//buildenv/platforms/apple:ios_arm64",
     "ios_sim_arm64": "//buildenv/platforms/apple/simulator:ios_arm64",
     "ios_arm64e": "//buildenv/platforms/apple:ios_arm64e",
+    "ios_arm64e.x1": "//buildenv/platforms/apple:ios_arm64e_x1",
     "tvos_sim_arm64": "//buildenv/platforms/apple/simulator:tvos_arm64",
     "tvos_sim_arm64e": "//buildenv/platforms/apple/simulator:tvos_arm64e",
     "tvos_arm64": "//buildenv/platforms/apple:tvos_arm64",
@@ -74,6 +78,7 @@ _CPU_TO_PLATFORM = {
     "watchos_sim_arm64e": "//buildenv/platforms/apple/simulator:watchos_arm64e",
     "watchos_arm64": "//buildenv/platforms/apple:watchos_arm64",
     "watchos_arm64e": "//buildenv/platforms/apple:watchos_arm64e",
+    "watchos_arm64e.x1": "//buildenv/platforms/apple:watchos_arm64e_x1",
     "watchos_arm64_32": "//buildenv/platforms/apple:watchos_arm64_32",
     "watchos_x86_64": "//buildenv/platforms/apple/simulator:watchos_x86_64",
 }
@@ -83,6 +88,7 @@ _IOS_PLATFORM_TO_ENV_ARCH = {
     Label("//buildenv/platforms/apple:ios_arm64"): "arm64",
     Label("//buildenv/platforms/apple/simulator:ios_arm64"): "sim_arm64",
     Label("//buildenv/platforms/apple:ios_arm64e"): "arm64e",
+    Label("//buildenv/platforms/apple:ios_arm64e_x1"): "arm64e.x1",
 }
 
 _WATCHOS_PLATFORM_TO_ENV_ARCH = {
@@ -90,6 +96,7 @@ _WATCHOS_PLATFORM_TO_ENV_ARCH = {
     Label("//buildenv/platforms/apple/simulator:watchos_arm64e"): "sim_arm64e",
     Label("//buildenv/platforms/apple:watchos_arm64"): "arm64",
     Label("//buildenv/platforms/apple:watchos_arm64e"): "arm64e",
+    Label("//buildenv/platforms/apple:watchos_arm64e_x1"): "arm64e.x1",
     Label("//buildenv/platforms/apple:watchos_arm64_32"): "arm64_32",
     Label("//buildenv/platforms/apple/simulator:watchos_x86_64"): "x86_64",
 }
@@ -140,7 +147,8 @@ def _watchos_environment_archs_from_ios(*, platform, minimum_os_version, setting
         if ios_arch:
             ios_archs = [ios_arch]
         elif (platform == Label("//buildenv/platforms/apple:darwin_arm64") or
-              platform == Label("//buildenv/platforms/apple:darwin_arm64e")):
+              platform == Label("//buildenv/platforms/apple:darwin_arm64e") or
+              platform == Label("//buildenv/platforms/apple:darwin_arm64e_x1")):
             ios_archs = ["sim_arm64"]
     if ios_archs:
         # Make sure to return a fallback compatible with the rule's assigned minimum OS.
@@ -178,7 +186,8 @@ def _environment_archs(*, platform_type, minimum_os_version, settings):
             if ios_arch:
                 environment_archs = [ios_arch]
             elif (platform == Label("//buildenv/platforms/apple:darwin_arm64") or
-                  platform == Label("//buildenv/platforms/apple:darwin_arm64e")):
+                  platform == Label("//buildenv/platforms/apple:darwin_arm64e") or
+                  platform == Label("//buildenv/platforms/apple:darwin_arm64e_x1")):
                 environment_archs = ["sim_arm64"]
         if platform_type == "watchos":
             # Use --platforms to determine the watchOS environment arch; often will be set by
