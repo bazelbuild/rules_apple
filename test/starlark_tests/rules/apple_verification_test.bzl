@@ -244,7 +244,7 @@ def _apple_verification_test_impl(ctx):
     return [
         testing.ExecutionInfo(xcode_config.execution_info()),
         testing.TestEnvironment(
-            apple_common.apple_host_system_env(xcode_config) |
+            apple_support.apple_host_system_env(xcode_config) |
             test_env,
         ),
         DefaultInfo(

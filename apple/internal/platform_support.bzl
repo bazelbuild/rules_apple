@@ -120,7 +120,6 @@ def _platform_prerequisites(
 
 # Define the loadable module that lists the exported symbols in this file.
 platform_support = struct(
-    apple_common_platform_from_platform_info = (lambda info: info.platform),
     apple_platform_info_from_rule_ctx = apple_support.platform_info_from_rule_ctx,
     platform_prerequisites = _platform_prerequisites,
     ui_device_family_plist_value = _ui_device_family_plist_value,
