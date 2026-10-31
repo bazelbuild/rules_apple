@@ -51,9 +51,7 @@ bzl_library(
 bzl_library(
     name = "apple_universal_binary_transition",
     srcs = ["apple_universal_binary_transition.bzl"],
-    visibility = [
-        "//:__subpackages__",
-    ],
+    visibility = ["//visibility:private"],
     deps = [":base_transition_support"],
 )
 
