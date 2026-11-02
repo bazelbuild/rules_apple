@@ -55,6 +55,7 @@ bzl_library(
         "//apple/internal:resources",
         "//apple/internal:swift_support",
         "//apple/internal/toolchains:apple_toolchains",
+        "//apple/internal/utils:bundle_paths",
         "@build_bazel_apple_support//lib:apple_support",
         "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:providers",

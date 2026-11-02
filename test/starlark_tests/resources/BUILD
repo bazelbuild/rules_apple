@@ -687,6 +687,66 @@ objc_library(
     tags = common.fixture_tags,
 )
 
+write_file(
+    name = "generated_basic_bundle_file",
+    out = "basic.bundle/generated_bundle_file.txt",
+    content = ["generated_bundle_file"],
+    tags = common.fixture_tags,
+)
+
+apple_bundle_import(
+    name = "basic_bundle_with_generated_file",
+    bundle_imports = [
+        ":basic_bundle_files",
+        ":generated_basic_bundle_file",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "basic_bundle_with_generated_file_lib",
+    srcs = ["dummy.m"],
+    data = [
+        ":basic_bundle_with_generated_file",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_bundle_import(
+    name = "multiple_bundles_import",
+    bundle_imports = [
+        ":basic_bundle_files",
+    ] + glob(["nested_bundle/nested.bundle/**"]),
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "multiple_bundles_import_lib",
+    srcs = ["dummy.m"],
+    data = [
+        ":multiple_bundles_import",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_bundle_import(
+    name = "similarly_named_bundles_import",
+    bundle_imports = [
+        ":basic_bundle_files",
+        "//test/testdata/resources:basic_bundle_files",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "similarly_named_bundles_import_lib",
+    srcs = ["dummy.m"],
+    data = [
+        ":similarly_named_bundles_import",
+    ],
+    tags = common.fixture_tags,
+)
+
 objc_library(
     name = "ios_non_localized_assets_lib",
     data = [

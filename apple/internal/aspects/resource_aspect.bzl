@@ -47,6 +47,10 @@ load(
     "apple_toolchain_utils",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/utils:bundle_paths.bzl",
+    "bundle_paths",
+)
+load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
@@ -314,6 +318,28 @@ def _apple_resource_aspect_impl(target, ctx):
             **collect_bundle_imports_args
         )
         if bundle_imports_files:
+            bundle_paths_found = []
+            for bundle_import_target in bundle_imports_files:
+                for file in bundle_import_target.files.to_list():
+                    bundle_path = bundle_paths.farthest_parent(file.short_path, "bundle")
+                    if bundle_path not in bundle_paths_found:
+                        bundle_paths_found.append(bundle_path)
+
+            if len(bundle_paths_found) > 1:
+                fail("""
+Error: Expected only one .bundle directory in bundle_imports for {label}, but found \
+multiple .bundle paths instead:
+
+{bundle_paths}
+
+Each apple_bundle_import target must reference files from a single .bundle directory \
+path. Check that {label} does not import files from multiple .bundle directories (even \
+if they share the same .bundle name).
+""".format(
+                    bundle_paths = "\n".join(["- " + p for p in bundle_paths_found]),
+                    label = ctx.label,
+                ))
+
             bundle_imports_parent_dir_param = (
                 lambda *args, **kwargs: resources.bundle_relative_parent_dir(
                     extension = "bundle",

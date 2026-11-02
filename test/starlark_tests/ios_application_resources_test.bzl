@@ -374,6 +374,56 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         tags = [name],
     )
 
+    # Tests that an apple_bundle_import target combining checked-in and generated files in the same
+    # .bundle directory succeeds when building a multi-architecture ("fat") binary.
+    archive_contents_test(
+        name = "{}_apple_bundle_import_with_generated_file_fat_build_test".format(name),
+        build_type = "simulator",
+        cpus = {
+            "ios_multi_cpus": ["x86_64", "sim_arm64"],
+        },
+        contains = [
+            "$BUNDLE_ROOT/basic.bundle/basic_bundle.txt",
+            "$BUNDLE_ROOT/basic.bundle/generated_bundle_file.txt",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_bundle_import_with_generated_file",
+        tags = [name],
+    )
+
+    # Tests that an apple_bundle_import target referencing files from multiple differently named
+    # .bundle directories fails analysis with a clear error message.
+    analysis_failure_message_test(
+        name = "{}_apple_bundle_import_multiple_bundles_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_multiple_bundles_in_bundle_import",
+        expected_error = """
+Error: Expected only one .bundle directory in bundle_imports for \
+//test/starlark_tests/resources:multiple_bundles_import, \
+but found multiple .bundle paths instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/resources/basic.bundle
+- third_party/bazel_rules/rules_apple/test/starlark_tests/resources/nested_bundle/nested.bundle
+
+Each apple_bundle_import target must reference files from a single .bundle directory path.""",
+        tags = [name],
+    )
+
+    # Tests that an apple_bundle_import target referencing files from two similarly named .bundle
+    # directories at different workspace paths fails analysis with a clear error message.
+    analysis_failure_message_test(
+        name = "{}_apple_bundle_import_similarly_named_bundles_failure_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_similarly_named_bundles_in_bundle_import",
+        expected_error = """
+Error: Expected only one .bundle directory in bundle_imports for \
+//test/starlark_tests/resources:similarly_named_bundles_import, \
+but found multiple .bundle paths instead:
+
+- third_party/bazel_rules/rules_apple/test/starlark_tests/resources/basic.bundle
+- third_party/bazel_rules/rules_apple/test/testdata/resources/basic.bundle
+
+Each apple_bundle_import target must reference files from a single .bundle directory path.""",
+        tags = [name],
+    )
+
     # Tests that apple_resource_bundle resources are compiled and bundled correctly
     # with the application. This test uses a bundle library with many types of
     # resources, both localized and nonlocalized, and also a nested bundle.
