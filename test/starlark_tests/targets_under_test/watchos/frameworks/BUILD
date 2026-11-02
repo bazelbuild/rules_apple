@@ -27,37 +27,6 @@ package(
 )
 
 watchos_application(
-    name = "app_with_ext_with_fmwk_not_extension_safe",
-    bundle_id = "com.google.example",
-    extensions = [":ext_with_fmwk_not_extension_safe"],
-    frameworks = [":fmwk_not_extension_safe"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-watchos_extension(
-    name = "ext_with_fmwk_not_extension_safe",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    frameworks = [":fmwk_not_extension_safe"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.min_deployment_target,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-watchos_application(
     name = "app_with_framework_depending_ext",
     bundle_id = "com.google.example",
     extensions = [":ext_with_framework"],
@@ -364,7 +333,6 @@ watchos_application(
 watchos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
-    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
@@ -392,7 +360,6 @@ watchos_framework(
 watchos_framework(
     name = "fmwk_with_structured_resources",
     bundle_id = "com.google.example.framework",
-    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -516,20 +483,6 @@ watchos_framework(
     tags = common.fixture_tags,
     deps = [
         ":static_fmwk_depending_lib",
-    ],
-)
-
-watchos_framework(
-    name = "fmwk_not_extension_safe",
-    bundle_id = "com.google.example.framework",
-    extension_safe = False,
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_watchos.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_shared_lib",
     ],
 )
 
@@ -711,7 +664,6 @@ watchos_application(
 watchos_framework(
     name = "framework_with_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -747,7 +699,6 @@ watchos_application(
 watchos_framework(
     name = "framework_with_multi_module_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     families = [
         "iphone",
         "ipad",

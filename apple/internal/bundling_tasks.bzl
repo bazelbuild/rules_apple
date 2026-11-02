@@ -59,10 +59,6 @@ load(
     _extension_point_name_validation_bundling_task = "extension_point_name_validation_bundling_task",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/bundling_tasks:extension_safe_validation.bzl",
-    _extension_safe_validation_bundling_task = "extension_safe_validation_bundling_task",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/bundling_tasks:framework_header_modulemap.bzl",
     _framework_header_modulemap_bundling_task = "framework_header_modulemap_bundling_task",
 )
@@ -124,7 +120,6 @@ bundling_tasks = struct(
     debug_symbols = _debug_symbols_bundling_task,
     embedded_bundles = _embedded_bundles_bundling_task,
     extension_point_name_validation = _extension_point_name_validation_bundling_task,
-    extension_safe_validation = _extension_safe_validation_bundling_task,
     framework_import = _framework_import_bundling_task,
     framework_header_modulemap = _framework_header_modulemap_bundling_task,
     framework_headers = _framework_headers_bundling_task,

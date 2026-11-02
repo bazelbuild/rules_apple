@@ -298,21 +298,6 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
-    # Tests analysis phase failure when an extension depends on a framework which
-    # is not marked extension_safe.
-    analysis_failure_message_test(
-        name = "{}_fails_with_extension_depending_on_not_extension_safe_framework".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_ext_with_fmwk_not_extension_safe",
-        expected_error = (
-            "The target {package}:ext_with_fmwk_not_extension_safe is for an extension but its " +
-            "framework dependency {package}:fmwk_not_extension_safe is not marked extension-safe." +
-            " Specify 'extension_safe = 1' on the framework target."
-        ).format(
-            package = "//test/starlark_tests/targets_under_test/tvos",
-        ),
-        tags = [name],
-    )
-
     # Test that if a tvos_framework target depends on a prebuilt framework (i.e.,
     # apple_dynamic_framework_import), that the inner framework is propagated up
     # to the application and not nested in the outer framework.

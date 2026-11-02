@@ -1547,7 +1547,6 @@ macos_application(
 macos_framework(
     name = "fmwk",
     bundle_id = "com.google.example.framework",
-    extension_safe = True,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2099,7 +2098,6 @@ macos_application(
 macos_framework(
     name = "framework_with_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],
@@ -2129,7 +2127,6 @@ macos_application(
 macos_framework(
     name = "framework_with_multi_module_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
     ],

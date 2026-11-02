@@ -1057,7 +1057,6 @@ ios_framework(
     name = "fmwk_min_os_baseline",
     hdrs = ["//test/starlark_tests/resources:common.h"],
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     families = [
         "iphone",
         "ipad",
@@ -1570,23 +1569,6 @@ ios_extension(
     ],
 )
 
-ios_extension(
-    name = "ext_with_fmwk_not_extension_safe",
-    bundle_id = "com.google.example.ext",
-    entitlements = "//test/starlark_tests/resources:entitlements.plist",
-    families = ["iphone"],
-    frameworks = [":fmwk_not_extension_safe"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
 # ---------------------------------------------------------------------------------------
 
 ios_application(
@@ -1690,22 +1672,6 @@ ios_application(
     ],
     deps = [
         "//test/starlark_tests/resources:ios_non_localized_assets_lib",
-        "//test/starlark_tests/resources:objc_main_lib",
-    ],
-)
-
-ios_application(
-    name = "app_with_ext_with_fmwk_not_extension_safe",
-    bundle_id = "com.google.example",
-    extensions = [":ext_with_fmwk_not_extension_safe"],
-    families = ["iphone"],
-    frameworks = [":fmwk_not_extension_safe"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
-    ],
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
         "//test/starlark_tests/resources:objc_main_lib",
     ],
 )
@@ -1885,7 +1851,6 @@ ios_framework(
 ios_framework(
     name = "fmwk_with_provisioning",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     families = [
         "iphone",
         "ipad",
@@ -1987,22 +1952,6 @@ ios_framework(
     infoplists = [
         "//test/starlark_tests/resources:Info.plist",
         "//test/starlark_tests/resources:Another.plist",
-    ],
-    minimum_os_version = common.min_os_ios.min_deployment_target,
-    tags = common.fixture_tags,
-    deps = [
-        "//test/starlark_tests/resources:objc_shared_lib",
-    ],
-)
-
-ios_framework(
-    name = "fmwk_not_extension_safe",
-    hdrs = ["//test/starlark_tests/resources:common.h"],
-    bundle_id = "com.google.example.framework",
-    extension_safe = False,
-    families = ["iphone"],
-    infoplists = [
-        "//test/starlark_tests/resources:Info.plist",
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
     tags = common.fixture_tags,
@@ -4617,7 +4566,6 @@ objc_library(
 ios_framework(
     name = "framework_with_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     families = [
         "iphone",
         "ipad",
@@ -4657,7 +4605,6 @@ ios_application(
 ios_framework(
     name = "framework_with_multi_module_app_intents",
     bundle_id = "com.google.example.framework",
-    extension_safe = 1,
     families = [
         "iphone",
         "ipad",

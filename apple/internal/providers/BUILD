@@ -128,14 +128,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "extension_safe_validation_info",
-    srcs = ["extension_safe_validation_info.bzl"],
-    visibility = [
-        "//apple/internal:__subpackages__",
-    ],
-)
-
-bzl_library(
     name = "swift_dylibs_info",
     srcs = ["swift_dylibs_info.bzl"],
     visibility = [

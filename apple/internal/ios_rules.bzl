@@ -177,10 +177,6 @@ load(
     "ExtensionFoundationInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:extension_safe_validation_info.bzl",
-    "AppleExtensionSafeValidationInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/providers:swift_dylibs_info.bzl",
     "AppleSwiftDylibsInfo",
 )
@@ -1218,14 +1214,6 @@ def _ios_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
-        bundling_tasks.extension_safe_validation(
-            extension_safe_validation_providers = targets.providers(
-                ctx.attr.frameworks,
-                AppleExtensionSafeValidationInfo,
-            ),
-            is_extension_safe = ctx.attr.extension_safe,
-            rule_label = label,
-        ),
         bundling_tasks.framework_headers(hdrs = ctx.files.hdrs),
         bundling_tasks.framework_provider(
             actions = actions,
@@ -1583,14 +1571,6 @@ def _ios_extension_impl(ctx):
                 AppleEmbeddedFrameworkBundleInfo,
             ),
             **embedded_bundles_args
-        ),
-        bundling_tasks.extension_safe_validation(
-            extension_safe_validation_providers = targets.providers(
-                ctx.attr.frameworks,
-                AppleExtensionSafeValidationInfo,
-            ),
-            is_extension_safe = True,
-            rule_label = label,
         ),
         bundling_tasks.resources(
             actions = actions,
@@ -2073,14 +2053,6 @@ def _ios_imessage_extension_impl(ctx):
             ),
             plugins = [archive_for_embedding],
         ),
-        bundling_tasks.extension_safe_validation(
-            extension_safe_validation_providers = targets.providers(
-                ctx.attr.frameworks,
-                AppleExtensionSafeValidationInfo,
-            ),
-            is_extension_safe = True,
-            rule_label = label,
-        ),
         bundling_tasks.resources(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -2441,10 +2413,7 @@ that this target depends on.
             ),
             "extension_safe": attr.bool(
                 default = False,
-                doc = """
-If true, compiles and links this framework with `-application-extension`, restricting the binary to
-use only extension-safe APIs.
-""",
+                doc = "Deprecated no-op; will be removed in a future release.",
             ),
             # TODO(b/251214758): Remove this attribute when all usages of ios_frameworks with hdrs
             # are migrated to apple_xcframework.

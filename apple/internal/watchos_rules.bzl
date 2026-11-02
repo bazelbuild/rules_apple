@@ -157,10 +157,6 @@ load(
     "ExtensionFoundationInfo",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/providers:extension_safe_validation_info.bzl",
-    "AppleExtensionSafeValidationInfo",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/providers:swift_dylibs_info.bzl",
     "AppleSwiftDylibsInfo",
 )
@@ -432,14 +428,6 @@ def _watchos_extension_impl(ctx):
                 AppleEmbeddedFrameworkBundleInfo,
             ),
             **embedded_bundles_args
-        ),
-        bundling_tasks.extension_safe_validation(
-            extension_safe_validation_providers = targets.providers(
-                ctx.attr.frameworks,
-                AppleExtensionSafeValidationInfo,
-            ),
-            is_extension_safe = True,
-            rule_label = label,
         ),
         bundling_tasks.resources(
             actions = actions,
@@ -1048,14 +1036,6 @@ def _watchos_framework_impl(ctx):
             frameworks = [archive_for_embedding],
             signed_frameworks = depset(signed_frameworks),
         ),
-        bundling_tasks.extension_safe_validation(
-            extension_safe_validation_providers = targets.providers(
-                ctx.attr.frameworks,
-                AppleExtensionSafeValidationInfo,
-            ),
-            is_extension_safe = ctx.attr.extension_safe,
-            rule_label = label,
-        ),
         bundling_tasks.framework_provider(
             actions = actions,
             binary_artifact = binary_artifact,
@@ -1271,10 +1251,7 @@ watchos_framework = rule_factory.create_apple_rule(
         {
             "extension_safe": attr.bool(
                 default = False,
-                doc = """
-If true, compiles and links this framework with `-application-extension`, restricting the binary to
-use only extension-safe APIs.
-""",
+                doc = "Deprecated no-op; will be removed in a future release.",
             ),
             "frameworks": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],

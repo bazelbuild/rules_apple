@@ -140,17 +140,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "extension_safe_validation",
-    srcs = ["extension_safe_validation.bzl"],
-    visibility = [
-        "//apple/internal:__pkg__",
-    ],
-    deps = [
-        "//apple/internal/providers:extension_safe_validation_info",
-    ],
-)
-
-bzl_library(
     name = "framework_header_modulemap",
     srcs = ["framework_header_modulemap.bzl"],
     visibility = [

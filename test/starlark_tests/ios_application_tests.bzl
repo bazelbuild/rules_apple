@@ -948,21 +948,6 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
-    # Tests analysis phase failure when an extension depends on a framework which
-    # is not marked extension_safe.
-    analysis_failure_message_test(
-        name = "{}_fails_with_extension_depending_on_not_extension_safe_framework".format(name),
-        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_ext_with_fmwk_not_extension_safe",
-        expected_error = (
-            "The target {package}:ext_with_fmwk_not_extension_safe is for an extension but its " +
-            "framework dependency {package}:fmwk_not_extension_safe is not marked extension-safe." +
-            " Specify 'extension_safe = 1' on the framework target."
-        ).format(
-            package = "//test/starlark_tests/targets_under_test/ios",
-        ),
-        tags = [name],
-    )
-
     directory_test(
         name = "{}_dsym_directory_test".format(name),
         apple_generate_dsym = True,
