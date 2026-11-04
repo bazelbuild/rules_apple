@@ -1249,10 +1249,6 @@ watchos_framework = rule_factory.create_apple_rule(
             supports_capabilities = False,
         ),
         {
-            "extension_safe": attr.bool(
-                default = False,
-                doc = "Deprecated no-op; will be removed in a future release.",
-            ),
             "frameworks": attr.label_list(
                 providers = [[AppleBundleInfo, WatchosFrameworkBundleInfo]],
                 doc = """

@@ -2411,10 +2411,6 @@ A list of framework targets (see
 that this target depends on.
 """,
             ),
-            "extension_safe": attr.bool(
-                default = False,
-                doc = "Deprecated no-op; will be removed in a future release.",
-            ),
             # TODO(b/251214758): Remove this attribute when all usages of ios_frameworks with hdrs
             # are migrated to apple_xcframework.
             "hdrs": attr.label_list(

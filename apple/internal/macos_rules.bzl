@@ -2353,10 +2353,6 @@ macos_framework = rule_factory.create_apple_rule(
                 ],
                 doc = "A list of macOS framework bundles to include in the final framework bundle.",
             ),
-            "extension_safe": attr.bool(
-                default = False,
-                doc = "Deprecated no-op; will be removed in a future release.",
-            ),
         },
     ],
 )
