@@ -407,7 +407,7 @@ class Bundler(object):
     for command in command_lines.splitlines():
       argv = [arg.replace('$WORK_DIR', bundle_root) for arg in shlex.split(command)]
       try:
-        subprocess.check_call(argv, env={})
+        subprocess.check_call(argv, env={k: v for k, v in os.environ.items() if k in ("PATH", "DEVELOPER_DIR")})
       except subprocess.CalledProcessError as e:
         raise CodeSignError(e.returncode) from e
 
