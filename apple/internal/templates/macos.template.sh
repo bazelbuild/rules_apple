@@ -44,7 +44,13 @@ find -L "$(dirname %app_path%)" -path "*.dSYM/Contents/Resources/DWARF/*" -exec 
 # Get the bundle executable name of the app. Read this from the plist in case it
 # differs from the app name.
 readonly BUNDLE_INFO_PLIST="${APP_DIR}/Contents/Info.plist"
-readonly BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "${BUNDLE_INFO_PLIST}")
+# PlistBuddy from PATH if there is one, else macOS's.
+if command -v PlistBuddy >/dev/null 2>&1; then
+  readonly PLIST_BUDDY=PlistBuddy
+else
+  readonly PLIST_BUDDY=/usr/libexec/PlistBuddy
+fi
+readonly BUNDLE_EXECUTABLE=$("$PLIST_BUDDY" -c "Print :CFBundleExecutable" "${BUNDLE_INFO_PLIST}")
 
 # Launch the app binary
 # Do *not* use exec here because we want the trap above to execute after the

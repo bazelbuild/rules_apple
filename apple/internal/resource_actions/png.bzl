@@ -63,7 +63,7 @@ def copy_png(*, actions, mac_exec_group, input_file, output_file, platform_prere
             ],
             env = shared_environment.default_env,
             exec_group = mac_exec_group,
-            executable = "/usr/bin/xcrun",
+            executable = "xcrun",
             inputs = [input_file],
             mnemonic = "CopyPng",
             outputs = [output_file],
