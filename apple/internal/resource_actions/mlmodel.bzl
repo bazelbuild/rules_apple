@@ -78,7 +78,8 @@ def generate_mlmodel_sources(
         objc_output_hdr,
         language,
         platform_prerequisites,
-        xctoolrunner):
+        xctoolrunner,
+        sdk_tool_files = []):
     """Creates an action that generates sources for an mlmodel file.
 
     Args:
@@ -91,6 +92,7 @@ def generate_mlmodel_sources(
       language: Language of generated classes ("Objective-C", "Swift").
       platform_prerequisites: Struct containing information on the platform being targeted.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
 
     is_swift = language == "Swift"
@@ -119,7 +121,7 @@ def generate_mlmodel_sources(
         arguments = [arguments],
         exec_group = mac_exec_group,
         executable = xctoolrunner,
-        inputs = [input_file],
+        inputs = [input_file] + sdk_tool_files,
         mnemonic = "MlmodelGenerate",
         outputs = outputs,
         xcode_config = platform_prerequisites.xcode_version_config,
