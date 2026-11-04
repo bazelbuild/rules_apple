@@ -270,7 +270,7 @@ if [[ -n "$test_host_path" ]]; then
       # bundle, the XCTRunner which hosts the test bundle will fail to be
       # launched. So removing the arm64e arch from XCTRunner can resolve this
       # case.
-      /usr/bin/lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
+      lipo "$test_tmp_dir/$runner_app/XCTRunner" -remove arm64e -output "$test_tmp_dir/$runner_app/XCTRunner"
     fi
     test_host_mobileprovision_path="$test_tmp_dir/$test_host_name.app/embedded.mobileprovision"
     # Only engage signing workflow if the test host is signed
