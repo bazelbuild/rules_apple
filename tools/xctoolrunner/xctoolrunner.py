@@ -105,7 +105,7 @@ def _ensure_clean_path(path):
 def _listdir_full(path):
   """List a directory but output the full path to the files instead of only the
   file names."""
-  for f in os.listdir(path):
+  for f in sorted(os.listdir(path)):
     yield os.path.join(path, f)
 
 def ibtool_filtering(tool_exit_status, raw_stdout, raw_stderr):
