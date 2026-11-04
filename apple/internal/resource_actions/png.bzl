@@ -23,7 +23,7 @@ load(
     "shared_environment",
 )
 
-def copy_png(*, actions, mac_exec_group, input_file, output_file, platform_prerequisites):
+def copy_png(*, actions, mac_exec_group, input_file, output_file, platform_prerequisites, sdk_tool_files = []):
     """Creates an action that copies and compresses a png using copypng.
 
     Args:
@@ -32,6 +32,7 @@ def copy_png(*, actions, mac_exec_group, input_file, output_file, platform_prere
       mac_exec_group: The execution group for Mac tools.
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
 
     # Xcode does not use `pngcrush` on macOS, but allow override using a feature.
@@ -64,7 +65,7 @@ def copy_png(*, actions, mac_exec_group, input_file, output_file, platform_prere
             env = shared_environment.default_env,
             exec_group = mac_exec_group,
             executable = "xcrun",
-            inputs = [input_file],
+            inputs = [input_file] + sdk_tool_files,
             mnemonic = "CopyPng",
             outputs = [output_file],
             xcode_config = platform_prerequisites.xcode_version_config,

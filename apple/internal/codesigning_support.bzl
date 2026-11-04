@@ -748,11 +748,12 @@ def _post_process_and_sign_archive_action(
             arguments = arguments,
             env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
-            inputs = input_files,
+            inputs = input_files + codesign_inputs,
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
             toolchain = None,
+            use_default_shell_env = True,
         )
 
 def _sign_binary_action(
