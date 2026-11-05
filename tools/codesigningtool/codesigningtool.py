@@ -188,7 +188,7 @@ def _find_smartcard_identities(identity=None):
   """Finds smartcard identitites on the current system."""
   ids = []
   # system_profiler is macOS-only.
-  if not os.path.exists("/usr/sbin/system_profiler"):
+  if sys.platform != "darwin":
     return ids
   _, xml, _ = execute.execute_and_filter_output([
       "/usr/sbin/system_profiler",
