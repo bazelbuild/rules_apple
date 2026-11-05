@@ -404,10 +404,18 @@ class Bundler(object):
       command_lines: A newline-separated list of command lines that should be
         executed in the bundle to sign it.
     """
+    # Drop our own runfiles setup so the signing tool (also a py_binary) finds
+    # its own.
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if not k.startswith('RUNFILES_')
+        and k not in ('JAVA_RUNFILES', 'PYTHONPATH', 'PYTHONSAFEPATH')
+    }
     for command in command_lines.splitlines():
       argv = [arg.replace('$WORK_DIR', bundle_root) for arg in shlex.split(command)]
       try:
-        subprocess.check_call(argv)
+        subprocess.check_call(argv, env=env)
       except subprocess.CalledProcessError as e:
         raise CodeSignError(e.returncode) from e
 
