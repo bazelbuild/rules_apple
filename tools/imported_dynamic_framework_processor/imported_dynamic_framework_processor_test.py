@@ -15,8 +15,10 @@
 
 import os
 import shutil
+import stat
 import tempfile
 import unittest
+import zipfile
 from unittest import mock
 
 from tools.imported_dynamic_framework_processor import imported_dynamic_framework_processor
@@ -270,7 +272,10 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     )
     mock_sign.assert_called_once()
     mock_update_modified_timestamps.assert_called_once_with(temp_path)
-    mock_execute.assert_called_once()
+    with zipfile.ZipFile(output_zip) as archive:
+      current = archive.getinfo("Foo.framework/Versions/Current")
+      self.assertTrue(stat.S_ISLNK(current.external_attr >> 16))
+      self.assertEqual(b"A", archive.read(current))
 
 if __name__ == "__main__":
   unittest.main()
