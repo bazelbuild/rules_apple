@@ -382,39 +382,19 @@ def main() -> None:
     if status_code:
       return status_code
 
-  # Update modified timestamps and create archive using ditto.
   _update_modified_timestamps(args.temp_path)
-
-  # ditto is macOS-only.
-  if not os.path.exists("/usr/bin/ditto"):
-    _zip_keeping_parent(args.temp_path, args.output_zip)
-    return
-
-  # Previous implementation of creating the processed framework archive
-  # using shutil/zip already stripped the extended attributes of the bundle.
-  execute.execute_and_filter_output(
-      cmd_args=[
-          "/usr/bin/ditto",
-          "-c",
-          "-k",  # use PKZip format for bundletool compatibility.
-          "--keepParent",  # preserves the .framework directory.
-          "--norsrc",  # strip resource forks and HFS metadata.
-          "--noextattr",  # strip extended attributes.
-          args.temp_path,
-          args.output_zip
-      ],
-      raise_on_failure=True)
+  _zip_keeping_parent(args.temp_path, args.output_zip)
 
 
 def _zip_keeping_parent(source: str, output_zip: str) -> None:
-  """Writes `source` into `output_zip` as `ditto -c -k --keepParent` does."""
+  """Zips `source` with its parent directory, keeping symlinks and modes."""
   parent = os.path.dirname(os.path.abspath(source))
 
   def info(path: str, name: str) -> zipfile.ZipInfo:
     st = os.lstat(path)
     zinfo = zipfile.ZipInfo(name, time.localtime(st.st_mtime)[:6])
     zinfo.external_attr = (st.st_mode & 0xFFFF) << 16
-    zinfo.create_system = 3  # Unix, as ditto records it.
+    zinfo.create_system = 3  # Unix, so modes and symlinks survive unzip.
     return zinfo
 
   with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as out:
