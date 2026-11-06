@@ -180,6 +180,7 @@ def _binary_linking_attrs(
         _common_linking_api_attrs(deps_cfg = deps_cfg),
         {
             "codesign_inputs": attr.label_list(
+                default = [Label("//apple:sdk_tool_files")],
                 doc = """
 A list of dependencies targets that provide inputs that will be used by
 `codesign` (referenced with `codesignopts`).
