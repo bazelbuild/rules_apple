@@ -352,10 +352,13 @@ def _use_apple_exec_group_toolchain():
     """
     groups = {
         APPLE_XPLAT_EXEC_GROUP: exec_group(
-            toolchains = [config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE)],
+            toolchains = [
+                config_common.toolchain_type(APPLE_XPLAT_TOOLCHAIN_TYPE),
+                config_common.toolchain_type(APPLE_MAC_TOOLCHAIN_TYPE),
+            ],
         ),
         APPLE_MAC_EXEC_GROUP: exec_group(
-            exec_compatible_with = ["@platforms//os:macos"],
+            # The registered toolchain decides the execution platform.
             toolchains = [config_common.toolchain_type(APPLE_MAC_TOOLCHAIN_TYPE)],
         ),
     }

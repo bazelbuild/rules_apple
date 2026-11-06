@@ -51,7 +51,7 @@ def compile_texture_atlas(
             output_dir.path,
         ],
         exec_group = mac_exec_group,
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         inputs = input_files,
         mnemonic = "CompileTextureAtlas",
         outputs = [output_dir],

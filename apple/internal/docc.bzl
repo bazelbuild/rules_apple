@@ -184,7 +184,7 @@ done
         inputs = depset(docc_build_inputs),
         outputs = [doccarchive_dir],
         mnemonic = "DocCConvert",
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         arguments = [arguments],
         progress_message = "Converting .doccarchive for %{label}",
         execution_requirements = execution_requirements,
@@ -335,4 +335,5 @@ This value must be either `fileprivate`, `internal`, `private`, or `public`. The
         },
     ),
     executable = True,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )
