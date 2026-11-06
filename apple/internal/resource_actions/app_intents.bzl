@@ -52,7 +52,8 @@ def generate_app_intents_metadata_bundle(
         source_files,
         target_triples,
         xcode_version_config,
-        json_tool):
+        json_tool,
+        sdk_tool_files = []):
     """Process and generate AppIntents metadata bundle (Metadata.appintents).
 
     Args:
@@ -71,6 +72,7 @@ def generate_app_intents_metadata_bundle(
         json_tool: A `files_to_run` wrapping Python's `json.tool` module
             (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
             JSON handling.
+        sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     Returns:
         File referencing the Metadata.appintents bundle.
     """
@@ -83,7 +85,7 @@ def generate_app_intents_metadata_bundle(
     )
 
     args = actions.args()
-    args.add("/usr/bin/xcrun")
+    args.add("xcrun")
     args.add("appintentsmetadataprocessor")
 
     # FB347041279: Though this is not required for --compile-time-extraction, which is the only
@@ -115,6 +117,7 @@ Could not find a module name for app_intents. One is required for App Intents me
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add_all(target_triples, before_each = "--target-triple")
     transitive_inputs.append(depset(constvalues_files))
+    transitive_inputs.append(depset(sdk_tool_files))
     args.add("--compile-time-extraction")
 
     # Read the build version from the fourth component of the Xcode version.
@@ -155,6 +158,9 @@ sort_json_file() {{
     # Replace original with sorted version
     mv "$temp_file" "$original_file"
 }}
+
+# SDKROOT from DEVELOPER_DIR when Bazel doesn't set it.
+SDKROOT="${{SDKROOT:-$DEVELOPER_DIR/Platforms/$APPLE_SDK_PLATFORM.platform/Developer/SDKs/$APPLE_SDK_PLATFORM.sdk}}"
 
 exit_status=0
 output=$($@ --sdk-root "$SDKROOT" --toolchain-dir "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain" 2>&1) || exit_status=$?
@@ -213,7 +219,8 @@ def generate_app_intents_nl_training_assets(
         metadata_bundle,
         nl_training_tool,
         resource_trees,
-        xcode_version_config):
+        xcode_version_config,
+        sdk_tool_files = []):
     """Generates the App Shortcuts Flexible Matching assets (`<locale>.lproj/nlu.appintents`).
 
     Args:
@@ -230,6 +237,7 @@ def generate_app_intents_nl_training_assets(
         resource_trees: List of (resource-relative parent directory, tree File) tuples that may
             contain localized strings. A parent of "." denotes the resources root.
         xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current ctx.
+        sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     Returns:
         A directory with the assets, laid out relative to the bundle's resources directory.
     """
@@ -259,7 +267,7 @@ def generate_app_intents_nl_training_assets(
         arguments = [args],
         exec_group = mac_exec_group,
         executable = nl_training_tool,
-        inputs = [infoplist, metadata_bundle] + [f for _, f in lproj_files] + [f for _, f in resource_trees],
+        inputs = [infoplist, metadata_bundle] + [f for _, f in lproj_files] + [f for _, f in resource_trees] + sdk_tool_files,
         mnemonic = "AppIntentsNLTraining",
         outputs = [output],
         xcode_config = xcode_version_config,

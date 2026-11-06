@@ -126,7 +126,7 @@ def _codesign_args_for_path(
 
     cmd_codesigning = [
         "--codesign",
-        "/usr/bin/codesign",
+        "codesign",
     ]
 
     # Add quotes for sanitizing inputs when they're invoked directly from a shell script, for
@@ -748,11 +748,12 @@ def _post_process_and_sign_archive_action(
             arguments = arguments,
             env = shared_environment.default_env,
             executable = process_and_sign_expanded_template,
-            inputs = input_files,
+            inputs = input_files + codesign_inputs,
             mnemonic = mnemonic,
             outputs = [output_archive],
             progress_message = progress_message,
             toolchain = None,
+            use_default_shell_env = True,
         )
 
 def _sign_binary_action(
