@@ -100,6 +100,10 @@ bzl_library(
     ],
     deps = [
         "//apple:providers",
+        "@apple_support//lib:apple_support",
+        "@bazel_skylib//lib:dicts",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
         "@rules_swift//swift",
     ],
 )
