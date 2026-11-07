@@ -120,6 +120,11 @@ e.g. apple_xplat_tools_toolchaininfo.build_settings.signing_certificate_name
 A tool to create an Apple bundle by taking a list of
 files/ZIPs and destinations paths to build the directory structure for those files.
 """,
+        "derq_tool": """\
+A tool that encodes an entitlements plist as DER (TN3125), byte-compatible with
+`/usr/bin/derq query -f xml --raw`. Used for the `__ents_der` section of simulator binaries when
+the `apple.portable_derq` feature is enabled, so that step does not require a macOS executor.
+""",
         "versiontool": """\
 A tool that acts as a wrapper for xcrun actions.
 """,
@@ -287,6 +292,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
             }
         ),
         bundletool = ctx.attr.bundletool,
+        derq_tool = ctx.attr.derq_tool,
         versiontool = ctx.attr.versiontool,
     )
 
@@ -310,6 +316,14 @@ List of `Label`s referencing custom build settings for all Apple rules.
             doc = """
 A `File` referencing a tool to create an Apple bundle by taking a list of files/ZIPs and destination
 paths to build the directory structure for those files.
+""",
+        ),
+        "derq_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A `File` referencing a tool that encodes an entitlements plist as DER (TN3125), byte-compatible
+with `/usr/bin/derq query -f xml --raw`. Used when the `apple.portable_derq` feature is enabled.
 """,
         ),
         "versiontool": attr.label(
