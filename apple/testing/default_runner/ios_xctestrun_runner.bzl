@@ -260,6 +260,9 @@ When true, the exit code of the test run will be set to the exit code of the `po
             executable = True,
             doc = """
 A binary to run prior to test execution. Runs after simulator creation. Sets the `$SIMULATOR_UDID` environment variable, in addition to any other variables available to the test runner.
+When using `xcodebuild`, runs after the `.xctestrun` file has been generated and sets
+`$TEST_XCTESTRUN_FILE` to its path. The pre-action may modify this file before the
+runner launches the tests. This variable is not provided when running `xctest` directly.
 """,
         ),
         "random": attr.bool(
