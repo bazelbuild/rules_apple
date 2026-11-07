@@ -409,10 +409,7 @@ def _zip_keeping_parent(source: str, output_zip: str) -> None:
         for entry in sorted(os.listdir(path)):
           add(os.path.join(path, entry))
       else:
-        zinfo = info(path, name)
-        zinfo.compress_type = zipfile.ZIP_DEFLATED
-        with open(path, "rb") as f:
-          out.writestr(zinfo, f.read())
+        out.write(path, name)
 
     add(os.path.abspath(source))
 
