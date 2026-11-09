@@ -1592,3 +1592,23 @@ cc_library(
         ":ccinfo_dylibs_mylib-import-with-data",
     ],
 )
+
+apple_resource_bundle(
+    name = "datamodel_bundle",
+    infoplists = ["Info-template.plist"],
+    resources = [
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "other_datamodel_bundle",
+    infoplists = ["Info-template.plist"],
+    resources = [
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+    ],
+    tags = common.fixture_tags,
+)
