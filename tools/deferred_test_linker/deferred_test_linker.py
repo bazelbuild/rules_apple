@@ -37,8 +37,6 @@ import argparse
 import contextlib
 import json
 import os
-import plistlib
-import re
 import shutil
 import subprocess
 import sys
@@ -59,14 +57,21 @@ _MAIN_THREAD_CHECKER_TOOL = os.path.join(
     "main_thread_checker_tool.sh",
 )
 
-# An Xcode build version, e.g. `17A324` or `16E5104a`.
-_XCODE_BUILD_VERSION_RE = re.compile(r"\d+[A-Z]\d+[a-z]?")
-
 # Environment variables of the test action that are passed to the linker. The
 # rest (e.g. `DYLD_*`, `TEST_*` or `COVERAGE*`) are meant for the test and
 # could change the linker's behavior; Bazel wouldn't set them for the link
-# action either.
-_PASSTHROUGH_ENV = ("HOME", "LANG", "PATH", "TMPDIR", "USER")
+# action either. Bazel resolves `DEVELOPER_DIR` and `SDKROOT` for the test
+# action from the link action's Xcode and SDK variables, which the test rule
+# gives it, just as it does for the link action.
+_PASSTHROUGH_ENV = (
+    "DEVELOPER_DIR",
+    "HOME",
+    "LANG",
+    "PATH",
+    "SDKROOT",
+    "TMPDIR",
+    "USER",
+)
 
 
 class LinkError(Exception):
@@ -295,94 +300,6 @@ def _run(cmd, **kwargs):
     ) from e
 
 
-def _installed_xcode_version(developer_dir):
-  """Returns the `(version, build)` of an Xcode, or `(None, None)`."""
-  version_plist = os.path.join(
-      os.path.dirname(os.path.normpath(developer_dir)), "version.plist"
-  )
-  try:
-    with open(version_plist, "rb") as f:
-      info = plistlib.load(f)
-  except (OSError, plistlib.InvalidFileException):
-    return None, None
-  return info.get("CFBundleShortVersionString"), info.get("ProductBuildVersion")
-
-
-def _normalized_version(version):
-  """Returns `version` (e.g. `26.0.0`) without trailing zero components."""
-  components = version.split(".")
-  while len(components) > 1 and components[-1] == "0":
-    components.pop()
-  return ".".join(components)
-
-
-def xcode_version_mismatch(override, developer_dir):
-  """Returns a description of the installed Xcode if it isn't `override`.
-
-  Args:
-    override: The `XCODE_VERSION_OVERRIDE` of the link action, e.g.
-      `26.0.0.17A324` or, for hand written `xcode_version` targets, `26.0`.
-    developer_dir: The `DEVELOPER_DIR` of the Xcode that will be used.
-
-  Returns:
-    `None` if the Xcode matches `override`, or if either version is unknown.
-  """
-  if not override:
-    return None
-  version, build = _installed_xcode_version(developer_dir)
-  components = override.split(".")
-  if _XCODE_BUILD_VERSION_RE.fullmatch(components[-1]):
-    if build and build != components[-1]:
-      return f"build {build}"
-    return None
-  if version and (
-      _normalized_version(version) != _normalized_version(override)
-  ):
-    return f"version {version}"
-  return None
-
-
-def _developer_dir(action_env):
-  """Returns the `DEVELOPER_DIR` to link with.
-
-  Bazel resolves `DEVELOPER_DIR` from `XCODE_VERSION_OVERRIDE` at execution
-  time, so it isn't part of the recorded action environment. The test rule
-  gives the test action the link action's `XCODE_VERSION_OVERRIDE`, so Bazel
-  resolves the same one for it when it runs locally. Executors that don't
-  (e.g. some remote ones) fall back to the selected Xcode, as long as it is
-  the one the build was configured with.
-  """
-  developer_dir = os.environ.get("DEVELOPER_DIR")
-  if not developer_dir:
-    developer_dir = _run(["/usr/bin/xcode-select", "-p"]).stdout.strip()
-
-  override = action_env.get("XCODE_VERSION_OVERRIDE", "")
-  mismatch = xcode_version_mismatch(override, developer_dir)
-  if mismatch:
-    raise LinkError(
-        f"The test bundle was configured to link with Xcode {override}, but "
-        f"the test action's Xcode at '{developer_dir}' is {mismatch}. Set "
-        "DEVELOPER_DIR for the test to the matching Xcode."
-    )
-  return developer_dir
-
-
-def _xcrun_sdk_path(*, developer_dir, platform, version):
-  sdk = f"{platform}{version}"
-  try:
-    path = _run(
-        ["/usr/bin/xcrun", "--sdk", sdk, "--show-sdk-path"],
-        env=dict(os.environ, DEVELOPER_DIR=developer_dir),
-    ).stdout.strip()
-  except LinkError as e:
-    raise LinkError(
-        f"Unable to locate the '{sdk}' SDK in '{developer_dir}': {e}"
-    ) from e
-  if not path:
-    raise LinkError(f"Unable to locate the '{sdk}' SDK in '{developer_dir}'.")
-  return path
-
-
 def link_environment(action_env):
   """Returns the environment to run the link command line with.
 
@@ -399,22 +316,6 @@ def link_environment(action_env):
     if key == "PATH" and "PATH" in env:
       continue
     env[key] = value
-
-  developer_dir = _developer_dir(action_env)
-  env["DEVELOPER_DIR"] = developer_dir
-
-  platform = action_env.get("APPLE_SDK_PLATFORM")
-  if platform and os.environ.get("SDKROOT") and (
-      os.environ.get("DEVELOPER_DIR") == developer_dir
-  ):
-    # Resolved by Bazel from the same `APPLE_SDK_*` variables.
-    env["SDKROOT"] = os.environ["SDKROOT"]
-  elif platform:
-    env["SDKROOT"] = _xcrun_sdk_path(
-        developer_dir=developer_dir,
-        platform=platform.lower(),
-        version=action_env.get("APPLE_SDK_VERSION_OVERRIDE", ""),
-    )
   return env
 
 

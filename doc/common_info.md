@@ -605,9 +605,9 @@ Things to know:
     feature disabled before enabling it.
 *   The test action is given the link's Xcode and SDK environment, so Bazel
     runs it, including the test runner's `xcodebuild` invocation, with the
-    Xcode the build was configured with. Executors that don't resolve that
-    environment (e.g. some remote ones) use the selected Xcode instead, which
-    must then be the configured version.
+    Xcode and SDK the build was configured with. The executor must resolve
+    `DEVELOPER_DIR` and `SDKROOT` from that environment, as Bazel's local
+    execution does.
     The C++/Objective-C toolchain must not need its own runfiles to link,
     which is the case for the default Apple toolchain.
 *   No dSYM or linkmap is generated for the test binary, and the test

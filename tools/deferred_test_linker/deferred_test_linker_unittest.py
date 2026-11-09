@@ -15,7 +15,6 @@
 
 import json
 import os
-import plistlib
 import shlex
 import stat
 import sys
@@ -178,14 +177,10 @@ class DeferredTestLinkerTest(unittest.TestCase):
         "DYLD_INSERT_LIBRARIES": "/lib.dylib",
         "HOME": "/home",
         "PATH": "/usr/bin:/bin",
+        "SDKROOT": "/sdk",
         "TEST_TMPDIR": "/tmp/test",
     }
-    with mock.patch.dict(os.environ, test_env, clear=True), mock.patch.object(
-        deferred_test_linker, "_installed_xcode_version",
-        return_value=(None, None),
-    ), mock.patch.object(
-        deferred_test_linker, "_xcrun_sdk_path", return_value="/sdk"
-    ):
+    with mock.patch.dict(os.environ, test_env, clear=True):
       env = deferred_test_linker.link_environment({
           "APPLE_SDK_PLATFORM": "iPhoneSimulator",
           "APPLE_SDK_VERSION_OVERRIDE": "26.0",
@@ -201,61 +196,6 @@ class DeferredTestLinkerTest(unittest.TestCase):
         "SDKROOT": "/sdk",
         "ZERO_AR_DATE": "1",
     })
-
-  def test_link_environment_uses_sdkroot_resolved_by_bazel(self):
-    test_env = {
-        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
-        "SDKROOT": "/bazel/sdk",
-    }
-    with mock.patch.dict(os.environ, test_env, clear=True), mock.patch.object(
-        deferred_test_linker, "_installed_xcode_version",
-        return_value=(None, None),
-    ), mock.patch.object(deferred_test_linker, "_xcrun_sdk_path") as xcrun:
-      env = deferred_test_linker.link_environment(
-          {"APPLE_SDK_PLATFORM": "iPhoneSimulator"}
-      )
-    self.assertEqual(env["SDKROOT"], "/bazel/sdk")
-    xcrun.assert_not_called()
-
-  def test_link_environment_fails_on_xcode_mismatch(self):
-    with mock.patch.dict(
-        os.environ, {"DEVELOPER_DIR": "/Xcode.app/Contents/Developer"},
-        clear=True,
-    ), mock.patch.object(
-        deferred_test_linker, "_installed_xcode_version",
-        return_value=("26.0", "17A100"),
-    ):
-      with self.assertRaisesRegex(
-          deferred_test_linker.LinkError, "configured to link with Xcode"
-      ):
-        deferred_test_linker.link_environment(
-            {"XCODE_VERSION_OVERRIDE": "26.0.0.17A324"}
-        )
-
-  def test_xcode_version_mismatch(self):
-    developer_dir = os.path.join(self.tmp, "Xcode.app", "Contents", "Developer")
-    os.makedirs(developer_dir)
-    with open(
-        os.path.join(os.path.dirname(developer_dir), "version.plist"), "wb"
-    ) as f:
-      plistlib.dump(
-          {"CFBundleShortVersionString": "26.0", "ProductBuildVersion": "17A324"},
-          f,
-      )
-
-    mismatch = deferred_test_linker.xcode_version_mismatch
-    for override in ("26.0.0.17A324", "26.0", "26.0.0", "26"):
-      self.assertIsNone(mismatch(override, developer_dir), override)
-      # A trailing slash doesn't hide the installed version.
-      self.assertIsNone(mismatch(override, developer_dir + "/"), override)
-    self.assertEqual(mismatch("26.0.0.17A100", developer_dir), "build 17A324")
-    self.assertEqual(mismatch("26.1", developer_dir), "version 26.0")
-    self.assertEqual(
-        mismatch("26.1", developer_dir + "/"), "version 26.0"
-    )
-    self.assertIsNone(mismatch("", developer_dir))
-    # Unknown when there is no version.plist.
-    self.assertIsNone(mismatch("26.1", self.tmp))
 
   def test_write_params_file_rejects_newlines(self):
     with self.assertRaises(deferred_test_linker.LinkError):
@@ -423,22 +363,6 @@ class DeferredTestLinkerTest(unittest.TestCase):
         clang_rt.call_args.kwargs["binary"], os.path.join(bundle, "Tests")
     )
     mtc.assert_called_once()
-
-  def test_xcrun_sdk_path_does_not_fall_back_to_another_sdk(self):
-    with mock.patch.object(
-        deferred_test_linker,
-        "_run",
-        side_effect=deferred_test_linker.LinkError("no such SDK"),
-    ) as run:
-      with self.assertRaisesRegex(
-          deferred_test_linker.LinkError, "'iphonesimulator99.0' SDK"
-      ):
-        deferred_test_linker._xcrun_sdk_path(
-            developer_dir="/dev",
-            platform="iphonesimulator",
-            version="99.0",
-        )
-    self.assertEqual(run.call_count, 1)
 
   def _write_spec(self, runfiles, argv=None, **overrides):
     _write(os.path.join(runfiles, "pkg", "main.o"), "object")
