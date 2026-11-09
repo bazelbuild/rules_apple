@@ -47,9 +47,9 @@ def insert_alticons(plist_data, alticons, device_families):
       "CFBundleIconFiles": sorted(set(map(iconname_from_filename, os.listdir(alticon)))),
     }
   if "iphone" in device_families:
-    plist_data["CFBundleIcons"]["CFBundleAlternateIcons"] = alticons_data
+    plist_data.setdefault("CFBundleIcons", {})["CFBundleAlternateIcons"] = alticons_data
   if "ipad" in device_families:
-    plist_data["CFBundleIcons~ipad"]["CFBundleAlternateIcons"] = alticons_data
+    plist_data.setdefault("CFBundleIcons~ipad", {})["CFBundleAlternateIcons"] = alticons_data
 
 
 def main(argv):

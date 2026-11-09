@@ -101,7 +101,7 @@ def _compile_datamodels(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                dir_name = basename,
+                dir_name = paths.join(parent_dir or "", basename),
             )
             datamodel_parent = paths.join(datamodel_parent or "", basename)
         else:
@@ -109,7 +109,7 @@ def _compile_datamodels(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                file_name = datamodel_name + ".mom",
+                file_name = paths.join(parent_dir or "", datamodel_name + ".mom"),
             )
 
         processed_origins[output_file.short_path] = [f.short_path for f in input_files]

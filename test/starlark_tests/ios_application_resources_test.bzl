@@ -1358,6 +1358,24 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         tags = [name],
     )
 
+    # Separate source files expose collisions that shared model inputs do not.
+    archive_contents_test(
+        name = "{}_same_named_datamodels_in_different_bundles_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/datamodel_bundle.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/datamodel_bundle.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/datamodel_bundle.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/datamodel_bundle.bundle/versioned_datamodel.momd/VersionInfo.plist",
+            "$BUNDLE_ROOT/other_datamodel_bundle.bundle/unversioned_datamodel.mom",
+            "$BUNDLE_ROOT/other_datamodel_bundle.bundle/versioned_datamodel.momd/v1.mom",
+            "$BUNDLE_ROOT/other_datamodel_bundle.bundle/versioned_datamodel.momd/v2.mom",
+            "$BUNDLE_ROOT/other_datamodel_bundle.bundle/versioned_datamodel.momd/VersionInfo.plist",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_same_named_datamodels_in_different_bundles",
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],
