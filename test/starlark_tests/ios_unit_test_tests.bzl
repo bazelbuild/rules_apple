@@ -393,8 +393,15 @@ def ios_unit_test_test_suite(name):
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
         expected_runfiles = [
             "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link.json",
+            "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link_args_0.txt",
+            "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link_args_1.txt",
             "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link_inputs.txt",
             "tools/deferred_test_linker/deferred_test_linker",
+            # The link inputs: libraries, the link file list, the bundle loader and the linker.
+            "test/starlark_tests/resources/libobjc_test_lib.a",
+            "test/starlark_tests/targets_under_test/ios/unit_test.__internal__.__test_bundle-intermediates-ios_sim_arm64/unit_test.__internal__.__test_bundle-linker.objlist",
+            "test/starlark_tests/targets_under_test/ios/app_lipobin",
+            "../apple_support+/crosstool/wrapped_clang",
         ],
         tags = [name],
     )
@@ -432,6 +439,15 @@ def ios_unit_test_test_suite(name):
         contains = ["$BUNDLE_ROOT/unit_test"],
         sanitizer = "asan",
         target_features = _DEFERRED_LINKING_FEATURES,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_deferred_linking_ignored_with_main_thread_checker_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/unit_test"],
+        target_features = _DEFERRED_LINKING_FEATURES + ["apple.include_main_thread_checker"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
         tags = [name],
     )

@@ -21,8 +21,9 @@ at test time:
 1. A scratch "execution root" is created by symlinking every link input from
    its runfiles location to the execution root relative path the link action's
    command line refers to.
-2. The recorded link command line is run from that scratch execution root,
-   through a params file so it isn't limited by `ARG_MAX`.
+2. The link command line, which the test rule wrote from the link action's
+   `Args`, is run from that scratch execution root, through a params file so it
+   isn't limited by `ARG_MAX`.
 3. The linked binary is moved into the (already extracted) test bundle, along
    with any Swift dylibs it needs, and the bundle is optionally ad-hoc
    codesigned.
@@ -81,6 +82,67 @@ def read_inputs_manifest(manifest_path):
   return entries
 
 
+def parse_args_file(content):
+  """Returns the arguments of a file written from a Starlark `Args` object.
+
+  Bazel writes the link action's `Args` with GCC style quoting, e.g. `a\\ b`
+  for the argument `a b`. This parses it like GCC and clang read `@file`s:
+  arguments are separated by unescaped whitespace, a backslash escapes the next
+  character, and single or double quotes group characters. Like with any
+  params file that Bazel writes this way, empty arguments are lost.
+
+  Args:
+    content: The contents of the file.
+
+  Returns:
+    The list of arguments.
+  """
+  args = []
+  current = []
+  in_arg = False
+  quote = None
+  escaped = False
+  for char in content:
+    if escaped:
+      current.append(char)
+      escaped = False
+    elif char == "\\":
+      escaped = True
+      in_arg = True
+    elif quote:
+      if char == quote:
+        quote = None
+      else:
+        current.append(char)
+    elif char in ("'", '"'):
+      quote = char
+      in_arg = True
+    elif char.isspace():
+      if in_arg:
+        args.append("".join(current))
+        current = []
+        in_arg = False
+    else:
+      current.append(char)
+      in_arg = True
+  if quote or escaped:
+    raise LinkError("Unterminated quote or escape in the link command line.")
+  if in_arg:
+    args.append("".join(current))
+  return args
+
+
+def read_link_argv(paths):
+  """Returns the link command line from the files written by the test rule."""
+  argv = []
+  for path in paths:
+    with open(path, encoding="utf-8") as f:
+      argv.extend(parse_args_file(f.read()))
+  if not argv:
+    raise LinkError("The deferred link command line is empty.")
+  return argv
+
+
 def _check_runfiles_collisions(inputs):
   """Fails if different link inputs share a runfiles location.
 
@@ -129,10 +191,14 @@ def build_exec_root(*, exec_root, inputs, outputs, runfiles_root):
     created_dirs.add(path)
 
   missing = []
+  mismatched = []
   for exec_path, short_path in inputs:
     source = os.path.normpath(os.path.join(runfiles_root, short_path))
     if not os.path.lexists(source):
       missing.append(short_path)
+      continue
+    if not _runfile_matches(source, exec_path):
+      mismatched.append((short_path, exec_path, os.path.realpath(source)))
       continue
     destination = os.path.join(exec_root, exec_path)
     if os.path.lexists(destination):
@@ -150,8 +216,54 @@ def build_exec_root(*, exec_root, inputs, outputs, runfiles_root):
         f"in the test's runfiles:\n  {shown}{more}"
     )
 
+  if mismatched:
+    details = "\n".join(
+        f"  {short_path}: expected {exec_path}, found {resolved}"
+        for short_path, exec_path, resolved in mismatched[:20]
+    )
+    raise LinkError(
+        "The following inputs of the deferred test bundle link share a "
+        "runfiles location with another file of the test (e.g. one built in a "
+        "different configuration), so the test's runfiles contain the other "
+        f"file:\n{details}"
+    )
+
   for output in outputs:
     ensure_dir(os.path.dirname(os.path.join(exec_root, output)))
+
+
+def _runfile_matches(path, exec_path):
+  """Returns whether a runfiles entry is the file at `exec_path`.
+
+  Local and sandboxed runfiles are (chains of) symlinks into the execution
+  root, so following them one link at a time reveals which output a runfiles
+  entry really is. Outputs can themselves be symlinks to other outputs (e.g. a
+  single architecture `lipo`), so any link in the chain may match. Entries that
+  can't be checked, such as copied runfiles (e.g. remote execution) or chains
+  that never point into `bazel-out`, are assumed to match.
+  """
+  if not exec_path.startswith("bazel-out/"):
+    return True
+  marker = "/bazel-out/"
+  seen_output = False
+  current = path
+  for _ in range(40):
+    if not os.path.islink(current):
+      break
+    target = os.readlink(current)
+    current = os.path.normpath(
+        os.path.join(os.path.dirname(current), target)
+    )
+    index = current.find(marker)
+    if index == -1:
+      continue
+    output = current[index + 1:]
+    if output == exec_path:
+      return True
+    # Runfiles trees are in `bazel-out` too, but aren't outputs.
+    if ".runfiles/" not in output:
+      seen_output = True
+  return not seen_output
 
 
 def _run(cmd, **kwargs):
@@ -391,7 +503,7 @@ def codesign_bundle(bundle, codesignopts):
 def link(*, spec, bundle, work_dir, runfiles_root):
   """Links the test bundle's binary described by `spec` into `bundle`."""
   exec_root = os.path.join(os.path.abspath(work_dir), "execroot")
-  link_argv = spec["argv"]
+  link_argv = read_link_argv(spec["argv_files"])
   output = link_output_path(link_argv, spec["outputs"])
   env = link_environment(spec["env"])
 

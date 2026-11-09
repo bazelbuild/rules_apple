@@ -22,9 +22,11 @@ remote cache. Instead:
 1.  The test bundle is assembled without its executable and advertises
     `AppleDeferredTestLinkInfo`.
 2.  `deferred_test_link_aspect`, applied by the test rule to its test bundle dependency, reads the
-    bundle target's registered link action and captures its command line, environment and inputs.
-3.  The test rule writes that information to a JSON spec, adds the link inputs to the test's
-    runfiles, and passes the spec to the test runner.
+    bundle target's registered link action and captures its command line (as the action's `Args`,
+    so it isn't flattened during analysis), environment and inputs.
+3.  The test rule writes the command line to files (Bazel expands it, including any tree artifacts,
+    when it runs those write actions), describes the rest in a JSON spec, adds the link inputs to
+    the test's runfiles, and passes the spec to the test runner.
 4.  The test runner, which must advertise `supports_deferred_test_linking`, calls its link tool
     (`//tools/deferred_test_linker` for `ios_xctestrun_runner`) after extracting the test bundle.
     The tool replays the link, places the binary (and any Swift dylibs it needs) into the bundle
@@ -69,7 +71,10 @@ binary doesn't need to be scanned for them.
 _DeferredTestLinkActionInfo = provider(
     doc = "Private provider with the link action that a test bundle target registered.",
     fields = {
-        "argv": "The list of arguments of the link action.",
+        "args": """
+The list of `Args` objects of the link action. Their concatenated contents are its command line,
+starting with the linker.
+""",
         "codesign": "See `AppleDeferredTestLinkInfo.codesign`.",
         "codesignopts": "See `AppleDeferredTestLinkInfo.codesignopts`.",
         "env": "The environment variables of the link action.",
@@ -96,12 +101,15 @@ def _deferred_test_link_aspect_impl(target, _ctx):
             label = target.label,
         ))
     link_action = link_actions[0]
-    if not link_action.argv:
-        fail("Internal error: the link action for {} has no command line.".format(target.label))
+
+    # `link_action.argv` would flatten the whole command line, including every library, during
+    # analysis; the `Args` are only expanded when the test rule's write actions run.
+    if not link_action.args:
+        fail("Internal error: the link action for {} has no `Args`.".format(target.label))
 
     return [
         _DeferredTestLinkActionInfo(
-            argv = link_action.argv,
+            args = link_action.args,
             codesign = link_info.codesign,
             codesignopts = link_info.codesignopts,
             env = link_action.env,
@@ -120,13 +128,14 @@ Captures the link action registered by a test bundle target that was built with
     implementation = _deferred_test_link_aspect_impl,
 )
 
-def _should_defer_linking(*, features, platform_prerequisites, split_deps):
+def _should_defer_linking(*, codesign_inputs, features, platform_prerequisites, split_deps):
     """Returns whether the test bundle's binary should be linked in the test action.
 
     The feature is ignored, and the binary linked at build time as usual, for test bundles that it
     can't support. This allows it to be enabled for a whole build that also contains such tests.
 
     Args:
+        codesign_inputs: The `codesign_inputs` files of the test bundle target.
         features: The list of enabled features.
         platform_prerequisites: Struct containing information on the platform being targeted.
         split_deps: The `ctx.split_attr.deps` of the test bundle target, one entry per architecture.
@@ -151,6 +160,12 @@ def _should_defer_linking(*, features, platform_prerequisites, split_deps):
     if clang_rt_dylibs.should_package_clang_runtime(features = features):
         return False
     if main_thread_checker_dylibs.should_package_main_thread_checker_dylib(features = features):
+        return False
+
+    # `codesignopts` may refer to these files by their execution root relative paths, which don't
+    # exist where the test runner signs the bundle. (The test macros don't forward these
+    # attributes today, but the bundle rules accept them.)
+    if codesign_inputs:
         return False
 
     return True
@@ -212,7 +227,8 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
         fail((
             "The '{runner}' test runner does not support the '{feature}' feature. Use a runner " +
             "that supports it, such as `ios_xctestrun_runner`, or disable the feature for this " +
-            "test with `features = [\"-{feature}\"]`."
+            "test with `features = [\"-{feature}\"]`. Tests with several `runners` share one " +
+            "test bundle, so the feature has to be disabled for all of them."
         ).format(
             feature = DEFERRED_TEST_LINKING_FEATURE,
             runner = ctx.attr.runner.label,
@@ -228,11 +244,19 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
     inputs_args.add_all(link_action_info.inputs, map_each = _input_mapping)
     ctx.actions.write(output = inputs_manifest, content = inputs_args)
 
+    argv_files = []
+    for index, args in enumerate(link_action_info.args):
+        argv_file = ctx.actions.declare_file(
+            "{}.deferred_link_args_{}.txt".format(ctx.label.name, index),
+        )
+        ctx.actions.write(output = argv_file, content = args)
+        argv_files.append(argv_file)
+
     spec = ctx.actions.declare_file("{}.deferred_link.json".format(ctx.label.name))
     ctx.actions.write(
         output = spec,
         content = json.encode_indent({
-            "argv": link_action_info.argv,
+            "argv_files": [f.short_path for f in argv_files],
             "codesign": link_action_info.codesign,
             "codesignopts": link_action_info.codesignopts,
             "env": link_action_info.env,
@@ -244,7 +268,7 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
     )
 
     return struct(
-        files = [inputs_manifest, spec],
+        files = [inputs_manifest, spec] + argv_files,
         substitutions = {"test_bundle_link_spec": spec.short_path},
         transitive_files = [link_action_info.inputs],
     )

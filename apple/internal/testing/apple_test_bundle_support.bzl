@@ -200,6 +200,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     )
 
     defer_linking = apple_test_deferred_linking.should_defer_linking(
+        codesign_inputs = ctx.files.codesign_inputs,
         features = features,
         platform_prerequisites = platform_prerequisites,
         split_deps = ctx.split_attr.deps,

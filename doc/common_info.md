@@ -562,6 +562,12 @@ have been signed at build time, runs the tests, and deletes the temporary
 directory, binary included, when the test finishes. The link's inputs are
 already outputs of other actions, so nothing new is stored in the cache.
 
+The cost moves to the test action instead: it has all of the link's inputs,
+which together are often larger than the linked binary. With
+`--remote_download_minimal` or `--remote_download_toplevel`, a test that runs
+locally downloads all of them, and a test that runs remotely has them as
+inputs of every shard and attempt.
+
 The feature only changes where the test binary is linked. Dependencies listed
 in `frameworks` are still linked dynamically; to link them statically, move
 their libraries into the test's `deps`, for example with a `select()` on a
@@ -581,7 +587,9 @@ binary is linked at build time as usual, for test bundles it can't support:
 The test runner must also support it. `ios_xctestrun_runner` (and so the
 default iOS runner) does; iOS tests that use other runners, such as
 `ios_test_runner`, fail analysis with an error. Disable the feature for such
-tests with `features = ["-apple.defer_test_bundle_linking"]`.
+tests with `features = ["-apple.defer_test_bundle_linking"]`. A test with
+several `runners` builds one test bundle for all of them, so if any of them
+doesn't support the feature, it has to be disabled for the whole test.
 
 Things to know:
 
@@ -592,6 +600,12 @@ Things to know:
 *   Bazel doesn't account for the link's memory use when scheduling tests, so
     running many tests with large binaries in parallel (e.g. with a high
     `--local_test_jobs`) can run many large links at once.
+*   The link only sees its declared inputs, like a sandboxed build. Links that
+    read undeclared files (e.g. an `-order_file`, `-sectcreate` file or `-L`
+    directory from the source tree that isn't a dependency) may work with
+    `--spawn_strategy=local` at build time, but fail when the test runs. Try
+    building the test bundle with `--strategy=ObjcLink=sandboxed` and the
+    feature disabled before enabling it.
 *   The link runs with the Xcode the test action uses (`DEVELOPER_DIR`, or
     `xcode-select`), which must be the version the build was configured with.
     The C++/Objective-C toolchain must not need its own runfiles to link,

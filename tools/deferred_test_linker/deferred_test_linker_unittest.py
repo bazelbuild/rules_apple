@@ -44,6 +44,14 @@ def _write(path, content=""):
     f.write(content)
 
 
+def _gcc_quote(args):
+  """Quotes `args` like Bazel writes the link action's `Args`."""
+  return "".join(
+      "".join("\\" + c if c in " \t\n'\"\\" else c for c in arg) + "\n"
+      for arg in args
+  )
+
+
 class DeferredTestLinkerTest(unittest.TestCase):
 
   def setUp(self):
@@ -239,6 +247,72 @@ class DeferredTestLinkerTest(unittest.TestCase):
           os.path.join(self.tmp, "link.params"), ["a\nb"]
       )
 
+  def test_parse_args_file(self):
+    parse = deferred_test_linker.parse_args_file
+    # As written by Bazel for the link action.
+    self.assertEqual(
+        parse("-Wl,a\\ b\nq\\'u$t\ntab\\\there\nback\\\\\\\\slash\n"),
+        ["-Wl,a b", "q'u$t", "tab\there", "back\\\\slash"],
+    )
+    self.assertEqual(parse("'a b' \"c d\"\n\ne"), ["a b", "c d", "e"])
+    self.assertEqual(parse("''\n"), [""])
+    self.assertEqual(parse(""), [])
+    args = ["-o", "a b", "it's", 'say "hi"', "c:\\d", "x\ny"]
+    self.assertEqual(parse(_gcc_quote(args)), args)
+    with self.assertRaises(deferred_test_linker.LinkError):
+      parse("'unterminated")
+
+  def test_build_exec_root_rejects_runfiles_of_other_configurations(self):
+    execroot = os.path.join(self.tmp, "bazel_execroot")
+    right = os.path.join(execroot, "bazel-out", "cfg", "bin", "pkg", "lib.a")
+    wrong = os.path.join(execroot, "bazel-out", "other", "bin", "pkg", "lib.a")
+    _write(right, "right")
+    _write(wrong, "wrong")
+    runfiles = os.path.join(self.tmp, "runfiles")
+    os.makedirs(os.path.join(runfiles, "pkg"))
+    os.symlink(wrong, os.path.join(runfiles, "pkg", "lib.a"))
+
+    with self.assertRaisesRegex(
+        deferred_test_linker.LinkError, "expected bazel-out/cfg/bin/pkg/lib.a"
+    ):
+      deferred_test_linker.build_exec_root(
+          exec_root=os.path.join(self.tmp, "exec_root"),
+          inputs=[("bazel-out/cfg/bin/pkg/lib.a", "pkg/lib.a")],
+          outputs=[],
+          runfiles_root=runfiles,
+      )
+
+    # An output that is a symlink to another output, like a single
+    # architecture `lipo`, still matches.
+    lipo = os.path.join(execroot, "bazel-out", "cfg", "bin", "pkg", "lib_lipo")
+    os.symlink(right, lipo)
+    os.symlink(lipo, os.path.join(runfiles, "pkg", "lib_lipo"))
+    # Sandboxed runfiles link to the runfiles tree, which links to the output.
+    tree = os.path.join(
+        execroot, "bazel-out", "cfg", "bin", "pkg", "t.runfiles", "_main", "pkg"
+    )
+    os.makedirs(tree)
+    os.symlink(right, os.path.join(tree, "lib.a"))
+    os.remove(os.path.join(runfiles, "pkg", "lib.a"))
+    os.symlink(os.path.join(tree, "lib.a"), os.path.join(runfiles, "pkg", "lib.a"))
+    deferred_test_linker.build_exec_root(
+        exec_root=os.path.join(self.tmp, "exec_root2"),
+        inputs=[
+            ("bazel-out/cfg/bin/pkg/lib.a", "pkg/lib.a"),
+            ("bazel-out/cfg/bin/pkg/lib_lipo", "pkg/lib_lipo"),
+        ],
+        outputs=[],
+        runfiles_root=runfiles,
+    )
+    os.remove(os.path.join(runfiles, "pkg", "lib.a"))
+    os.symlink(right, os.path.join(runfiles, "pkg", "lib.a"))
+    deferred_test_linker.build_exec_root(
+        exec_root=os.path.join(self.tmp, "exec_root"),
+        inputs=[("bazel-out/cfg/bin/pkg/lib.a", "pkg/lib.a")],
+        outputs=[],
+        runfiles_root=runfiles,
+    )
+
   def test_xcrun_sdk_path_does_not_fall_back_to_another_sdk(self):
     with mock.patch.object(
         deferred_test_linker,
@@ -255,7 +329,7 @@ class DeferredTestLinkerTest(unittest.TestCase):
         )
     self.assertEqual(run.call_count, 1)
 
-  def _write_spec(self, runfiles, **overrides):
+  def _write_spec(self, runfiles, argv=None, **overrides):
     _write(os.path.join(runfiles, "pkg", "main.o"), "object")
     _write(
         os.path.join(runfiles, "pkg", "inputs.txt"),
@@ -264,13 +338,19 @@ class DeferredTestLinkerTest(unittest.TestCase):
     fake_linker = os.path.join(self.tmp, "fake_linker")
     _write(fake_linker, _FAKE_LINKER)
     os.chmod(fake_linker, 0o755)
+    if argv is None:
+      argv = [
+          fake_linker,
+          "bazel-out/cfg/bin/pkg/main.o",
+          "-o",
+          "bazel-out/cfg/bin/pkg/Tests_bin",
+      ]
+    # Like the test rule, which writes the linker and its arguments from
+    # separate `Args` objects.
+    _write(os.path.join(runfiles, "pkg", "args_0.txt"), _gcc_quote(argv[:1]))
+    _write(os.path.join(runfiles, "pkg", "args_1.txt"), _gcc_quote(argv[1:]))
     spec = {
-        "argv": [
-            fake_linker,
-            "bazel-out/cfg/bin/pkg/main.o",
-            "-o",
-            "bazel-out/cfg/bin/pkg/Tests_bin",
-        ],
+        "argv_files": ["pkg/args_0.txt", "pkg/args_1.txt"],
         "codesign": False,
         "codesignopts": [],
         "env": {"ZERO_AR_DATE": "1"},

@@ -210,6 +210,12 @@ function test_deferred_linking_pass() {
     fail "Could not list the test bundle archive"
   assert_contains "PassingUnitTest.xctest/Info.plist" "$TEST_TMPDIR/archive_contents.txt"
   assert_not_contains "PassingUnitTest.xctest/PassingUnitTest$" "$TEST_TMPDIR/archive_contents.txt"
+
+  # The link action never ran at build time.
+  local linked_binaries
+  linked_binaries="$(find test-out/ -path "*/ios/PassingUnitTest.__internal__.__test_bundle_bin" 2>/dev/null)"
+  [[ -z "$linked_binaries" ]] ||
+    fail "The test bundle binary was linked at build time: $linked_binaries"
 }
 
 function test_deferred_linking_fail() {
