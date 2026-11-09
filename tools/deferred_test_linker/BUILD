@@ -26,6 +26,7 @@ py_library(
     srcs_version = "PY3",
     deps = [
         "//tools/clangrttool:clangrttool_lib",
+        "//tools/codesigningtool:codesigningtool_lib",
         "//tools/swift_stdlib_tool:swift_stdlib_tool_lib",
     ],
 )

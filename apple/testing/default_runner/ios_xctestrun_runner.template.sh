@@ -82,13 +82,7 @@ fi
 
 # With the `apple.defer_test_bundle_linking` feature, the test bundle is built
 # without its binary; link it now. It's deleted with "$test_tmp_dir" on exit.
-# Rules that expand this template without knowing about the feature leave the
-# placeholder in place, which means the bundle was linked at build time.
-test_bundle_link_spec="%(test_bundle_link_spec)s"
-if [[ "$test_bundle_link_spec" == *"(test_bundle_link_spec)"* ]]; then
-  test_bundle_link_spec=""
-fi
-readonly test_bundle_link_spec
+readonly test_bundle_link_spec="%(test_bundle_link_spec)s"
 if [[ -n "$test_bundle_link_spec" ]]; then
   "%(deferred_test_linker_binary)s" \
     --spec "$test_bundle_link_spec" \

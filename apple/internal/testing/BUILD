@@ -38,6 +38,7 @@ bzl_library(
         "//apple/internal:resources",
         "//apple/internal:rule_support",
         "//apple/internal:swift_support",
+        "//apple/internal/partials:swift_dylibs",
         "//apple/internal/utils:clang_rt_dylibs",
         "@bazel_skylib//lib:types",
         "@rules_swift//swift",
@@ -49,9 +50,6 @@ bzl_library(
     srcs = ["apple_test_deferred_linking.bzl"],
     visibility = [
         "//apple:__subpackages__",
-    ],
-    deps = [
-        "//apple/internal/partials:swift_dylibs",
     ],
 )
 

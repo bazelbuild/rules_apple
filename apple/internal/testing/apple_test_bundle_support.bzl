@@ -86,6 +86,10 @@ load(
     "swift_support",
 )
 load(
+    "//apple/internal/partials:swift_dylibs.bzl",
+    "binary_needs_swift_dylibs_scan",
+)
+load(
     "//apple/internal/testing:apple_test_deferred_linking.bzl",
     "AppleDeferredTestLinkInfo",
     "apple_test_deferred_linking",
@@ -200,7 +204,6 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     )
 
     defer_linking = apple_test_deferred_linking.should_defer_linking(
-        codesign_inputs = ctx.files.codesign_inputs,
         features = features,
         platform_prerequisites = platform_prerequisites,
         split_deps = ctx.split_attr.deps,
@@ -208,7 +211,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     if defer_linking:
         # The bundle can't be signed before its binary exists; the test runner signs it instead.
         platform_prerequisites_args["features"] = (
-            apple_test_deferred_linking.bundle_skips_signing_features(features = features)
+            features + ["apple.skip_codesign_simulator_bundles"]
         )
         platform_prerequisites = platform_support.platform_prerequisites(
             **platform_prerequisites_args
@@ -295,13 +298,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     if defer_linking:
         # The link action stays registered so the test rule can read it, but nothing below may
         # depend on its outputs or Bazel would run it at build time.
-        apple_test_deferred_linking.validate_link_outputs(
-            label = label,
-            link_outputs = link_result.outputs,
-        )
-        deferred_link_providers.append(AppleDeferredTestLinkInfo(
-            clang_rt = clang_rt_dylibs.should_package_clang_runtime(features = features),
-            codesign = codesigning_support.should_sign_bundles(
+        platform_name = platform_prerequisites.platform.name_in_plist.lower()
+        deferred_link_providers.append(AppleDeferredTestLinkInfo(options = {
+            "clang_rt": clang_rt_dylibs.should_package_clang_runtime(features = features),
+            "codesign": codesigning_support.should_sign_bundles(
                 features = features,
                 provisioning_profile = provisioning_profile,
                 rule_descriptor = rule_descriptor,
@@ -311,17 +311,17 @@ def _apple_test_bundle_impl(*, ctx, product_type):
                 features = features,
                 rule_descriptor = rule_descriptor,
             ),
-            codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
-            executable_name = executable_name or bundle_name,
-            main_thread_checker = (
+            "codesignopts": codesigning_support.codesignopts_from_rule_ctx(ctx),
+            "executable_name": executable_name or bundle_name,
+            "main_thread_checker": (
                 main_thread_checker_dylibs.should_package_main_thread_checker_dylib(
                     features = features,
                 )
             ),
-            swift_stdlib_platform = apple_test_deferred_linking.swift_stdlib_platform(
+            "swift_stdlib_platform": platform_name if binary_needs_swift_dylibs_scan(
                 platform_prerequisites = platform_prerequisites,
-            ),
-        ))
+            ) else None,
+        }))
         binary_artifact = None
         debug_outputs = struct(dsym_binaries = {}, linkmaps = {})
     else:
