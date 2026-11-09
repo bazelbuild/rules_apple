@@ -223,6 +223,11 @@ sh_binary(
 )
 
 sh_binary(
+    name = "ipa_post_processor_create_asset_pack",
+    srcs = ["ipa_post_processor_create_asset_pack.sh"],
+)
+
+sh_binary(
     name = "ipa_post_processor_verify_codesigning",
     srcs = [
         "ipa_post_processor_verify_codesigning.sh",
