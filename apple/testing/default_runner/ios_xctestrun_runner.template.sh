@@ -82,10 +82,16 @@ fi
 
 # With the `apple.defer_test_bundle_linking` feature, the test bundle is built
 # without its binary; link it now. It's deleted with "$test_tmp_dir" on exit.
-readonly test_bundle_link_tool="%(test_bundle_link_tool)s"
-if [[ -n "$test_bundle_link_tool" ]]; then
-  "$test_bundle_link_tool" \
-    --spec "%(test_bundle_link_spec)s" \
+# Rules that expand this template without knowing about the feature leave the
+# placeholder in place, which means the bundle was linked at build time.
+test_bundle_link_spec="%(test_bundle_link_spec)s"
+if [[ "$test_bundle_link_spec" == *"(test_bundle_link_spec)"* ]]; then
+  test_bundle_link_spec=""
+fi
+readonly test_bundle_link_spec
+if [[ -n "$test_bundle_link_spec" ]]; then
+  "%(deferred_test_linker_binary)s" \
+    --spec "$test_bundle_link_spec" \
     --bundle "$test_tmp_dir/$test_bundle_name.xctest" \
     --work_dir "$test_tmp_dir/test_bundle_link"
 fi
@@ -712,7 +718,7 @@ if [[ "${COVERAGE:-}" -eq 1 && "${APPLE_COVERAGE:-}" -eq 1 ]]; then
   )
   has_binary=false
   covered_binaries="${TEST_BINARIES_FOR_LLVM_COV:-}"
-  if [[ -n "$test_bundle_link_tool" ]]; then
+  if [[ -n "$test_bundle_link_spec" ]]; then
     # The binary linked in this action isn't part of the build's covered binaries.
     covered_binaries="$test_bundle_binary${covered_binaries:+;$covered_binaries}"
   fi

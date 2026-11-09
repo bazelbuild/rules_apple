@@ -323,6 +323,7 @@ bzl_library(
     srcs = ["swift_dylibs.bzl"],
     visibility = [
         "//apple/internal:__pkg__",
+        "//apple/internal/testing:__pkg__",
     ],
     deps = [
         "//apple/internal:intermediates",

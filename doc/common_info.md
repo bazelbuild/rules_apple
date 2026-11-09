@@ -553,10 +553,10 @@ output tree and the remote cache. Enabling the
 bazel test --features=apple.defer_test_bundle_linking //your/package:Tests
 ```
 
-With the feature enabled, the test bundle (`.xctest`) is built without its
-executable, and the test action depends on the unlinked inputs of the binary
-(static libraries, object files, the link file list, etc.) instead. The test
-runner links the binary when the test starts, places it in the bundle it
+With the feature enabled, the unit or UI test bundle (`.xctest`) is built
+without its executable, and the test action depends on the unlinked inputs of
+the binary (static libraries, object files, the link file list, etc.) instead.
+The test runner links the binary when the test starts, places it in the bundle it
 extracted into its temporary directory, codesigns the bundle if it would
 have been signed at build time, runs the tests, and deletes the temporary
 directory, binary included, when the test finishes. The link's inputs are
@@ -567,19 +567,40 @@ in `frameworks` are still linked dynamically; to link them statically, move
 their libraries into the test's `deps`, for example with a `select()` on a
 `config_setting` that matches the same `--features` value.
 
+The feature can be enabled for a whole build. It's ignored, and the test
+binary is linked at build time as usual, for test bundles it can't support:
+
+*   tests that don't target the iOS simulator (device builds, and macOS,
+    tvOS, visionOS and watchOS tests);
+*   builds for more than one architecture (e.g.
+    `--ios_multi_cpus=sim_arm64,x86_64`);
+*   builds with sanitizers (`asan`, `tsan`, `ubsan`) or
+    `apple.include_main_thread_checker`, which scan the linked binary at build
+    time.
+
+The test runner must also support it. `ios_xctestrun_runner` (and so the
+default iOS runner) does; iOS tests that use other runners, such as
+`ios_test_runner`, fail analysis with an error. Disable the feature for such
+tests with `features = ["-apple.defer_test_bundle_linking"]`.
+
 Things to know:
 
-*   Only simulator builds for a single architecture are supported.
-*   The test runner must support it. The `ios_xctestrun_runner` runner (and so
-    the default iOS runner) does; other runners fail analysis with an error.
-*   The time the link takes is printed in the test log and counts towards the
-    test's timeout.
-*   No dSYM or linkmap is generated for the test binary, and it isn't
-    stripped. Sanitizers (`asan`, `tsan`, `ubsan`) and
-    `apple.include_main_thread_checker` aren't supported.
-*   Swift runtime libraries are never copied into the test bundle, so Swift
-    tests must run on a simulator runtime that ships the ones they use (iOS
-    26 or later ships all of them).
+*   Every run of the test links the binary again, including every shard
+    (`shard_count`), every `--runs_per_test` run and every retry of a flaky
+    test. The time the link takes is printed in the test log and counts
+    towards the test's timeout.
+*   Bazel doesn't account for the link's memory use when scheduling tests, so
+    running many tests with large binaries in parallel (e.g. with a high
+    `--local_test_jobs`) can run many large links at once.
+*   The link runs with the Xcode the test action uses (`DEVELOPER_DIR`, or
+    `xcode-select`), which must be the version the build was configured with.
+    The C++/Objective-C toolchain must not need its own runfiles to link,
+    which is the case for the default Apple toolchain.
+*   No dSYM or linkmap is generated for the test binary, and the test
+    bundle's `AppleBundleInfo.binary` is `None`, since the binary only
+    exists inside of the test action.
+*   The Swift dylibs that the binary needs on older OS versions are copied
+    into the test bundle after linking it.
 *   Code coverage works with the binary linked in the test action. The
     binary isn't exported through `APPLE_TEST_EXPORT_COVERED_BINARIES`.
 *   Setting `NO_CLEAN=1` in the test environment keeps the linked binary

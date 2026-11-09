@@ -53,6 +53,16 @@ def macos_unit_test_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    # `apple.defer_test_bundle_linking` only applies to iOS simulator tests.
+    archive_contents_test(
+        name = "{}_deferred_linking_ignored_test".format(name),
+        build_type = "device",
+        contains = ["$BINARY"],
+        target_features = ["apple.defer_test_bundle_linking"],
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:unit_test",
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "device",

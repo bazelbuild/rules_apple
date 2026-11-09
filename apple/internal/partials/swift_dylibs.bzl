@@ -79,6 +79,24 @@ _MIN_OS_PLATFORM_SWIFT_PRESENCE = {
     "watchos": apple_common.dotted_version("26.0"),
 }
 
+def binary_needs_swift_dylibs_scan(*, platform_prerequisites):
+    """Returns whether a binary must be scanned for Swift dylibs to bundle.
+
+    Binaries are only scanned when they use Swift and their minimum OS version is lower than the
+    one under which the Swift dylibs they may need are already packaged with the OS.
+
+    Args:
+        platform_prerequisites: Struct containing information on the platform being targeted.
+
+    Returns:
+        `True` if the binary must be scanned for Swift dylibs.
+    """
+    if not platform_prerequisites.uses_swift:
+        return False
+    target_min_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
+    swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_prerequisites.platform_type)]
+    return target_min_os < swift_min_os
+
 def _swift_dylib_action(
         *,
         actions,
@@ -145,14 +163,10 @@ def _swift_dylibs_partial_impl(
         transitive_swift_support_files.extend(provider.swift_support_files)
 
     direct_binaries = []
-    if binary_artifact and platform_prerequisites.uses_swift:
-        target_min_os = apple_common.dotted_version(platform_prerequisites.minimum_os)
-        swift_min_os = _MIN_OS_PLATFORM_SWIFT_PRESENCE[str(platform_prerequisites.platform_type)]
-
-        # Only check this binary for Swift dylibs if the minimum OS version is lower than the
-        # minimum OS version under which Swift dylibs are already packaged with the OS.
-        if target_min_os < swift_min_os:
-            direct_binaries.append(binary_artifact)
+    if binary_artifact and binary_needs_swift_dylibs_scan(
+        platform_prerequisites = platform_prerequisites,
+    ):
+        direct_binaries.append(binary_artifact)
 
     transitive_binaries = depset(
         direct = direct_binaries,

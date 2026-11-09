@@ -83,20 +83,6 @@ _analysis_failure_message_with_deferred_linking_test = make_analysis_failure_mes
     },
 )
 
-_analysis_failure_message_with_deferred_linking_on_device_test = make_analysis_failure_message_test(
-    config_settings = {
-        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
-        "//command_line_option:ios_multi_cpus": "arm64",
-    },
-)
-
-_analysis_failure_message_with_deferred_linking_multi_arch_test = make_analysis_failure_message_test(
-    config_settings = {
-        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
-        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
-    },
-)
-
 def ios_unit_test_test_suite(name):
     """Test suite for ios_unit_test.
 
@@ -420,17 +406,33 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
-    _analysis_failure_message_with_deferred_linking_on_device_test(
-        name = "{}_deferred_linking_device_fail_test".format(name),
+    # The feature is ignored for test bundles it can't support.
+    archive_contents_test(
+        name = "{}_deferred_linking_ignored_on_device_test".format(name),
+        build_type = "device",
+        contains = ["$BUNDLE_ROOT/unit_test"],
+        target_features = _DEFERRED_LINKING_FEATURES,
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        expected_error = "'apple.defer_test_bundle_linking' is only supported for tests that target a simulator.",
         tags = [name],
     )
 
-    _analysis_failure_message_with_deferred_linking_multi_arch_test(
-        name = "{}_deferred_linking_multi_arch_fail_test".format(name),
+    archive_contents_test(
+        name = "{}_deferred_linking_ignored_for_multi_arch_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/unit_test"],
+        cpus = {"ios_multi_cpus": ["sim_arm64", "x86_64"]},
+        target_features = _DEFERRED_LINKING_FEATURES,
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        expected_error = "'apple.defer_test_bundle_linking' only supports test bundles built for a single architecture",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_deferred_linking_ignored_with_sanitizer_test".format(name),
+        build_type = "simulator",
+        contains = ["$BUNDLE_ROOT/unit_test"],
+        sanitizer = "asan",
+        target_features = _DEFERRED_LINKING_FEATURES,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
         tags = [name],
     )
 

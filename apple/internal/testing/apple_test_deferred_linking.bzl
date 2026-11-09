@@ -24,12 +24,18 @@ remote cache. Instead:
 2.  `deferred_test_link_aspect`, applied by the test rule to its test bundle dependency, reads the
     bundle target's registered link action and captures its command line, environment and inputs.
 3.  The test rule writes that information to a JSON spec, adds the link inputs to the test's
-    runfiles, and passes the spec and the `deferred_test_linker` tool to the test runner.
-4.  The test runner calls the tool after extracting the test bundle; the tool replays the link,
-    places the binary into the bundle and codesigns it. The runner's temporary directory, which
+    runfiles, and passes the spec to the test runner.
+4.  The test runner, which must advertise `supports_deferred_test_linking`, calls its link tool
+    (`//tools/deferred_test_linker` for `ios_xctestrun_runner`) after extracting the test bundle.
+    The tool replays the link, places the binary (and any Swift dylibs it needs) into the bundle
+    and codesigns it. The runner's temporary directory, which
     holds the extracted bundle, is deleted when the test finishes.
 """
 
+load(
+    "//apple/internal/partials:swift_dylibs.bzl",
+    "binary_needs_swift_dylibs_scan",
+)
 load(
     "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
@@ -53,6 +59,10 @@ Private provider propagated by test bundle targets that were built without linki
         "codesign": "Whether the bundle should be ad-hoc codesigned after linking the binary.",
         "codesignopts": "A list of extra options to pass to `codesign` for the bundle.",
         "executable_name": "The name of the binary inside of the test bundle.",
+        "swift_stdlib_platform": """
+The platform name to copy the Swift dylibs that the linked binary needs for, or `None` if the
+binary doesn't need to be scanned for them.
+""",
     },
 )
 
@@ -66,6 +76,7 @@ _DeferredTestLinkActionInfo = provider(
         "executable_name": "See `AppleDeferredTestLinkInfo.executable_name`.",
         "inputs": "A `depset` of `File`s that are inputs of the link action.",
         "outputs": "A list of execution root relative paths of the link action's outputs.",
+        "swift_stdlib_platform": "See `AppleDeferredTestLinkInfo.swift_stdlib_platform`.",
     },
 )
 
@@ -97,6 +108,7 @@ def _deferred_test_link_aspect_impl(target, _ctx):
             executable_name = link_info.executable_name,
             inputs = link_action.inputs,
             outputs = [f.path for f in link_action.outputs.to_list()],
+            swift_stdlib_platform = link_info.swift_stdlib_platform,
         ),
     ]
 
@@ -108,38 +120,59 @@ Captures the link action registered by a test bundle target that was built with
     implementation = _deferred_test_link_aspect_impl,
 )
 
-def _validate_bundle(
-        *,
-        features,
-        link_outputs,
-        platform_prerequisites):
-    """Fails if the test bundle can't be built with deferred linking."""
+def _should_defer_linking(*, features, platform_prerequisites, split_deps):
+    """Returns whether the test bundle's binary should be linked in the test action.
+
+    The feature is ignored, and the binary linked at build time as usual, for test bundles that it
+    can't support. This allows it to be enabled for a whole build that also contains such tests.
+
+    Args:
+        features: The list of enabled features.
+        platform_prerequisites: Struct containing information on the platform being targeted.
+        split_deps: The `ctx.split_attr.deps` of the test bundle target, one entry per architecture.
+
+    Returns:
+        `True` if the binary should be linked in the test action.
+    """
+    if DEFERRED_TEST_LINKING_FEATURE not in features:
+        return False
+
+    # Only iOS simulator tests have a test runner that supports linking in the test action.
+    if str(platform_prerequisites.platform_type) != "ios":
+        return False
     if platform_prerequisites.platform.is_device:
-        fail("'{}' is only supported for tests that target a simulator.".format(
-            DEFERRED_TEST_LINKING_FEATURE,
-        ))
+        return False
+
+    # The runner links a single binary rather than one per architecture plus a `lipo`.
+    if len(split_deps) != 1:
+        return False
+
+    # These features scan the linked binary at build time to decide which dylibs to bundle.
+    if clang_rt_dylibs.should_package_clang_runtime(features = features):
+        return False
+    if main_thread_checker_dylibs.should_package_main_thread_checker_dylib(features = features):
+        return False
+
+    return True
+
+def _validate_link_outputs(*, label, link_outputs):
+    """Fails if the link action doesn't produce exactly one binary, see `should_defer_linking`."""
     if len(link_outputs) != 1:
         fail((
-            "'{feature}' only supports test bundles built for a single architecture, but " +
-            "{count} were requested ({archs})."
+            "Internal error: expected a single architecture for {label} with '{feature}' " +
+            "enabled, found {count} ({archs})."
         ).format(
             archs = ", ".join([o.architecture for o in link_outputs]),
             count = len(link_outputs),
             feature = DEFERRED_TEST_LINKING_FEATURE,
+            label = label,
         ))
 
-    # These features scan the linked binary at build time to decide which dylibs to bundle.
-    if clang_rt_dylibs.should_package_clang_runtime(features = features):
-        fail("'{}' is not supported together with sanitizer features.".format(
-            DEFERRED_TEST_LINKING_FEATURE,
-        ))
-    if main_thread_checker_dylibs.should_package_main_thread_checker_dylib(features = features):
-        fail("'{}' is not supported together with 'apple.include_main_thread_checker'.".format(
-            DEFERRED_TEST_LINKING_FEATURE,
-        ))
-
-def _is_enabled(*, features):
-    return DEFERRED_TEST_LINKING_FEATURE in features
+def _swift_stdlib_platform(*, platform_prerequisites):
+    """Returns the `swift_stdlib_platform` for `AppleDeferredTestLinkInfo`."""
+    if not binary_needs_swift_dylibs_scan(platform_prerequisites = platform_prerequisites):
+        return None
+    return platform_prerequisites.platform.name_in_plist.lower()
 
 def _bundle_skips_signing_features(*, features):
     """Returns `features` with bundle signing disabled.
@@ -165,25 +198,21 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
 
         *   `files`: A `list` of `File`s to add to the test's runfiles.
         *   `transitive_files`: A `list` of `depset`s of `File`s to add to the test's runfiles.
-        *   `runfiles`: A `list` of `runfiles` objects to merge into the test's runfiles.
         *   `substitutions`: A `dict` of template substitutions for the test runner template. The
             values are empty when the test bundle was linked at build time.
     """
     if _DeferredTestLinkActionInfo not in test_bundle_target:
         return struct(
             files = [],
-            runfiles = [],
-            substitutions = {
-                "test_bundle_link_spec": "",
-                "test_bundle_link_tool": "",
-            },
+            substitutions = {"test_bundle_link_spec": ""},
             transitive_files = [],
         )
 
     if not getattr(runner_info, "supports_deferred_test_linking", False):
         fail((
             "The '{runner}' test runner does not support the '{feature}' feature. Use a runner " +
-            "that supports it, such as `ios_xctestrun_runner`."
+            "that supports it, such as `ios_xctestrun_runner`, or disable the feature for this " +
+            "test with `features = [\"-{feature}\"]`."
         ).format(
             feature = DEFERRED_TEST_LINKING_FEATURE,
             runner = ctx.attr.runner.label,
@@ -210,23 +239,20 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
             "executable_name": link_action_info.executable_name,
             "inputs_manifest": inputs_manifest.short_path,
             "outputs": link_action_info.outputs,
+            "swift_stdlib_platform": link_action_info.swift_stdlib_platform,
         }),
     )
 
-    linker = ctx.attr._deferred_test_linker
     return struct(
         files = [inputs_manifest, spec],
-        runfiles = [linker[DefaultInfo].default_runfiles],
-        substitutions = {
-            "test_bundle_link_spec": spec.short_path,
-            "test_bundle_link_tool": linker[DefaultInfo].files_to_run.executable.short_path,
-        },
+        substitutions = {"test_bundle_link_spec": spec.short_path},
         transitive_files = [link_action_info.inputs],
     )
 
 apple_test_deferred_linking = struct(
     bundle_skips_signing_features = _bundle_skips_signing_features,
-    is_enabled = _is_enabled,
+    should_defer_linking = _should_defer_linking,
+    swift_stdlib_platform = _swift_stdlib_platform,
     test_runner_inputs = _test_runner_inputs,
-    validate_bundle = _validate_bundle,
+    validate_link_outputs = _validate_link_outputs,
 )

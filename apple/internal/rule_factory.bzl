@@ -84,11 +84,6 @@ AppleTestRunnerInfo provider.
         aspects = [coverage_files_aspect, deferred_test_link_aspect],
         providers = [AppleBundleInfo],
     ),
-    "_deferred_test_linker": attr.label(
-        cfg = config.exec(exec_group = "test"),
-        default = Label("//tools/deferred_test_linker"),
-        executable = True,
-    ),
     "_lcov_merger": attr.label(
         default = configuration_field(
             fragment = "coverage",

@@ -27,6 +27,7 @@ def _get_template_substitutions(
         command_line_args,
         create_simulator_action_binary,
         create_xcresult_bundle,
+        deferred_test_linker_binary,
         destination_timeout,
         device_type,
         os_version,
@@ -46,6 +47,7 @@ def _get_template_substitutions(
         "command_line_args": command_line_args,
         "create_simulator_action_binary": create_simulator_action_binary,
         "create_xcresult_bundle": create_xcresult_bundle,
+        "deferred_test_linker_binary": deferred_test_linker_binary,
         "destination_timeout": destination_timeout,
         "device_type": device_type,
         "os_version": os_version,
@@ -104,6 +106,8 @@ def _ios_xctestrun_runner_impl(ctx):
     ])
     runfiles = runfiles.merge(create_simulator_action[DefaultInfo].default_runfiles)
     runfiles = runfiles.merge(clean_up_simulator_action[DefaultInfo].default_runfiles)
+    deferred_test_linker = ctx.attr._deferred_test_linker[DefaultInfo]
+    runfiles = runfiles.merge(deferred_test_linker.default_runfiles)
 
     default_action_binary = "/usr/bin/true"
 
@@ -129,6 +133,7 @@ def _ios_xctestrun_runner_impl(ctx):
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             create_simulator_action_binary = create_simulator_action[DefaultInfo].files_to_run.executable.short_path,
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
+            deferred_test_linker_binary = deferred_test_linker.files_to_run.executable.short_path,
             destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             device_type = device_type,
             os_version = os_version,
@@ -302,6 +307,11 @@ into the XCTest invocation.
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
 """,
+        ),
+        "_deferred_test_linker": attr.label(
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
+            default = Label("//tools/deferred_test_linker"),
+            executable = True,
         ),
         "_test_template": attr.label(
             default = Label(
