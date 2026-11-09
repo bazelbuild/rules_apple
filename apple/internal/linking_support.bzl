@@ -151,6 +151,7 @@ def _link_multi_arch_binary(
         extra_link_inputs,
         extra_requested_features,
         extra_disabled_features,
+        generate_debug_outputs,
         stamp):
     """Links a (potentially multi-architecture) binary targeting Apple platforms.
 
@@ -176,6 +177,8 @@ def _link_multi_arch_binary(
             to the linker action.
         extra_disabled_features: A list of strings: Extra disabled features to be passed
             to the linker action.
+        generate_debug_outputs: Whether to request dSYM binaries and linkmaps from the linker
+            when they are enabled by the build configuration.
         stamp: Whether to include build information in the linked binary. If 1, build
             information is always included. If 0, build information is always excluded.
             If -1 (the default), then the behavior is determined by the --[no]stamp
@@ -278,7 +281,7 @@ def _link_multi_arch_binary(
         extensions = {}
 
         dsym_binary = None
-        if ctx.fragments.cpp.apple_generate_dsym:
+        if generate_debug_outputs and ctx.fragments.cpp.apple_generate_dsym:
             if ctx.fragments.cpp.objc_should_strip_binary:
                 suffix = "_bin_unstripped.dwarf"
             else:
@@ -294,7 +297,9 @@ def _link_multi_arch_binary(
             legacy_debug_outputs.setdefault(platform_info.target_arch, {})["dsym_binary"] = dsym_binary
 
         linkmap = None
-        if ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap:
+        if generate_debug_outputs and (
+            ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap
+        ):
             linkmap = intermediates.file(
                 actions = ctx.actions,
                 target_name = ctx.label.name,
@@ -423,6 +428,7 @@ def _register_binary_linking_action(
         extra_link_inputs = [],
         extra_requested_features = [],
         extra_disabled_features = [],
+        generate_debug_outputs = True,
         platform_prerequisites = None,
         rule_descriptor = None,
         stamp = -1):
@@ -457,6 +463,8 @@ def _register_binary_linking_action(
             action.
         extra_disabled_features: Extra features as Strings requeted to be disabled from the
             underlying linker action.
+        generate_debug_outputs: Whether to request dSYM binaries and linkmaps from the linker
+            when they are enabled by the build configuration. Defaults to `True`.
         platform_prerequisites: The platform prerequisites if one exists for the given rule. This
             will define additional linking sections for entitlements. If `None`, entitlements
             sections are not included.
@@ -542,7 +550,9 @@ def _register_binary_linking_action(
         link_inputs.append(bundle_loader_file)
 
     requested_features = list(extra_requested_features)
-    if ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap:
+    if generate_debug_outputs and (
+        ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap
+    ):
         requested_features.append("generate_linkmap")
 
     linking_outputs = _link_multi_arch_binary(
@@ -555,6 +565,7 @@ def _register_binary_linking_action(
         # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
         # being routed to the wrong exec platform.
         extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
+        generate_debug_outputs = generate_debug_outputs,
         stamp = stamp,
     )
 

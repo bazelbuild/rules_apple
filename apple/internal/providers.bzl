@@ -475,6 +475,17 @@ Optional dictionary with the environment variables that are to be set in the tes
 not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s
 substitution, but will be set in the test action.
 """,
+        "supports_deferred_test_linking": """
+Optional boolean indicating whether the runner's template links the test bundle's binary when the
+`apple.defer_test_bundle_linking` feature is enabled. Such runners must invoke the
+`%(test_bundle_link_tool)s` executable, when it is not empty, after extracting the test bundle and
+before running the tests:
+
+    "%(test_bundle_link_tool)s" --spec "%(test_bundle_link_spec)s" \\
+        --bundle <path to the extracted .xctest bundle> --work_dir <scratch directory>
+
+and delete the extracted bundle once the tests have run.
+""",
         "test_environment": """
 Optional dictionary with the environment variables that are to be propagated into the XCTest
 invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in

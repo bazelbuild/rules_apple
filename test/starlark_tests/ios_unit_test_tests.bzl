@@ -21,6 +21,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
+    "make_analysis_failure_message_test",
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
@@ -65,6 +66,34 @@ _analysis_target_actions_with_dossier_test = make_analysis_target_actions_test(
 _analysis_runfiles_with_dossier_test = make_analysis_runfiles_test_rule(
     config_settings = {
         "//command_line_option:features": ["disable_legacy_signing"],
+    },
+)
+
+_DEFERRED_LINKING_FEATURES = ["apple.defer_test_bundle_linking"]
+
+_analysis_runfiles_with_deferred_linking_test = make_analysis_runfiles_test_rule(
+    config_settings = {
+        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
+    },
+)
+
+_analysis_failure_message_with_deferred_linking_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
+    },
+)
+
+_analysis_failure_message_with_deferred_linking_on_device_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
+        "//command_line_option:ios_multi_cpus": "arm64",
+    },
+)
+
+_analysis_failure_message_with_deferred_linking_multi_arch_test = make_analysis_failure_message_test(
+    config_settings = {
+        "//command_line_option:features": _DEFERRED_LINKING_FEATURES,
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
     },
 )
 
@@ -353,6 +382,55 @@ def ios_unit_test_test_suite(name):
         expected_values = {
             "CFBundleIdentifier": "com.bazel.app.example.unit-test-with-base-bundle-id-derived-bundle-id",
         },
+        tags = [name],
+    )
+
+    # Tests for linking the test bundle's binary in the test action.
+    archive_contents_test(
+        name = "{}_deferred_linking_omits_binary_test".format(name),
+        build_type = "simulator",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+        ],
+        not_contains = [
+            "$BUNDLE_ROOT/unit_test",
+            "$BUNDLE_ROOT/_CodeSignature",
+        ],
+        target_features = _DEFERRED_LINKING_FEATURES,
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        tags = [name],
+    )
+
+    _analysis_runfiles_with_deferred_linking_test(
+        name = "{}_deferred_linking_runfiles_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_runfiles = [
+            "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link.json",
+            "test/starlark_tests/targets_under_test/ios/unit_test.deferred_link_inputs.txt",
+            "tools/deferred_test_linker/deferred_test_linker",
+        ],
+        tags = [name],
+    )
+
+    _analysis_failure_message_with_deferred_linking_test(
+        name = "{}_deferred_linking_unsupported_runner_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_test_runner_ui_test_pass",
+        expected_error = "test runner does not support the 'apple.defer_test_bundle_linking' feature",
+        tags = [name],
+    )
+
+    _analysis_failure_message_with_deferred_linking_on_device_test(
+        name = "{}_deferred_linking_device_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_error = "'apple.defer_test_bundle_linking' is only supported for tests that target a simulator.",
+        tags = [name],
+    )
+
+    _analysis_failure_message_with_deferred_linking_multi_arch_test(
+        name = "{}_deferred_linking_multi_arch_fail_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_error = "'apple.defer_test_bundle_linking' only supports test bundles built for a single architecture",
         tags = [name],
     )
 

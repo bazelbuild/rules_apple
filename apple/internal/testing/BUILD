@@ -22,6 +22,7 @@ bzl_library(
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_test_deferred_linking",
         "//apple:providers",
         "//apple/internal:apple_product_type",
         "//apple/internal:apple_toolchains",
@@ -44,12 +45,25 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_test_deferred_linking",
+    srcs = ["apple_test_deferred_linking.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal/utils:clang_rt_dylibs",
+        "//apple/internal/utils:main_thread_checker_dylibs",
+    ],
+)
+
+bzl_library(
     name = "apple_test_rule_support",
     srcs = ["apple_test_rule_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
     ],
     deps = [
+        ":apple_test_deferred_linking",
         "//apple:providers",
         "@bazel_skylib//lib:dicts",
     ],

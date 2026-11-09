@@ -37,6 +37,10 @@ load(
     "transition_support",
 )
 load(
+    "//apple/internal/testing:apple_test_deferred_linking.bzl",
+    "deferred_test_link_aspect",
+)
+load(
     "//apple/internal/testing:apple_test_rule_support.bzl",
     "coverage_files_aspect",
 )
@@ -77,8 +81,13 @@ AppleTestRunnerInfo provider.
     # This is an implementation detail attribute, so it's not documented on purpose.
     "deps": attr.label_list(
         mandatory = True,
-        aspects = [coverage_files_aspect],
+        aspects = [coverage_files_aspect, deferred_test_link_aspect],
         providers = [AppleBundleInfo],
+    ),
+    "_deferred_test_linker": attr.label(
+        cfg = config.exec(exec_group = "test"),
+        default = Label("//tools/deferred_test_linker"),
+        executable = True,
     ),
     "_lcov_merger": attr.label(
         default = configuration_field(

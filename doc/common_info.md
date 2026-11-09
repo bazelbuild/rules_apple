@@ -541,6 +541,50 @@ have the paths made absolute via swizzling by enabling the
 set the `BUILD_WORKSPACE_DIRECTORY` environment variable in your scheme to the
 root of your workspace (i.e. `$(SRCROOT)`).
 
+### Linking test bundles in the test action {#apple.defer_test_bundle_linking}
+
+Statically linking everything a test needs into the test bundle avoids the
+cost of loading many dynamic frameworks at test launch, but every change then
+produces a new, potentially very large, test binary that's written to the
+output tree and the remote cache. Enabling the
+`apple.defer_test_bundle_linking` feature avoids storing that binary:
+
+```shell
+bazel test --features=apple.defer_test_bundle_linking //your/package:Tests
+```
+
+With the feature enabled, the test bundle (`.xctest`) is built without its
+executable, and the test action depends on the unlinked inputs of the binary
+(static libraries, object files, the link file list, etc.) instead. The test
+runner links the binary when the test starts, places it in the bundle it
+extracted into its temporary directory, codesigns the bundle if it would
+have been signed at build time, runs the tests, and deletes the temporary
+directory, binary included, when the test finishes. The link's inputs are
+already outputs of other actions, so nothing new is stored in the cache.
+
+The feature only changes where the test binary is linked. Dependencies listed
+in `frameworks` are still linked dynamically; to link them statically, move
+their libraries into the test's `deps`, for example with a `select()` on a
+`config_setting` that matches the same `--features` value.
+
+Things to know:
+
+*   Only simulator builds for a single architecture are supported.
+*   The test runner must support it. The `ios_xctestrun_runner` runner (and so
+    the default iOS runner) does; other runners fail analysis with an error.
+*   The time the link takes is printed in the test log and counts towards the
+    test's timeout.
+*   No dSYM or linkmap is generated for the test binary, and it isn't
+    stripped. Sanitizers (`asan`, `tsan`, `ubsan`) and
+    `apple.include_main_thread_checker` aren't supported.
+*   Swift runtime libraries are never copied into the test bundle, so Swift
+    tests must run on a simulator runtime that ships the ones they use (iOS
+    26 or later ships all of them).
+*   Code coverage works with the binary linked in the test action. The
+    binary isn't exported through `APPLE_TEST_EXPORT_COVERED_BINARIES`.
+*   Setting `NO_CLEAN=1` in the test environment keeps the linked binary
+    around for debugging.
+
 ### Xcode Version Selection and Invalidation
 
 There are a few steps required to properly make Bazel use the right Xcode version. Moreover, a few tricks are needed to make sure that the Bazel server is restarted and certain caches cleared when changing Xcode version using `xcode-select`.

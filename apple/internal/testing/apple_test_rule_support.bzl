@@ -31,6 +31,10 @@ load(
     "AppleTestInfo",
     "AppleTestRunnerInfo",
 )
+load(
+    "//apple/internal/testing:apple_test_deferred_linking.bzl",
+    "apple_test_deferred_linking",
+)
 
 _CoverageFilesInfo = provider(
     doc = """
@@ -112,6 +116,7 @@ This aspect propagates a `_CoverageFilesInfo` provider.
 
 def _get_template_substitutions(
         *,
+        deferred_link_substitutions,
         test_bundle,
         test_bundle_dossier = None,
         test_coverage_manifest = None,
@@ -125,6 +130,8 @@ def _get_template_substitutions(
     """Dictionary with the substitutions to be applied to the template script.
 
     Args:
+        deferred_link_substitutions: Dictionary of substitutions required to link the test bundle's
+            binary in the test action, from `apple_test_deferred_linking.test_runner_inputs`.
         test_bundle: File representing the test bundle's artifact that is with this rule.
         test_bundle_dossier: Optional. A File representing the dossier generated for the test
             bundle, if one exists.
@@ -156,7 +163,7 @@ def _get_template_substitutions(
         "test_host_path": test_host_artifact.short_path if test_host_artifact else "",
         "test_host_dossier_path": test_host_dossier.short_path if test_host_dossier else "",
         "test_type": test_type.upper(),
-    }
+    } | deferred_link_substitutions
     return {"%(" + k + ")s": substitutions[k] for k in substitutions}
 
 def _get_covered_binaries_execution_environment(*, covered_binaries):
@@ -330,6 +337,14 @@ def _apple_test_rule_impl(*, ctx, test_type):
     if test_host_artifact:
         direct_runfiles.append(test_host_artifact)
 
+    deferred_link = apple_test_deferred_linking.test_runner_inputs(
+        ctx = ctx,
+        runner_info = runner_info,
+        test_bundle_target = test_bundle_target,
+    )
+    direct_runfiles.extend(deferred_link.files)
+    transitive_runfiles.extend(deferred_link.transitive_files)
+
     test_coverage_manifest = None
     export_covered_binaries = execution_environment.get(
         "APPLE_TEST_EXPORT_COVERED_BINARIES",
@@ -365,6 +380,7 @@ def _apple_test_rule_impl(*, ctx, test_type):
         template = runner_info.test_runner_template,
         output = executable,
         substitutions = _get_template_substitutions(
+            deferred_link_substitutions = deferred_link.substitutions,
             test_bundle = test_bundle,
             test_bundle_dossier = test_bundle_dossier,
             test_coverage_manifest = test_coverage_manifest,
@@ -382,7 +398,7 @@ def _apple_test_rule_impl(*, ctx, test_type):
     transitive_runfile_objects = [
         runner_attr.default_runfiles,
         runner_attr.data_runfiles,
-    ]
+    ] + deferred_link.runfiles
 
     # Add required data into the runfiles to make it available during test
     # execution.

@@ -847,5 +847,6 @@ codesigning_support = struct(
     generate_codesigning_dossier_action = _generate_codesigning_dossier_action,
     post_process_and_sign_archive_action = _post_process_and_sign_archive_action,
     should_sign_bundles = _should_sign_bundles,
+    should_sign_simulator_bundles = _should_sign_simulator_bundles,
     sign_binary_action = _sign_binary_action,
 )

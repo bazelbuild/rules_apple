@@ -623,6 +623,7 @@ bzl_library(
         "//apple/internal/aspects:swift_dynamic_framework_aspect",
         "//apple/internal/aspects:swift_usage_aspect",
         "//apple/internal/testing:apple_test_bundle_support",
+        "//apple/internal/testing:apple_test_deferred_linking",
         "//apple/internal/testing:apple_test_rule_support",
         "@apple_support//lib:apple_support",
         "@bazel_skylib//lib:dicts",

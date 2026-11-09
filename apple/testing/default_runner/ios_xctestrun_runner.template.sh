@@ -80,6 +80,16 @@ else
   unzip -qq -d "${test_tmp_dir}" "${test_bundle_path}"
 fi
 
+# With the `apple.defer_test_bundle_linking` feature, the test bundle is built
+# without its binary; link it now. It's deleted with "$test_tmp_dir" on exit.
+readonly test_bundle_link_tool="%(test_bundle_link_tool)s"
+if [[ -n "$test_bundle_link_tool" ]]; then
+  "$test_bundle_link_tool" \
+    --spec "%(test_bundle_link_spec)s" \
+    --bundle "$test_tmp_dir/$test_bundle_name.xctest" \
+    --work_dir "$test_tmp_dir/test_bundle_link"
+fi
+
 # Delta update won't update the binary if it has the same timestamp
 touch "$test_bundle_binary"
 
@@ -701,9 +711,14 @@ if [[ "${COVERAGE:-}" -eq 1 && "${APPLE_COVERAGE:-}" -eq 1 ]]; then
     -path-equivalence=".,$PWD"
   )
   has_binary=false
+  covered_binaries="${TEST_BINARIES_FOR_LLVM_COV:-}"
+  if [[ -n "$test_bundle_link_tool" ]]; then
+    # The binary linked in this action isn't part of the build's covered binaries.
+    covered_binaries="$test_bundle_binary${covered_binaries:+;$covered_binaries}"
+  fi
   IFS=";"
   arch=$(uname -m)
-  for binary in $TEST_BINARIES_FOR_LLVM_COV; do
+  for binary in $covered_binaries; do
     if [[ "$has_binary" == false ]]; then
       lcov_args+=("${binary}")
       has_binary=true

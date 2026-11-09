@@ -149,6 +149,7 @@ def _ios_xctestrun_runner_impl(ctx):
         apple_provider.make_apple_test_runner_info(
             execution_environment = _get_execution_environment(ctx),
             execution_requirements = {"requires-darwin": ""},
+            supports_deferred_test_linking = True,
             test_environment = ctx.attr.test_environment,
             test_runner_template = ctx.outputs.test_runner_template,
         ),

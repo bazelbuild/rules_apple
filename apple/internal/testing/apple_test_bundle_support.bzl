@@ -86,6 +86,11 @@ load(
     "swift_support",
 )
 load(
+    "//apple/internal/testing:apple_test_deferred_linking.bzl",
+    "AppleDeferredTestLinkInfo",
+    "apple_test_deferred_linking",
+)
+load(
     "//apple/internal/utils:clang_rt_dylibs.bzl",
     "clang_rt_dylibs",
 )
@@ -173,6 +178,15 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         unsupported_features = ctx.disabled_features,
     )
     label = ctx.label
+
+    defer_linking = apple_test_deferred_linking.is_enabled(features = features)
+    platform_features = features
+    if defer_linking:
+        # The bundle can't be signed before its binary exists; the test runner signs it instead.
+        platform_features = apple_test_deferred_linking.bundle_skips_signing_features(
+            features = features,
+        )
+
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
@@ -184,7 +198,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         device_families = getattr(ctx.attr, "families", rule_descriptor.allowed_device_families),
         explicit_minimum_deployment_os = ctx.attr.minimum_deployment_os_version,
         explicit_minimum_os = ctx.attr.minimum_os_version,
-        features = features,
+        features = platform_features,
         objc_fragment = ctx.fragments.objc,
         uses_swift = swift_support.uses_swift(ctx.attr.deps),
         xcode_version_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
@@ -259,12 +273,42 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         exported_symbols_lists = ctx.files.exported_symbols_lists,
         extra_link_inputs = extra_link_inputs,
         extra_linkopts = extra_linkopts,
+        # The dSYM and linkmap would only be produced inside of the test action, where nothing
+        # could consume them.
+        generate_debug_outputs = not defer_linking,
         platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
         stamp = ctx.attr.stamp,
     )
-    binary_artifact = link_result.binary
-    debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
+
+    deferred_link_providers = []
+    if defer_linking:
+        # The link action stays registered so the test rule can read it, but nothing below may
+        # depend on its outputs or Bazel would run it at build time.
+        apple_test_deferred_linking.validate_bundle(
+            features = features,
+            link_outputs = link_result.outputs,
+            platform_prerequisites = platform_prerequisites,
+        )
+        deferred_link_providers.append(AppleDeferredTestLinkInfo(
+            codesign = codesigning_support.should_sign_bundles(
+                features = features,
+                provisioning_profile = provisioning_profile,
+                rule_descriptor = rule_descriptor,
+            ) and codesigning_support.should_sign_simulator_bundles(
+                config_vars = ctx.var,
+                # The features before bundle signing was disabled for the build.
+                features = features,
+                rule_descriptor = rule_descriptor,
+            ),
+            codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
+            executable_name = executable_name or bundle_name,
+        ))
+        binary_artifact = None
+        debug_outputs = struct(dsym_binaries = {}, linkmaps = {})
+    else:
+        binary_artifact = link_result.binary
+        debug_outputs = linking_support.debug_outputs_by_architecture(link_result.outputs)
 
     if hasattr(ctx.attr, "additional_contents"):
         debug_dependencies = ctx.attr.additional_contents.keys()
@@ -292,18 +336,12 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             bundle_id = bundle_id,
             bundle_name = bundle_name,
             executable_name = executable_name,
+            has_binary = not defer_linking,
             label_name = label.name,
             platform_prerequisites = platform_prerequisites,
             predeclared_outputs = predeclared_outputs,
             product_type = rule_descriptor.product_type,
             rule_descriptor = rule_descriptor,
-        ),
-        partials.binary_partial(
-            actions = actions,
-            binary_artifact = binary_artifact,
-            bundle_name = bundle_name,
-            executable_name = executable_name,
-            label_name = label.name,
         ),
         partials.clang_rt_dylibs_partial(
             actions = actions,
@@ -316,6 +354,15 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
         ),
     ]
+
+    if not defer_linking:
+        processor_partials.append(partials.binary_partial(
+            actions = actions,
+            binary_artifact = binary_artifact,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label.name,
+        ))
 
     if "disable_legacy_signing" in ctx.features:
         processor_partials.append(partials.codesigning_dossier_partial(
@@ -504,7 +551,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
         ),
         # TODO(b/228856372): Remove when downstream users are migrated off this provider.
         link_result.debug_outputs_provider,
-    ])
+    ] + deferred_link_providers)
 
     return providers
 

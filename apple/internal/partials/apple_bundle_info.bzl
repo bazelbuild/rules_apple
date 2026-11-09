@@ -36,6 +36,7 @@ def _apple_bundle_info_partial_impl(
         entitlements,
         executable_name,
         extension_safe,
+        has_binary,
         label_name,
         output_discriminator,
         platform_prerequisites,
@@ -56,13 +57,15 @@ def _apple_bundle_info_partial_impl(
     )
     archive_root = outputs.root_path_from_archive(archive = archive)
 
-    binary = outputs.binary(
-        actions = actions,
-        bundle_name = bundle_name,
-        executable_name = executable_name,
-        label_name = label_name,
-        output_discriminator = output_discriminator,
-    )
+    binary = None
+    if has_binary:
+        binary = outputs.binary(
+            actions = actions,
+            bundle_name = bundle_name,
+            executable_name = executable_name,
+            label_name = label_name,
+            output_discriminator = output_discriminator,
+        )
 
     infoplist = None
     if bundle_id:
@@ -104,6 +107,7 @@ def apple_bundle_info_partial(
         executable_name,
         extension_safe = False,
         entitlements = None,
+        has_binary = True,
         label_name,
         output_discriminator = None,
         platform_prerequisites,
@@ -124,6 +128,8 @@ def apple_bundle_info_partial(
       extension_safe: True if the target propagating this provider was compiled
         and linked with -application-extension, restricting it to extension-safe
         APIs only.
+      has_binary: Whether the bundle's binary is built by this target. If `False`, the
+        `AppleBundleInfo.binary` field is `None`.
       label_name: Name of the target being built.
       output_discriminator: A string to differentiate between different target intermediate files
           or `None`.
@@ -144,6 +150,7 @@ def apple_bundle_info_partial(
         executable_name = executable_name or bundle_name,
         extension_safe = extension_safe,
         entitlements = entitlements,
+        has_binary = has_binary,
         label_name = label_name,
         output_discriminator = output_discriminator,
         platform_prerequisites = platform_prerequisites,
