@@ -180,6 +180,8 @@ def _codesign_args_for_path(
     cmd_codesigning.append(maybe_double_quote(path_to_sign.path))
 
     if path_to_sign.signed_frameworks:
+        if "apple.skip_signed_framework_verification" in platform_prerequisites.features:
+            cmd_codesigning.append("--skip_signed_path_verification")
         for signed_framework in path_to_sign.signed_frameworks:
             # Signed frameworks must also be double quoted, as they too have an environment
             # variable to be expanded.
