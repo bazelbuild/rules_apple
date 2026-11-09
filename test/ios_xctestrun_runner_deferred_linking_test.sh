@@ -236,6 +236,23 @@ function test_deferred_linking_swift_with_host_pass() {
   expect_log "Executed 1 test, with 0 failures"
 }
 
+function test_deferred_linking_asan() {
+  create_tests
+  do_ios_test --features=asan //ios:PassingUnitTest || fail "should pass"
+
+  expect_log "Linked test bundle binary 'PassingUnitTest'"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_deferred_linking_main_thread_checker() {
+  create_tests
+  do_ios_test --features=apple.include_main_thread_checker \
+    //ios:PassingUnitTest || fail "should pass"
+
+  expect_log "Linked test bundle binary 'PassingUnitTest'"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
 function test_deferred_linking_coverage() {
   create_tests
   do_coverage ios "--test_output=all" "--spawn_strategy=local" \

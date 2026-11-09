@@ -165,7 +165,7 @@ def _lipo_exec_files(exec_files, target_archs, strip_bitcode, source_path,
       bitcode_strip.invoke(exec_file_destination_path, exec_file_destination_path)
 
 
-def main():
+def main(argv=None):
   parser = argparse.ArgumentParser(description="swift stdlib tool")
   parser.add_argument(
       "--binary", type=str, required=True, action="append",
@@ -184,7 +184,7 @@ def main():
       "--output_path", type=str, required=True, help="path to save the Swift "
       "support libraries to"
   )
-  args = parser.parse_args()
+  args = parser.parse_args(argv)
 
   # Create a temporary location for the unstripped Swift stdlibs.
   temp_path = tempfile.mkdtemp(prefix="swift_stdlib_tool.XXXXXX")

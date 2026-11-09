@@ -23,6 +23,7 @@ import tempfile
 import textwrap
 import unittest
 from unittest import mock
+import zipfile
 
 from tools.deferred_test_linker import deferred_test_linker
 
@@ -201,6 +202,21 @@ class DeferredTestLinkerTest(unittest.TestCase):
         "ZERO_AR_DATE": "1",
     })
 
+  def test_link_environment_uses_sdkroot_resolved_by_bazel(self):
+    test_env = {
+        "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+        "SDKROOT": "/bazel/sdk",
+    }
+    with mock.patch.dict(os.environ, test_env, clear=True), mock.patch.object(
+        deferred_test_linker, "_installed_xcode_version",
+        return_value=(None, None),
+    ), mock.patch.object(deferred_test_linker, "_xcrun_sdk_path") as xcrun:
+      env = deferred_test_linker.link_environment(
+          {"APPLE_SDK_PLATFORM": "iPhoneSimulator"}
+      )
+    self.assertEqual(env["SDKROOT"], "/bazel/sdk")
+    xcrun.assert_not_called()
+
   def test_link_environment_fails_on_xcode_mismatch(self):
     with mock.patch.dict(
         os.environ, {"DEVELOPER_DIR": "/Xcode.app/Contents/Developer"},
@@ -312,6 +328,101 @@ class DeferredTestLinkerTest(unittest.TestCase):
         outputs=[],
         runfiles_root=runfiles,
     )
+
+  def test_copy_swift_dylibs_uses_swift_stdlib_tool(self):
+    env = {"DEVELOPER_DIR": "/dev", "PATH": "/bin"}
+    seen = {}
+
+    def fake_main(argv):
+      seen["argv"] = argv
+      seen["env"] = dict(os.environ)
+
+    with mock.patch.object(
+        deferred_test_linker.swift_stdlib_tool, "main", side_effect=fake_main
+    ):
+      deferred_test_linker.copy_swift_dylibs(
+          binary="/b/Tests.xctest/Tests",
+          bundle="/b/Tests.xctest",
+          env=env,
+          platform="iphonesimulator",
+      )
+    self.assertEqual(seen["argv"], [
+        "--binary", "/b/Tests.xctest/Tests",
+        "--platform", "iphonesimulator",
+        "--output_path", "/b/Tests.xctest/Frameworks",
+        "--strip_bitcode",
+    ])
+    self.assertEqual(seen["env"], env)
+    self.assertNotEqual(dict(os.environ), env)
+
+  def test_copy_clang_runtime_dylibs_extracts_into_frameworks(self):
+    bundle = os.path.join(self.tmp, "Tests.xctest")
+    os.makedirs(bundle)
+    work_dir = os.path.join(self.tmp, "clang_rt")
+
+    class FakeTool:
+
+      def __init__(self, binary, output_zip):
+        assert binary == os.path.join(bundle, "Tests")
+        self._output_zip = output_zip
+
+      def run(self):
+        with zipfile.ZipFile(self._output_zip, "w") as archive:
+          archive.writestr("libclang_rt.asan_iossim_dynamic.dylib", "asan")
+
+    with mock.patch.object(
+        deferred_test_linker.clangrttool, "ClangRuntimeTool", FakeTool
+    ):
+      deferred_test_linker.copy_clang_runtime_dylibs(
+          binary=os.path.join(bundle, "Tests"),
+          bundle=bundle,
+          env={},
+          work_dir=work_dir,
+      )
+    self.assertTrue(os.path.isfile(os.path.join(
+        bundle, "Frameworks", "libclang_rt.asan_iossim_dynamic.dylib"
+    )))
+    self.assertFalse(os.path.exists(work_dir))
+
+  def test_copy_main_thread_checker_dylib_uses_build_tool(self):
+    self.assertTrue(
+        os.path.isfile(deferred_test_linker._MAIN_THREAD_CHECKER_TOOL),
+        deferred_test_linker._MAIN_THREAD_CHECKER_TOOL,
+    )
+    developer_dir = os.path.join(self.tmp, "Developer")
+    _write(
+        os.path.join(developer_dir, "usr", "lib", "libMainThreadChecker.dylib"),
+        "mtc",
+    )
+    bundle = os.path.join(self.tmp, "Tests.xctest")
+    os.makedirs(bundle)
+    deferred_test_linker.copy_main_thread_checker_dylib(
+        bundle=bundle,
+        env={"DEVELOPER_DIR": developer_dir, "PATH": os.environ["PATH"]},
+    )
+    with open(
+        os.path.join(bundle, "Frameworks", "libMainThreadChecker.dylib")
+    ) as f:
+      self.assertEqual(f.read(), "mtc")
+
+  def test_main_copies_runtime_dylibs_when_requested(self):
+    runfiles = os.path.join(self.tmp, "runfiles")
+    self._write_spec(runfiles, clang_rt=True, main_thread_checker=True)
+    bundle = os.path.join(self.tmp, "Tests.xctest")
+    os.makedirs(bundle)
+
+    with mock.patch.object(
+        deferred_test_linker, "copy_clang_runtime_dylibs"
+    ) as clang_rt, mock.patch.object(
+        deferred_test_linker, "copy_main_thread_checker_dylib"
+    ) as mtc:
+      self._run_main(runfiles, bundle, os.path.join(self.tmp, "work"))
+
+    clang_rt.assert_called_once()
+    self.assertEqual(
+        clang_rt.call_args.kwargs["binary"], os.path.join(bundle, "Tests")
+    )
+    mtc.assert_called_once()
 
   def test_xcrun_sdk_path_does_not_fall_back_to_another_sdk(self):
     with mock.patch.object(

@@ -1,4 +1,5 @@
 load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
 load("@rules_python//python:py_test.bzl", "py_test")
 
 licenses(["notice"])
@@ -13,6 +14,18 @@ py_binary(
     srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
+    ],
+)
+
+py_library(
+    name = "clangrttool_lib",
+    srcs = [
+        "__init__.py",
+        "clangrttool.py",
+    ],
+    srcs_version = "PY3",
+    visibility = [
+        "//tools/deferred_test_linker:__pkg__",
     ],
 )
 

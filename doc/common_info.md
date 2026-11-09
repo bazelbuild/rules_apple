@@ -579,10 +579,7 @@ binary is linked at build time as usual, for test bundles it can't support:
 *   tests that don't target the iOS simulator (device builds, and macOS,
     tvOS, visionOS and watchOS tests);
 *   builds for more than one architecture (e.g.
-    `--ios_multi_cpus=sim_arm64,x86_64`);
-*   builds with sanitizers (`asan`, `tsan`, `ubsan`) or
-    `apple.include_main_thread_checker`, which scan the linked binary at build
-    time.
+    `--ios_multi_cpus=sim_arm64,x86_64`).
 
 The test runner must also support it. `ios_xctestrun_runner` (and so the
 default iOS runner) does; iOS tests that use other runners, such as
@@ -606,15 +603,21 @@ Things to know:
     `--spawn_strategy=local` at build time, but fail when the test runs. Try
     building the test bundle with `--strategy=ObjcLink=sandboxed` and the
     feature disabled before enabling it.
-*   The link runs with the Xcode the test action uses (`DEVELOPER_DIR`, or
-    `xcode-select`), which must be the version the build was configured with.
+*   The test action is given the link's Xcode and SDK environment, so Bazel
+    runs it, including the test runner's `xcodebuild` invocation, with the
+    Xcode the build was configured with. Executors that don't resolve that
+    environment (e.g. some remote ones) use the selected Xcode instead, which
+    must then be the configured version.
     The C++/Objective-C toolchain must not need its own runfiles to link,
     which is the case for the default Apple toolchain.
 *   No dSYM or linkmap is generated for the test binary, and the test
     bundle's `AppleBundleInfo.binary` is `None`, since the binary only
     exists inside of the test action.
-*   The Swift dylibs that the binary needs on older OS versions are copied
-    into the test bundle after linking it.
+*   The dylibs that are bundled based on the linked binary are copied into
+    the test bundle after linking it, by the same tools that copy them at
+    build time: the Swift dylibs the binary needs on older OS versions, the
+    sanitizer runtimes (`asan`, `tsan`, `ubsan`) and, with
+    `apple.include_main_thread_checker`, `libMainThreadChecker.dylib`.
 *   Code coverage works with the binary linked in the test action. The
     binary isn't exported through `APPLE_TEST_EXPORT_COVERED_BINARIES`.
 *   Setting `NO_CLEAN=1` in the test environment keeps the linked binary

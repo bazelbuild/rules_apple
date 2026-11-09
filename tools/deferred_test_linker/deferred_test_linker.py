@@ -34,7 +34,7 @@ linked binary once the tests have run.
 """
 
 import argparse
-import glob
+import contextlib
 import json
 import os
 import plistlib
@@ -43,8 +43,21 @@ import shutil
 import subprocess
 import sys
 import time
+import zipfile
+
+from tools.clangrttool import clangrttool
+from tools.swift_stdlib_tool import swift_stdlib_tool
 
 _ADHOC_IDENTITY = "-"
+
+# The tool that copies `libMainThreadChecker.dylib` at build time, from the
+# runfiles of this tool.
+_MAIN_THREAD_CHECKER_TOOL = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.pardir,
+    "main_thread_checker_tool",
+    "main_thread_checker_tool.sh",
+)
 
 # An Xcode build version, e.g. `17A324` or `16E5104a`.
 _XCODE_BUILD_VERSION_RE = re.compile(r"\d+[A-Z]\d+[a-z]?")
@@ -333,9 +346,11 @@ def _developer_dir(action_env):
   """Returns the `DEVELOPER_DIR` to link with.
 
   Bazel resolves `DEVELOPER_DIR` from `XCODE_VERSION_OVERRIDE` at execution
-  time, so it isn't part of the recorded action environment. The test action
-  is usually given the same one; otherwise the selected Xcode is used, as long
-  as it is the one the build was configured with.
+  time, so it isn't part of the recorded action environment. The test rule
+  gives the test action the link action's `XCODE_VERSION_OVERRIDE`, so Bazel
+  resolves the same one for it when it runs locally. Executors that don't
+  (e.g. some remote ones) fall back to the selected Xcode, as long as it is
+  the one the build was configured with.
   """
   developer_dir = os.environ.get("DEVELOPER_DIR")
   if not developer_dir:
@@ -389,7 +404,12 @@ def link_environment(action_env):
   env["DEVELOPER_DIR"] = developer_dir
 
   platform = action_env.get("APPLE_SDK_PLATFORM")
-  if platform:
+  if platform and os.environ.get("SDKROOT") and (
+      os.environ.get("DEVELOPER_DIR") == developer_dir
+  ):
+    # Resolved by Bazel from the same `APPLE_SDK_*` variables.
+    env["SDKROOT"] = os.environ["SDKROOT"]
+  elif platform:
     env["SDKROOT"] = _xcrun_sdk_path(
         developer_dir=developer_dir,
         platform=platform.lower(),
@@ -444,38 +464,79 @@ def write_params_file(path, args):
       params_file.write("\n")
 
 
-def copy_swift_dylibs(*, binary, bundle, env, platform):
-  """Copies the Swift dylibs that `binary` needs into the bundle."""
-  frameworks_dir = os.path.join(bundle, "Frameworks")
-  existing = (
-      set(os.listdir(frameworks_dir)) if os.path.isdir(frameworks_dir) else set()
-  )
-  cmd = [
-      "/usr/bin/xcrun",
-      "swift-stdlib-tool",
-      "--copy",
-      "--platform",
-      platform,
-      "--destination",
-      frameworks_dir,
-      "--scan-executable",
-      binary,
-  ]
-  for source_libraries in sorted(glob.glob(os.path.join(
-      env["DEVELOPER_DIR"],
-      "Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-*",
-      platform,
-  ))):
-    cmd.extend(["--source-libraries", source_libraries])
-  _run(cmd, env=env)
+@contextlib.contextmanager
+def _environment(env):
+  """Temporarily replaces `os.environ` for tools that read it."""
+  saved = dict(os.environ)
+  os.environ.clear()
+  os.environ.update(env)
+  try:
+    yield
+  finally:
+    os.environ.clear()
+    os.environ.update(saved)
 
-  # Every supported deployment target has the Swift runtime in the OS, but the
-  # tool copies it when it copies a back-deployment library that refers to it.
-  # It's only removed if it wasn't already bundled (e.g. by a framework).
-  if "libswiftCore.dylib" not in existing:
-    libswiftcore = os.path.join(frameworks_dir, "libswiftCore.dylib")
-    if os.path.exists(libswiftcore):
-      os.remove(libswiftcore)
+
+def copy_swift_dylibs(*, binary, bundle, env, platform):
+  """Copies the Swift dylibs that `binary` needs into the bundle.
+
+  This runs the same tool, with the same options, as the `SwiftStdlibCopy`
+  action that copies them for test bundles linked at build time.
+  """
+  try:
+    with _environment(env):
+      swift_stdlib_tool.main([
+          "--binary",
+          binary,
+          "--platform",
+          platform,
+          "--output_path",
+          os.path.join(bundle, "Frameworks"),
+          "--strip_bitcode",
+      ])
+  except (OSError, subprocess.CalledProcessError) as e:
+    raise LinkError(f"Copying the Swift dylibs failed: {e}") from e
+
+
+def copy_clang_runtime_dylibs(*, binary, bundle, env, work_dir):
+  """Copies the sanitizer runtime dylibs that `binary` needs into the bundle.
+
+  This runs the same tool as the `ClangRuntimeLibsCopy` action that copies
+  them for test bundles linked at build time.
+  """
+  clang_rt_zip = os.path.join(work_dir, "clang_rt.zip")
+  os.makedirs(work_dir, exist_ok=True)
+  try:
+    with _environment(env):
+      clangrttool.ClangRuntimeTool(binary, clang_rt_zip).run()
+    with zipfile.ZipFile(clang_rt_zip) as archive:
+      archive.extractall(os.path.join(bundle, "Frameworks"))
+  except (
+      OSError,
+      subprocess.CalledProcessError,
+      clangrttool.ClangRuntimeToolError,
+  ) as e:
+    raise LinkError(f"Copying the Clang runtime dylibs failed: {e}") from e
+  finally:
+    shutil.rmtree(work_dir, ignore_errors=True)
+
+
+def copy_main_thread_checker_dylib(*, bundle, env):
+  """Copies `libMainThreadChecker.dylib` into the bundle.
+
+  This runs the same tool as the `MainThreadCheckerLibsCopy` action that
+  copies it for test bundles linked at build time.
+  """
+  frameworks_dir = os.path.join(bundle, "Frameworks")
+  os.makedirs(frameworks_dir, exist_ok=True)
+  _run(
+      [
+          "/bin/bash",
+          _MAIN_THREAD_CHECKER_TOOL,
+          os.path.join(frameworks_dir, "libMainThreadChecker.dylib"),
+      ],
+      env=env,
+  )
 
 
 def _codesign(path, extra_args=()):
@@ -554,6 +615,17 @@ def link(*, spec, bundle, work_dir, runfiles_root):
         env=env,
         platform=spec["swift_stdlib_platform"],
     )
+
+  if spec.get("clang_rt"):
+    copy_clang_runtime_dylibs(
+        binary=destination,
+        bundle=bundle,
+        env=env,
+        work_dir=work_dir,
+    )
+
+  if spec.get("main_thread_checker"):
+    copy_main_thread_checker_dylib(bundle=bundle, env=env)
 
   if spec.get("codesign"):
     codesign_bundle(bundle, spec.get("codesignopts", []))

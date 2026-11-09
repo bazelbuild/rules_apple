@@ -300,6 +300,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             link_outputs = link_result.outputs,
         )
         deferred_link_providers.append(AppleDeferredTestLinkInfo(
+            clang_rt = clang_rt_dylibs.should_package_clang_runtime(features = features),
             codesign = codesigning_support.should_sign_bundles(
                 features = features,
                 provisioning_profile = provisioning_profile,
@@ -312,6 +313,11 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             ),
             codesignopts = codesigning_support.codesignopts_from_rule_ctx(ctx),
             executable_name = executable_name or bundle_name,
+            main_thread_checker = (
+                main_thread_checker_dylibs.should_package_main_thread_checker_dylib(
+                    features = features,
+                )
+            ),
             swift_stdlib_platform = apple_test_deferred_linking.swift_stdlib_platform(
                 platform_prerequisites = platform_prerequisites,
             ),
@@ -366,8 +372,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             label_name = label.name,
         ))
 
-    processor_partials += [
-        partials.clang_rt_dylibs_partial(
+    # With deferred linking, the test runner copies the dylibs that these partials would copy, after
+    # linking the binary they scan.
+    if not defer_linking:
+        processor_partials.append(partials.clang_rt_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -376,8 +384,7 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             platform_prerequisites = platform_prerequisites,
             dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
-        ),
-    ]
+        ))
 
     if "disable_legacy_signing" in ctx.features:
         processor_partials.append(partials.codesigning_dossier_partial(
@@ -396,8 +403,8 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             rule_descriptor = rule_descriptor,
         ))
 
-    processor_partials.extend([
-        partials.main_thread_checker_dylibs_partial(
+    if not defer_linking:
+        processor_partials.append(partials.main_thread_checker_dylibs_partial(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
             binary_artifact = binary_artifact,
@@ -406,7 +413,9 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             platform_prerequisites = platform_prerequisites,
             dylibs = main_thread_checker_dylibs.get_from_toolchain(ctx),
-        ),
+        ))
+
+    processor_partials.extend([
         partials.debug_symbols_partial(
             actions = actions,
             bundle_extension = bundle_extension,

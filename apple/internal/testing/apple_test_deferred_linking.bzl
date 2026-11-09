@@ -29,7 +29,7 @@ remote cache. Instead:
     the test's runfiles, and passes the spec to the test runner.
 4.  The test runner, which must advertise `supports_deferred_test_linking`, calls its link tool
     (`//tools/deferred_test_linker` for `ios_xctestrun_runner`) after extracting the test bundle.
-    The tool replays the link, places the binary (and any Swift dylibs it needs) into the bundle
+    The tool replays the link, places the binary (and the dylibs bundled based on it) into the bundle
     and codesigns it. The runner's temporary directory, which
     holds the extracted bundle, is deleted when the test finishes.
 """
@@ -37,14 +37,6 @@ remote cache. Instead:
 load(
     "//apple/internal/partials:swift_dylibs.bzl",
     "binary_needs_swift_dylibs_scan",
-)
-load(
-    "//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
-    "//apple/internal/utils:main_thread_checker_dylibs.bzl",
-    "main_thread_checker_dylibs",
 )
 
 DEFERRED_TEST_LINKING_FEATURE = "apple.defer_test_bundle_linking"
@@ -58,9 +50,11 @@ AppleDeferredTestLinkInfo = provider(
 Private provider propagated by test bundle targets that were built without linking their binary.
 """,
     fields = {
+        "clang_rt": "Whether the Clang runtime (sanitizer) dylibs the binary needs should be bundled.",
         "codesign": "Whether the bundle should be ad-hoc codesigned after linking the binary.",
         "codesignopts": "A list of extra options to pass to `codesign` for the bundle.",
         "executable_name": "The name of the binary inside of the test bundle.",
+        "main_thread_checker": "Whether `libMainThreadChecker.dylib` should be bundled.",
         "swift_stdlib_platform": """
 The platform name to copy the Swift dylibs that the linked binary needs for, or `None` if the
 binary doesn't need to be scanned for them.
@@ -75,10 +69,12 @@ _DeferredTestLinkActionInfo = provider(
 The list of `Args` objects of the link action. Their concatenated contents are its command line,
 starting with the linker.
 """,
+        "clang_rt": "See `AppleDeferredTestLinkInfo.clang_rt`.",
         "codesign": "See `AppleDeferredTestLinkInfo.codesign`.",
         "codesignopts": "See `AppleDeferredTestLinkInfo.codesignopts`.",
         "env": "The environment variables of the link action.",
         "executable_name": "See `AppleDeferredTestLinkInfo.executable_name`.",
+        "main_thread_checker": "See `AppleDeferredTestLinkInfo.main_thread_checker`.",
         "inputs": "A `depset` of `File`s that are inputs of the link action.",
         "outputs": "A list of execution root relative paths of the link action's outputs.",
         "swift_stdlib_platform": "See `AppleDeferredTestLinkInfo.swift_stdlib_platform`.",
@@ -110,10 +106,12 @@ def _deferred_test_link_aspect_impl(target, _ctx):
     return [
         _DeferredTestLinkActionInfo(
             args = link_action.args,
+            clang_rt = link_info.clang_rt,
             codesign = link_info.codesign,
             codesignopts = link_info.codesignopts,
             env = link_action.env,
             executable_name = link_info.executable_name,
+            main_thread_checker = link_info.main_thread_checker,
             inputs = link_action.inputs,
             outputs = [f.path for f in link_action.outputs.to_list()],
             swift_stdlib_platform = link_info.swift_stdlib_platform,
@@ -156,12 +154,6 @@ def _should_defer_linking(*, codesign_inputs, features, platform_prerequisites, 
     if len(split_deps) != 1:
         return False
 
-    # These features scan the linked binary at build time to decide which dylibs to bundle.
-    if clang_rt_dylibs.should_package_clang_runtime(features = features):
-        return False
-    if main_thread_checker_dylibs.should_package_main_thread_checker_dylib(features = features):
-        return False
-
     # `codesignopts` may refer to these files by their execution root relative paths, which don't
     # exist where the test runner signs the bundle. (The test macros don't forward these
     # attributes today, but the bundle rules accept them.)
@@ -197,6 +189,12 @@ def _bundle_skips_signing_features(*, features):
     """
     return features + ["apple.skip_codesign_simulator_bundles"]
 
+_XCODE_ENV_KEYS = [
+    "APPLE_SDK_PLATFORM",
+    "APPLE_SDK_VERSION_OVERRIDE",
+    "XCODE_VERSION_OVERRIDE",
+]
+
 def _input_mapping(file):
     return "{}\t{}".format(file.path, file.short_path)
 
@@ -218,6 +216,7 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
     """
     if _DeferredTestLinkActionInfo not in test_bundle_target:
         return struct(
+            execution_environment = {},
             files = [],
             substitutions = {"test_bundle_link_spec": ""},
             transitive_files = [],
@@ -257,10 +256,12 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
         output = spec,
         content = json.encode_indent({
             "argv_files": [f.short_path for f in argv_files],
+            "clang_rt": link_action_info.clang_rt,
             "codesign": link_action_info.codesign,
             "codesignopts": link_action_info.codesignopts,
             "env": link_action_info.env,
             "executable_name": link_action_info.executable_name,
+            "main_thread_checker": link_action_info.main_thread_checker,
             "inputs_manifest": inputs_manifest.short_path,
             "outputs": link_action_info.outputs,
             "swift_stdlib_platform": link_action_info.swift_stdlib_platform,
@@ -268,6 +269,13 @@ def _test_runner_inputs(*, ctx, runner_info, test_bundle_target):
     )
 
     return struct(
+        # Bazel resolves `DEVELOPER_DIR` and `SDKROOT` from these for any action, as it does for
+        # the link action itself.
+        execution_environment = {
+            key: link_action_info.env[key]
+            for key in _XCODE_ENV_KEYS
+            if key in link_action_info.env
+        },
         files = [inputs_manifest, spec] + argv_files,
         substitutions = {"test_bundle_link_spec": spec.short_path},
         transitive_files = [link_action_info.inputs],

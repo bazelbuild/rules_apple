@@ -117,7 +117,7 @@ class ClangRuntimeTool(object):
   def run(self):
     objdump_args = [
         "xcrun", "llvm-objdump", "--macho", "--private-headers",
-        "--non-verbose", binary_path
+        "--non-verbose", self._binary_path
     ]
     objdump_output = subprocess.check_output(objdump_args,
                                              encoding="utf8",
@@ -135,7 +135,9 @@ class ClangRuntimeTool(object):
     if "DEVELOPER_DIR" in os.environ:
       clang_lib_path = normalize_clang_lip_path(clang_lib_path, os.environ["DEVELOPER_DIR"])
 
-    with zipfile.ZipFile(out_path, "w", strict_timestamps=False) as out_zip:
+    with zipfile.ZipFile(
+        self._output_zip_path, "w", strict_timestamps=False
+    ) as out_zip:
       for lib in clang_libraries:
         full_path = os.path.join(clang_lib_path, lib)
         if os.path.exists(full_path):

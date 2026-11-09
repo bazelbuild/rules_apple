@@ -1,4 +1,5 @@
 load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
 
 licenses(["notice"])
 
@@ -9,6 +10,16 @@ py_binary(
     srcs_version = "PY3",
     visibility = [
         "//apple/internal:__pkg__",
+    ],
+    deps = [":swift_stdlib_tool_lib"],
+)
+
+py_library(
+    name = "swift_stdlib_tool_lib",
+    srcs = ["swift_stdlib_tool.py"],
+    srcs_version = "PY3",
+    visibility = [
+        "//tools/deferred_test_linker:__pkg__",
     ],
     deps = [
         "//tools/bitcode_strip",

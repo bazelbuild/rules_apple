@@ -52,8 +52,6 @@ bzl_library(
     ],
     deps = [
         "//apple/internal/partials:swift_dylibs",
-        "//apple/internal/utils:clang_rt_dylibs",
-        "//apple/internal/utils:main_thread_checker_dylibs",
     ],
 )
 

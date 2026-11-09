@@ -343,6 +343,10 @@ def _apple_test_rule_impl(*, ctx, test_type):
         test_bundle_target = test_bundle_target,
     )
     direct_runfiles.extend(deferred_link.files)
+    execution_environment = dicts.add(
+        execution_environment,
+        deferred_link.execution_environment,
+    )
     transitive_runfiles.extend(deferred_link.transitive_files)
 
     test_coverage_manifest = None

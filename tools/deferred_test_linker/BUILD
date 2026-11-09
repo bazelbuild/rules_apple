@@ -22,7 +22,12 @@ py_library(
         "__init__.py",
         "deferred_test_linker.py",
     ],
+    data = ["//tools/main_thread_checker_tool:main_thread_checker_tool.sh"],
     srcs_version = "PY3",
+    deps = [
+        "//tools/clangrttool:clangrttool_lib",
+        "//tools/swift_stdlib_tool:swift_stdlib_tool_lib",
+    ],
 )
 
 py_test(

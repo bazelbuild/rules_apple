@@ -433,10 +433,15 @@ def ios_unit_test_test_suite(name):
         tags = [name],
     )
 
+    # The test runner copies the dylibs that these scan the linked binary for.
     archive_contents_test(
-        name = "{}_deferred_linking_ignored_with_sanitizer_test".format(name),
+        name = "{}_deferred_linking_with_sanitizer_test".format(name),
         build_type = "simulator",
-        contains = ["$BUNDLE_ROOT/unit_test"],
+        contains = ["$BUNDLE_ROOT/Info.plist"],
+        not_contains = [
+            "$BUNDLE_ROOT/unit_test",
+            "$BUNDLE_ROOT/Frameworks/libclang_rt.asan_iossim_dynamic.dylib",
+        ],
         sanitizer = "asan",
         target_features = _DEFERRED_LINKING_FEATURES,
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
@@ -444,9 +449,13 @@ def ios_unit_test_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_deferred_linking_ignored_with_main_thread_checker_test".format(name),
+        name = "{}_deferred_linking_with_main_thread_checker_test".format(name),
         build_type = "simulator",
-        contains = ["$BUNDLE_ROOT/unit_test"],
+        contains = ["$BUNDLE_ROOT/Info.plist"],
+        not_contains = [
+            "$BUNDLE_ROOT/unit_test",
+            "$BUNDLE_ROOT/Frameworks/libMainThreadChecker.dylib",
+        ],
         target_features = _DEFERRED_LINKING_FEATURES + ["apple.include_main_thread_checker"],
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
         tags = [name],

@@ -10,6 +10,11 @@ sh_binary(
     ],
 )
 
+exports_files(
+    ["main_thread_checker_tool.sh"],
+    visibility = ["//tools/deferred_test_linker:__pkg__"],
+)
+
 # Consumed by bazel tests.
 filegroup(
     name = "for_bazel_tests",
