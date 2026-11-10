@@ -37,6 +37,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_skills_bundle",
+    srcs = ["apple_skills_bundle.bzl"],
+    visibility = [
+        "//apple:__subpackages__",
+    ],
+    deps = [
+        "//apple/internal:providers",
+        "//apple/internal:resources",
+        "@bazel_skylib//lib:partial",
+    ],
+)
+
+bzl_library(
     name = "apple_metal_library",
     srcs = ["apple_metal_library.bzl"],
     visibility = [

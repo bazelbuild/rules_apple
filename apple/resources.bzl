@@ -52,6 +52,10 @@ load(
     "//apple/internal/resource_rules:apple_resource_group.bzl",
     _apple_resource_group = "apple_resource_group",
 )
+load(
+    "//apple/internal/resource_rules:apple_skills_bundle.bzl",
+    _apple_skills_bundle = "apple_skills_bundle",
+)
 
 visibility("public")
 
@@ -61,6 +65,7 @@ apple_metal_library = _apple_metal_library
 apple_precompiled_resource_bundle = _apple_precompiled_resource_bundle
 apple_resource_bundle = _apple_resource_bundle
 apple_resource_group = _apple_resource_group
+apple_skills_bundle = _apple_skills_bundle
 apple_core_data_model = _apple_core_data_model
 
 resources_common = _resources_common

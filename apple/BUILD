@@ -193,6 +193,7 @@ bzl_library(
         "//apple/internal/resource_rules:apple_precompiled_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_bundle",
         "//apple/internal/resource_rules:apple_resource_group",
+        "//apple/internal/resource_rules:apple_skills_bundle",
         "@rules_cc//cc:action_names.bzl",
         "@rules_cc//cc:core_rules",
         "@rules_cc//cc:find_cc_toolchain_bzl",
