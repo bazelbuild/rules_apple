@@ -37,7 +37,8 @@ def _app_intents_nl_training_partial_impl(
         metadata_bundle,
         nl_training_tool,
         partial_outputs,
-        platform_prerequisites):
+        platform_prerequisites,
+        sdk_tool_files = []):
     """Implementation of the App Shortcuts Flexible Matching partial.
 
     It consumes the training inputs explicitly exported by resource processing.
@@ -69,6 +70,7 @@ def _app_intents_nl_training_partial_impl(
         mac_exec_group = mac_exec_group,
         metadata_bundle = metadata_bundle,
         nl_training_tool = nl_training_tool,
+        sdk_tool_files = sdk_tool_files,
         resource_trees = resource_trees,
         xcode_version_config = platform_prerequisites.xcode_version_config,
     )
@@ -88,7 +90,8 @@ def _app_intents_metadata_bundle_partial_impl(
         label,
         nl_training_tool,
         platform_prerequisites,
-        json_tool):
+        json_tool,
+        sdk_tool_files):
     """Implementation of the AppIntents metadata bundle partial."""
     if not deps:
         # No `app_intents` were set by the rule calling this partial.
@@ -127,6 +130,7 @@ def _app_intents_metadata_bundle_partial_impl(
         ],
         xcode_version_config = platform_prerequisites.xcode_version_config,
         json_tool = json_tool,
+        sdk_tool_files = sdk_tool_files,
     )
 
     bundle_location = processor.location.bundle
@@ -147,6 +151,7 @@ def _app_intents_metadata_bundle_partial_impl(
             metadata_bundle = metadata_bundle,
             nl_training_tool = nl_training_tool,
             platform_prerequisites = platform_prerequisites,
+            sdk_tool_files = sdk_tool_files,
         )
 
     return struct(
@@ -169,7 +174,8 @@ def app_intents_metadata_bundle_partial(
         label,
         nl_training_tool = None,
         platform_prerequisites,
-        json_tool):
+        json_tool,
+        sdk_tool_files = []):
     """Constructor for the AppIntents metadata bundle processing partial.
 
     This partial generates the Metadata.appintents bundle required for AppIntents functionality.
@@ -192,6 +198,7 @@ def app_intents_metadata_bundle_partial(
         json_tool: A `files_to_run` wrapping Python's `json.tool` module
             (https://docs.python.org/3.5/library/json.html#module-json.tool) for deterministic
             JSON handling.
+        sdk_tool_files: The toolchain's files the Xcode tools run from, as action inputs.
     Returns:
         A partial that generates the Metadata.appintents bundle.
     """
@@ -207,4 +214,5 @@ def app_intents_metadata_bundle_partial(
         nl_training_tool = nl_training_tool,
         platform_prerequisites = platform_prerequisites,
         json_tool = json_tool,
+        sdk_tool_files = sdk_tool_files,
     )

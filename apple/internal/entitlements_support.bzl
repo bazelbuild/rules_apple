@@ -132,7 +132,8 @@ def _extract_signing_info(
         platform_prerequisites,
         provisioning_profile,
         provisioning_profile_tool,
-        rule_label):
+        rule_label,
+        sdk_tool_files = []):
     """Inspects the current context and extracts the signing information.
 
     Args:
@@ -144,6 +145,7 @@ def _extract_signing_info(
       provisioning_profile_tool: A files_to_run for a tool used to extract info from a provisioning
         profile.
       rule_label: The label of the target being analyzed.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
 
     Returns:
       A `struct` with two items: the entitlements file to use, a
@@ -193,7 +195,7 @@ def _extract_signing_info(
             # Since the tools spawns openssl and/or security tool, it doesn't
             # support being sandboxed.
             execution_requirements = {"no-sandbox": "1"},
-            inputs = [control_file, provisioning_profile],
+            inputs = [control_file, provisioning_profile] + sdk_tool_files,
             mnemonic = "ExtractFromProvisioningProfile",
             outputs = outputs,
             xcode_config = platform_prerequisites.xcode_version_config,
@@ -268,6 +270,7 @@ def _process_entitlements(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         provisioning_profile_tool = apple_mac_toolchain_info.provisioning_profile_tool,
+        sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
         rule_label = rule_label,
     )
     plists = []

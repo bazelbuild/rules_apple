@@ -115,4 +115,5 @@ xcarchive(
 )
 ````
     """,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )

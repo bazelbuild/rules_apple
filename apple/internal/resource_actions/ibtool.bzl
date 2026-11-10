@@ -39,7 +39,8 @@ def compile_storyboard(
         output_dir,
         platform_prerequisites,
         swift_module,
-        xctoolrunner):
+        xctoolrunner,
+        sdk_tool_files = []):
     """Creates an action that compiles a storyboard.
 
     Args:
@@ -51,6 +52,7 @@ def compile_storyboard(
       swift_module: The name of the Swift module to use when compiling the
         storyboard.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
 
     args = actions.args()
@@ -87,7 +89,7 @@ def compile_storyboard(
         exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = [input_file],
+        inputs = [input_file] + sdk_tool_files,
         mnemonic = "StoryboardCompile",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -100,7 +102,8 @@ def link_storyboards(
         output_dir,
         platform_prerequisites,
         storyboardc_dirs,
-        xctoolrunner):
+        xctoolrunner,
+        sdk_tool_files = []):
     """Creates an action that links multiple compiled storyboards.
 
     Storyboards that reference each other must be linked, and this operation also
@@ -115,6 +118,7 @@ def link_storyboards(
       storyboardc_dirs: A list of `File`s that represent directories containing
         the compiled storyboards.
       xctoolrunner: A files_to_run for the wrapper for the "xcrun" tools.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -144,7 +148,7 @@ def link_storyboards(
         exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = storyboardc_dirs,
+        inputs = storyboardc_dirs + sdk_tool_files,
         mnemonic = "StoryboardLink",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
@@ -158,7 +162,8 @@ def compile_xib(
         output_dir,
         platform_prerequisites,
         swift_module,
-        xctoolrunner):
+        xctoolrunner,
+        sdk_tool_files = []):
     """Creates an action that compiles a Xib file.
 
     Args:
@@ -170,6 +175,7 @@ def compile_xib(
       swift_module: The name of the Swift module to use when compiling the
         Xib file.
       xctoolrunner: A files_to_run for the wrapper around the "xcrun" tool.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
 
     min_os = platform_prerequisites.minimum_os
@@ -202,7 +208,7 @@ def compile_xib(
         exec_group = mac_exec_group,
         executable = xctoolrunner,
         execution_requirements = {"no-sandbox": "1"},
-        inputs = [input_file],
+        inputs = [input_file] + sdk_tool_files,
         mnemonic = "XibCompile",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,
