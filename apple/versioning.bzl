@@ -271,4 +271,5 @@ Provides:
   AppleBundleVersionInfo: Contains a reference to the JSON file that holds the
       version information for a bundle.
 """,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )

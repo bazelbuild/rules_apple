@@ -769,22 +769,6 @@ class PlistIO(object):
     """
     plist_contents = plist_file.read()
 
-    # Binary plists are easy to identify because they start with 'bplist'. For
-    # plain text plists, it may be possible to have leading whitespace, but
-    # well-formed XML should *not* have any whitespace before the XML
-    # declaration, so we can check that the plist is not XML and let plutil
-    # handle them the same way.
-    if not plist_contents.startswith(b'<?xml'):
-      plutil_process = subprocess.Popen(
-          ['plutil', '-convert', 'xml1', '-o', '-', '--', '-'],
-          stdout=subprocess.PIPE,
-          stdin=subprocess.PIPE
-      )
-      plist_contents, _ = plutil_process.communicate(plist_contents)
-      if plutil_process.returncode:
-        raise PlistToolError(PLUTIL_CONVERSION_TO_XML_FAILED_MSG % (
-            target, plutil_process.returncode, name))
-
     return plist_from_bytes(plist_contents)
 
   @classmethod
@@ -802,13 +786,11 @@ class PlistIO(object):
           in binary form.
     """
     if isinstance(path_or_file, str):
+      fmt = plistlib.FMT_BINARY if binary else plistlib.FMT_XML
       with open(path_or_file, 'wb') as fp:
-        plistlib.dump(plist, fp)
+        plistlib.dump(plist, fp, fmt=fmt)
     else:
       plistlib.dump(plist, path_or_file)
-
-    if binary and isinstance(path_or_file, str):
-      subprocess.check_call(['plutil', '-convert', 'binary1', path_or_file])
 
 
 class PlistToolTask(object):

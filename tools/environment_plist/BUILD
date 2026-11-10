@@ -5,6 +5,7 @@ licenses(["notice"])
 sh_binary(
     name = "environment_plist",
     srcs = ["environment_plist.sh"],
+    data = ["//apple:sdk_tool_files"],
     visibility = [
         "//apple/internal:__pkg__",
     ],

@@ -30,7 +30,8 @@ def compile_texture_atlas(
         input_files,
         input_path,
         output_dir,
-        platform_prerequisites):
+        platform_prerequisites,
+        sdk_tool_files = []):
     """Creates an action that compiles texture atlas bundles (i.e. .atlas).
 
     Args:
@@ -40,6 +41,7 @@ def compile_texture_atlas(
       mac_exec_group: The execution group for Mac tools.
       output_dir: The file reference for the compiled output directory.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
     apple_support.run(
         actions = actions,
@@ -51,8 +53,8 @@ def compile_texture_atlas(
             output_dir.path,
         ],
         exec_group = mac_exec_group,
-        executable = "/usr/bin/xcrun",
-        inputs = input_files,
+        executable = "xcrun",
+        inputs = input_files + sdk_tool_files,
         mnemonic = "CompileTextureAtlas",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,

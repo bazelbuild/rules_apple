@@ -41,6 +41,10 @@ load(
     "coverage_files_aspect",
 )
 
+# Keeps bundling actions on the execution platform of the registered Mac tools
+# toolchain.
+_APPLE_BUNDLING_TOOLCHAIN_TYPE = "//apple/internal:mac_tools_toolchain_type"
+
 # Returns the common set of rule attributes to support Apple test rules.
 # TODO(b/246990309): Move _COMMON_TEST_ATTRS to rule attrs in a follow up CL.
 _COMMON_TEST_ATTRS = {
@@ -143,13 +147,10 @@ def _create_apple_rule(
         attrs = dicts.add(*attrs),
         cfg = cfg,
         doc = doc,
-        exec_compatible_with = [
-            "@platforms//os:macos",
-        ],
         executable = is_executable,
         exec_groups = apple_toolchain_utils.use_apple_exec_group_toolchain(),
         fragments = ["apple", "cpp", "objc"],
-        toolchains = toolchains,
+        toolchains = toolchains + [_APPLE_BUNDLING_TOOLCHAIN_TYPE],
         **extra_args
     )
 
@@ -180,11 +181,7 @@ def _create_apple_test_rule(*, doc, implementation, platform_type):
         doc = doc,
         exec_groups = dicts.add(
             {
-                "test": exec_group(
-                    exec_compatible_with = [
-                        "@platforms//os:macos",
-                    ],
-                ),
+                "test": exec_group(toolchains = [_APPLE_BUNDLING_TOOLCHAIN_TYPE]),
             },
             apple_toolchain_utils.use_apple_exec_group_toolchain(),
         ),

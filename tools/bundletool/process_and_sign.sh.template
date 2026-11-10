@@ -7,6 +7,15 @@ set -eu
 #    are there to allow action logging to have some visibility into what the
 #    actions running the script is doing each time.
 
+# Make relative PATH entries absolute before changing directories.
+_abs_path=""
+IFS=':' read -r -a _path_entries <<< "$PATH"
+for _entry in "${_path_entries[@]}"; do
+  [[ "$_entry" == /* ]] || _entry="$PWD/$_entry"
+  _abs_path="${_abs_path:+$_abs_path:}$_entry"
+done
+export PATH="$_abs_path"
+
 # The path where the archive should be created, including the name of the
 # archive itself.
 readonly OUTPUT_PATH=%output_path%
