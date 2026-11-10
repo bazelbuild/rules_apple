@@ -561,6 +561,12 @@ if [[ -n "$screen_capture_format" ]]; then
   fi
 fi
 
+xctestrun_action_binary="%(xctestrun_action_binary)s"
+if [[ -n "$xctestrun_action_binary" ]]; then
+  echo "note: Using 'xcodebuild' because an xctestrun action was provided"
+  should_use_xcodebuild=true
+fi
+
 # Run a pre-action binary, if provided.
 pre_action_binary=%(pre_action_binary)s
 SIMULATOR_UDID="$simulator_id" \
@@ -611,6 +617,12 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     -e "s${sed_delim}BAZEL_PRODUCT_PATH${sed_delim}$xcrun_test_bundle_path${sed_delim}g" \
     "%(xctestrun_template)s" \
     > "$xctestrun_file"
+
+  if [[ -n "$xctestrun_action_binary" ]]; then
+    TEST_XCTESTRUN_FILE="$xctestrun_file" \
+      SIMULATOR_UDID="$simulator_id" \
+      "$xctestrun_action_binary"
+  fi
 
   if [[ -n "${DEBUG_XCTESTRUNNER:-}" ]]; then
     echo

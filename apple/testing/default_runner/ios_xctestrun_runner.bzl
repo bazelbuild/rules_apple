@@ -38,6 +38,7 @@ def _get_template_substitutions(
         screen_capture_format,
         sdk_version,
         xcodebuild_args,
+        xctestrun_action_binary,
         xctestrun_template,
         xctrunner_entitlements_template):
     substitutions = {
@@ -58,6 +59,7 @@ def _get_template_substitutions(
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xcodebuild_args": xcodebuild_args,
+        "xctestrun_action_binary": xctestrun_action_binary,
         "xctestrun_template": xctestrun_template,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
@@ -114,6 +116,11 @@ def _ios_xctestrun_runner_impl(ctx):
         pre_action_binary = ctx.executable.pre_action.short_path
         runfiles = runfiles.merge(ctx.attr.pre_action[DefaultInfo].default_runfiles)
 
+    xctestrun_action_binary = ""
+    if ctx.executable.xctestrun_action:
+        xctestrun_action_binary = ctx.executable.xctestrun_action.short_path
+        runfiles = runfiles.merge(ctx.attr.xctestrun_action[DefaultInfo].default_runfiles)
+
     post_action_determines_exit_code = False
     if ctx.executable.post_action:
         post_action_binary = ctx.executable.post_action.short_path
@@ -140,6 +147,7 @@ def _ios_xctestrun_runner_impl(ctx):
             screen_capture_format = ctx.attr.screen_capture_format,
             sdk_version = sdk_version,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
+            xctestrun_action_binary = xctestrun_action_binary,
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
@@ -300,6 +308,22 @@ into the XCTest invocation.
             doc = """
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "xctestrun_action": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A binary to configure the generated xctestrun file before test execution. Runs after
+`pre_action` and xctestrun generation, before `xcodebuild test-without-building`.
+The binary may modify the file in place, for example to set native performance
+baseline options. A nonzero exit code aborts the runner before test execution.
+
+Sets `$TEST_XCTESTRUN_FILE` to the absolute path of the generated file and
+`$SIMULATOR_UDID` to the selected simulator, in addition to the runner's environment.
+The file and any referenced temporary resources must remain available until testing
+finishes. Setting this attribute forces the `xcodebuild` execution path; it does
+not enable XCResult generation or change attachment retention.
 """,
         ),
         "_test_template": attr.label(

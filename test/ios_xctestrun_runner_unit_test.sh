@@ -813,6 +813,105 @@ function test_ios_unit_test_with_hooks_pass() {
   expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
 }
 
+# A generated-file action must run late enough to affect the actual XCTest run.
+function create_xctestrun_action_test() {
+  create_sim_runners
+  create_ios_unit_tests
+
+  cat > ios/xctestrun_action.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+[[ -n "$SIMULATOR_UDID" && "$SIMULATOR_UDID" != unused ]]
+[[ "$TEST_XCTESTRUN_FILE" = /* && -f "$TEST_XCTESTRUN_FILE" ]]
+/usr/libexec/PlistBuddy -c "Add :PassingUnitTestWithXctestrunAction:TestingEnvironmentVariables:XCTESTRUN_ACTION_VALUE string configured" "$TEST_XCTESTRUN_FILE"
+echo "XCTESTRUN-ACTION: configured generated file"
+EOF
+
+  cat > ios/failing_xctestrun_action.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+[[ -f "$TEST_XCTESTRUN_FILE" ]]
+echo "XCTESTRUN-ACTION: intentional failure"
+exit 42
+EOF
+
+  chmod +x ios/xctestrun_action.sh ios/failing_xctestrun_action.sh
+
+  cat > ios/xctestrun_action_test.m <<'EOF'
+#import <XCTest/XCTest.h>
+
+@interface XctestrunActionTest : XCTestCase
+@end
+
+@implementation XctestrunActionTest
+- (void)testConfiguredEnvironment {
+  XCTAssertEqualObjects([NSProcessInfo processInfo].environment[@"XCTESTRUN_ACTION_VALUE"], @"configured");
+}
+@end
+EOF
+
+  cat >> ios/BUILD <<EOF
+sh_binary(
+    name = "xctestrun_action",
+    srcs = ["xctestrun_action.sh"],
+)
+
+sh_binary(
+    name = "failing_xctestrun_action",
+    srcs = ["failing_xctestrun_action.sh"],
+)
+
+ios_xctestrun_runner(
+    name = "runner_with_xctestrun_action",
+    xctestrun_action = ":xctestrun_action",
+)
+
+ios_xctestrun_runner(
+    name = "runner_with_failing_xctestrun_action",
+    xctestrun_action = ":failing_xctestrun_action",
+)
+
+objc_library(
+    name = "xctestrun_action_test_lib",
+    srcs = ["xctestrun_action_test.m"],
+)
+
+ios_unit_test(
+    name = "PassingUnitTestWithXctestrunAction",
+    minimum_os_version = "${MIN_OS_IOS}",
+    deps = [":xctestrun_action_test_lib"],
+    runner = ":runner_with_xctestrun_action",
+)
+
+ios_unit_test(
+    name = "FailingXctestrunAction",
+    minimum_os_version = "${MIN_OS_IOS}",
+    deps = [":pass_unit_test_lib"],
+    env = test_env,
+    runner = ":runner_with_failing_xctestrun_action",
+)
+EOF
+}
+
+function test_ios_unit_test_with_xctestrun_action_pass() {
+  create_xctestrun_action_test
+  do_ios_test //ios:PassingUnitTestWithXctestrunAction || fail "should pass"
+
+  expect_log "Using 'xcodebuild' because an xctestrun action was provided"
+  expect_log "XCTESTRUN-ACTION: configured generated file"
+  expect_log "Test Suite 'XctestrunActionTest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_with_xctestrun_action_failure() {
+  create_xctestrun_action_test
+  ! do_ios_test //ios:FailingXctestrunAction || fail "should fail"
+
+  expect_log "XCTESTRUN-ACTION: intentional failure"
+  expect_not_log "Test Suite 'PassingUnitTest' started"
+  expect_not_log "Test Suite 'PassingUnitTest' passed"
+}
+
 function test_ios_unit_swift_test_pass() {
   create_sim_runners
   create_test_host_app
