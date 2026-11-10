@@ -327,8 +327,9 @@ def _bundle_dsym_files(
             platform_prerequisites = platform_prerequisites,
         )
         output_files.extend(generated_dsym_binaries)
+
         dsyms_command = (" && ".join([
-            "cp \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
+            "/bin/cp -c \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
                 dsym_path = dsym_binary.path,
                 dsym_bundle_name = dsym_output_filename,
             )
