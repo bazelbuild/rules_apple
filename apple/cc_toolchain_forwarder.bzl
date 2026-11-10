@@ -48,5 +48,6 @@ for the purposes of understanding what constraints the results of each Apple spl
 resolve to from the perspective of any bundling and binary rules that generate "fat" Apple binaries.
 """,
     # Anticipated "new" toolchain assignment.
-    toolchains = use_cc_toolchain(),
+    # Resolve on the same execution platform as the bundling rules.
+    toolchains = use_cc_toolchain() + ["//apple/internal:mac_tools_toolchain_type"],
 )

@@ -315,3 +315,15 @@ apple_resource_hint(
     name = "suppress_resources",
     action = apple_resource_hint_action.suppress,
 )
+
+# Xcode tool files that actions declare as inputs, for sandboxed and remote
+# execution with a toolchain that provides its own. Empty by default.
+label_flag(
+    name = "sdk_tool_files",
+    build_setting_default = ":_empty_sdk_tool_files",
+)
+
+filegroup(
+    name = "_empty_sdk_tool_files",
+    srcs = [],
+)
