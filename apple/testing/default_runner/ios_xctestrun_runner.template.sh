@@ -681,6 +681,15 @@ else
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
 
+# xcodebuild can exit successfully despite failures in class-level setUp or
+# tearDown. Check XCTest's summaries before passing the result to post-actions.
+# FB25514376
+if [[ "$test_exit_code" -eq 0 ]] && grep -Eq \
+  '^[[:space:]]*Executed [[:digit:]]+ tests?, with (.* )?[1-9][[:digit:]]* failures? ' "$testlog"; then
+  echo "error: XCTest reported failures despite a successful test runner exit" >&2
+  test_exit_code=1
+fi
+
 profdata="$test_tmp_dir/$simulator_id/Coverage.profdata"
 if [[ "$should_use_xcodebuild" == false ]]; then
   profdata="$test_tmp_dir/coverage.profdata"

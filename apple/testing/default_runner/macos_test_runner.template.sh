@@ -250,9 +250,7 @@ rm -rf "$result_bundle_path"
 test_exit_code=0
 readonly testlog="$TEST_TMP_DIR/test.log"
 
-# Run xcodebuild with the xctestrun file just created. If the test failed, this
-# command will return non-zero, which is enough to tell bazel that the test
-# failed.
+# Run xcodebuild with the xctestrun file just created.
 args=(
     -destination "platform=macOS,variant=macos,arch=$(uname -m)"
     -resultBundlePath "$result_bundle_path"
@@ -266,6 +264,15 @@ fi
 xcodebuild test-without-building "${args[@]}" \
     2>&1 | tee -i "$testlog" \
     || test_exit_code=$?
+
+# xcodebuild can exit successfully despite failures in class-level setUp or
+# tearDown. Check XCTest's summaries before passing the result to post-actions.
+# FB25514376
+if [[ "$test_exit_code" -eq 0 ]] && grep -Eq \
+  '^[[:space:]]*Executed [[:digit:]]+ tests?, with (.* )?[1-9][[:digit:]]* failures? ' "$testlog"; then
+  echo "error: XCTest reported failures despite a successful test runner exit" >&2
+  test_exit_code=1
+fi
 
 parallel_testing_enabled=false
 if grep -q "-parallel-testing-enabled YES" "$testlog"; then
