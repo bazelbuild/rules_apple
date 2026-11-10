@@ -12,6 +12,7 @@ load(
     "apple_precompiled_resource_bundle",
     "apple_resource_bundle",
     "apple_resource_group",
+    "apple_skills_bundle",
 )
 load(
     "//test/starlark_tests:common.bzl",
@@ -1610,5 +1611,11 @@ apple_resource_bundle(
         "//test/testdata/resources:unversioned_datamodel",
         "//test/testdata/resources:versioned_datamodel",
     ],
+    tags = common.fixture_tags,
+)
+
+apple_skills_bundle(
+    name = "skills_bundle",
+    skills = ["skills/flight-add/SKILL.md"],
     tags = common.fixture_tags,
 )

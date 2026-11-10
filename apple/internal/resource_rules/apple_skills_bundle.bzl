@@ -29,42 +29,6 @@ load(
 
 _BUNDLE_DIR = "Skills.skillsbundle"
 
-# Validates a SKILL.md against the App Skills requirements, then copies it to the output.
-_VALIDATE_AND_COPY = """\
-set -euo pipefail
-src="$1"; out="$2"; name="$3"
-if ! [[ "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]] || [[ "$name" == *--* ]] || (( ${#name} > 64 )); then
-  echo "error: invalid skill name '$name': use 1-64 lowercase letters, digits and single hyphens, not starting or ending with a hyphen." >&2
-  exit 1
-fi
-if [[ "$(sed -n 1p "$src")" != "---" ]]; then
-  echo "error: $src must start with a '---' delimited frontmatter block." >&2
-  exit 1
-fi
-end=$(awk 'NR>1 && /^---[[:space:]]*$/ {print NR; exit}' "$src")
-if [[ -z "$end" ]]; then
-  echo "error: $src has an unterminated frontmatter block." >&2
-  exit 1
-fi
-fm=$(sed -n "2,$((end-1))p" "$src")
-fm_name=$(printf '%s\\n' "$fm" | sed -n 's/^name:[[:space:]]*//p' | head -n1 | sed 's/[[:space:]]*$//')
-fm_desc=$(printf '%s\\n' "$fm" | sed -n 's/^description:[[:space:]]*//p' | head -n1 | sed 's/[[:space:]]*$//')
-if [[ "$fm_name" != "$name" ]]; then
-  echo "error: $src frontmatter name '$fm_name' must match its directory name '$name'." >&2
-  exit 1
-fi
-if [[ -z "$fm_desc" ]] || (( ${#fm_desc} > 1024 )); then
-  echo "error: $src frontmatter description must be non-empty, single line, and at most 1024 characters." >&2
-  exit 1
-fi
-body_len=$(sed -n "$((end+1)),\\$p" "$src" | wc -m | tr -d ' ')
-if (( body_len > 10000 )); then
-  echo "error: $src body is $body_len characters; the limit is 10000." >&2
-  exit 1
-fi
-cp "$src" "$out"
-"""
-
 def _apple_skills_bundle_impl(ctx):
     """Implementation of the apple_skills_bundle rule."""
     outputs = []
@@ -80,10 +44,10 @@ def _apple_skills_bundle_impl(ctx):
         out = ctx.actions.declare_file(
             "%s/%s/Skills/%s/SKILL.md" % (ctx.label.name, _BUNDLE_DIR, name),
         )
-        ctx.actions.run_shell(
+        ctx.actions.run(
+            executable = ctx.executable._validator,
             inputs = [src],
             outputs = [out],
-            command = _VALIDATE_AND_COPY,
             arguments = [src.path, out.path, name],
             mnemonic = "AppleSkillsBundle",
             progress_message = "Validating app skill %s" % name,
@@ -106,6 +70,11 @@ def _apple_skills_bundle_impl(ctx):
 apple_skills_bundle = rule(
     implementation = _apple_skills_bundle_impl,
     attrs = {
+        "_validator": attr.label(
+            cfg = "exec",
+            executable = True,
+            default = Label("//tools/skills_bundle_validator"),
+        ),
         "skills": attr.label_list(
             allow_empty = False,
             allow_files = [".md"],
