@@ -63,7 +63,7 @@ genrule(
   executable = True,
   outs = ["post_action.bash"],
   cmd = """
-echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET TEST_EXIT_CODE=\$\$TEST_EXIT_CODE"' > \$@
 """,
 )
 
@@ -84,7 +84,7 @@ genrule(
   executable = True,
   outs = ["post_action_soft_fail.bash"],
   cmd = """
-echo 'echo "POST-ACTION: Soft failing." && exit 0' > \$@
+echo 'echo "POST-ACTION: Soft failing. TEST_EXIT_CODE=\$\$TEST_EXIT_CODE" && exit 0' > \$@
 """,
 )
 
@@ -485,6 +485,50 @@ macos_unit_test(
 EOF
 }
 
+function create_macos_unit_class_failure_test() {
+  create_runners
+  local failing_method="$1"
+
+  cat > macos/class_failure_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface ClassFailureTest : XCTestCase
+@end
+
+@implementation ClassFailureTest
++ (void)${failing_method} {
+  [super ${failing_method}];
+  XCTFail(@"class ${failing_method} failed");
+}
+
+- (void)testPass {
+  XCTAssertEqual(1, 1);
+}
+@end
+EOF
+
+  cat >> macos/BUILD <<EOF
+objc_library(
+    name = "class_failure_test_lib",
+    srcs = ["class_failure_test.m"],
+)
+
+macos_unit_test(
+    name = "ClassFailureTest",
+    minimum_os_version = "${MIN_OS_MACOS}",
+    runner = ":macos_runner_with_hooks",
+    deps = [":class_failure_test_lib"],
+)
+
+macos_unit_test(
+    name = "SoftClassFailureTest",
+    minimum_os_version = "${MIN_OS_MACOS}",
+    runner = ":macos_runner_with_soft_fail",
+    deps = [":class_failure_test_lib"],
+)
+EOF
+}
+
 function do_macos_test() {
   do_test macos "--test_output=all" "--spawn_strategy=local" "$@"
 }
@@ -553,6 +597,34 @@ function test_macos_unit_test_fail() {
   expect_log "Test Suite 'FailingUnitTest' failed"
   expect_log "Test Suite 'FailingUnitTest.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
+}
+
+function test_macos_unit_test_class_setup_fail() {
+  create_macos_unit_class_failure_test setUp
+  ! do_macos_test //macos:ClassFailureTest || fail "should fail"
+
+  expect_log "class setUp failed"
+  expect_log "Test Case '-\[ClassFailureTest testPass\]' passed"
+  expect_log "Executed 1 test, with 1 failure (0 unexpected)"
+  expect_log "POST-ACTION: TEST_TARGET=//macos:ClassFailureTest TEST_EXIT_CODE=[1-9][0-9]*"
+}
+
+function test_macos_unit_test_class_teardown_fail() {
+  create_macos_unit_class_failure_test tearDown
+  ! do_macos_test //macos:ClassFailureTest || fail "should fail"
+
+  expect_log "class tearDown failed"
+  expect_log "Test Case '-\[ClassFailureTest testPass\]' passed"
+  expect_log "Executed 1 test, with 1 failure (0 unexpected)"
+  expect_log "POST-ACTION: TEST_TARGET=//macos:ClassFailureTest TEST_EXIT_CODE=[1-9][0-9]*"
+}
+
+function test_macos_unit_test_class_failure_soft_fail() {
+  create_macos_unit_class_failure_test setUp
+  do_macos_test //macos:SoftClassFailureTest || fail "should pass"
+
+  expect_log "class setUp failed"
+  expect_log "POST-ACTION: Soft failing. TEST_EXIT_CODE=[1-9][0-9]*"
 }
 
 function test_macos_unit_test_soft_fail() {

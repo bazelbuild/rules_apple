@@ -71,7 +71,7 @@ genrule(
   executable = True,
   outs = ["post_action.bash"],
   cmd = """
-echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET"' > \$@
+echo 'echo "POST-ACTION: TEST_TARGET=\$\$TEST_TARGET TEST_EXIT_CODE=\$\$TEST_EXIT_CODE"' > \$@
 """,
 )
 
@@ -85,7 +85,7 @@ genrule(
   executable = True,
   outs = ["post_action_soft_fail.bash"],
   cmd = """
-echo 'echo "POST-ACTION: Soft failing." && exit 0' > \$@
+echo 'echo "POST-ACTION: Soft failing. TEST_EXIT_CODE=\$\$TEST_EXIT_CODE" && exit 0' > \$@
 """,
 )
 
@@ -731,6 +731,61 @@ ios_unit_test(
 EOF
 }
 
+function create_ios_unit_class_failure_test() {
+  create_sim_runners
+  local failing_method="$1"
+
+  cat > ios/class_failure_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface ClassFailureTest : XCTestCase
+@end
+
+@implementation ClassFailureTest
++ (void)${failing_method} {
+  [super ${failing_method}];
+  XCTFail(@"class ${failing_method} failed");
+}
+
+- (void)testPass {
+  XCTAssertEqual(1, 1);
+}
+@end
+EOF
+
+  cat >> ios/BUILD <<EOF
+ios_xctestrun_runner(
+    name = "ios_class_failure_runner",
+    post_action = ":post_action",
+)
+
+ios_xctestrun_runner(
+    name = "ios_class_failure_runner_with_soft_fail",
+    post_action = ":post_action_soft_fail",
+    post_action_determines_exit_code = True,
+)
+
+objc_library(
+    name = "class_failure_test_lib",
+    srcs = ["class_failure_test.m"],
+)
+
+ios_unit_test(
+    name = "ClassFailureTest",
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_class_failure_runner",
+    deps = [":class_failure_test_lib"],
+)
+
+ios_unit_test(
+    name = "SoftClassFailureTest",
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_class_failure_runner_with_soft_fail",
+    deps = [":class_failure_test_lib"],
+)
+EOF
+}
+
 function do_ios_test() {
   do_test ios "--test_output=all" "--spawn_strategy=local" "$@"
 }
@@ -832,6 +887,34 @@ function test_ios_unit_test_fail() {
   expect_log "Test Suite 'FailingUnitTest' failed"
   expect_log "Test Suite 'FailingUnitTest.xctest' failed"
   expect_log "Executed 1 test, with 1 failure"
+}
+
+function test_ios_unit_test_class_setup_fail() {
+  create_ios_unit_class_failure_test setUp
+  ! do_ios_test --test_env=CREATE_XCRESULT_BUNDLE=1 //ios:ClassFailureTest || fail "should fail"
+
+  expect_log "class setUp failed"
+  expect_log "Test Case '-\[ClassFailureTest testPass\]' passed"
+  expect_log "Executed 1 test, with 1 failure (0 unexpected)"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:ClassFailureTest TEST_EXIT_CODE=[1-9][0-9]*"
+}
+
+function test_ios_unit_test_class_teardown_fail() {
+  create_ios_unit_class_failure_test tearDown
+  ! do_ios_test --test_env=CREATE_XCRESULT_BUNDLE=1 //ios:ClassFailureTest || fail "should fail"
+
+  expect_log "class tearDown failed"
+  expect_log "Test Case '-\[ClassFailureTest testPass\]' passed"
+  expect_log "Executed 1 test, with 1 failure (0 unexpected)"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:ClassFailureTest TEST_EXIT_CODE=[1-9][0-9]*"
+}
+
+function test_ios_unit_test_class_failure_soft_fail() {
+  create_ios_unit_class_failure_test setUp
+  do_ios_test --test_env=CREATE_XCRESULT_BUNDLE=1 //ios:SoftClassFailureTest || fail "should pass"
+
+  expect_log "class setUp failed"
+  expect_log "POST-ACTION: Soft failing. TEST_EXIT_CODE=[1-9][0-9]*"
 }
 
 function test_ios_unit_test_soft_fail() {
