@@ -332,7 +332,7 @@ def _all_paths_to_sign(targets_to_sign, directories_to_sign):
 
 
 def _filter_paths_already_signed(all_paths_to_sign, signed_paths,
-                                  codesign_path):
+                                codesign_path, skip_signed_path_verification=False):
   if set(signed_paths) - set(all_paths_to_sign):
     # TODO(b/151635856): Turn this condition into an error when clang_rt libs
     # for the sanitizers are properly scoped to only the *_application
@@ -341,14 +341,17 @@ def _filter_paths_already_signed(all_paths_to_sign, signed_paths,
           "not found: %s" % (set(signed_paths) - set(all_paths_to_sign)))
     print("Set of all paths to sign contains: %s" % all_paths_to_sign)
 
-  # Verify that each signed framework's signature is still valid. A
-  # post-processor (e.g. ipa_post_processor) may have modified the binary
+  # Unless verification is explicitly skipped, verify each signed framework's
+  # signature. A post-processor (e.g. ipa_post_processor) may modify the binary
   # after it was signed, invalidating the signature. Such frameworks need to
   # be re-signed with the correct identity instead of being skipped.
   # See: https://github.com/bazelbuild/rules_apple/issues/1953
   verified_signed_paths = set()
   for signed_path in signed_paths:
     if signed_path not in all_paths_to_sign:
+      continue
+    if skip_signed_path_verification:
+      verified_signed_paths.add(signed_path)
       continue
     result = subprocess.run(
         [codesign_path, "--verify", signed_path],
@@ -391,6 +394,11 @@ def add_parser_arguments(
   parser_or_argument_group.add_argument(
       "--signed_path", type=str, action="append", help="a path that has "
       "already been signed"
+  )
+  parser_or_argument_group.add_argument(
+      "--skip_signed_path_verification", action="store_true",
+      help="skip signature verification and re-signing for all --signed_path "
+      "entries; use only when post-processing leaves them unchanged"
   )
   parser_or_argument_group.add_argument(
       "--entitlements", type=str, help="file with entitlement data to forward "
@@ -451,9 +459,9 @@ def find_identity_and_sign_bundle_paths(args: argparse.Namespace) -> int:
     return 0
   signed_path = args.signed_path
   if signed_path:
-    all_paths_to_sign = _filter_paths_already_signed(all_paths_to_sign,
-                                                     signed_path,
-                                                     args.codesign)
+    all_paths_to_sign = _filter_paths_already_signed(
+        all_paths_to_sign, signed_path, args.codesign,
+        skip_signed_path_verification=args.skip_signed_path_verification)
 
   for path_to_sign in all_paths_to_sign:
     invoke_codesign(
