@@ -327,8 +327,16 @@ def _bundle_dsym_files(
             platform_prerequisites = platform_prerequisites,
         )
         output_files.extend(generated_dsym_binaries)
-        dsyms_command = (" && ".join([
-            "cp \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
+
+        # On Darwin, cp -c falls back to a regular copy when cloning is unavailable.
+        dsyms_command = ("""
+if [[ $OSTYPE == darwin* ]]; then
+    readonly flags='-c'
+else
+    readonly flags=''
+fi
+""" + " && ".join([
+            "cp $flags \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
                 dsym_path = dsym_binary.path,
                 dsym_bundle_name = dsym_output_filename,
             )
