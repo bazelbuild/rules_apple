@@ -464,6 +464,18 @@ def _codesigning_command(
                 use_entitlements = False,
             ),
         )
+
+    # Resource packs are siblings of the app and need independent signatures,
+    # without the application's entitlements.
+    if is_device and rule_descriptor.bundle_locations.archive_relative == "Payload":
+        paths_to_sign.append(
+            _path_to_sign(
+                path = paths.join("$WORK_DIR", "Payload", "OnDemandResources") + "/",
+                is_directory = True,
+                use_entitlements = False,
+            ),
+        )
+
     should_sign_sim_bundles = _should_sign_simulator_bundles(
         config_vars = platform_prerequisites.config_vars,
         features = platform_prerequisites.features,

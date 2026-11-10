@@ -37,3 +37,11 @@ if [[ -d "$CONTENT_ROOT/AppClips" ]]; then
     assert_is_codesigned "$clip"
   done
 fi
+
+# If it has any On-Demand Resources asset packs, assert that they are signed as well.
+if [[ -d "$ARCHIVE_ROOT/Payload/OnDemandResources" ]]; then
+  for asset_pack in \
+      $(find "$ARCHIVE_ROOT/Payload/OnDemandResources" -type d -maxdepth 1 -mindepth 1); do
+    assert_is_codesigned "$asset_pack"
+  done
+fi
