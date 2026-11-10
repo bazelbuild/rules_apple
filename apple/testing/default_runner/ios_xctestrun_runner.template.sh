@@ -18,6 +18,7 @@ if [[ -n "${CREATE_XCRESULT_BUNDLE:-}" ]]; then
 fi
 
 custom_xcodebuild_args=(%(xcodebuild_args)s)
+custom_xctest_args=%(xctest_args)s
 device_id=""
 command_line_args=(%(command_line_args)s)
 attachment_lifetime="%(attachment_lifetime)s"
@@ -29,6 +30,9 @@ while [[ $# -gt 0 ]]; do
     --xcodebuild_args=*)
       xcodebuild_arg="${arg#--xcodebuild_args=}" # Strip "--xcodebuild_args=" prefix
       custom_xcodebuild_args+=("$xcodebuild_arg")
+      ;;
+    --xctest_args=*)
+      custom_xctest_args+=("${arg#--xctest_args=}") # Strip "--xctest_args=" prefix
       ;;
     --destination=platform=iOS,id=*)
       device_id="${arg##*=}"
@@ -572,6 +576,10 @@ if [[ "$should_use_xcodebuild" == true ]]; then
     exit 1
   fi
 
+  if (( ${#custom_xctest_args[@]} )); then
+    echo "note: Ignoring 'xctest_args' because 'xcodebuild' is used to run the test bundle"
+  fi
+
   # Set xctest attachment liftime
   xctestrun_attachment_lifetime_section+="    <key>SystemAttachmentLifetime</key>\n"
   xctestrun_attachment_lifetime_section+="    <string>$attachment_lifetime</string>\n"
@@ -667,6 +675,19 @@ else
     xctest_binary=$sliced_xctest_binary
   fi
 
+  # Keep -XCTest All as the default: xctest needs an explicit selection to accept
+  # launch arguments.
+  has_xctest_selection=false
+  for arg in "${custom_xctest_args[@]:-}"; do
+    if [[ "$arg" == "-XCTest" ]]; then
+      has_xctest_selection=true
+      break
+    fi
+  done
+  if [[ "$has_xctest_selection" == false ]]; then
+    custom_xctest_args+=(-XCTest All)
+  fi
+
   SIMCTL_CHILD_DYLD_LIBRARY_PATH="$platform_developer_dir/usr/lib" \
     SIMCTL_CHILD_DYLD_FALLBACK_FRAMEWORK_PATH="$platform_developer_dir/Library/Frameworks" \
     SIMCTL_CHILD_DYLD_INSERT_LIBRARIES="$sanitizer_dyld_env" \
@@ -676,7 +697,7 @@ else
     spawn \
     "$simulator_id" \
     "$xctest_binary" \
-    -XCTest All \
+    "${custom_xctest_args[@]}" \
     "$test_tmp_dir/$test_bundle_name.xctest" \
     2>&1 | tee -i "$testlog" || test_exit_code=$?
 fi
