@@ -26,6 +26,27 @@
 
 set -eu
 
+# Resolve DEVELOPER_DIR via xcode-select if not already set.
+if [[ -z "${DEVELOPER_DIR:-}" ]]; then
+  DEVELOPER_DIR="$(xcode-select -p 2>/dev/null || true)"
+fi
+# A DEVELOPER_DIR in external/ is found in the runfiles.
+if [[ -n "${DEVELOPER_DIR:-}" && ! -d "${DEVELOPER_DIR}" ]]; then
+  runfiles_dir="${RUNFILES_DIR:-${0}.runfiles}"
+  runfiles_developer_dir="${runfiles_dir}/${DEVELOPER_DIR#external/}"
+  if [[ -d "${runfiles_developer_dir}" ]]; then
+    DEVELOPER_DIR="${runfiles_developer_dir}"
+  fi
+fi
+# Prefer the toolchain's tools.
+if [[ -n "${DEVELOPER_DIR:-}" ]]; then
+  export PATH="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+fi
+# macOS's PlistBuddy, after any on PATH.
+if [[ -d /usr/libexec ]]; then
+  export PATH="$PATH:/usr/libexec"
+fi
+
 while [[ $# > 1 ]]
 do
 key="$1"
@@ -47,7 +68,7 @@ shift
 done
 
 set +e
-PLATFORM_DIR=$(/usr/bin/xcrun --sdk "${PLATFORM}" --show-sdk-platform-path 2>/dev/null)
+PLATFORM_DIR=$(xcrun --sdk "${PLATFORM}" --show-sdk-platform-path 2>/dev/null)
 XCRUN_EXITCODE=$?
 set -e
 if [[ ${XCRUN_EXITCODE} -ne 0 ]] ; then
@@ -55,31 +76,30 @@ if [[ ${XCRUN_EXITCODE} -ne 0 ]] ; then
 and SDK version pair is not available."
   # Since this already failed, assume this is going to fail again. With
   # set -e, this will produce the appropriate stderr and error code.
-  /usr/bin/xcrun --sdk "${PLATFORM}" --show-sdk-platform-path 2>&1
+  xcrun --sdk "${PLATFORM}" --show-sdk-platform-path 2>&1
 fi
 
 PLATFORM_PLIST="${PLATFORM_DIR}"/Info.plist
+SDK_DIR=$(xcrun --sdk "${PLATFORM}" --show-sdk-path 2>/dev/null)
 TEMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/bazel_environment.XXXXXX")
 PLIST="${TEMPDIR}/env.plist"
 trap 'rm -rf "${TEMPDIR}"' ERR EXIT
 
-os_build=$(sw_vers -buildVersion)
-compiler=$(/usr/libexec/PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
-xcodebuild_version_sdk_output=$(/usr/bin/xcrun xcodebuild -version -sdk "${PLATFORM}" 2>/dev/null)
-xcodebuild_version_output=$(/usr/bin/xcrun xcodebuild -version 2>/dev/null)
-# Parses 'PlatformVersion N.N' into N.N.
-platform_version=$(echo "${xcodebuild_version_sdk_output}" | grep PlatformVersion | cut -d ' ' -f2)
-# Parses 'ProductBuildVersion NNNN' into NNNN.
-sdk_build=$(echo "${xcodebuild_version_sdk_output}" | grep ProductBuildVersion | cut -d ' ' -f2)
-platform_build=$"${sdk_build}"
-# Parses 'Build version NNNN' into NNNN.
-xcode_build=$(echo "${xcodebuild_version_output}" | grep Build | cut -d ' ' -f3)
-# Parses 'Xcode N.N' into N.N.
-xcode_version_string=$(echo "${xcodebuild_version_output}" | grep Xcode | cut -d ' ' -f2)
-# Converts '7.1' -> 0710, and '7.1.1' -> 0711.
-xcode_version=$(/usr/bin/printf '%02d%d%d\n' $(echo "${xcode_version_string//./ }"))
+os_build=$(sw_vers --buildVersion)
+compiler=$(PlistBuddy -c "Print :DefaultProperties:DEFAULT_COMPILER" "${PLATFORM_PLIST}")
 
-/usr/libexec/PlistBuddy \
+# Versions from the plists, so that xcodebuild isn't needed.
+platform_version=$(PlistBuddy -c "Print :Version" "${PLATFORM_PLIST}" 2>/dev/null || echo "")
+sdk_build=$(PlistBuddy -c "Print :ProductBuildVersion" "${SDK_DIR}/System/Library/CoreServices/SystemVersion.plist" 2>/dev/null || echo "")
+platform_build="${sdk_build}"
+
+XCODE_VERSION_PLIST="${DEVELOPER_DIR}/../version.plist"
+xcode_build=$(PlistBuddy -c "Print :ProductBuildVersion" "${XCODE_VERSION_PLIST}" 2>/dev/null || echo "")
+xcode_version_string=$(PlistBuddy -c "Print :CFBundleShortVersionString" "${XCODE_VERSION_PLIST}" 2>/dev/null || echo "")
+# Converts '7.1' -> 0710, and '7.1.1' -> 0711.
+xcode_version=$(printf '%02d%d%d\n' $(echo "${xcode_version_string//./ }"))
+
+PlistBuddy \
     -c "Add :DTPlatformBuild string ${platform_build:-""}" \
     -c "Add :DTSDKBuild string ${sdk_build:-""}" \
     -c "Add :DTPlatformVersion string ${platform_version:-""}" \

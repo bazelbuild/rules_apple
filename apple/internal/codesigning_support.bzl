@@ -126,7 +126,7 @@ def _codesign_args_for_path(
 
     cmd_codesigning = [
         "--codesign",
-        "/usr/bin/codesign",
+        "codesign",
     ]
 
     # Add quotes for sanitizing inputs when they're invoked directly from a shell script, for
