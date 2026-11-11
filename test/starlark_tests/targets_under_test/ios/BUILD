@@ -1590,6 +1590,66 @@ ios_application(
     ],
 )
 
+# Enables duplicate linked object validation on the application only. Its framework always provides
+# its linkmap, so the application is validated against it.
+ios_application(
+    name = "app_with_fmwk_duplicate_linked_objects_validation_only_on_app",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    features = ["apple.validate_duplicate_linked_objects"],
+    frameworks = [":fmwk"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+# Enables duplicate linked object validation on the test bundle only. Its test host doesn't validate,
+# so it doesn't provide its linkmap, which is an error.
+ios_unit_test(
+    name = "unit_test_validating_with_non_validating_host",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    features = ["apple.validate_duplicate_linked_objects"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+ios_unit_test(
+    name = "unit_test_with_app_with_fmwk_host",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
 ios_application(
     name = "app_with_two_fmwk_provisioned",
     bundle_id = "com.google.example",

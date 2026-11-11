@@ -662,7 +662,7 @@ def _ios_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _ios_app_clip_impl(ctx):
     """Implementation of ios_app_clip."""
@@ -1021,7 +1021,7 @@ def _ios_app_clip_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _ios_framework_impl(ctx):
     """Implementation of ios_framework."""
@@ -1296,7 +1296,7 @@ def _ios_framework_impl(ctx):
                 bundler_result.output_groups,
             )
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _ios_extension_impl(ctx):
     """Implementation of ios_extension."""

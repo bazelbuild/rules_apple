@@ -130,6 +130,10 @@ executable bundles.
         "derq": """\
 The files_to_run for a tool that DER-encodes entitlements.
 """,
+        "duplicate_linked_objects_tool": """\
+The files_to_run for a tool that checks the linkmaps of images loaded into the same process for
+object files linked into more than one of them, or `None` if the toolchain does not provide it.
+""",
         "feature_allowlists": """\
 A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
 from requesting or disabling features.
@@ -305,6 +309,9 @@ def _apple_xplat_tools_toolchain_impl(ctx):
         clangrttool = ctx.attr.clangrttool.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
         derq = ctx.attr.derq.files_to_run,
+        duplicate_linked_objects_tool = (
+            ctx.attr.duplicate_linked_objects_tool.files_to_run if ctx.attr.duplicate_linked_objects_tool else None
+        ),
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
         plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
@@ -363,6 +370,14 @@ A `File` referencing a tool that finds the set of Clang libraries needed for an 
             executable = True,
             doc = """
 A `File` referencing a tool that DER-encodes entitlements.
+""",
+        ),
+        "duplicate_linked_objects_tool": attr.label(
+            cfg = "exec",
+            executable = True,
+            doc = """
+A tool that checks the linkmaps of images loaded into the same process for object files linked into
+more than one of them. Required to use the `apple.validate_duplicate_linked_objects` feature.
 """,
         ),
         "feature_allowlists": attr.label_list(

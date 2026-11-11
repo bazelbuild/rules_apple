@@ -23,6 +23,10 @@ load(
     "analysis_failure_message_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -535,6 +539,35 @@ Please remove one of the two from your rule definition.
         name = "{}_app_intents_within_load_deferred_framework_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_load_deferred_framework_app_intents",
         expected_error = "An App Intents metadata bundle was found in the following framework that is not directly loaded by an app/extension:",
+        tags = [name],
+    )
+
+    # Without the feature, an application emits no linkmap and runs no validation (its frameworks
+    # still emit theirs).
+    analysis_target_actions_test(
+        name = "{}_duplicate_linked_objects_validation_disabled_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_with_fmwk",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # Frameworks emit a linkmap even without the feature, but don't validate.
+    analysis_target_actions_test(
+        name = "{}_duplicate_linked_objects_framework_always_emits_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_fmwk",
+        target_mnemonic = "ObjcLink",
+        expected_argv = ["fmwk_with_fmwk_duplicate_linked_objects.linkmap"],
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # A validating test bundle requires a linkmap from its test host, which an application only
+    # emits when it validates too.
+    analysis_failure_message_test(
+        name = "{}_duplicate_linked_objects_validation_requires_validating_test_host_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_validating_with_non_validating_host.__internal__.__test_bundle",
+        expected_error = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk is loaded into the same process as //test/starlark_tests/targets_under_test/ios:unit_test_validating_with_non_validating_host.__internal__.__test_bundle, but it did not provide linkmaps",
         tags = [name],
     )
 

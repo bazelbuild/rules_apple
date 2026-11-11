@@ -604,7 +604,7 @@ def _tvos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _tvos_framework_impl(ctx):
     """Implementation of tvos_framework."""
@@ -853,7 +853,7 @@ def _tvos_framework_impl(ctx):
         ),
         new_appleframeworkbundleinfo(),
         new_tvosframeworkbundleinfo(),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _tvos_extension_impl(ctx):
     """Implementation of tvos_extension."""

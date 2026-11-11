@@ -410,7 +410,7 @@ def _visionos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 visionos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,

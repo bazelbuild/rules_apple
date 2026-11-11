@@ -134,7 +134,7 @@ def _apple_binary_impl(ctx):
             ctx,
             dependency_attributes = ["deps"],
         ),
-    ]
+    ] + link_result.providers
 
     # If the binary was an executable, also propagate the appropriate provider
     # so that bundles can use it as their loader.

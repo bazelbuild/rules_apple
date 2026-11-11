@@ -128,6 +128,14 @@ bzl_library(
 )
 
 bzl_library(
+    name = "apple_linked_images_info",
+    srcs = ["apple_linked_images_info.bzl"],
+    visibility = [
+        "//apple/internal:__subpackages__",
+    ],
+)
+
+bzl_library(
     name = "swift_dylibs_info",
     srcs = ["swift_dylibs_info.bzl"],
     visibility = [

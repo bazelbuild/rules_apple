@@ -25,6 +25,10 @@ load(
 )
 load("@build_bazel_apple_support//xcode:providers.bzl", "XcodeVersionInfo")
 load(
+    "@build_bazel_rules_apple//apple/internal:apple_product_type.bzl",
+    "apple_product_type",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:compilation_support.bzl",
     "compilation_support",
 )
@@ -49,6 +53,10 @@ load(
     "AppleDynamicFrameworkInfo",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal/providers:apple_linked_images_info.bzl",
+    "AppleLinkedImagesInfo",
+)
+load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
 )
@@ -62,6 +70,20 @@ visibility([
 ])
 
 _DENIED_VERIFY_PLATFORM_VARIANTS_USERS = []
+
+# Feature that makes linked binaries emit linkmaps and validate that no object file is linked into
+# more than one of the images loaded into the same process; see
+# `_register_duplicate_linked_objects_validation`.
+_VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE = "apple.validate_duplicate_linked_objects"
+
+# Product types whose binaries always emit and propagate a linkmap, so that any binary that loads
+# them can validate duplicate linked objects without requiring a build-wide setting. These are
+# typically much smaller than application binaries, whose linkmaps are only emitted when the
+# application validates.
+_ALWAYS_EMIT_LINKMAP_PRODUCT_TYPES = [
+    apple_product_type.dylib,
+    apple_product_type.framework,
+]
 
 def _archive_multi_arch_static_library(
         *,
@@ -221,6 +243,7 @@ def _link_multi_arch_binary(
         extra_linkopts = [],
         extra_linkopts_by_os = {},
         extra_link_inputs = [],
+        generate_duplicate_linked_objects_linkmap = False,
         rule_descriptor,
         stamp = -1,
         variables_extension = {},
@@ -243,6 +266,9 @@ def _link_multi_arch_binary(
         extra_linkopts_by_os: A dictionary of OS to a list of strings: Extra linkopts to add to the
             linking action for a given OS.
         extra_link_inputs: A list of strings: Extra files to pass to the linker action.
+        generate_duplicate_linked_objects_linkmap: Whether to generate a linkmap for each
+            architecture for duplicate linked object validation, even if linkmaps were not
+            requested with `--objc_generate_linkmap`.
         rule_descriptor: The rule descriptor if one exists for the given rule. For convenience, This
             will define additional parameters required for linking, such as the dSYM bundle name. If
             `None`, these additional parameters will not be set on the linked binary.
@@ -364,6 +390,8 @@ def _link_multi_arch_binary(
             additional_outputs.append(dsym_output)
 
         linkmap = None
+        duplicate_linked_objects_linkmap = None
+        duplicate_linked_objects_linkopts = []
         if ctx.fragments.cpp.objc_generate_linkmap:
             linkmap = intermediates.file(
                 actions = ctx.actions,
@@ -373,13 +401,25 @@ def _link_multi_arch_binary(
             )
             extensions["linkmap_exec_path"] = linkmap.path  # linkmap file
             additional_outputs.append(linkmap)
+            duplicate_linked_objects_linkmap = linkmap
+        elif generate_duplicate_linked_objects_linkmap:
+            duplicate_linked_objects_linkmap = intermediates.file(
+                actions = ctx.actions,
+                target_name = ctx.label.name,
+                output_discriminator = cc_toolchain.target_gnu_system_name,
+                file_name = ctx.label.name + "_duplicate_linked_objects.linkmap",
+            )
+            duplicate_linked_objects_linkopts.append(
+                "-Wl,-map,{}".format(duplicate_linked_objects_linkmap.path),
+            )
+            additional_outputs.append(duplicate_linked_objects_linkmap)
 
         main_binary_basename = outputs.main_binary_basename(bundle_name)
 
         platform_extra_linkopts = extra_linkopts + extra_linkopts_by_os.get(
             platform_info.target_os,
             [],
-        )
+        ) + duplicate_linked_objects_linkopts
 
         executable = compilation_support.register_configuration_specific_link_actions(
             additional_outputs = additional_outputs,
@@ -404,6 +444,7 @@ def _link_multi_arch_binary(
             "dsym_output": dsym_output,
             "linking_context": merged_cc_linking_context,
             "linkmap": linkmap,
+            "duplicate_linked_objects_linkmap": duplicate_linked_objects_linkmap,
         }
 
         linker_outputs.append(struct(**output))
@@ -592,6 +633,9 @@ def _register_binary_linking_action(
             and environment that each was built for.
         *   `output_groups`: A `dict` containing output groups that should be returned in the
             `OutputGroupInfo` provider of the calling rule.
+        *   `providers`: A `list` of providers that should be returned by the calling rule, so that
+            targets that load the linked binary into their process (e.g. as a framework or bundle
+            loader) can validate it.
     """
     if verify_platform_variants:
         _validate_platform_variants(cc_toolchains = cc_toolchains, label = ctx.label)
@@ -654,6 +698,18 @@ def _register_binary_linking_action(
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
+    validate_duplicate_linked_objects = (
+        _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE in cc_configured_features.enabled_features
+    )
+
+    # Frameworks and dylibs always emit a linkmap and propagate it, since they can't know whether a
+    # binary that loads them validates. Other binaries (applications, extensions, test bundles)
+    # only emit one when they validate, which also makes a validating application usable as the
+    # bundle loader of a validating test bundle.
+    emit_linkmap = validate_duplicate_linked_objects or bool(
+        rule_descriptor and rule_descriptor.product_type in _ALWAYS_EMIT_LINKMAP_PRODUCT_TYPES,
+    )
+
     linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
         avoid_deps = all_avoid_deps,
@@ -663,10 +719,23 @@ def _register_binary_linking_action(
         extra_linkopts = linkopts,
         extra_linkopts_by_os = extra_linkopts_by_os,
         extra_link_inputs = link_inputs,
+        generate_duplicate_linked_objects_linkmap = emit_linkmap,
         rule_descriptor = rule_descriptor,
         stamp = stamp,
         xcframework_deps = xcframework_deps,
     )
+
+    output_groups = linking_outputs.output_groups
+    providers = []
+    if emit_linkmap:
+        validation = _register_duplicate_linked_objects_validation(
+            ctx = ctx,
+            link_outputs = linking_outputs.outputs,
+            loaded_image_targets = all_avoid_deps,
+            validate = validate_duplicate_linked_objects,
+        )
+        providers.append(validation.linked_images_info)
+        output_groups = outputs.merge_output_groups(output_groups, validation.output_groups)
 
     universal_binary = ctx.actions.declare_file("{}_lipobin".format(ctx.label.name))
 
@@ -683,7 +752,126 @@ def _register_binary_linking_action(
     return struct(
         binary = universal_binary,
         outputs = linking_outputs.outputs,
-        output_groups = linking_outputs.output_groups,
+        output_groups = output_groups,
+        providers = providers,
+    )
+
+def _image_validation_argument(linked_image):
+    return [
+        "--image",
+        linked_image.architecture,
+        linked_image.linkmap.path,
+        linked_image.image,
+    ]
+
+def _register_duplicate_linked_objects_validation(
+        *,
+        ctx,
+        link_outputs,
+        loaded_image_targets,
+        missing_linkmaps_hint = None,
+        validate):
+    """Propagates linkmaps and optionally validates that each object is linked into one image.
+
+    The binary that was just linked and every image that rules_apple knows will be loaded into the
+    same process (the dynamic frameworks it links against, transitively, and the bundle loader of a
+    bundle) are checked with their ld64 linkmaps. If an archive member or object file is linked into
+    more than one of these images, the validation action fails the build, since each image would
+    have its own copy of the object's classes, globals and static initializers.
+
+    Args:
+        ctx: The rule context.
+        link_outputs: The `outputs` of `_link_multi_arch_binary`, which must have been called with
+            `generate_duplicate_linked_objects_linkmap = True`.
+        loaded_image_targets: The `Target`s of the images loaded into the same process as the
+            binary, i.e. the avoided dependencies of the binary.
+        missing_linkmaps_hint: An optional string appended to the error reported when a loaded
+            image did not provide its linkmaps.
+        validate: Whether to register the validation action. If False, only the provider is
+            returned (e.g. for frameworks, which always propagate their linkmaps).
+
+    Returns:
+        A `struct` with the following fields:
+
+        *   `linked_images_info`: An `AppleLinkedImagesInfo` provider with the linkmaps of this
+            binary and of every image loaded into the same process, to be propagated by the rule.
+        *   `output_groups`: A `dict` with the `_validation` output group containing the output of
+            the validation action, or an empty `dict` if not validating or if there are no other
+            images to check.
+    """
+    label = str(ctx.label)
+    loaded_linkmaps = []
+    for target in loaded_image_targets:
+        if AppleLinkedImagesInfo in target:
+            loaded_linkmaps.append(target[AppleLinkedImagesInfo].linkmaps)
+        elif validate and (
+            AppleDynamicFrameworkInfo in target or AppleExecutableBinaryInfo in target
+        ):
+            fail("""
+ERROR: {target} is loaded into the same process as {label}, but it did not provide linkmaps for \
+duplicate linked object validation. Frameworks always provide them; an application used as a \
+bundle loader (test host) only provides them when it validates duplicate linked objects itself. \
+Enable the `{feature}` feature on {target} too{hint}.
+""".format(
+                feature = _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE,
+                hint = missing_linkmaps_hint or "",
+                label = label,
+                target = target.label,
+            ))
+
+    linked_images_info = AppleLinkedImagesInfo(
+        linkmaps = depset(
+            [
+                struct(
+                    architecture = link_output.architecture,
+                    image = label,
+                    linkmap = link_output.duplicate_linked_objects_linkmap,
+                )
+                for link_output in link_outputs
+            ],
+            transitive = loaded_linkmaps,
+        ),
+    )
+
+    if not validate or not loaded_linkmaps:
+        # Not validating, or nothing else is known to be loaded into this process.
+        return struct(linked_images_info = linked_images_info, output_groups = {})
+
+    apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
+    if not apple_xplat_toolchain_info.duplicate_linked_objects_tool:
+        fail(
+            "ERROR: The `{}` feature requires an Apple cross-platform tools toolchain that sets "
+                .format(_VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE) +
+            "`duplicate_linked_objects_tool`.",
+        )
+
+    validation_output = intermediates.file(
+        actions = ctx.actions,
+        target_name = ctx.label.name,
+        output_discriminator = None,
+        file_name = "duplicate_linked_objects_validation.txt",
+    )
+
+    linked_images = linked_images_info.linkmaps
+    args = ctx.actions.args()
+    args.add("--target", label)
+    args.add_all(linked_images, map_each = _image_validation_argument)
+    args.add("--output", validation_output)
+
+    ctx.actions.run(
+        executable = apple_xplat_toolchain_info.duplicate_linked_objects_tool,
+        arguments = [args],
+        inputs = [linked_image.linkmap for linked_image in linked_images.to_list()],
+        outputs = [validation_output],
+        exec_group = apple_toolchain_utils.get_xplat_exec_group(),
+        mnemonic = "AppleDuplicateLinkedObjectsValidation",
+        progress_message = "Validating that no object file is linked into more than one image " +
+                           "loaded with %{label}",
+    )
+
+    return struct(
+        linked_images_info = linked_images_info,
+        output_groups = {"_validation": depset([validation_output])},
     )
 
 def _register_static_library_archive_action(

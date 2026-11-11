@@ -1110,7 +1110,7 @@ def _watchos_framework_impl(ctx):
                 bundler_result.output_groups,
             )
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 watchos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,

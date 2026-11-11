@@ -597,7 +597,7 @@ def _macos_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _macos_bundle_impl(ctx):
     """Implementation of macos_bundle."""
@@ -1110,7 +1110,7 @@ def _macos_framework_impl(ctx):
                 bundler_result.output_groups,
             )
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _macos_extension_impl(ctx):
     """Implementation of macos_extension."""
@@ -1991,7 +1991,7 @@ def _macos_command_line_application_impl(ctx):
                 linking_contexts = linking_contexts,
             ),
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 def _macos_dylib_impl(ctx):
     """Implementation of the macos_dylib rule."""
@@ -2176,7 +2176,7 @@ def _macos_dylib_impl(ctx):
                 bundler_result.output_groups,
             )
         ),
-    ] + bundler_result.providers
+    ] + bundler_result.providers + link_result.providers
 
 macos_application = rule_factory.create_apple_rule(
     cfg = transition_support.apple_rule_transition,

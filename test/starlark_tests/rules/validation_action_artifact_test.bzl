@@ -118,6 +118,10 @@ validation_output_contents_test = rule(
             default = [],
             doc = "Strings expected NOT to be present in the validation file.",
         ),
+        "target_features": attr.string_list(
+            mandatory = False,
+            doc = "List of additional features to build the target under test with.",
+        ),
         "target_under_test": attr.label(
             cfg = apple_verification_transition,
             mandatory = True,
