@@ -29,6 +29,7 @@ def _get_template_substitutions(
         create_xcresult_bundle,
         destination_timeout,
         device_type,
+        disable_aggressive_symbolication,
         os_version,
         post_action_binary,
         post_action_determines_exit_code,
@@ -48,6 +49,7 @@ def _get_template_substitutions(
         "create_xcresult_bundle": create_xcresult_bundle,
         "destination_timeout": destination_timeout,
         "device_type": device_type,
+        "disable_aggressive_symbolication": disable_aggressive_symbolication,
         "os_version": os_version,
         "post_action_binary": post_action_binary,
         "post_action_determines_exit_code": post_action_determines_exit_code,
@@ -131,6 +133,7 @@ def _ios_xctestrun_runner_impl(ctx):
             create_xcresult_bundle = "true" if ctx.attr.create_xcresult_bundle else "false",
             destination_timeout = "" if ctx.attr.destination_timeout == 0 else str(ctx.attr.destination_timeout),
             device_type = device_type,
+            disable_aggressive_symbolication = "true" if ctx.attr.disable_aggressive_symbolication else "false",
             os_version = os_version,
             post_action_binary = post_action_binary,
             post_action_determines_exit_code = "true" if post_action_determines_exit_code else "false",
@@ -222,6 +225,18 @@ always use `xcodebuild test-without-building` to run the test bundle.
 The device type of the iOS simulator to run test. The supported types correspond
 to the output of `xcrun simctl list devicetypes`. E.g., iPhone X, iPad Air.
 By default, it reads from the `ios_simulator_device` build setting or falls back to some device.
+""",
+        ),
+        "disable_aggressive_symbolication": attr.bool(
+            default = False,
+            doc = """
+When true, sets the `XCTDisableAggressiveSymbolication` default on the
+simulator before tests run. XCTest then skips in-process symbolication when it
+records the first issue in a test process, which can take several seconds per
+process. Failure messages keep their file and line. The default is written with
+`xcrun simctl spawn`, so the simulator from `create_simulator_action` must be
+booted (the default action boots it). It persists on reused simulators. Has no
+effect when testing on a device.
 """,
         ),
         "export_covered_binaries": attr.bool(
