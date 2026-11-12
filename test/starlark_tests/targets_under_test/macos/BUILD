@@ -908,6 +908,31 @@ macos_command_line_application(
 )
 
 macos_command_line_application(
+    name = "cmd_app_retaining",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib_with_common_lib",
+    ],
+)
+
+macos_bundle(
+    name = "bundle_retaining_for_retaining_cmd_app",
+    bundle_id = "com.google.example",
+    bundle_loader = ":cmd_app_retaining",
+    infoplists = [
+        "//test/starlark_tests/resources:Info-nopackage.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+macos_command_line_application(
     name = "cmd_app_basic_swift",
     minimum_os_version = common.min_os_macos.min_deployment_target,
     tags = common.fixture_tags,

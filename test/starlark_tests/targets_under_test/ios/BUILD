@@ -4139,6 +4139,55 @@ ios_static_framework(
 )
 
 ios_static_framework(
+    name = "static_fmwk_retaining",
+    bundle_name = "StaticFmwkRetaining",
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = [":shared_alwayslink_lib_for_retention"],
+)
+
+objc_library(
+    name = "shared_alwayslink_lib_for_retention",
+    srcs = ["//test/starlark_tests/resources:common.m"],
+    hdrs = ["//test/starlark_tests/resources:common.h"],
+    tags = common.fixture_tags,
+    alwayslink = True,
+)
+
+ios_framework(
+    name = "fmwk_alwayslink_shared_for_retention",
+    bundle_id = "com.google.example.framework",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [":shared_alwayslink_lib_for_retention"],
+)
+
+ios_application(
+    name = "app_retaining_alwayslink_library",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_alwayslink_shared_for_retention"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_libraries = [
+        "//test/starlark_tests/targets_under_test/ios:shared_alwayslink_lib_for_retention",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        ":shared_alwayslink_lib_for_retention",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_static_framework(
     name = "static_fmwk_with_swift_and_avoid_deps",
     avoid_deps = [":SwiftFmwkLowerLib"],
     bundle_name = "SwiftFmwkUpperLib",
@@ -6377,5 +6426,287 @@ ios_application(
     deps = [
         "//test/starlark_tests/resources:objc_main_lib",
         "//test/starlark_tests/resources:similarly_named_bundles_import_lib",
+    ],
+)
+
+objc_library(
+    name = "shared_non_alwayslink_lib",
+    srcs = [
+        "//test/starlark_tests/resources:common.m",
+        "//test/starlark_tests/resources:shared.m",
+    ],
+    hdrs = [
+        "//test/starlark_tests/resources:common.h",
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    tags = common.fixture_tags,
+    alwayslink = False,
+)
+
+write_file(
+    name = "fmwk_referencing_shared_only_src",
+    out = "fmwk_referencing_shared_only.m",
+    content = [
+        "#import \"third_party/bazel_rules/rules_apple/test/starlark_tests/resources/shared.h\"",
+        "void fmwkEntryPoint() { anotherFunctionShared(); }",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "fmwk_referencing_shared_only_lib",
+    srcs = [":fmwk_referencing_shared_only_src"],
+    tags = common.fixture_tags,
+    deps = [":shared_non_alwayslink_lib"],
+)
+
+ios_framework(
+    name = "fmwk_non_alwayslink_shared",
+    bundle_id = "com.google.example.framework",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = ["-application_extension"],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [":fmwk_referencing_shared_only_lib"],
+)
+
+write_file(
+    name = "app_referencing_both_non_alwayslink_src",
+    out = "app_referencing_both_non_alwayslink.m",
+    content = [
+        "#import \"third_party/bazel_rules/rules_apple/test/starlark_tests/resources/common.h\"",
+        "#import \"third_party/bazel_rules/rules_apple/test/starlark_tests/resources/shared.h\"",
+        "int main() {",
+        "  anotherFunctionShared();",
+        "  ObjectiveCCommonClass *commonObj = [[ObjectiveCCommonClass alloc] init];",
+        "  [commonObj doSomethingCommon];",
+        "  return 0;",
+        "}",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "app_referencing_both_non_alwayslink_lib",
+    srcs = [":app_referencing_both_non_alwayslink_src"],
+    tags = common.fixture_tags,
+    deps = [":shared_non_alwayslink_lib"],
+)
+
+ios_application(
+    name = "app_with_fmwk_non_alwayslink_shared",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_library_suffixes = ["shared_non_alwayslink_lib.a"],
+    tags = common.fixture_tags,
+    deps = [":app_referencing_both_non_alwayslink_lib"],
+)
+
+ios_application(
+    name = "app_with_fmwk_non_alwayslink_shared_retained_by_label",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_libraries = ["//test/starlark_tests/targets_under_test/ios:shared_non_alwayslink_lib"],
+    tags = common.fixture_tags,
+    deps = [":app_referencing_both_non_alwayslink_lib"],
+)
+
+# A framework that links the same archive member as `fmwk_non_alwayslink_shared`, but only exports
+# `_fmwkEntryPoint`, so symbols from `shared_non_alwayslink_lib` are not visible to its clients.
+ios_framework(
+    name = "fmwk_non_alwayslink_shared_hidden",
+    bundle_id = "com.google.example.framework",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-application_extension",
+        "-exported_symbol",
+        "_fmwkEntryPoint",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [":fmwk_referencing_shared_only_lib"],
+)
+
+write_file(
+    name = "app_referencing_shared_only_non_alwayslink_src",
+    out = "app_referencing_shared_only_non_alwayslink.m",
+    content = [
+        "#import \"third_party/bazel_rules/rules_apple/test/starlark_tests/resources/shared.h\"",
+        "int main() {",
+        "  anotherFunctionShared();",
+        "  return 0;",
+        "}",
+    ],
+    tags = common.fixture_tags,
+)
+
+objc_library(
+    name = "app_referencing_shared_only_non_alwayslink_lib",
+    srcs = [":app_referencing_shared_only_non_alwayslink_src"],
+    tags = common.fixture_tags,
+    deps = [":shared_non_alwayslink_lib"],
+)
+
+# `-undefined dynamic_lookup` lets this application link when `shared_non_alwayslink_lib` is
+# subtracted (the default) even though the framework does not export `_anotherFunctionShared`, so
+# tests can observe whether a local copy was linked.
+ios_application(
+    name = "app_with_fmwk_non_alwayslink_shared_hidden",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared_hidden"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-undefined",
+        "dynamic_lookup",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    tags = common.fixture_tags,
+    deps = [":app_referencing_shared_only_non_alwayslink_lib"],
+)
+
+ios_application(
+    name = "app_with_fmwk_non_alwayslink_shared_hidden_not_matching",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared_hidden"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-undefined",
+        "dynamic_lookup",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = [":app_referencing_shared_only_non_alwayslink_lib"],
+)
+
+ios_application(
+    name = "app_retaining_without_frameworks",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_extension(
+    name = "ext_retaining_without_frameworks",
+    bundle_id = "com.google.example.ext",
+    entitlements = "//test/starlark_tests/resources:entitlements.plist",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
+    name = "app_retaining_apparent_repo_label",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared_hidden"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_libraries = ["@some_repo//pkg:lib"],
+    tags = common.fixture_tags,
+    deps = [":app_referencing_shared_only_non_alwayslink_lib"],
+)
+
+ios_application(
+    name = "app_with_fmwk_non_alwayslink_shared_hidden_retained",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    frameworks = [":fmwk_non_alwayslink_shared_hidden"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    linkopts = [
+        "-undefined",
+        "dynamic_lookup",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    retained_avoid_deps_library_suffixes = ["shared_non_alwayslink_lib.a"],
+    tags = common.fixture_tags,
+    deps = [":app_referencing_shared_only_non_alwayslink_lib"],
+)
+
+ios_unit_test(
+    name = "unit_test_retaining_with_retaining_host",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    retained_avoid_deps_library_suffixes = ["shared_non_alwayslink_lib.a"],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_fmwk_non_alwayslink_shared",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
+    ],
+)
+
+# The test host doesn't validate, so it provides no linkmap; the retaining test bundle skips it
+# (`_retention_unit_test_non_validating_host_skipped_test`).
+ios_unit_test(
+    name = "unit_test_retaining_with_non_validating_host",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    retained_avoid_deps_library_suffixes = ["shared_non_alwayslink_lib.a"],
+    runner = "//test/starlark_tests/targets_under_test/apple:dummy_test_runner",
+    tags = common.fixture_tags,
+    test_host = ":app_with_fmwk",
+    deps = [
+        "//test/starlark_tests/resources:objc_test_lib",
     ],
 )

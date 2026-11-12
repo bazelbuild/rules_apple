@@ -56,41 +56,129 @@ def _get_library_for_linking(library_to_link):
     else:
         return library_to_link.dynamic_library
 
-def _build_avoid_library_set(avoid_dep_linking_contexts):
-    avoid_library_set = dict()
+def _normalized_owner(file):
+    """Returns the label of a file's owner as `//package:name` or `@@repo//package:name`.
+
+    Returns None if the file has no owner.
+    """
+    owner = file.owner
+    if not owner:
+        return None
+    if owner.workspace_name:
+        return "@@{}//{}:{}".format(owner.workspace_name, owner.package, owner.name)
+    return "//{}:{}".format(owner.package, owner.name)
+
+def _is_retained_library(
+        library_to_link,
+        library_artifact,
+        retained_library_suffixes,
+        retained_library_owners):
+    """Returns whether an avoided static library is retained instead of subtracted."""
+    if library_to_link.alwayslink:
+        if retained_library_owners and _normalized_owner(library_artifact) in retained_library_owners:
+            # Fully linked into the avoided image, so retaining it would always duplicate it.
+            fail((
+                "ERROR: `retained_avoid_deps_libraries` lists {owner}, but its library {library} " +
+                "is `alwayslink = True`. Such libraries are fully linked into the dynamic " +
+                "framework or bundle loader that depends on them and are always subtracted; " +
+                "remove {owner} from `retained_avoid_deps_libraries`."
+            ).format(owner = _normalized_owner(library_artifact), library = library_artifact.short_path))
+        return False
+    for suffix in retained_library_suffixes:
+        if library_artifact.basename.endswith(suffix):
+            return True
+    return bool(retained_library_owners) and (
+        _normalized_owner(library_artifact) in retained_library_owners
+    )
+
+def _build_avoid_library_sets(
+        avoid_dep_linking_contexts,
+        *,
+        retained_library_owners = {},
+        retained_library_suffixes = []):
+    """Returns the short paths of the avoided static libraries, in one pass.
+
+    Returns:
+      A tuple `(subtracted, all_avoided)` of dicts keyed by short path: the avoided static
+      libraries that are subtracted, and all avoided static libraries (subtracted or retained).
+    """
+    subtracted_library_set = dict()
+    all_avoided_library_set = dict()
+    is_retaining = bool(retained_library_suffixes or retained_library_owners)
     for linking_context in avoid_dep_linking_contexts:
         for linker_input in linking_context.linker_inputs.to_list():
             for library_to_link in linker_input.libraries:
                 library_artifact = _get_static_library_for_linking(library_to_link)
-                if library_artifact:
-                    avoid_library_set[library_artifact.short_path] = True
-    return avoid_library_set
+                if not library_artifact:
+                    continue
+                all_avoided_library_set[library_artifact.short_path] = True
+                if is_retaining and _is_retained_library(
+                    library_to_link,
+                    library_artifact,
+                    retained_library_suffixes,
+                    retained_library_owners,
+                ):
+                    continue
+                subtracted_library_set[library_artifact.short_path] = True
+    return subtracted_library_set, all_avoided_library_set
 
-def _subtract_linking_contexts(owner, linking_contexts, avoid_dep_linking_contexts):
+def _subtract_linking_contexts(
+        owner,
+        linking_contexts,
+        avoid_dep_linking_contexts,
+        *,
+        retained_library_owners = {},
+        retained_library_suffixes = []):
     """Subtracts the libraries in avoid_dep_linking_contexts from linking_contexts.
 
     Args:
       owner: The label of the target currently being analyzed.
-      linking_contexts: An iterable of CcLinkingContext objects.
+      linking_contexts: An iterable of CcLinkingContext objects: the binary's own deps, and the
+        objects of `avoid_dep_linking_contexts` (which only contribute their dynamic libraries
+        and flags).
       avoid_dep_linking_contexts: An iterable of CcLinkingContext objects.
+      retained_library_owners: A dict whose keys are labels, in `//package:name` form for
+        the main repository, of targets owning avoided static libraries to retain.
+      retained_library_suffixes: A list of static library basename suffixes. Avoided
+        `alwayslink = False` static libraries whose basename ends with one of them, or
+        whose owner is in `retained_library_owners`, are not subtracted if the binary's own
+        deps link them, but placed after
+        the avoided dynamic libraries, so that archive members the avoided images did not
+        link can still satisfy references from the binary. All other avoided libraries are
+        subtracted. Both are empty by default.
 
     Returns:
       A CcLinkingContext object.
     """
     libraries = []
+    avoided_retained_libraries = []
     user_link_flags = []
     additional_inputs = []
     linkstamps = []
-    avoid_library_set = _build_avoid_library_set(avoid_dep_linking_contexts)
+    avoid_library_set, all_avoid_static_library_set = _build_avoid_library_sets(
+        avoid_dep_linking_contexts,
+        retained_library_owners = retained_library_owners,
+        retained_library_suffixes = retained_library_suffixes,
+    )
     for linking_context in linking_contexts:
+        # The linking contexts of the avoided images (frameworks, bundle loader) only contribute
+        # their dynamic libraries and flags. Retained static libraries are only taken from the
+        # binary's own deps: an avoided image's linking context can hold libraries the binary doesn't
+        # depend on, built for other architectures or in the image's configuration.
+        is_avoided_image_context = linking_context in avoid_dep_linking_contexts
         for linker_input in linking_context.linker_inputs.to_list():
             for library_to_link in linker_input.libraries:
                 library_artifact = _get_library_for_linking(library_to_link)
                 if library_artifact.short_path not in avoid_library_set:
-                    libraries.append(library_to_link)
+                    if library_artifact.short_path in all_avoid_static_library_set:
+                        if not is_avoided_image_context:
+                            avoided_retained_libraries.append(library_to_link)
+                    else:
+                        libraries.append(library_to_link)
             user_link_flags.extend(linker_input.user_link_flags)
             additional_inputs.extend(linker_input.additional_inputs)
             linkstamps.extend(linker_input.linkstamps)
+    libraries.extend(avoided_retained_libraries)
     linker_input = cc_common.create_linker_input(
         owner = owner,
         libraries = depset(libraries, order = "topological"),

@@ -85,6 +85,11 @@ _ALWAYS_EMIT_LINKMAP_PRODUCT_TYPES = [
     apple_product_type.framework,
 ]
 
+# Product types of `apple_binary` targets, which have no rule descriptor, by `binary_type`.
+_APPLE_BINARY_PRODUCT_TYPES = {
+    "dylib": apple_product_type.dylib,
+}
+
 def _archive_multi_arch_static_library(
         *,
         ctx,
@@ -110,6 +115,14 @@ def _archive_multi_arch_static_library(
                 - platform: Static library archive target Apple platform (e.g. 'ios', 'macos').
                 - environment: Static library archive environment (e.g. 'device', 'simulator').
     """
+
+    # Static frameworks don't link, so retention attributes (from `binary_linking_attrs`) would be
+    # silently ignored.
+    if _retained_avoid_deps(ctx).is_retaining:
+        fail((
+            "ERROR: `retained_avoid_deps_library_suffixes` / `retained_avoid_deps_libraries` are " +
+            "not supported on static frameworks ({label}), which don't link a binary."
+        ).format(label = ctx.label))
 
     split_deps = ctx.split_attr.deps
     split_avoid_deps = ctx.split_attr.avoid_deps
@@ -233,6 +246,58 @@ the given target environment {target_environment} and OS {target_os}.
 
     return xcframework_deps_for_current_platform
 
+def _normalize_label_string(label_string):
+    """Returns a label string in the form `compilation_support` uses for library owners.
+
+    Main repository labels become `//package:name`; external repository labels must use the
+    canonical repository name and become `@@repo//package:name`.
+    """
+    for prefix in ("@@//", "@//"):
+        if label_string.startswith(prefix):
+            label_string = label_string[len(prefix) - 2:]
+    if ":" not in label_string.partition("//")[2]:
+        label_string = "{}:{}".format(label_string, label_string.rpartition("/")[2])
+    return label_string
+
+def _retained_avoid_deps(ctx):
+    """Returns the avoided libraries a binary retains, from its retention attributes.
+
+    Args:
+        ctx: The rule context.
+
+    Returns:
+        A `struct` with the following fields:
+
+        *   `is_retaining`: Whether any avoided library may be retained.
+        *   `owners`: A `dict` whose keys are the normalized labels of the targets owning retained
+            static libraries.
+        *   `suffixes`: A `list` of basename suffixes of retained static libraries.
+    """
+    suffixes = list(getattr(ctx.attr, "retained_avoid_deps_library_suffixes", []))
+    owners = {}
+    for label_string in getattr(ctx.attr, "retained_avoid_deps_libraries", []):
+        if not label_string.startswith("//") and not label_string.startswith("@"):
+            fail((
+                "ERROR: `retained_avoid_deps_libraries` of {label} must contain absolute labels " +
+                "(e.g. `//package:target`), but got `{value}`."
+            ).format(label = ctx.label, value = label_string))
+
+        # Apparent repository names can't be mapped to the canonical names of library owners
+        # here, so they would silently never match.
+        if (label_string.startswith("@") and not label_string.startswith("@@") and
+            not label_string.startswith("@//")):
+            fail((
+                "ERROR: `retained_avoid_deps_libraries` of {label} must name targets in other " +
+                "repositories by their canonical repository name (e.g. `@@repo+//package:target`), " +
+                "but got `{value}`."
+            ).format(label = ctx.label, value = label_string))
+        owners[_normalize_label_string(label_string)] = True
+    return struct(
+        is_retaining = bool(suffixes or owners),
+        owners = owners,
+        suffixes = suffixes,
+    )
+
 def _link_multi_arch_binary(
         *,
         ctx,
@@ -325,6 +390,27 @@ def _link_multi_arch_binary(
 
     multi_arch_build = len(cc_toolchains) > 1
 
+    # Opt-in, per binary: keep the avoided `alwayslink = False` static libraries selected by the
+    # `retained_avoid_deps_library_suffixes` / `retained_avoid_deps_libraries` attributes on the
+    # link line (after the avoided dynamic libraries) instead of subtracting them, so that archive
+    # members the avoided images did not link can still satisfy references from this binary. This
+    # is meant for archives of many independent object files with only strong definitions, such
+    # as generated ObjC protos built without `alwayslink`. Every other avoided library is
+    # subtracted as usual.
+    #
+    # Retaining all `alwayslink = False` avoided libraries was considered and discarded: Apple ld
+    # treats a weak definition exported by a dylib as overridable, so it loads an archive member
+    # defining a symbol that an avoided framework only exports weakly ("strong override of a weak
+    # dylib export" with `-why_load`). C++ libraries define many weak symbols (template
+    # instantiations, inline functions, `ABSL_ATTRIBUTE_WEAK` hooks, tcmalloc's weak operator new
+    # variants), so retaining them links a second copy of their archive members.
+    #
+    # Retention can still link a second copy of a member whose symbols the avoided images link but
+    # do not export (e.g. hidden visibility or exported symbol lists), so it implies duplicate
+    # linked object validation (see `_register_binary_linking_action`), which fails the build
+    # instead of letting the duplicate go unnoticed.
+    retained_avoid_deps = _retained_avoid_deps(ctx)
+
     for split_transition_key, child_toolchain in cc_toolchains.items():
         cc_toolchain = child_toolchain[cc_common.CcToolchainInfo]
         deps = split_deps.get(split_transition_key, [])
@@ -361,6 +447,8 @@ def _link_multi_arch_binary(
             linking_contexts = split_linking_contexts,
             avoid_dep_linking_contexts = avoid_cc_linking_contexts +
                                          avoid_split_cc_linking_contexts,
+            retained_library_owners = retained_avoid_deps.owners,
+            retained_library_suffixes = retained_avoid_deps.suffixes,
         )
 
         additional_outputs = []
@@ -698,16 +786,38 @@ def _register_binary_linking_action(
         linkopts.extend(["-bundle_loader", bundle_loader_file.path])
         link_inputs.append(bundle_loader_file)
 
+    # Retaining non-alwayslink avoided libraries can link an object file into this binary that an
+    # avoided image also links, so it is only allowed together with the validation that catches it.
+    # Retention only changes the link of a binary that avoids images (dynamic frameworks or a bundle
+    # loader), so a retaining binary without them has nothing to validate.
+    is_retaining = _retained_avoid_deps(ctx).is_retaining
     validate_duplicate_linked_objects = (
-        _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE in cc_configured_features.enabled_features
+        _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE in cc_configured_features.enabled_features or
+        (is_retaining and bool(all_avoid_deps))
     )
+    if rule_descriptor:
+        product_type = rule_descriptor.product_type
+    else:
+        product_type = _APPLE_BINARY_PRODUCT_TYPES.get(getattr(ctx.attr, "binary_type", None))
+
+    # Libraries subtracted because of `xcframework_deps` (`apple_xcframework`'s `avoid_frameworks`)
+    # can't be validated: `apple_xcframework` doesn't run or propagate the validation.
+    if is_retaining and xcframework_deps:
+        fail((
+            "ERROR: `retained_avoid_deps_library_suffixes` / `retained_avoid_deps_libraries` are " +
+            "not supported on apple_xcframework targets with `avoid_frameworks` ({label}), since " +
+            "duplicate linked object validation can't run for them."
+        ).format(label = ctx.label))
 
     # Frameworks and dylibs always emit a linkmap and propagate it, since they can't know whether a
     # binary that loads them validates. Other binaries (applications, extensions, test bundles)
     # only emit one when they validate, which also makes a validating application usable as the
-    # bundle loader of a validating test bundle.
-    emit_linkmap = validate_duplicate_linked_objects or bool(
-        rule_descriptor and rule_descriptor.product_type in _ALWAYS_EMIT_LINKMAP_PRODUCT_TYPES,
+    # bundle loader of a validating test bundle. A bundle that validates only because it retains
+    # avoided libraries skips a bundle loader that doesn't validate, so objects duplicated between
+    # the two are only detected when the bundle loader validates too.
+    emit_linkmap = (
+        validate_duplicate_linked_objects or
+        product_type in _ALWAYS_EMIT_LINKMAP_PRODUCT_TYPES
     )
 
     linking_outputs = _link_multi_arch_binary(
@@ -732,6 +842,9 @@ def _register_binary_linking_action(
             ctx = ctx,
             link_outputs = linking_outputs.outputs,
             loaded_image_targets = all_avoid_deps,
+            require_bundle_loader_linkmaps = (
+                _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE in cc_configured_features.enabled_features
+            ),
             validate = validate_duplicate_linked_objects,
         )
         providers.append(validation.linked_images_info)
@@ -769,7 +882,7 @@ def _register_duplicate_linked_objects_validation(
         ctx,
         link_outputs,
         loaded_image_targets,
-        missing_linkmaps_hint = None,
+        require_bundle_loader_linkmaps = True,
         validate):
     """Propagates linkmaps and optionally validates that each object is linked into one image.
 
@@ -785,8 +898,9 @@ def _register_duplicate_linked_objects_validation(
             `generate_duplicate_linked_objects_linkmap = True`.
         loaded_image_targets: The `Target`s of the images loaded into the same process as the
             binary, i.e. the avoided dependencies of the binary.
-        missing_linkmaps_hint: An optional string appended to the error reported when a loaded
-            image did not provide its linkmaps.
+        require_bundle_loader_linkmaps: Whether a loaded bundle loader (test host) without linkmaps
+            fails the validation. If False, such a bundle loader is skipped, so objects duplicated
+            between it and this binary are not detected. Frameworks always provide linkmaps.
         validate: Whether to register the validation action. If False, only the provider is
             returned (e.g. for frameworks, which always propagate their linkmaps).
 
@@ -805,16 +919,16 @@ def _register_duplicate_linked_objects_validation(
         if AppleLinkedImagesInfo in target:
             loaded_linkmaps.append(target[AppleLinkedImagesInfo].linkmaps)
         elif validate and (
-            AppleDynamicFrameworkInfo in target or AppleExecutableBinaryInfo in target
+            AppleDynamicFrameworkInfo in target or
+            (require_bundle_loader_linkmaps and AppleExecutableBinaryInfo in target)
         ):
             fail("""
 ERROR: {target} is loaded into the same process as {label}, but it did not provide linkmaps for \
 duplicate linked object validation. Frameworks always provide them; an application used as a \
 bundle loader (test host) only provides them when it validates duplicate linked objects itself. \
-Enable the `{feature}` feature on {target} too{hint}.
+Enable the `{feature}` feature on {target} too.
 """.format(
                 feature = _VALIDATE_DUPLICATE_LINKED_OBJECTS_FEATURE,
-                hint = missing_linkmaps_hint or "",
                 label = label,
                 target = target.label,
             ))

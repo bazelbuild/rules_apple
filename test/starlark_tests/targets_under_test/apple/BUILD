@@ -1487,6 +1487,59 @@ apple_xcframework(
 )
 
 apple_xcframework(
+    name = "multiplatform_xcframework_retaining_with_avoid_frameworks",
+    avoid_frameworks = [":multiplatform_xcframework_to_avoid"],
+    bundle_id = "com.google.upperexample",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+        "tvos": common.min_os_tvos.min_deployment_target,
+        "visionos": common.min_os_visionos.min_deployment_target,
+        "watchos": common.min_os_watchos.min_deployment_target,
+    },
+    retained_avoid_deps_library_suffixes = ["_objc_protos.a"],
+    tags = common.fixture_tags,
+    tvos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": ["arm64"],
+    },
+    visionos = {
+        "simulator": [
+            "arm64",
+        ],
+        "device": [
+            "arm64",
+        ],
+    },
+    watchos = {
+        "simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "device": [
+            "arm64_32",
+            "arm64",
+        ],
+    },
+    deps = [
+        ":StaticFmwkUpperLib",
+        "//test/starlark_tests/resources:objc_lib_with_resource_group_referencing_resource_deps",
+    ],
+)
+
+apple_xcframework(
     name = "upper_multiplatform_xcframework_with_avoid_frameworks",
     avoid_frameworks = [":multiplatform_xcframework_with_avoid_frameworks"],
     bundle_id = "com.google.topmostexample",

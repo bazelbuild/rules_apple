@@ -178,6 +178,50 @@ See the man page documentation for `ld(1)` on macOS for more details.
 A list of strings representing extra flags that should be passed to the linker.
     """,
         ),
+        "retained_avoid_deps_libraries": attr.string_list(
+            doc = """
+A list of absolute labels (e.g. `//package:target`) of targets whose `alwayslink = False` static
+libraries are kept on this binary's link line, after the dynamic frameworks and bundle loader it
+links against, instead of being subtracted because those images also depend on them. A library is
+matched by the label of the target that created it (for libraries created by an aspect, the target
+the aspect was applied to). Labels are given as strings so that they don't add dependencies.
+Targets in other repositories must be named by their canonical repository name (e.g.
+`@@repo+//package:target`). Listing a target whose library is `alwayslink = True` is an error:
+such libraries are fully linked into the images that depend on them and always subtracted.
+
+Like `retained_avoid_deps_library_suffixes`, setting this enables duplicate linked object
+validation for this binary if it avoids images (dynamic frameworks or a bundle loader). Not
+supported on static frameworks or `apple_xcframework` targets with `avoid_frameworks`. Empty by
+default.
+""",
+        ),
+        "retained_avoid_deps_library_suffixes": attr.string_list(
+            doc = """
+A list of static library basename suffixes (e.g. `_objc_protos.a`). Avoided `alwayslink = False`
+static libraries whose basename ends with one of them are kept on this binary's link line, after
+the dynamic frameworks and bundle loader it links against, instead of being subtracted because
+those images also depend on them. Archive members that those images did not link (e.g. because
+they were dead-stripped) can then satisfy references from this binary.
+
+Only list libraries made of independent object files with strong definitions, such as generated
+ObjC protos: Apple ld loads an archive member that defines a symbol an avoided image only exports
+as a weak definition, so retaining C++ libraries duplicates their template instantiations, inline
+functions and weak hooks in this binary.
+
+Setting this (or `retained_avoid_deps_libraries`) enables duplicate linked object validation for
+this binary if it avoids images (dynamic frameworks or a bundle loader), which fails the build if a
+retained library member is also linked into an image loaded into the same process. A test host
+(bundle loader) is only checked if it validates itself (`apple.validate_duplicate_linked_objects`);
+otherwise objects duplicated between it (or its frameworks) and this binary are not detected. Not
+supported on static frameworks or `apple_xcframework` targets with `avoid_frameworks`. Empty by
+default.
+
+Retained proto code calls the protobuf runtime's C API (e.g. `GPBClearOneof`). If the runtime is
+only linked into a framework that restricts its exported symbols (`exported_symbols_lists`) or
+builds with hidden visibility, that framework must export `_GPB*`, otherwise this binary fails to
+link because those functions are hidden or dead-stripped from the framework.
+""",
+        ),
         "additional_linker_inputs": attr.label_list(
             allow_files = True,
             doc = """

@@ -219,6 +219,239 @@ def ios_framework_test_suite(name):
         tags = [name],
     )
 
+    # Tests that by default, an alwayslink = False library shared between a framework and an
+    # application is subtracted from the application's link entirely, as with any other avoided
+    # library. The framework only exports `_fmwkEntryPoint`, and the application is linked with
+    # `-undefined dynamic_lookup` so that the (expected) unresolved reference to
+    # `_anotherFunctionShared` doesn't fail the link and the absence of a local copy is observable.
+    archive_contents_test(
+        name = "{}_non_alwayslink_shared_lib_subtracted_by_default".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_non_alwayslink_shared_hidden",
+        binary_not_contains_symbols = [
+            "_anotherFunctionShared",
+            "_OBJC_CLASS_$_ObjectiveCSharedClass",
+            "_OBJC_CLASS_$_ObjectiveCCommonClass",
+        ],
+        tags = [name],
+    )
+
+    # A retaining binary without dynamic frameworks or a bundle loader has nothing to validate, and
+    # an application doesn't emit a linkmap for the test bundles it may host.
+    analysis_target_actions_test(
+        name = "{}_retention_without_frameworks_app_no_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_retaining_without_frameworks",
+        target_mnemonic = "ObjcLink",
+        not_expected_argv = ["app_retaining_without_frameworks_duplicate_linked_objects.linkmap"],
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # Other binaries, such as extensions, emit no linkmap either.
+    analysis_target_actions_test(
+        name = "{}_retention_without_frameworks_extension_no_linkmap_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_retaining_without_frameworks",
+        target_mnemonic = "ObjcLink",
+        not_expected_argv = ["ext_retaining_without_frameworks_duplicate_linked_objects.linkmap"],
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # External repository labels must use canonical repository names, which library owners use.
+    analysis_failure_message_test(
+        name = "{}_retention_apparent_repo_label_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_retaining_apparent_repo_label",
+        expected_error = "by their canonical repository name (e.g. `@@repo+//package:target`), but got `@some_repo//pkg:lib`",
+        tags = [name],
+    )
+
+    # A retaining loadable bundle skips its bundle loader (a command line tool) that doesn't
+    # validate, instead of failing analysis; with nothing else loaded, nothing is validated.
+    analysis_target_actions_test(
+        name = "{}_retention_command_line_tool_bundle_loader_skipped_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:bundle_retaining_for_retaining_cmd_app",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # Listing the owner of an `alwayslink = True` library in `retained_avoid_deps_libraries` fails.
+    analysis_failure_message_test(
+        name = "{}_retention_alwayslink_library_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_retaining_alwayslink_library",
+        expected_error = "is `alwayslink = True`. Such libraries are fully linked into the dynamic framework or bundle loader",
+        tags = [name],
+    )
+
+    # Static frameworks don't link, so retention attributes on them fail.
+    analysis_failure_message_test(
+        name = "{}_retention_static_framework_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:static_fmwk_retaining",
+        expected_error = "are not supported on static frameworks",
+        tags = [name],
+    )
+
+    # Retention on an apple_xcframework with `avoid_frameworks` can't be validated, so it fails.
+    analysis_failure_message_test(
+        name = "{}_retention_xcframework_avoid_frameworks_fails_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_xcframework_retaining_with_avoid_frameworks",
+        expected_error = "are not supported on apple_xcframework targets with `avoid_frameworks`",
+        tags = [name],
+    )
+
+    # An application with empty retention attributes emits no linkmap and runs no validation.
+    analysis_target_actions_test(
+        name = "{}_no_retention_attributes_no_validation_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
+    # Tests that when an alwayslink = False library with multiple object files is shared between a
+    # framework and an application that lists its basename suffix in
+    # `retained_avoid_deps_library_suffixes`, object files referenced by the framework are linked
+    # only into the framework (not duplicated in the application), while object files
+    # dead-stripped from the framework remain available to be linked into the application if
+    # referenced there. Without retention, the application would fail to link with an undefined
+    # `_OBJC_CLASS_$_ObjectiveCCommonClass`.
+    archive_contents_test(
+        name = "{}_non_alwayslink_shared_lib_symbols_in_framework".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/fmwk_non_alwayslink_shared.framework/fmwk_non_alwayslink_shared",
+        binary_contains_symbols = [
+            "_anotherFunctionShared",
+            "_OBJC_CLASS_$_ObjectiveCSharedClass",
+        ],
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_non_alwayslink_shared_lib_suffix_retained_in_application".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_non_alwayslink_shared",
+        binary_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCSharedClass"],
+        tags = [name],
+    )
+
+    # Same, selecting the library by label with `retained_avoid_deps_libraries`.
+    archive_contents_test(
+        name = "{}_non_alwayslink_shared_lib_label_retained_in_application".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_retained_by_label",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_non_alwayslink_shared_retained_by_label",
+        binary_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCCommonClass"],
+        binary_not_contains_symbols = ["_OBJC_CLASS_$_ObjectiveCSharedClass"],
+        tags = [name],
+    )
+
+    # An alwayslink = False library matching neither attribute (e.g. a C++ `cc_library`) is still
+    # subtracted, while the retention attributes still enable the validation.
+    archive_contents_test(
+        name = "{}_non_alwayslink_shared_lib_not_matching_subtracted".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden_not_matching",
+        binary_test_architecture = "arm64",
+        binary_test_file = "$BUNDLE_ROOT/app_with_fmwk_non_alwayslink_shared_hidden_not_matching",
+        binary_not_contains_symbols = [
+            "_anotherFunctionShared",
+            "_OBJC_CLASS_$_ObjectiveCSharedClass",
+            "_OBJC_CLASS_$_ObjectiveCCommonClass",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_retention_attributes_enable_validation_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden_not_matching",
+        target_mnemonic = "AppleDuplicateLinkedObjectsValidation",
+        expected_argv = [
+            "fmwk_non_alwayslink_shared_hidden_duplicate_linked_objects.linkmap //test/starlark_tests/targets_under_test/ios:fmwk_non_alwayslink_shared_hidden",
+            "app_with_fmwk_non_alwayslink_shared_hidden_not_matching_duplicate_linked_objects.linkmap //test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden_not_matching",
+        ],
+        tags = [name],
+    )
+
+    # Tests that the safe case above (the application only links archive members that the
+    # framework did not link) passes duplicate linked object validation, which retention implies.
+    validation_output_contents_test(
+        name = "{}_non_alwayslink_shared_lib_passes_duplicate_linked_objects_validation".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared",
+        validation_file_name = "app_with_fmwk_non_alwayslink_shared-intermediates/duplicate_linked_objects_validation.txt",
+        expected_contents = [
+            "No duplicate linked objects found for //test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared among 2 image(s)",
+        ],
+        tags = [name],
+    )
+
+    # The known hazard of retention: if the framework links an archive member but does not export
+    # its symbols (here via `-exported_symbol`; hidden visibility behaves the same way), the
+    # application cannot resolve its references against the framework dylib and links a second
+    # copy of that member from the retained archive (duplicate C/C++ globals, and "Class X is
+    # implemented in both" for ObjC at runtime). Without retention, this is a link error instead
+    # (masked here by `-undefined dynamic_lookup`; see
+    # `_non_alwayslink_shared_lib_subtracted_by_default`). Retention implies duplicate linked
+    # object validation, whose validation action fails the build of
+    # `app_with_fmwk_non_alwayslink_shared_hidden_retained` because of the second copy of
+    # `shared_non_alwayslink_lib`'s `shared.o`; this test checks that the validation is registered.
+    analysis_target_actions_test(
+        name = "{}_retention_hidden_symbols_validation_registered_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared_hidden_retained",
+        target_mnemonic = "AppleDuplicateLinkedObjectsValidation",
+        expected_argv = [
+            "fmwk_non_alwayslink_shared_hidden_duplicate_linked_objects.linkmap //test/starlark_tests/targets_under_test/ios:fmwk_non_alwayslink_shared_hidden",
+        ],
+        tags = [name],
+    )
+
+    # A retaining test bundle only retains libraries from its own deps: its test host's
+    # `shared_non_alwayslink_lib` (which the test doesn't depend on) isn't added to its link, for
+    # any architecture.
+    analysis_target_actions_test(
+        name = "{}_retention_unit_test_excludes_host_only_libraries_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_retaining_with_retaining_host.__internal__.__test_bundle",
+        target_mnemonic = "ObjcLink",
+        not_expected_inputs = [
+            "libshared_non_alwayslink_lib.a",
+            "_objs/shared_non_alwayslink_lib/arc/common.o",
+            "_objs/shared_non_alwayslink_lib/arc/shared.o",
+        ],
+        tags = [name],
+    )
+
+    # A retaining test bundle is validated against its test host when the host validates and so
+    # emits its linkmap: `app_with_fmwk_non_alwayslink_shared` retains and has `frameworks`.
+    analysis_target_actions_test(
+        name = "{}_retention_unit_test_validation_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_retaining_with_retaining_host.__internal__.__test_bundle",
+        target_mnemonic = "AppleDuplicateLinkedObjectsValidation",
+        expected_argv = [
+            "app_with_fmwk_non_alwayslink_shared_duplicate_linked_objects.linkmap //test/starlark_tests/targets_under_test/ios:app_with_fmwk_non_alwayslink_shared",
+            "fmwk_non_alwayslink_shared_duplicate_linked_objects.linkmap //test/starlark_tests/targets_under_test/ios:fmwk_non_alwayslink_shared",
+        ],
+        tags = [name],
+    )
+
+    # A retaining test bundle skips a test host that doesn't validate (documented gap: objects
+    # duplicated between the two are not detected) instead of failing analysis.
+    analysis_target_actions_test(
+        name = "{}_retention_unit_test_non_validating_host_skipped_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_retaining_with_non_validating_host.__internal__.__test_bundle",
+        target_mnemonic = "ObjcLink",
+        not_expected_mnemonic = ["AppleDuplicateLinkedObjectsValidation"],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_app_includes_transitive_framework_test".format(name),
         build_type = "simulator",

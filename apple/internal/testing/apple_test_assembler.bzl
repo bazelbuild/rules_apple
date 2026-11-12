@@ -36,6 +36,8 @@ _BUNDLE_ATTRS = {
         "provisioning_profile",
         "resources",
         "resource_locales",
+        "retained_avoid_deps_libraries",
+        "retained_avoid_deps_library_suffixes",
         "secure_features",
         "stamp",
     ]
