@@ -263,6 +263,20 @@ ios_unit_test(
 )
 ```
 
+### Portable DER entitlements encoding {#apple.portable_derq}
+
+Simulator binaries that define entitlements get a DER-encoded copy of them
+linked into a `__TEXT,__ents_der` section. By default the rules produce it
+with Xcode's `/usr/bin/derq`, which only runs on macOS, so the link of every
+such binary depends on a Mac executor even when the compile and link
+themselves run elsewhere. The `apple.portable_derq` feature switches that
+action to `//tools/derq`, a Python encoder of the TN3125 layout that is
+byte-compatible with derq and runs on any execution platform:
+
+```shell
+bazel build --features=apple.portable_derq //your/target
+```
+
 ### Codesigning performance
 
 For larger applications, codesigning the final binary might be a

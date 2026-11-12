@@ -382,9 +382,12 @@ def _generate_der_entitlements(
         actions,
         mac_exec_group,
         apple_fragment,
+        derq_tool,
         entitlements,
+        features,
         label_name,
-        xcode_version_config):
+        xcode_version_config,
+        xplat_exec_group):
     """Creates a DER formatted entitlements file given an existing entitlements plist.
 
     This converts an entitlements plist into a DER encoded representation identical to that of a
@@ -392,13 +395,20 @@ def _generate_der_entitlements(
 
     See Apple's TN3125 for more details on this representation of DER.
 
+    By default the conversion runs Xcode's `/usr/bin/derq` in the Mac execution group. With the
+    `apple.portable_derq` feature enabled it runs the xplat toolchain's `derq_tool` instead, a
+    byte-compatible encoder that does not need a macOS executor.
+
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_fragment: An Apple fragment (ctx.fragments.apple).
+      derq_tool: The xplat toolchain's portable DER encoder, as a `Target`.
       entitlements: The entitlements file to sign with.
+      features: List of features enabled by the user. Typically from `ctx.features`.
       label_name: The name of the target being built.
       mac_exec_group: The execution group for Mac tools.
       xcode_version_config: The `apple_common.XcodeVersionConfig` provider from the current context.
+      xplat_exec_group: The execution group for tools that can run on any platform.
 
     Returns:
       A `File` referencing the generated DER formatted entitlements.
@@ -407,19 +417,31 @@ def _generate_der_entitlements(
     der_entitlements = actions.declare_file(
         "entitlements/%s.der" % label_name,
     )
+    arguments = [
+        "query",
+        "-f",
+        "xml",
+        "-i",
+        entitlements.path,
+        "-o",
+        der_entitlements.path,
+        "--raw",
+    ]
+    if "apple.portable_derq" in features:
+        actions.run(
+            arguments = arguments,
+            exec_group = xplat_exec_group,
+            executable = derq_tool.files_to_run,
+            inputs = [entitlements],
+            mnemonic = "ProcessDEREntitlements",
+            outputs = [der_entitlements],
+        )
+        return der_entitlements
+
     apple_support.run(
         actions = actions,
         apple_fragment = apple_fragment,
-        arguments = [
-            "query",
-            "-f",
-            "xml",
-            "-i",
-            entitlements.path,
-            "-o",
-            der_entitlements.path,
-            "--raw",
-        ],
+        arguments = arguments,
         env = shared_environment.default_env,
         exec_group = mac_exec_group,
         executable = "/usr/bin/derq",
