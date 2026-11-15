@@ -277,5 +277,25 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       self.assertTrue(stat.S_ISLNK(current.external_attr >> 16))
       self.assertEqual(b"A", archive.read(current))
 
+  def test_zip_of_versioned_framework_has_fixed_symlink_timestamps(self):
+    framework_path = os.path.dirname(
+        self._scratch_file("Foo.framework/Versions/A/Foo", "framework-binary"))
+    framework_path = os.path.dirname(os.path.dirname(framework_path))
+    os.symlink("A", os.path.join(framework_path, "Versions", "Current"))
+    os.symlink("Versions/Current/Foo", os.path.join(framework_path, "Foo"))
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+
+    imported_dynamic_framework_processor._update_modified_timestamps(
+        framework_path)
+    imported_dynamic_framework_processor._zip_keeping_parent(
+        framework_path, output_zip)
+
+    with zipfile.ZipFile(output_zip) as archive:
+      expected = archive.getinfo("Foo.framework/Versions/A/Foo").date_time
+      for name in ("Foo.framework/Versions/Current", "Foo.framework/Foo"):
+        entry = archive.getinfo(name)
+        self.assertTrue(stat.S_ISLNK(entry.external_attr >> 16))
+        self.assertEqual(expected, entry.date_time, name)
+
 if __name__ == "__main__":
   unittest.main()

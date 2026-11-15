@@ -122,11 +122,11 @@ def _update_modified_timestamps(framework_temp_path: str) -> None:
     for root, dirs, files in os.walk(framework_temp_path, topdown=False):
       for file_name in dirs + files:
         file_path = os.path.join(root, file_name)
-        if os.path.islink(file_path):
-          # Skip symlinks, since those were created by this tool.
-          # It's safe to assume so because Bazel resolves symlinks.
-          continue
-        os.utime(file_path, (timestamp, timestamp))
+        # Symlinks were created by this tool (Bazel resolves input symlinks),
+        # so update the link itself rather than its target; otherwise the zip
+        # would record the time the link was created.
+        os.utime(file_path, (timestamp, timestamp),
+                 follow_symlinks=not os.path.islink(file_path))
     os.utime(framework_temp_path, (timestamp, timestamp))
 
 
