@@ -26,12 +26,6 @@ visibility([
 ])
 
 _ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY = []
-_ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE = []
-
-_ALLOWED_TARGET_NAMES_OF_POINTER_AUTHENTICATION_SECURE_FEATURE = set([
-    label.rpartition(":")[2]
-    for label in list(_ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE)
-])
 
 # The name of the secure feature that opts into Guard Objects on Xcode 27.0 or later by removing the
 # default "com.apple.security.hardened-process.no-guard-objects" opt-out entitlement.
@@ -153,11 +147,6 @@ def _crosstool_features_from_secure_features(*, features, name, secure_features)
         return features
 
     requested_secure_features = set(secure_features)
-    if (
-        "pointer_authentication" in requested_secure_features and
-        _is_allowed_target_name_for_pointer_authentication_secure_feature(name)
-    ):
-        requested_secure_features.remove("pointer_authentication")
 
     # Check that all of the requested secure features are supported.
     unsupported_secure_features = requested_secure_features - _SUPPORTED_SECURE_FEATURES
@@ -228,12 +217,6 @@ def _entitlements_from_secure_features(
     has_mandatory_xcode_26_opt_in = False
     requires_xcode_26_opt_in = False
     for feature_name in secure_features:
-        if (
-            feature_name == "pointer_authentication" and
-            _is_allowed_pointer_authentication_secure_feature(rule_label)
-        ):
-            requires_xcode_26_opt_in = True
-            continue
         if feature_name == _REQUIRED_XCODE_26_OPT_IN:
             has_mandatory_xcode_26_opt_in = True
         if feature_name not in _SECURE_FEATURES_WITHOUT_XCODE_26_OPT_IN_REQUIREMENT:
@@ -267,17 +250,6 @@ def _is_allowed_arm64e_without_enhanced_security(rule_label):
     label_str = "//{}:{}".format(rule_label.package, label_name)
     return label_str in _ALLOWED_USERS_OF_ARM64E_WITHOUT_ENHANCED_SECURITY
 
-def _is_allowed_pointer_authentication_secure_feature(rule_label):
-    label_name = rule_label.name.removesuffix(".__internal__.__test_bundle")
-    label_str = "//{}:{}".format(rule_label.package, label_name)
-    return label_str in _ALLOWED_USERS_OF_POINTER_AUTHENTICATION_SECURE_FEATURE
-
-def _is_allowed_target_name_for_pointer_authentication_secure_feature(name):
-    if not name:
-        return False
-    target_name = name.removesuffix(".__internal__.__test_bundle")
-    return target_name in _ALLOWED_TARGET_NAMES_OF_POINTER_AUTHENTICATION_SECURE_FEATURE
-
 def _is_arm64e_arch(target_arch):
     return target_arch == "arm64e" or target_arch.startswith("arm64e.")
 
@@ -287,12 +259,6 @@ def _validate_expected_secure_features(
         expected_secure_features,
         rule_label):
     declared_expected_secure_features = set(expected_secure_features)
-    if (
-        "pointer_authentication" in declared_expected_secure_features and
-        _is_allowed_pointer_authentication_secure_feature(rule_label)
-    ):
-        declared_expected_secure_features.remove("pointer_authentication")
-
     unsupported_expected_secure_features = (
         declared_expected_secure_features - _SUPPORTED_SECURE_FEATURES
     )
@@ -347,12 +313,6 @@ def _validate_secure_features_support(
         rule_label,
         secure_features):
     requested_secure_features = set(secure_features) if secure_features else set()
-    if (
-        "pointer_authentication" in requested_secure_features and
-        _is_allowed_pointer_authentication_secure_feature(rule_label)
-    ):
-        requested_secure_features.remove("pointer_authentication")
-
     unsupported_secure_features = requested_secure_features - _SUPPORTED_SECURE_FEATURES
     if unsupported_secure_features:
         fail("""
