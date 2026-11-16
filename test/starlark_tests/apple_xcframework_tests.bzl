@@ -1399,7 +1399,7 @@ Check the rule definition for each of the dependencies to ensure that they have 
     )
 
     archive_contents_test(
-        name = "{}_trivial_auto_var_init_without_xcode_26_opt_in_test".format(name),
+        name = "{}_trivial_auto_var_init_without_xcode_opt_in_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_lipoed_xcframework_with_trivial_auto_var_init",
         binary_test_file = "$BUNDLE_ROOT/ios-arm64/ios_dynamic_lipoed_xcframework_with_trivial_auto_var_init.framework/ios_dynamic_lipoed_xcframework_with_trivial_auto_var_init",

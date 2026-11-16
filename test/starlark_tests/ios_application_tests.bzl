@@ -1787,7 +1787,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
         ],
     )
     apple_verification_test(
-        name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
+        name = "{}_enhanced_security_features_xcode_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
@@ -1802,7 +1802,7 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
     # Tests that the rules report a user-actionable error when enhanced security features are
     # requested without the required Xcode 26 opt-in feature assigned to a target.
     analysis_failure_message_test(
-        name = "{}_enhanced_security_features_missing_xcode_26_opt_in_fail_test".format(name),
+        name = "{}_enhanced_security_features_missing_xcode_opt_in_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_without_required_opt_in",
         expected_error = """
 Apple enhanced security features were requested, but the build is missing the required feature \
@@ -1816,7 +1816,7 @@ Apple enhanced security features were requested, but the build is missing the re
     # Tests that trivial_auto_var_init does not trigger a requirement for apple.enable_enhanced_security,
     # and can be used in secure_features without causing errors.
     archive_contents_test(
-        name = "{}_trivial_auto_var_init_without_xcode_26_opt_in_test".format(name),
+        name = "{}_trivial_auto_var_init_without_xcode_opt_in_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_trivial_auto_var_init_app",
         contains = [
@@ -1879,7 +1879,7 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         ],
     )
     apple_verification_test(
-        name = "{}_pointer_authentication_xcode_26_entitlements_device_test".format(name),
+        name = "{}_pointer_authentication_xcode_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
@@ -1951,7 +1951,7 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         ],
     )
     apple_verification_test(
-        name = "{}_xcode_26_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
+        name = "{}_xcode_entitlements_extension_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_and_extension_with_fmwk",
         cpus = {
@@ -2059,7 +2059,7 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         ],
     )
     apple_verification_test(
-        name = "{}_xcode_26_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
+        name = "{}_xcode_entitlements_app_clip_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_app_clip_with_pointer_authentication",
         cpus = {
@@ -2118,7 +2118,7 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         ],
     )
     apple_verification_test(
-        name = "{}_xcode_26_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
+        name = "{}_xcode_entitlements_watch_app_with_pointer_authentication_arm64e_app_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_pointer_authentication_app_with_pointer_authentication_watchos_app",
         cpus = {

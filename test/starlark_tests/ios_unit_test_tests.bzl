@@ -291,7 +291,7 @@ def ios_unit_test_test_suite(name):
     )
 
     archive_contents_test(
-        name = "{}_trivial_auto_var_init_without_xcode_26_opt_in_test".format(name),
+        name = "{}_trivial_auto_var_init_without_xcode_opt_in_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_trivial_auto_var_init_unit_test",
         binary_test_file = "$BINARY",

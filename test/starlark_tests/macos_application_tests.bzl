@@ -77,15 +77,15 @@ load(
 
 visibility("private")
 
-def _xcode_26_4_version():
-    return apple_common.dotted_version("26.4")
+def _xcode_26_6_version():
+    return apple_common.dotted_version("26.6")
 
 def _xcode_27_0_version():
     return apple_common.dotted_version("27.0")
 
 def _secure_features_entitlements_unit_test_impl(ctx):
     env = unittest.begin(ctx)
-    xcode_26 = struct(xcode_version = _xcode_26_4_version)
+    xcode_26 = struct(xcode_version = _xcode_26_6_version)
     xcode_27 = struct(xcode_version = _xcode_27_0_version)
 
     asserts.equals(
@@ -292,31 +292,7 @@ def macos_application_test_suite(name):
         tags = [name],
     )
     apple_verification_test(
-        name = "{}_enhanced_security_features_xcode_26_entitlements_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
-        },
-        tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_enhanced_security_features_xcode_26_version_and_guard_objects_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.no-guard-objects"],
-            "ENTITLEMENTS_KEY": ["com.apple.security.hardened-process.enhanced-security-version-string"],
-            "ENTITLEMENT_VALUES": ["com.apple.security.hardened-process.enhanced-security-version-string=1"],
-        },
-        tags = [
-            name,
-        ],
-    )
-    apple_verification_test(
-        name = "{}_enhanced_security_features_xcode_27_entitlements_device_test".format(name),
+        name = "{}_enhanced_security_features_xcode_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
@@ -335,21 +311,7 @@ def macos_application_test_suite(name):
         ],
     )
     apple_verification_test(
-        name = "{}_enhanced_security_adopt_guard_objects_entitlements_device_test".format(name),
-        build_type = "device",
-        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_app",
-        verifier_script = "verifier_scripts/entitlements_verifier.sh",
-        env = {
-            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.security.hardened-process.no-guard-objects"],
-            "ENTITLEMENTS_KEY": [
-                "com.apple.security.hardened-process",
-                "com.apple.security.hardened-process.enhanced-security-version-string",
-            ],
-        },
-        tags = [name],
-    )
-    apple_verification_test(
-        name = "{}_enhanced_security_adopt_guard_objects_xcode_27_entitlements_device_test".format(name),
+        name = "{}_enhanced_security_adopt_guard_objects_xcode_entitlements_device_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_app",
         verifier_script = "verifier_scripts/entitlements_verifier.sh",
@@ -363,7 +325,7 @@ def macos_application_test_suite(name):
         ],
     )
     analysis_failure_message_test(
-        name = "{}_enhanced_security_adopt_guard_objects_missing_xcode_26_opt_in_fail_test".format(name),
+        name = "{}_enhanced_security_adopt_guard_objects_missing_xcode_opt_in_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_without_opt_in_app",
         expected_error = """
 Apple enhanced security features were requested, but the build is missing the required feature \
