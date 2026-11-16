@@ -28,5 +28,10 @@ void function_for_arch64() {
 #endif
 
 int main(int argc, char** argv) {
+#if defined(__x86_64__)
+  function_for_x86_64();
+#elif defined(__aarch64__)
+  function_for_arch64();
+#endif
   return 0;
 }
