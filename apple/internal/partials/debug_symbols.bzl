@@ -216,7 +216,7 @@ def _generate_dsym_info_plist(
         )
         plisttool_input_files.append(version_info.version_file)
 
-    dsym_bundle_id = "com.apple.xcode.dsym." + dsym_bundle_name
+    dsym_bundle_id = "com.apple.xcode.dsym." + paths.basename(dsym_bundle_name)
 
     dsym_plist = actions.declare_file(
         "%s/Contents/Info.plist" % dsym_bundle_name,
@@ -304,7 +304,7 @@ def _bundle_dsym_files(
       artifact representation of a .dSYM bundle with the binaries lipoed together as one binary.
     """
     dsym_bundle_name_with_extension = debug_output_filename + bundle_extension
-    if debug_output_filename != label_name.split(".__internal__.")[0]:
+    if debug_output_filename != label_name:
         dsym_bundle_name = paths.join(label_name + "_dsyms", dsym_bundle_name_with_extension + ".dSYM")
     else:
         dsym_bundle_name = dsym_bundle_name_with_extension + ".dSYM"
@@ -449,9 +449,12 @@ def _debug_symbols_partial_impl(
             direct_dsyms.extend(dsym_files)
 
         if linkmaps:
+            linkmap_output_filename = debug_output_filename
+            if bundle_name != rule_label.name:
+                linkmap_output_filename = paths.join(rule_label.name + "_linkmaps", debug_output_filename)
             linkmaps = _collect_linkmaps(
                 actions = actions,
-                debug_output_filename = debug_output_filename,
+                debug_output_filename = linkmap_output_filename,
                 linkmaps = linkmaps,
             )
             direct_linkmaps.extend(linkmaps)

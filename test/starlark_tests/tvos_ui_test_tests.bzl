@@ -60,16 +60,16 @@ def tvos_ui_test_test_suite(name):
         expected_outputs = [
             "app.app.dSYM/Contents/Info.plist",
             "app.app.dSYM/Contents/Resources/DWARF/app",
-            "ui_test.xctest.dSYM/Contents/Info.plist",
-            "ui_test.xctest.dSYM/Contents/Resources/DWARF/ui_test",
+            "ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest.dSYM/Contents/Info.plist",
+            "ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest.dSYM/Contents/Resources/DWARF/ui_test",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:ui_test",
-        expected_direct_dsyms = ["dSYMs/ui_test.xctest.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/ui_test.xctest.dSYM"],
+        expected_direct_dsyms = ["dSYMs/ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/ui_test.__internal__.__test_bundle_dsyms/ui_test.xctest.dSYM"],
         tags = [name],
     )
 
