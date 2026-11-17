@@ -27,6 +27,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
     "apple_codesigning_dossier_info_provider_test",
 )
@@ -377,6 +381,19 @@ def apple_xcframework_test_suite(name):
                 "Versions/Current/macos_dynamic_xcframework"
             ),
         },
+        tags = [name],
+    )
+    analysis_target_actions_test(
+        name = "{}_macos_patch_symlinks_deterministic_zip_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:macos_dynamic_xcframework",
+        target_mnemonic = "PatchMacOSFrameworkSymlinks",
+        expected_argv = [
+            "TZ=UTC find . -depth -exec touch -h -t 198001010000 {}",
+            "TZ=UTC find . | LC_ALL=C sort | zip -q -y -X \"$out_zip\"",
+        ],
+        not_expected_argv = [
+            "zip -q -y -X -r",
+        ],
         tags = [name],
     )
 

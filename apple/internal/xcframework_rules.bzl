@@ -1060,7 +1060,8 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
 
                     zip_cmds = [
                         "pushd \"$tmp_dir\" > /dev/null",
-                        "zip -q -y -X -r \"$out_zip\" .",
+                        "TZ=UTC find . -depth -exec touch -h -t 198001010000 {} \\+",
+                        "TZ=UTC find . | LC_ALL=C sort | zip -q -y -X \"$out_zip\" -@",
                         "popd > /dev/null",
                         "rm -rf \"$tmp_dir\"",
                     ]
