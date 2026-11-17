@@ -2419,6 +2419,33 @@ apple_static_framework_import(
     tags = common.fixture_tags,
 )
 
+filegroup(
+    name = "iOSSwiftStaticFramework_package_swiftinterfaces",
+    srcs = [":iOSSwiftStaticFramework_xcframework"],
+    output_group = "package_swiftinterfaces",
+    tags = common.fixture_tags,
+)
+
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFrameworkWithPackageSwiftinterface",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [
+        ":iOSSwiftStaticFramework",
+        ":iOSSwiftStaticFramework_package_swiftinterfaces",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_static_framework_import(
+    name = "iOSImportedSwiftStaticFrameworkWithMultiSlicePackageSwiftinterfaces",
+    features = ["-swift.layering_check_for_c_deps"],
+    framework_imports = [
+        ":iOSSwiftStaticFramework",
+        ":ios_swift_dynamic_xcframework_package_swiftinterfaces",
+    ],
+    tags = common.fixture_tags,
+)
+
 apple_static_framework_import(
     name = "iOSImportedSwiftStaticFrameworkWithoutModuleInterface",
     features = ["-swift.layering_check_for_c_deps"],
@@ -2439,6 +2466,7 @@ apple_static_xcframework(
         "simulator": [
             # buildifier: disable=platform-specific-binaries
             "arm64",
+            "x86_64",
         ],
     },
     minimum_os_versions = {
@@ -2459,6 +2487,8 @@ genrule(
         "iOSSwiftStaticFramework.framework/Info.plist",
         "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/arm64.swiftdoc",
         "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/arm64.swiftinterface",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftdoc",
+        "iOSSwiftStaticFramework.framework/Modules/iOSSwiftStaticFramework.swiftmodule/x86_64.swiftinterface",
         "iOSSwiftStaticFramework.framework/Modules/module.modulemap",
         "iOSSwiftStaticFramework.framework/iOSSwiftStaticFramework",
     ],
@@ -2797,6 +2827,23 @@ apple_dynamic_xcframework_import(
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":ios_swift_dynamic_xcframework"],
+)
+
+filegroup(
+    name = "ios_swift_dynamic_xcframework_package_swiftinterfaces",
+    srcs = ["//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header"],
+    output_group = "package_swiftinterfaces",
+    tags = common.fixture_tags,
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_swift_dynamic_xcframework_with_package_swiftinterface",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [
+        ":ios_swift_dynamic_xcframework",
+        ":ios_swift_dynamic_xcframework_package_swiftinterfaces",
+    ],
 )
 
 genrule(
@@ -3169,6 +3216,23 @@ apple_static_xcframework_import(
     features = ["-swift.layering_check_for_c_deps"],
     tags = common.fixture_tags,
     xcframework_imports = [":generated_swift_static_xcframework"],
+)
+
+filegroup(
+    name = "swift_static_xcframework_package_swiftinterfaces",
+    srcs = [":swift_static_xcframework"],
+    output_group = "package_swiftinterfaces",
+    tags = common.fixture_tags,
+)
+
+apple_static_xcframework_import(
+    name = "ios_imported_swift_static_xcframework_with_package_swiftinterface",
+    features = ["-swift.layering_check_for_c_deps"],
+    tags = common.fixture_tags,
+    xcframework_imports = [
+        ":generated_swift_static_xcframework",
+        ":swift_static_xcframework_package_swiftinterfaces",
+    ],
 )
 
 apple_static_xcframework(

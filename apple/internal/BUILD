@@ -661,7 +661,10 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
     ],
-    deps = [":intermediates"],
+    deps = [
+        ":intermediates",
+        "@bazel_skylib//lib:paths",
+    ],
 )
 
 bzl_library(

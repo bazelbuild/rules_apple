@@ -695,6 +695,26 @@ def apple_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64/ios_dynamic_lipoed_swift_xcframework.framework/Info.plist",
             "$BUNDLE_ROOT/Info.plist",
         ],
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/arm64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/arm64.private.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/x86_64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/x86_64.private.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/arm64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_lipoed_swift_xcframework.framework/Modules/ios_dynamic_lipoed_swift_xcframework.swiftmodule/arm64.private.swiftinterface",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_package_swiftinterfaces_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_3p_xcframework_with_generated_header",
+        output_group_name = "package_swiftinterfaces",
+        expected_outputs = [
+            "ios_swift_3p_xcframework_with_generated_header-intermediates/ios-arm64/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.package.swiftinterface",
+            "ios_swift_3p_xcframework_with_generated_header-intermediates/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/arm64.package.swiftinterface",
+            "ios_swift_3p_xcframework_with_generated_header-intermediates/ios-arm64_x86_64-simulator/Swift3PFmwkWithGenHeader.framework/Modules/Swift3PFmwkWithGenHeader.swiftmodule/x86_64.package.swiftinterface",
+        ],
         tags = [name],
     )
 

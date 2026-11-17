@@ -21,6 +21,10 @@ load(
     "analysis_failure_message_with_tree_artifact_outputs_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "make_analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -30,6 +34,14 @@ load(
 )
 
 visibility("private")
+
+analysis_ios_sim_target_actions_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:apple_platform_type": "ios",
+        "//command_line_option:cpu": "ios_sim_arm64",
+        "//command_line_option:platforms": ["//buildenv/platforms/apple/simulator:ios_arm64"],
+    },
+)
 
 def apple_static_xcframework_import_test_suite(name):
     """Test suite for apple_static_xcframework_import.
@@ -127,6 +139,21 @@ Make sure that the precompiled XCFramework has included a root Info.plist declar
             "_OBJC_CLASS_$__TtC34generated_swift_static_xcframework11SharedClass",
         ],
         not_contains = ["$BUNDLE_ROOT/Frameworks/libswiftCore.dylib"],
+        tags = [name],
+    )
+
+    analysis_ios_sim_target_actions_test(
+        name = "{}_compiles_public_swiftinterface_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_static_xcframework",
+        target_mnemonic = "SwiftCompileModuleInterface",
+        expected_argv = ["arm64.swiftinterface"],
+        tags = [name],
+    )
+    analysis_ios_sim_target_actions_test(
+        name = "{}_prefers_package_swiftinterface_when_imported_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ios_imported_swift_static_xcframework_with_package_swiftinterface",
+        target_mnemonic = "SwiftCompileModuleInterface",
+        expected_argv = ["arm64.package.swiftinterface"],
         tags = [name],
     )
 

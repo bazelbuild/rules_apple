@@ -61,6 +61,7 @@ issue with a reproducible error case.
         avoid_swift_infos = avoid_swift_infos,
     )
     bundle_files = []
+    package_swiftinterfaces = []
     expected_module_name = bundle_name
     found_generated_header = None
     found_module_name = None
@@ -97,6 +98,18 @@ issue with a reproducible error case.
             swiftinterface = swift_module.swift.swiftinterface,
         )
         bundle_files.append((location_enum.bundle, modules_parent, depset([bundle_interface])))
+
+        if getattr(swift_module.swift, "package_swiftinterface", None):
+            package_interface = swift_info_support.declare_package_swiftinterface(
+                actions = actions,
+                arch = arch,
+                bundle_name = expected_module_name,
+                framework_modulemap = framework_modulemap,
+                label_name = label_name,
+                output_discriminator = output_discriminator,
+                package_swiftinterface = swift_module.swift.package_swiftinterface,
+            )
+            package_swiftinterfaces.append(package_interface)
 
         bundle_doc = swift_info_support.declare_swiftdoc(
             actions = actions,
@@ -193,7 +206,14 @@ issue with a reproducible error case.
 
         bundle_files.append((location_enum.bundle, "Modules", depset([modulemap_file])))
 
-    return struct(bundle_files = bundle_files)
+    output_groups = {}
+    if package_swiftinterfaces:
+        output_groups["package_swiftinterfaces"] = depset(package_swiftinterfaces)
+
+    return struct(
+        bundle_files = bundle_files,
+        output_groups = output_groups,
+    )
 
 def swift_framework_bundling_task(
         *,

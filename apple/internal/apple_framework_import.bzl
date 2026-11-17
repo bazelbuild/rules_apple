@@ -183,6 +183,7 @@ There should only be one valid framework binary, given a name that matches its f
         # Create SwiftInfo provider
         swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
+            package_swift_module_files = framework.package_swift_interface_imports,
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
         )
@@ -323,6 +324,7 @@ There should only be one valid framework binary, given a name that matches its f
         # Create SwiftInfo provider
         swift_toolchains = swift_common.find_all_toolchains(ctx)
         swiftinterface_files = framework_import_support.get_swift_module_files_with_target_triplet(
+            package_swift_module_files = framework.package_swift_interface_imports,
             swift_module_files = framework.swift_interface_imports,
             target_triplet = target_triplet,
         )

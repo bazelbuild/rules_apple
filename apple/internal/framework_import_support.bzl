@@ -142,13 +142,16 @@ def _classify_file_imports(import_files):
         A struct containing classified import files by categories:
             - header_imports: Objective-C(++) header imports.
             - module_map_imports: Clang modulemap imports.
-            - swift_interface_imports: Swift module interface imports.
+            - package_swift_interface_imports: Swift package module interface imports
+                (`.package.swiftinterface`).
+            - swift_interface_imports: Swift module interface imports (`.swiftinterface`).
             - bundling_imports: Unclassified imports.
     """
     bundling_imports = []
     binary_imports = []
     header_imports = []
     module_map_imports = []
+    package_swift_interface_imports = []
     swift_interface_imports = []
     for file in import_files:
         # Extension matching
@@ -160,7 +163,10 @@ def _classify_file_imports(import_files):
             module_map_imports.append(file)
             continue
         if file_extension == "swiftinterface":
-            swift_interface_imports.append(file)
+            if file.basename.endswith(".package.swiftinterface"):
+                package_swift_interface_imports.append(file)
+            elif not file.basename.endswith(".private.swiftinterface"):
+                swift_interface_imports.append(file)
             continue
         if file_extension in ["swiftdoc", "swiftmodule"]:
             # Ignore swiftdoc files, they don't matter in the build, only for IDEs.
@@ -182,6 +188,7 @@ def _classify_file_imports(import_files):
         binary_imports = binary_imports,
         header_imports = header_imports,
         module_map_imports = module_map_imports,
+        package_swift_interface_imports = package_swift_interface_imports,
         swift_interface_imports = swift_interface_imports,
         bundling_imports = bundling_imports,
     )
@@ -198,8 +205,11 @@ def _classify_framework_imports(*, framework_imports):
             - bundling_imports: Apple framework bundle imports.
             - header_imports: Apple framework header imports.
             - module_map_imports: Apple framework modulemap imports.
+            - package_swift_interface_imports: Apple framework Swift package module interface
+                imports (`.package.swiftinterface`).
             - root_info_plists: Apple framework root Info.plist imports, if any.
-            - swift_interface_imports: Apple framework Swift module interface imports.
+            - swift_interface_imports: Apple framework Swift module interface imports
+                (`.swiftinterface`).
     """
     framework_imports_by_category = _classify_file_imports(framework_imports)
 
@@ -263,6 +273,9 @@ A framework import target may only include files for a single '.framework' bundl
         bundling_imports = bundling_imports,
         header_imports = framework_imports_by_category.header_imports,
         module_map_imports = framework_imports_by_category.module_map_imports,
+        package_swift_interface_imports = (
+            framework_imports_by_category.package_swift_interface_imports
+        ),
         root_info_plists = root_info_plists,
         swift_interface_imports = framework_imports_by_category.swift_interface_imports,
     )
@@ -388,16 +401,24 @@ def _framework_import_info_with_dependencies(
         ),
     )
 
-def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_files):
+def _get_swift_module_files_with_target_triplet(
+        target_triplet,
+        swift_module_files,
+        package_swift_module_files = []):
     """Filters Swift module files for a target triplet.
 
     Traverses a list of Swift module files (.swiftdoc, .swiftinterface, .swiftmodule) and selects
-    the effective files based on target triplet. This method supports filtering for multiple
-    Swift module directories (e.g. XCFramework bundles).
+    the effective files based on target triplet. When `.package.swiftinterface` files are also
+    provided (for example, from the `package_swiftinterfaces` output group of a framework or
+    XCFramework target), they are preferred over the public `.swiftinterface` files for the same
+    module. This method supports filtering for multiple Swift module directories (e.g. XCFramework
+    bundles).
 
     Args:
         target_triplet: Effective target triplet from CcToolchainInfo provider.
-        swift_module_files: List of Swift module files to filter using target triplet.
+        swift_module_files: List of public Swift module files to filter using target triplet.
+        package_swift_module_files: Optional list of `.package.swiftinterface` files to prefer over
+            public `.swiftinterface` files when present for a module.
     Returns:
         List of Swift module files for given target_triplet.
     """
@@ -407,27 +428,87 @@ def _get_swift_module_files_with_target_triplet(target_triplet, swift_module_fil
         attr = "swift_module_files",
     )
 
+    # `.package.swiftinterface` files from the `package_swiftinterfaces` output group live under
+    # `_intermediates/` rather than inside the `.framework` / `.xcframework` bundle directory, so
+    # index them by their `<Module>.swiftmodule` directory basename to match them with the
+    # corresponding module from `swift_module_files`.
+    package_files_by_module_name = {}
+    if package_swift_module_files:
+        package_files_by_module_dir = group_files_by_directory(
+            files = package_swift_module_files,
+            extensions = ["swiftmodule"],
+            attr = "package_swift_module_files",
+        )
+        for module_dir, module_files in package_files_by_module_dir.items():
+            module_name = paths.basename(module_dir)
+            existing_files = package_files_by_module_name.setdefault(module_name, [])
+            existing_basenames = {f.basename: f for f in existing_files}
+            for module_file in module_files.to_list():
+                if module_file.basename in existing_basenames:
+                    fail(
+                        """
+Found conflicting '{basename}' files in '{module_name}' across multiple directories ({first_path} \
+and {second_path}). When importing an XCFramework with multiple platform or environment slices, \
+use 'apple_dynamic_xcframework_import' or 'apple_static_xcframework_import' so that slices are \
+filtered by library identifier.
+""".format(
+                            basename = module_file.basename,
+                            first_path = existing_basenames[module_file.basename].short_path,
+                            module_name = module_name,
+                            second_path = module_file.short_path,
+                        ),
+                        attr = "package_swift_module_files",
+                    )
+                existing_files.append(module_file)
+
     filtered_files = []
-    for _module, module_files in files_by_module.items():
+    for module_dir, module_files in files_by_module.items():
         # Environment suffix is stripped for device interfaces.
         environment = ""
         if target_triplet.environment != "device":
             environment = "-" + target_triplet.environment
 
+        target_triplet_name = "{architecture}-{vendor}-{os}{environment}".format(
+            architecture = target_triplet.architecture,
+            environment = environment,
+            os = target_triplet.os,
+            vendor = target_triplet.vendor,
+        )
+        architecture_name = target_triplet.architecture
+
+        module_name = paths.basename(module_dir)
+        package_module_files = package_files_by_module_name.get(module_name, [])
+
+        target_triplet_package_file = files.get_file_with_name(
+            files = package_module_files,
+            name = "{}.package".format(target_triplet_name),
+        )
+        architecture_package_file = files.get_file_with_name(
+            files = package_module_files,
+            name = "{}.package".format(architecture_name),
+        )
         target_triplet_file = files.get_file_with_name(
             files = module_files.to_list(),
-            name = "{architecture}-{vendor}-{os}{environment}".format(
-                architecture = target_triplet.architecture,
-                environment = environment,
-                os = target_triplet.os,
-                vendor = target_triplet.vendor,
-            ),
+            name = target_triplet_name,
         )
         architecture_file = files.get_file_with_name(
             files = module_files.to_list(),
-            name = target_triplet.architecture,
+            name = architecture_name,
         )
-        filtered_files.append(target_triplet_file or architecture_file)
+
+        # Framework and XCFramework bundles always include their public `.swiftinterface` files, so
+        # when `.package.swiftinterface` files are also passed in `package_swift_module_files` (e.g.
+        # from the `package_swiftinterfaces` output group for same-package tests), prefer the
+        # package interface over the public interface. Within each visibility tier, prefer the full
+        # target-triplet filename (used by `xcodebuild -create-xcframework` and SwiftPM, e.g.
+        # `arm64-apple-ios-simulator[.package].swiftinterface`) over the architecture-only filename
+        # (used by `rules_apple` bundling rules, e.g. `arm64[.package].swiftinterface`).
+        filtered_files.append(
+            target_triplet_package_file or
+            architecture_package_file or
+            target_triplet_file or
+            architecture_file,
+        )
 
     return filtered_files
 

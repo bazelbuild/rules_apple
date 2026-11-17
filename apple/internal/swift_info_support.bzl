@@ -15,6 +15,10 @@
 """Support methods for handling artifacts from SwiftInfo providers."""
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:intermediates.bzl",
     "intermediates",
 )
@@ -241,11 +245,76 @@ def _declare_swiftinterface(
     )
     return bundle_interface
 
+def _declare_package_swiftinterface(
+        *,
+        actions,
+        arch,
+        bundle_name,
+        framework_modulemap,
+        label_name,
+        output_discriminator,
+        package_swiftinterface):
+    """Declares the package swiftinterface for this Swift framework.
+
+    The file is declared under a path matching the XCFramework or framework
+    module layout (`[<output_discriminator>/]<bundle_name>.framework/Modules/<bundle_name>.swiftmodule/<arch>.package.swiftinterface`
+    or `<output_discriminator>/<bundle_name>.swiftmodule/<arch>.package.swiftinterface`)
+    so that framework and XCFramework import rules can classify and select the
+    slice and architecture when the `package_swiftinterfaces` output group is
+    included in `xcframework_imports` or `framework_imports`.
+
+    Args:
+        actions: The actions provider from `ctx.actions`.
+        arch: The cpu architecture that the generated package swiftinterface
+            belongs to.
+        bundle_name: The bundle name of the framework.
+        framework_modulemap: Boolean indicating whether the target produces a
+            `.framework` bundle (`True`) or a static library slice (`False`).
+        label_name: Name of the target being built.
+        output_discriminator: A string to differentiate between different target
+            intermediate files (such as the XCFramework library identifier) or
+            `None`.
+        package_swiftinterface: A File referencing the `.package.swiftinterface`
+            file from a `SwiftInfo` provider.
+
+    Returns:
+        A File referencing the intermediate `.package.swiftinterface`.
+    """
+    swiftmodule_dir = "{}.swiftmodule".format(bundle_name)
+    if framework_modulemap:
+        module_relative_dir = paths.join(
+            "{}.framework".format(bundle_name),
+            "Modules",
+            swiftmodule_dir,
+        )
+    else:
+        module_relative_dir = swiftmodule_dir
+
+    file_name = paths.join(
+        module_relative_dir,
+        "{}.package.swiftinterface".format(arch),
+    )
+    if output_discriminator:
+        file_name = paths.join(output_discriminator, file_name)
+
+    bundle_package_interface = intermediates.file(
+        actions = actions,
+        target_name = label_name,
+        output_discriminator = None,
+        file_name = file_name,
+    )
+    actions.symlink(
+        target_file = package_swiftinterface,
+        output = bundle_package_interface,
+    )
+    return bundle_package_interface
+
 swift_info_support = struct(
     verify_found_module_name = _verify_found_module_name,
     modules_from_avoid_deps = _modules_from_avoid_deps,
     swift_include_info = _swift_include_info,
     declare_generated_header = _declare_generated_header,
+    declare_package_swiftinterface = _declare_package_swiftinterface,
     declare_swiftdoc = _declare_swiftdoc,
     declare_swiftinterface = _declare_swiftinterface,
 )

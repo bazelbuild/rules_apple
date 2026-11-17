@@ -260,6 +260,14 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.a",
         ],
+        not_contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.swiftmodule/arm64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcfmwk_with_swift.swiftmodule/arm64.private.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/arm64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/arm64.private.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.package.swiftinterface",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_static_xcfmwk_with_swift.swiftmodule/x86_64.private.swiftinterface",
+        ],
         tags = [name],
     )
 
@@ -599,6 +607,27 @@ def apple_static_xcframework_test_suite(name):
             "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftdoc",
             "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.swiftinterface",
             "$BUNDLE_ROOT/ios-x86_64-simulator/arch_dependent_swift.framework/Info.plist",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_swift_framework_package_swiftinterfaces_output_group_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps",
+        output_group_name = "package_swiftinterfaces",
+        expected_outputs = [
+            "ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps-intermediates/ios-arm64/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/arm64.package.swiftinterface",
+            "ios_swift_static_framework_xcframework_with_arch_dependent_swift_in_deps-intermediates/ios-x86_64-simulator/arch_dependent_swift.framework/Modules/arch_dependent_swift.swiftmodule/x86_64.package.swiftinterface",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_swift_library_package_swiftinterfaces_output_group_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:swift_static_xcframework",
+        output_group_name = "package_swiftinterfaces",
+        expected_outputs = [
+            "swift_static_xcframework-intermediates/ios-arm64-simulator/generated_swift_static_xcframework.swiftmodule/arm64.package.swiftinterface",
         ],
         tags = [name],
     )

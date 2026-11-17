@@ -354,6 +354,9 @@ attempting to mix simulator and device architectures.
     header_imports = filter_by_library_identifier(files_by_category.header_imports)
     module_map_imports = filter_by_library_identifier(files_by_category.module_map_imports)
     swift_module_interfaces = framework_import_support.get_swift_module_files_with_target_triplet(
+        package_swift_module_files = filter_by_library_identifier(
+            files_by_category.package_swift_interface_imports,
+        ),
         swift_module_files = filter_by_library_identifier(
             files_by_category.swift_interface_imports,
         ),

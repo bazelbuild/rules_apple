@@ -1113,6 +1113,10 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 if getattr(provider, "owners", None):
                     direct_resource_info = provider
 
+        package_swiftinterfaces = bundler_result.output_groups.get("package_swiftinterfaces")
+        if package_swiftinterfaces:
+            framework_output_groups.append({"package_swiftinterfaces": package_swiftinterfaces})
+
         if library_type == _LIBRARY_TYPE.dynamic:
             # Save the dSYMs.
             dsyms = outputs.dsyms(
@@ -1722,6 +1726,7 @@ def _create_static_library_outputs(
     available_libraries = []
     framework_archive_files = []
     framework_archive_merge_files = []
+    framework_output_groups = []
     for library_identifier, link_output in link_outputs_by_library_identifier.items():
         # Bundle binary artifact for specific library identifier
         binary_artifact = link_output.binary
@@ -1766,6 +1771,8 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
                 output_discriminator = library_identifier,
                 swift_infos = link_output.framework_swift_infos,
             )()
+            if hasattr(interface_artifacts, "output_groups") and interface_artifacts.output_groups:
+                framework_output_groups.append(interface_artifacts.output_groups)
         else:
             # Generate headers, and modulemaps
             sdk_frameworks = cc_info_support.get_sdk_frameworks(
@@ -1839,7 +1846,7 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         framework_archive_merge_files = framework_archive_merge_files,
         framework_archive_merge_zips = [],
         framework_output_files = [],
-        framework_output_groups = [],
+        framework_output_groups = framework_output_groups,
     )
 
 def _apple_static_xcframework_impl(ctx):
