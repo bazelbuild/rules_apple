@@ -79,6 +79,7 @@ bzl_library(
     visibility = [
         "//apple:__subpackages__",
         "//apple/internal:__subpackages__",
+        "//test:__subpackages__",
     ],
 )
 

@@ -2586,6 +2586,22 @@ directories.
         tags = [name],
     )
 
+    analysis_target_actions_test(
+        name = "{}_imported_xcframework_legacy_signing_passes_codesign_arg_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--codesign"],
+        tags = [name],
+    )
+
+    analysis_target_actions_disable_legacy_signing_test(
+        name = "{}_imported_xcframework_disable_legacy_signing_passes_disable_signing_arg_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        tags = [name],
+    )
+
     native.test_suite(
         name = name,
         tags = [name],

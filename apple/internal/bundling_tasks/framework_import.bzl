@@ -309,7 +309,8 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 
-        signed_frameworks_list.append(framework_basename)
+        if codesign_args:
+            signed_frameworks_list.append(framework_basename)
 
     # Process signature files separately; we can bundle them as is thanks to earlier deduplication.
     if signature_files_to_bundle:

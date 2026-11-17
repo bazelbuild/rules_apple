@@ -911,7 +911,12 @@ def _macos_framework_impl(ctx):
     resource_deps = ctx.attr.deps + ctx.attr.resources
     debug_dependencies = ctx.attr.frameworks + resource_deps
     signed_frameworks = []
-    if provisioning_profile:
+    if codesigning_support.should_mark_framework_signed(
+        cc_configured_features = cc_configured_features,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    ):
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]

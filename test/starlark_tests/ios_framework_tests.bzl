@@ -27,6 +27,11 @@ load(
     "analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_embedded_framework_bundle_info_test.bzl",
+    "apple_embedded_framework_bundle_info_test",
+    "make_apple_embedded_framework_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -44,6 +49,13 @@ load(
 )
 
 visibility("private")
+
+apple_embedded_framework_bundle_info_disable_legacy_signing_test = make_apple_embedded_framework_bundle_info_test(
+    config_settings = {
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+    },
+)
 
 def ios_framework_test_suite(name):
     """Test suite for ios_framework.
@@ -801,6 +813,27 @@ Please remove one of the two from your rule definition.
         name = "{}_duplicate_linked_objects_validation_requires_validating_test_host_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_validating_with_non_validating_host.__internal__.__test_bundle",
         expected_error = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk is loaded into the same process as //test/starlark_tests/targets_under_test/ios:unit_test_validating_with_non_validating_host.__internal__.__test_bundle, but it did not provide linkmaps",
+        tags = [name],
+    )
+
+    apple_embedded_framework_bundle_info_test(
+        name = "{}_provisioned_signed_frameworks_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_provisioning",
+        expected_signed_frameworks = ["fmwk_with_provisioning.framework"],
+        tags = [name],
+    )
+
+    apple_embedded_framework_bundle_info_test(
+        name = "{}_unprovisioned_signed_frameworks_empty_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_no_version",
+        expected_signed_frameworks = [],
+        tags = [name],
+    )
+
+    apple_embedded_framework_bundle_info_disable_legacy_signing_test(
+        name = "{}_provisioned_disable_legacy_signing_signed_frameworks_empty_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_with_provisioning",
+        expected_signed_frameworks = [],
         tags = [name],
     )
 

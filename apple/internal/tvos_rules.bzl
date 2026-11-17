@@ -49,6 +49,10 @@ load(
     "cc_info_support",
 )
 load(
+    "@build_bazel_rules_apple//apple/internal:codesigning_support.bzl",
+    "codesigning_support",
+)
+load(
     "@build_bazel_rules_apple//apple/internal:entitlements_support.bzl",
     "entitlements_support",
 )
@@ -657,7 +661,12 @@ def _tvos_framework_impl(ctx):
     provisioning_profile = ctx.file.provisioning_profile
     resource_deps = ctx.attr.deps + ctx.attr.resources
     signed_frameworks = []
-    if provisioning_profile:
+    if codesigning_support.should_mark_framework_signed(
+        cc_configured_features = cc_configured_features,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+        rule_descriptor = rule_descriptor,
+    ):
         signed_frameworks = [
             bundle_name + rule_descriptor.bundle_extension,
         ]

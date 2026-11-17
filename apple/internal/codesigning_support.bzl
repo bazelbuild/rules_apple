@@ -410,6 +410,16 @@ def _should_sign_bundles(*, cc_configured_features, provisioning_profile, rule_d
 
     return should_sign_bundles
 
+def _will_sign_bundle_path(*, platform_prerequisites, rule_descriptor):
+    """Returns whether the bundle path itself is eligible for signing on the target platform."""
+    return (
+        platform_prerequisites.platform.is_device or
+        _should_sign_simulator_bundles(
+            config_vars = platform_prerequisites.config_vars,
+            rule_descriptor = rule_descriptor,
+        )
+    )
+
 def _codesigning_args(
         *,
         build_settings,
@@ -444,12 +454,10 @@ def _codesigning_args(
     if not should_sign_bundles:
         return []
 
-    is_device = platform_prerequisites.platform.is_device
-    should_sign_sim_bundles = _should_sign_simulator_bundles(
-        config_vars = platform_prerequisites.config_vars,
+    if not is_framework and not _will_sign_bundle_path(
+        platform_prerequisites = platform_prerequisites,
         rule_descriptor = rule_descriptor,
-    )
-    if not is_framework and not is_device and not should_sign_sim_bundles:
+    ):
         return []
 
     _validate_provisioning_profile(
@@ -565,11 +573,10 @@ def _codesigning_command(
                     use_entitlements = False,
                 ),
             )
-        should_sign_sim_bundles = _should_sign_simulator_bundles(
-            config_vars = platform_prerequisites.config_vars,
+        if _will_sign_bundle_path(
+            platform_prerequisites = platform_prerequisites,
             rule_descriptor = rule_descriptor,
-        )
-        if platform_prerequisites.platform.is_device or should_sign_sim_bundles:
+        ):
             path_to_sign = paths.join("$WORK_DIR", bundle_path)
             paths_to_sign.append(
                 _path_to_sign(path = path_to_sign),
@@ -988,6 +995,53 @@ def _should_compress_archive(*, build_settings, platform_prerequisites):
             default = (config_vars["COMPILATION_MODE"] == "opt"),
         )
 
+def _should_mark_framework_signed(
+        *,
+        cc_configured_features,
+        platform_prerequisites,
+        provisioning_profile,
+        rule_descriptor):
+    """Returns whether a framework bundle should be recorded in `signed_frameworks`.
+
+    Frameworks listed in `signed_frameworks` are passed as `--signed_path` exclusions when a
+    consuming application or extension signs its `Frameworks/` directory so that pre-signed
+    frameworks with their own provisioning profiles are not re-signed by the outer bundle.
+
+    Even on platforms where unprovisioned frameworks are ad-hoc signed during bundling (such as
+    `macos_framework`, which uses `codesigning_exceptions.none`), a framework must only be marked
+    as pre-signed when it has an explicit `provisioning_profile` and its bundle signing action
+    actually signs the framework bundle (i.e., legacy bundle signing is enabled and simulator
+    bundle signing has not been disabled). Otherwise, an unprovisioned ad-hoc-signed framework
+    would be skipped when a provisioned consuming application signs `Frameworks/`, or an unsigned
+    framework (under `disable_legacy_signing` or `apple.codesign_simulator_bundles=false`) would
+    be falsely excluded from outer signing.
+
+    Args:
+      cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
+          to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      provisioning_profile: File for the provisioning profile, or `None`.
+      rule_descriptor: A rule descriptor for platform and product types from the rule context.
+
+    Returns:
+      `True` if the framework is signed with a provisioning profile during bundling and should be
+      excluded from re-signing by consuming bundles; `False` otherwise.
+    """
+    if not provisioning_profile:
+        return False
+
+    return (
+        _should_sign_bundles(
+            cc_configured_features = cc_configured_features,
+            provisioning_profile = provisioning_profile,
+            rule_descriptor = rule_descriptor,
+        ) and
+        _will_sign_bundle_path(
+            platform_prerequisites = platform_prerequisites,
+            rule_descriptor = rule_descriptor,
+        )
+    )
+
 codesigning_support = struct(
     codesigning_args = _codesigning_args,
     codesigning_command = _codesigning_command,
@@ -996,5 +1050,6 @@ codesigning_support = struct(
     preferred_codesigning_identity = _preferred_codesigning_identity,
     resolve_codesigning_config = _resolve_codesigning_config,
     should_compress_archive = _should_compress_archive,
+    should_mark_framework_signed = _should_mark_framework_signed,
     sign_binary_action = _sign_binary_action,
 )

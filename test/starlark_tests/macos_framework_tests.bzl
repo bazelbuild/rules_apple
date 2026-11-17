@@ -28,6 +28,10 @@ load(
     "make_analysis_target_actions_test",
 )
 load(
+    "//test/starlark_tests/rules:apple_embedded_framework_bundle_info_test.bzl",
+    "apple_embedded_framework_bundle_info_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
 )
@@ -435,6 +439,13 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
             "no-sandbox",
             "requires-darwin",
         ],
+        tags = [name],
+    )
+
+    apple_embedded_framework_bundle_info_test(
+        name = "{}_unprovisioned_signed_frameworks_empty_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:fmwk",
+        expected_signed_frameworks = [],
         tags = [name],
     )
 
