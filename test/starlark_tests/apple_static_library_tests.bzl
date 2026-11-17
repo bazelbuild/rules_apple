@@ -15,10 +15,6 @@
 """apple_static_library Starlark tests."""
 
 load(
-    "//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "make_analysis_failure_message_test",
@@ -49,7 +45,6 @@ visibility("private")
 
 analysis_target_actions_with_multi_cpus_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64,x86_64",
         "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
         "//command_line_option:tvos_cpus": "sim_arm64,x86_64",

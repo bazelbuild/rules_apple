@@ -19,10 +19,6 @@ load(
     "analysistest",
     "unittest",
 )
-load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
 
 visibility("//test/starlark_tests/...")
 
@@ -66,13 +62,10 @@ def make_analysis_runfiles_test_rule(
     )
 
 # A generic analysis_runfiles_test with no custom settings.
-analysis_runfiles_test = make_analysis_runfiles_test_rule(config_settings = {
-    build_settings_labels.require_pointer_authentication_attribute: True,
-})
+analysis_runfiles_test = make_analysis_runfiles_test_rule()
 
 # An analysis_runfiles_test that generates "flat file" dSYMs.
 analysis_runfiles_dsym_test = make_analysis_runfiles_test_rule(config_settings = {
-    build_settings_labels.require_pointer_authentication_attribute: True,
     "//command_line_option:apple_generate_dsym": "true",
     "//command_line_option:macos_cpus": "arm64",
 })

@@ -197,7 +197,6 @@ analysis_failure_message_with_intel_test = make_analysis_failure_message_test(
 analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -206,7 +205,6 @@ analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make
 analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",

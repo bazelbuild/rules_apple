@@ -155,14 +155,6 @@ functionality that is never intended to be production-ready but is required of a
 """,
         default = False,
     ),
-    "require_pointer_authentication_attribute": struct(
-        doc = """
-Enables functionality that requires pointer authentication, where any reference to arm64e will be
-dropped by top level Apple BUILD rules if the "pointer_authentication" is not requested via the
-"secure_features" attribute.
-""",
-        default = False,
-    ),
     "thin_for_device_model": struct(
         doc = """
 A target device model string (e.g. 'iPhone14,6') used to thin the application via actool.

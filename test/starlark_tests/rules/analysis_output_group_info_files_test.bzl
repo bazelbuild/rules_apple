@@ -15,10 +15,6 @@
 """Starlark test rule for OutputGroupInfo output group files."""
 
 load(
-    "@build_bazel_rules_apple//apple/build_settings:build_settings.bzl",
-    "build_settings_labels",
-)
-load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
@@ -63,7 +59,6 @@ analysis_output_group_info_files_test = make_provider_test_rule(
         ),
     },
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:objc_generate_linkmap": "true",
         "//command_line_option:apple_generate_dsym": "true",
         "//command_line_option:macos_cpus": "arm64,x86_64",

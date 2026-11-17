@@ -221,7 +221,6 @@ _validate_strings_force_mac_plisttool_test = make_plisttool_action_test(
 _flags_off_opt_actions_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.compile_strings_with_plisttool: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -229,7 +228,6 @@ _flags_off_opt_actions_test = make_analysis_target_actions_test(
 
 _flags_off_non_opt_actions_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.validate_strings_with_plisttool: False,
         "//command_line_option:compilation_mode": "fastbuild",
         "//command_line_option:macos_cpus": "arm64",
@@ -239,7 +237,6 @@ _flags_off_non_opt_actions_test = make_analysis_target_actions_test(
 _flags_on_opt_actions_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.compile_strings_with_plisttool: True,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -247,7 +244,6 @@ _flags_on_opt_actions_test = make_analysis_target_actions_test(
 
 _flags_on_non_opt_actions_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.validate_strings_with_plisttool: True,
         "//command_line_option:compilation_mode": "fastbuild",
         "//command_line_option:macos_cpus": "arm64",

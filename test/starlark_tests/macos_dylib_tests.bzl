@@ -49,7 +49,6 @@ visibility("private")
 analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.signing_certificate_name: "",
         "//command_line_option:macos_cpus": "arm64",
     },

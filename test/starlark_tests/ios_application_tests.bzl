@@ -110,7 +110,6 @@ analysis_failure_message_with_arm64_and_arm64e_flag_select_off_test = make_analy
 
 analysis_target_actions_multi_cpus_default_platform_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:ios_multi_cpus": "arm64,arm64e",
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -118,7 +117,6 @@ analysis_target_actions_multi_cpus_default_platform_test = make_analysis_target_
 
 analysis_target_actions_multi_cpus_ios_arm64e_platform_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:ios_multi_cpus": "arm64,arm64e",
         "//command_line_option:macos_cpus": "arm64",
         "//command_line_option:platforms": "//buildenv/platforms/apple:ios_arm64e",
@@ -127,7 +125,6 @@ analysis_target_actions_multi_cpus_ios_arm64e_platform_test = make_analysis_targ
 
 analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -135,7 +132,6 @@ analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actio
 
 analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
@@ -153,7 +149,6 @@ analysis_target_actions_direct_bundle_archive_xplat_codesigning_test = make_anal
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64",
     },
 )
@@ -161,7 +156,6 @@ analysis_target_actions_direct_bundle_archive_xplat_codesigning_test = make_anal
 analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -170,7 +164,6 @@ analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make
 analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.direct_bundle_archive: True,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
@@ -179,7 +172,6 @@ analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_
 
 analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
@@ -189,7 +181,6 @@ analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = mak
 analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:macos_cpus": "arm64",
     },
 )
@@ -197,7 +188,6 @@ analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_te
 analysis_target_actions_xplat_codesigning_device_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.signing_certificate_name: "",
         "//command_line_option:ios_multi_cpus": "arm64",
         "//command_line_option:macos_cpus": "arm64",
@@ -207,7 +197,6 @@ analysis_target_actions_xplat_codesigning_device_test = make_analysis_target_act
 analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:macos_cpus": "arm64",
     },
@@ -216,7 +205,6 @@ analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test = make_ana
 analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_device_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.signing_certificate_name: "",
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:ios_multi_cpus": "arm64",

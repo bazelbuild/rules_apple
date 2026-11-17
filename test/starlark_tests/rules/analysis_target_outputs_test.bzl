@@ -66,7 +66,6 @@ def make_analysis_target_outputs_test(config_settings = {}):
 # Default analysis_target_actions_test.
 analysis_target_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
     },
@@ -74,7 +73,6 @@ analysis_target_outputs_test = make_analysis_target_outputs_test(
 
 analysis_target_tree_artifacts_outputs_test = make_analysis_target_outputs_test(
     config_settings = {
-        build_settings_labels.require_pointer_authentication_attribute: True,
         build_settings_labels.use_tree_artifacts_outputs: True,
         "//command_line_option:macos_cpus": "arm64",
         "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
