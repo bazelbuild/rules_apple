@@ -43,6 +43,45 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
       fp.write(content)
     return full_path
 
+  def test_zip_keeping_parent_streams_regular_files(self):
+    content = "framework-binary" * (128 * 1024)
+    binary = self._scratch_file("Foo.framework/Foo", content)
+    os.chmod(binary, 0o755)
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+    original_open = open
+    read_sizes = []
+
+    def open_with_bounded_reads(path, mode="r", *args, **kwargs):
+      stream = original_open(path, mode, *args, **kwargs)
+      if path != binary or mode != "rb":
+        return stream
+
+      def read(size=-1):
+        read_sizes.append(size)
+        self.assertGreater(size, 0, "Archive reads must be bounded")
+        # The test file is larger than 1 MiB, so this limit prevents reading
+        # the entire file at once.
+        self.assertLessEqual(size, 1024 * 1024)
+        return stream.read(size)
+
+      wrapped = mock.MagicMock(wraps=stream)
+      wrapped.__enter__.return_value = wrapped
+      wrapped.__exit__.side_effect = stream.__exit__
+      wrapped.read.side_effect = read
+      return wrapped
+
+    with mock.patch("builtins.open", side_effect=open_with_bounded_reads):
+      imported_dynamic_framework_processor._zip_keeping_parent(
+          os.path.dirname(binary), output_zip)
+
+    self.assertTrue(read_sizes, "Archive must use the bounded-read wrapper")
+
+    with zipfile.ZipFile(output_zip) as archive:
+      entry = archive.getinfo("Foo.framework/Foo")
+      self.assertEqual(content.encode("utf-8"), archive.read(entry))
+      self.assertEqual(zipfile.ZIP_DEFLATED, entry.compress_type)
+      self.assertEqual(stat.S_IFREG | 0o755, entry.external_attr >> 16)
+
   @mock.patch.object(execute, "execute_and_filter_output")
   def test_get_install_path_for_binary(self, mock_execute):
     with self.assertRaisesRegex(
