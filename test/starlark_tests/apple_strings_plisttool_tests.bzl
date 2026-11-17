@@ -82,15 +82,53 @@ def _make_bundle_inputs_test(config_settings = {}):
         config_settings = config_settings,
     )
 
+def _control_keys_sorted_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target_under_test = analysistest.target_under_test(env)
+    actions = [a for a in target_under_test.actions if a.mnemonic == ctx.attr.target_mnemonic]
+    if not actions:
+        analysistest.fail(env, "No action found with mnemonic {}".format(ctx.attr.target_mnemonic))
+        return analysistest.end(env)
+
+    json_str = actions[0].argv[-1]
+    if json_str.startswith("'") and json_str.endswith("'"):
+        json_str = json_str[1:-1].replace("'\\''", "'")
+
+    actual_keys = list(json.decode(json_str).keys())
+    if actual_keys != sorted(actual_keys):
+        analysistest.fail(
+            env,
+            "Expected plisttool control JSON keys to be sorted, but got: {}".format(actual_keys),
+        )
+    return analysistest.end(env)
+
 _compile_strings_opt_plisttool_test = make_plisttool_action_test(
     config_settings = {
         build_settings_labels.compile_strings_with_plisttool: True,
+        build_settings_labels.use_property_list_encoder: False,
+        "//command_line_option:compilation_mode": "opt",
+    },
+)
+
+_compile_strings_opt_property_list_encoder_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.compile_strings_with_plisttool: True,
+        build_settings_labels.use_property_list_encoder: True,
         "//command_line_option:compilation_mode": "opt",
     },
 )
 
 _validate_strings_non_opt_plisttool_test = make_plisttool_action_test(
     config_settings = {
+        build_settings_labels.use_property_list_encoder: False,
+        build_settings_labels.validate_strings_with_plisttool: True,
+        "//command_line_option:compilation_mode": "fastbuild",
+    },
+)
+
+_validate_strings_non_opt_property_list_encoder_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: True,
         build_settings_labels.validate_strings_with_plisttool: True,
         "//command_line_option:compilation_mode": "fastbuild",
     },
@@ -98,6 +136,7 @@ _validate_strings_non_opt_plisttool_test = make_plisttool_action_test(
 
 _validate_strings_opt_plisttool_test = make_plisttool_action_test(
     config_settings = {
+        build_settings_labels.use_property_list_encoder: False,
         build_settings_labels.validate_strings_with_plisttool: True,
         "//command_line_option:compilation_mode": "opt",
     },
@@ -106,6 +145,17 @@ _validate_strings_opt_plisttool_test = make_plisttool_action_test(
 _aspect_compile_strings_opt_plisttool_test = make_plisttool_action_test(
     config_settings = {
         build_settings_labels.compile_strings_with_plisttool: True,
+        build_settings_labels.use_property_list_encoder: False,
+        "//command_line_option:compilation_mode": "opt",
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+    },
+    extra_target_under_test_aspects = [apple_resource_aspect],
+)
+
+_aspect_compile_strings_opt_property_list_encoder_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.compile_strings_with_plisttool: True,
+        build_settings_labels.use_property_list_encoder: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
     },
@@ -114,11 +164,42 @@ _aspect_compile_strings_opt_plisttool_test = make_plisttool_action_test(
 
 _aspect_validate_strings_non_opt_plisttool_test = make_plisttool_action_test(
     config_settings = {
+        build_settings_labels.use_property_list_encoder: False,
         build_settings_labels.validate_strings_with_plisttool: True,
         "//command_line_option:compilation_mode": "fastbuild",
         "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
     },
     extra_target_under_test_aspects = [apple_resource_aspect],
+)
+
+_use_property_list_encoder_plisttool_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: True,
+    },
+)
+
+_use_property_list_encoder_control_keys_sorted_test = analysistest.make(
+    _control_keys_sorted_test_impl,
+    attrs = {
+        "target_mnemonic": attr.string(mandatory = True),
+    },
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: True,
+    },
+)
+
+_aspect_use_property_list_encoder_plisttool_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: True,
+        "//command_line_option:platforms": "//buildenv/platforms/apple:darwin_arm64",
+    },
+    extra_target_under_test_aspects = [apple_resource_aspect],
+)
+
+_disable_property_list_encoder_plisttool_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: False,
+    },
 )
 
 _validate_strings_warnings_as_errors_plisttool_test = make_plisttool_action_test(
@@ -208,7 +289,7 @@ def apple_strings_plisttool_test_suite(name):
         }),
         unexpected_control_keys = [
             "copy_input_on_success",
-            "use_swift_plisttool",
+            "use_property_list_encoder",
         ],
         expected_execution_requirements = {"requires-darwin": ""},
         assert_output_bundled = True,
@@ -230,7 +311,7 @@ def apple_strings_plisttool_test_suite(name):
         }),
         unexpected_control_keys = [
             "copy_input_on_success",
-            "use_swift_plisttool",
+            "use_property_list_encoder",
         ],
         expected_execution_requirements = {"requires-darwin": ""},
         assert_output_bundled = True,
@@ -251,7 +332,7 @@ def apple_strings_plisttool_test_suite(name):
             "validate_strings": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_top_level_strings",
         }),
-        unexpected_control_keys = ["use_swift_plisttool"],
+        unexpected_control_keys = ["use_property_list_encoder"],
         not_expected_execution_requirements = ["requires-darwin"],
         assert_output_bundled = True,
         tags = [name],
@@ -271,7 +352,7 @@ def apple_strings_plisttool_test_suite(name):
             "validate_strings": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_top_level_stringsdict",
         }),
-        unexpected_control_keys = ["use_swift_plisttool"],
+        unexpected_control_keys = ["use_property_list_encoder"],
         not_expected_execution_requirements = ["requires-darwin"],
         assert_output_bundled = True,
         tags = [name],
@@ -337,7 +418,7 @@ def apple_strings_plisttool_test_suite(name):
             "validate_strings": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
         }),
-        unexpected_control_keys = ["use_swift_plisttool"],
+        unexpected_control_keys = ["use_property_list_encoder"],
         not_expected_execution_requirements = ["requires-darwin"],
         assert_output_bundled = True,
         tags = [name],
@@ -356,7 +437,7 @@ def apple_strings_plisttool_test_suite(name):
             "validate_strings": True,
             "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
         }),
-        unexpected_control_keys = ["use_swift_plisttool"],
+        unexpected_control_keys = ["use_property_list_encoder"],
         not_expected_execution_requirements = ["requires-darwin"],
         assert_output_bundled = True,
         tags = [name],
@@ -405,7 +486,7 @@ def apple_strings_plisttool_test_suite(name):
         }),
         unexpected_control_keys = [
             "copy_input_on_success",
-            "use_swift_plisttool",
+            "use_property_list_encoder",
         ],
         expected_execution_requirements = {"requires-darwin": ""},
         tags = [name],
@@ -425,7 +506,7 @@ def apple_strings_plisttool_test_suite(name):
             "validate_strings": True,
             "target": "//test/starlark_tests/targets_under_test/ios:objc_lib_with_invalid_escape_strings",
         }),
-        unexpected_control_keys = ["use_swift_plisttool"],
+        unexpected_control_keys = ["use_property_list_encoder"],
         not_expected_execution_requirements = ["requires-darwin"],
         tags = [name],
     )
@@ -455,6 +536,178 @@ def apple_strings_plisttool_test_suite(name):
         unexpected_input_suffixes = [
             "targets_under_test/ios/invalid_escape.strings",
         ],
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True injects use_property_list_encoder into binary CompileStrings
+    # actions.
+    _compile_strings_opt_property_list_encoder_test(
+        name = "{}_opt_compile_strings_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_strings",
+        target_mnemonic = "CompileStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "individual_plist": "*/nonlocalized.strings",
+            "output": "*/nonlocalized.strings",
+            "use_property_list_encoder": True,
+            "validate_strings": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_top_level_strings",
+        }),
+        unexpected_control_keys = ["copy_input_on_success"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        assert_output_bundled = True,
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True injects use_property_list_encoder into binary CompilePlist
+    # (.stringsdict) actions.
+    _compile_strings_opt_property_list_encoder_test(
+        name = "{}_opt_compile_stringsdict_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_stringsdict",
+        target_mnemonic = "CompilePlist",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "individual_plist": "*/files.stringsdict",
+            "output": "*/files.stringsdict",
+            "use_property_list_encoder": True,
+            "validate_strings": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_top_level_stringsdict",
+        }),
+        unexpected_control_keys = ["copy_input_on_success"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        assert_output_bundled = True,
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True propagates through apple_resource_aspect for binary
+    # CompileStrings actions.
+    _aspect_compile_strings_opt_property_list_encoder_test(
+        name = "{}_aspect_opt_compile_strings_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:objc_lib_with_invalid_escape_strings",
+        target_mnemonic = "CompileStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "individual_plist": "*/invalid_escape.strings",
+            "output": "*/objc_lib_with_invalid_escape_strings-intermediates/invalid_escape.strings",
+            "use_property_list_encoder": True,
+            "validate_strings": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:objc_lib_with_invalid_escape_strings",
+        }),
+        unexpected_control_keys = ["copy_input_on_success"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True is omitted when binary=False (non-opt ValidateStrings).
+    _validate_strings_non_opt_property_list_encoder_test(
+        name = "{}_non_opt_validate_strings_omits_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_top_level_strings",
+        target_mnemonic = "ValidateStrings",
+        expected_control_dict = json.encode({
+            "binary": False,
+            "copy_input_on_success": True,
+            "individual_plist": "*/nonlocalized.strings",
+            "output": "*/nonlocalized.strings",
+            "validate_strings": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_top_level_strings",
+        }),
+        unexpected_control_keys = ["use_property_list_encoder"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        assert_output_bundled = True,
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True injects use_property_list_encoder into CompileRootInfoPlist
+    # (binary=True).
+    _use_property_list_encoder_plisttool_test(
+        name = "{}_root_infoplist_use_property_list_encoder_enabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        target_mnemonic = "CompileRootInfoPlist",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "use_property_list_encoder": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        }),
+        tags = [name],
+    )
+
+    # Injecting use_property_list_encoder keeps top-level plisttool control JSON keys sorted.
+    _use_property_list_encoder_control_keys_sorted_test(
+        name = "{}_root_infoplist_use_property_list_encoder_sorted_keys_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        target_mnemonic = "CompileRootInfoPlist",
+        tags = [name],
+    )
+
+    # use_property_list_encoder=False omits use_property_list_encoder from CompileRootInfoPlist.
+    _disable_property_list_encoder_plisttool_test(
+        name = "{}_root_infoplist_use_property_list_encoder_disabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        target_mnemonic = "CompileRootInfoPlist",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        }),
+        unexpected_control_keys = ["use_property_list_encoder"],
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True omits use_property_list_encoder from ProcessEntitlementsFiles
+    # (binary omitted from control struct).
+    _use_property_list_encoder_plisttool_test(
+        name = "{}_entitlements_omits_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        target_mnemonic = "ProcessEntitlementsFiles",
+        expected_control_dict = json.encode({
+            "target": "//test/starlark_tests/targets_under_test/ios:app-with-hyphen",
+        }),
+        unexpected_control_keys = [
+            "binary",
+            "use_property_list_encoder",
+        ],
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True omits use_property_list_encoder from
+    # CreateXCFrameworkRootInfoPlist (binary=False).
+    _use_property_list_encoder_plisttool_test(
+        name = "{}_xcframework_root_infoplist_omits_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        target_mnemonic = "CreateXCFrameworkRootInfoPlist",
+        expected_control_dict = json.encode({
+            "binary": False,
+            "target": "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        }),
+        unexpected_control_keys = ["use_property_list_encoder"],
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True injects use_property_list_encoder into CompileInfoPlist
+    # (merge_resource_infoplists on apple_resource_bundle, binary=True).
+    _aspect_use_property_list_encoder_plisttool_test(
+        name = "{}_resource_bundle_infoplist_use_property_list_encoder_enabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/resources:bundle_library_ios",
+        target_mnemonic = "CompileInfoPlist",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "output": "*/bundle_library_ios.bundle/Info.plist",
+            "use_property_list_encoder": True,
+        }),
+        tags = [name],
+    )
+
+    # use_property_list_encoder=True omits use_property_list_encoder from ExtensionPointFormatXML
+    # (extract_extension_points, binary=False).
+    _use_property_list_encoder_plisttool_test(
+        name = "{}_extension_point_xml_omits_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        target_mnemonic = "ExtensionPointFormatXML",
+        expected_control_dict = json.encode({
+            "binary": False,
+            "output": "*/hinted_enhanced_security_extension_point.appexpt",
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        }),
+        unexpected_control_keys = ["use_property_list_encoder"],
         tags = [name],
     )
 

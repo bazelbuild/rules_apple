@@ -95,11 +95,12 @@ Declare a code signing identity, to be used in all code signing flows related to
 """,
         default = "",
     ),
-    "use_swift_plisttool": struct(
+    "use_property_list_encoder": struct(
         doc = """
-This build setting is a no-op and will be removed entirely in a future iteration of the Apple rules.
+Encodes binary property lists emitted by `plisttool` (actions with `binary = True`) using Swift's
+`PropertyListEncoder` instead of `PropertyListSerialization`.
 """,
-        default = True,
+        default = False,
     ),
     "use_tree_artifacts_outputs": struct(
         doc = """

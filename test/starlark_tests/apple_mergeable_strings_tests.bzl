@@ -39,6 +39,7 @@ visibility("private")
 
 _merge_strings_flags_off_test = make_plisttool_action_test(
     config_settings = {
+        build_settings_labels.use_property_list_encoder: False,
         build_settings_labels.validate_strings_with_plisttool: False,
     },
 )
@@ -46,6 +47,13 @@ _merge_strings_flags_off_test = make_plisttool_action_test(
 _merge_strings_validate_test = make_plisttool_action_test(
     config_settings = {
         build_settings_labels.validate_strings_with_plisttool: True,
+    },
+)
+
+_merge_strings_use_property_list_encoder_test = make_plisttool_action_test(
+    config_settings = {
+        build_settings_labels.use_property_list_encoder: True,
+        build_settings_labels.validate_strings_with_plisttool: False,
     },
 )
 
@@ -116,6 +124,30 @@ def apple_mergeable_strings_test_suite(name):
         tags = [name],
     )
 
+    # Tests that mergeable strings and root Info.plist are encoded as valid binary plists when
+    # use_property_list_encoder is enabled.
+    archive_contents_test(
+        name = "{}_ios_merged_strings_use_property_list_encoder_test".format(name),
+        build_settings = {
+            build_settings_labels.use_property_list_encoder: "True",
+        },
+        build_type = "device",
+        is_binary_plist = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/fr.lproj/m2.strings",
+        ],
+        plist_test_file = "$BUNDLE_ROOT/en.lproj/m1.strings",
+        plist_test_values = {
+            "formalGreetings": "*",
+            "greetings": "*",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        tags = [name],
+    )
+
     # Tests that mergeable strings are merged into a single table file for macOS with the slightly
     # different bundle structure.
     archive_contents_test(
@@ -144,7 +176,28 @@ def apple_mergeable_strings_test_suite(name):
         }),
         unexpected_control_keys = [
             "copy_input_on_success",
-            "use_swift_plisttool",
+            "use_property_list_encoder",
+            "validate_strings",
+        ],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # Tests that MergeStrings sets use_property_list_encoder in the plisttool control JSON when
+    # use_property_list_encoder is enabled.
+    _merge_strings_use_property_list_encoder_test(
+        name = "{}_merge_strings_use_property_list_encoder_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+        target_mnemonic = "MergeStrings",
+        expected_control_dict = json.encode({
+            "binary": True,
+            "skip_substitutions": True,
+            "use_property_list_encoder": True,
+            "target": "//test/starlark_tests/targets_under_test/ios:app_with_mergeable_strings",
+            "plists": ["*"],
+        }),
+        unexpected_control_keys = [
+            "copy_input_on_success",
             "validate_strings",
         ],
         not_expected_execution_requirements = ["requires-darwin"],

@@ -23,6 +23,10 @@ load(
     "shell",
 )
 load(
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
+)
+load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
 )
@@ -77,6 +81,14 @@ def plisttool_action(
       run_on_mac: If True, runs `plisttool` on macOS using `apple_mac_toolchain_info`.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
+    if (
+        getattr(control, "binary", False) and
+        apple_xplat_toolchain_info.build_settings.use_property_list_encoder
+    ):
+        control = struct(
+            use_property_list_encoder = True,
+            **structs.to_dict(control)
+        )
     control_args = actions.args()
     control_args.add(json.encode(control))
     if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac or run_on_mac:
