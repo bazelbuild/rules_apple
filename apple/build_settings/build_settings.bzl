@@ -100,7 +100,7 @@ Declare a code signing identity, to be used in all code signing flows related to
 Encodes binary property lists emitted by `plisttool` (actions with `binary = True`) using Swift's
 `PropertyListEncoder` instead of `PropertyListSerialization`.
 """,
-        default = False,
+        default = True,
     ),
     "use_tree_artifacts_outputs": struct(
         doc = """
