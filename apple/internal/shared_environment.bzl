@@ -25,6 +25,15 @@ _DEFAULT_ENV = {
     "SWIFT_DETERMINISTIC_HASHING": "1",
 }
 
+_ARCHIVE_ENV = _DEFAULT_ENV | {
+    "RULES_APPLE_USE_ZIP_WRITER": "1",
+}
+
+def _archive_env(build_settings):
+    """Returns the environment dictionary for macOS archive-producing actions."""
+    return _ARCHIVE_ENV if build_settings.use_zip_writer_on_mac else _DEFAULT_ENV
+
 shared_environment = struct(
+    archive_env = _archive_env,
     default_env = _DEFAULT_ENV,
 )

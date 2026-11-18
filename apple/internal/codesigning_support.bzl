@@ -599,6 +599,7 @@ def _generate_dossier_file(
         *,
         actions,
         apple_platform_info,
+        build_settings,
         codesign_identity,
         dossier_codesigningtool,
         embedded_dossiers,
@@ -613,6 +614,7 @@ def _generate_dossier_file(
     Args:
       actions: The actions provider from `ctx.actions`.
       apple_platform_info: The `ApplePlatformInfo` provider from the current ctx.
+      build_settings: A `dict`-like struct describing build settings.
       codesign_identity: The identity for the dossier to sign with.
       dossier_codesigningtool: The files_to_run for the code signing tool.
       embedded_dossiers: An optional List of structs indicating which dossiers to embed in the
@@ -675,7 +677,7 @@ def _generate_dossier_file(
         actions = actions,
         apple_platform_info = apple_platform_info,
         arguments = [args],
-        env = shared_environment.default_env,
+        env = shared_environment.archive_env(build_settings),
         exec_group = mac_exec_group,
         executable = dossier_codesigningtool,
         execution_requirements = {

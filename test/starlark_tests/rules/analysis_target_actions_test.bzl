@@ -46,6 +46,12 @@ Expected action env: {expected_env}
 Actual action env: {actual_env}
 """
 
+_TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_ENV_FAIL_MSG = """
+Expected target mnemonic '{target_mnemonic}' to not contain env key '{not_expected_env}', but it did.
+Target: {target}
+Actual action env: {actual_env}
+"""
+
 _TARGET_CONTAINS_NOT_EXPECTED_MNEMONIC = """
 Expected target to not contain an action with mnemonic '{target_mnemonic}', but it did.
 Target: {target}
@@ -172,6 +178,21 @@ def _analysis_target_actions_test_impl(ctx):
                 ),
             )
             return analysistest.end(env)
+
+    for not_expected_env_key in ctx.attr.not_expected_env:
+        target_mnemonic_actions_env = [a.env for a in target_mnemonic_actions]
+        for action_env in target_mnemonic_actions_env:
+            if not_expected_env_key in action_env:
+                unittest.fail(
+                    env,
+                    _TARGET_CONTAINS_ACTION_WITH_NOT_EXPECTED_ENV_FAIL_MSG.format(
+                        target_mnemonic = target_mnemonic,
+                        not_expected_env = not_expected_env_key,
+                        target = target_under_test,
+                        actual_env = target_mnemonic_actions_env,
+                    ),
+                )
+                return analysistest.end(env)
 
     for expected_req_key, expected_req_value in ctx.attr.expected_execution_requirements.items():
         target_mnemonic_actions_exec_info = [a.execution_info for a in target_mnemonic_actions]
@@ -373,6 +394,11 @@ the inputs of the matching action.""",
                 doc = """
 A string dictionary representing expected environment values that should be
 present in the action environment values.""",
+            ),
+            "not_expected_env": attr.string_list(
+                doc = """
+A list of environment variable keys not expected to be present in any matching
+action environment dictionary.""",
             ),
             "expected_execution_requirements": attr.string_dict(
                 doc = """

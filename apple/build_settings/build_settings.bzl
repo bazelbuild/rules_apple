@@ -108,6 +108,13 @@ Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),
+    "use_zip_writer_on_mac": struct(
+        doc = """
+Enables `ZipWriter` instead of `/usr/bin/ditto` when creating archives on macOS in `Archive` actions
+(`ImportedDynamicFrameworkProcessor`, `ClangRuntimeLibsCopy`, and `GenerateCodesigningDossier`).
+""",
+        default = False,
+    ),
     "warnings_as_errors": struct(
         doc = """
 Elevates Apple rule compiler and validation warnings to errors.

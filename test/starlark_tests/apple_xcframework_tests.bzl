@@ -29,6 +29,7 @@ load(
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
     "analysis_target_actions_test",
+    "make_analysis_target_actions_test",
 )
 load(
     "//test/starlark_tests/rules:apple_codesigning_dossier_info_provider_test.bzl",
@@ -60,6 +61,13 @@ load(
 )
 
 visibility("private")
+
+analysis_target_actions_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
 
 def apple_xcframework_test_suite(name):
     """Test suite for apple_xcframework.
@@ -1466,6 +1474,25 @@ Check the rule definition for each of the dependencies to ensure that they have 
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/xcframework_with_generated_public_hdrs.framework/Headers/SharedClass.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/xcframework_with_generated_public_hdrs.framework/Headers/DummyFmwk.h",
         ],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_generate_codesigning_dossier_omits_zip_writer_env_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        target_mnemonic = "GenerateCodesigningDossier",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_use_zip_writer_on_mac_test(
+        name = "{}_generate_codesigning_dossier_sets_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:multiplatform_dynamic_xcframework",
+        target_mnemonic = "GenerateCodesigningDossier",
+        expected_env = {
+            "RULES_APPLE_USE_ZIP_WRITER": "1",
+            "SWIFT_DETERMINISTIC_HASHING": "1",
+        },
         tags = [name],
     )
 

@@ -212,6 +212,37 @@ analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_device_test = m
     },
 )
 
+analysis_target_actions_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_asan_default_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:features": ["asan"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_asan_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:features": ["asan"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_asan_xplat_clangrttool_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_clangrttool_on_mac: False,
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:features": ["asan"],
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 def ios_application_test_suite(name):
     """Test suite for ios_application.
 
@@ -2654,6 +2685,104 @@ directories.
         expected_inputs = ["_ios.mobileprovision"],
         not_expected_argv = ["--disable-signing"],
         tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_imported_xcframework_omits_zip_writer_env_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_asan_default_test(
+        name = "{}_clang_rt_copy_omits_zip_writer_env_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ClangRuntimeLibsCopy",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_generate_codesigning_dossier_omits_zip_writer_env_by_default_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "GenerateCodesigningDossier",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_use_zip_writer_on_mac_test(
+        name = "{}_imported_xcframework_sets_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_env = {
+            "RULES_APPLE_USE_ZIP_WRITER": "1",
+            "SWIFT_DETERMINISTIC_HASHING": "1",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_asan_use_zip_writer_on_mac_test(
+        name = "{}_clang_rt_copy_sets_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ClangRuntimeLibsCopy",
+        expected_env = {
+            "RULES_APPLE_USE_ZIP_WRITER": "1",
+            "SWIFT_DETERMINISTIC_HASHING": "1",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_asan_xplat_clangrttool_use_zip_writer_on_mac_test(
+        name = "{}_xplat_clang_rt_copy_omits_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ClangRuntimeLibsCopy",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_use_zip_writer_on_mac_test(
+        name = "{}_generate_codesigning_dossier_sets_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "GenerateCodesigningDossier",
+        expected_env = {
+            "RULES_APPLE_USE_ZIP_WRITER": "1",
+            "SWIFT_DETERMINISTIC_HASHING": "1",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_use_zip_writer_on_mac_test(
+        name = "{}_bundle_app_omits_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "BundleApp",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    analysis_target_actions_use_zip_writer_on_mac_test(
+        name = "{}_process_and_sign_omits_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
+        target_mnemonic = "ProcessAndSign",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_use_zip_writer_on_mac_imported_xcframework_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        build_settings = {
+            build_settings_labels.use_zip_writer_on_mac: "True",
+        },
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+            "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/Info.plist",
+        ],
+        tags = [
+            name,
+            "needs-latest-apple-tools",
+        ],
     )
 
     native.test_suite(

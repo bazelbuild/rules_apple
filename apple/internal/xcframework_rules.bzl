@@ -1347,6 +1347,7 @@ def _create_xcframework_codesigning_dossier(
     output_dossier = codesigning_support.generate_dossier_file(
         actions = actions,
         apple_platform_info = apple_platform_info,
+        build_settings = build_settings,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = [],

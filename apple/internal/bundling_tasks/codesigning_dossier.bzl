@@ -229,6 +229,7 @@ def _codesigning_dossier_bundling_task_impl(
     dossier_file = codesigning_support.generate_dossier_file(
         actions = actions,
         apple_platform_info = platform_prerequisites.apple_platform_info,
+        build_settings = apple_xplat_toolchain_info.build_settings,
         codesign_identity = codesign_identity,
         dossier_codesigningtool = apple_mac_toolchain_info.dossier_codesigningtool,
         embedded_dossiers = embedded_codesign_dossiers,

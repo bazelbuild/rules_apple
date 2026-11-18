@@ -313,7 +313,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             actions = actions,
             apple_platform_info = platform_prerequisites.apple_platform_info,
             arguments = [args],
-            env = shared_environment.default_env,
+            env = shared_environment.archive_env(build_settings),
             executable = imported_dynamic_framework_processor,
             exec_group = mac_exec_group,
             inputs = input_files,

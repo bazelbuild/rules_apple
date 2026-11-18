@@ -71,7 +71,7 @@ def _clang_rt_dylibs_bundling_task_impl(
                 actions = actions,
                 apple_platform_info = platform_prerequisites.apple_platform_info,
                 arguments = [args],
-                env = shared_environment.default_env,
+                env = shared_environment.archive_env(apple_xplat_toolchain_info.build_settings),
                 executable = apple_mac_toolchain_info.clangrttool,
                 # This action needs to read the contents of the Xcode bundle.
                 execution_requirements = {"no-sandbox": "1"},
