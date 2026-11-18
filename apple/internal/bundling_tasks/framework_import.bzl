@@ -105,7 +105,7 @@ def _framework_import_bundling_task_impl(
         *,
         actions,
         apple_mac_toolchain_info,
-        build_settings,
+        apple_xplat_toolchain_info,
         cc_configured_features,
         framework_import_providers,
         framework_import_providers_to_avoid,
@@ -116,6 +116,18 @@ def _framework_import_bundling_task_impl(
         provisioning_profile,
         rule_descriptor):
     """Implementation for the framework import file processing bundling task."""
+    build_settings = apple_xplat_toolchain_info.build_settings
+
+    # When the bundle would be ad-hoc signed by the cross-platform signing tool, leave imported
+    # frameworks unsigned here so that the bundle's own signing pass signs them alongside every
+    # other embedded framework. This keeps a single tool responsible for every signature in the
+    # bundle, and removes the need for the Mac-only codesigningtool in this action.
+    defer_signing_to_bundle = not codesigning_support.resolve_codesigning_config(
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
+        platform_prerequisites = platform_prerequisites,
+        provisioning_profile = provisioning_profile,
+    ).sign_on_mac
 
     bundling_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
@@ -265,16 +277,18 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
 
         args.add_all(files_by_framework[framework_basename], before_each = "--framework-file-paths")
 
-        codesign_args = codesigning_support.codesigning_args(
-            build_settings = build_settings,
-            cc_configured_features = cc_configured_features,
-            entitlements = None,
-            full_archive_path = framework_bundle_path,
-            is_framework = True,
-            platform_prerequisites = platform_prerequisites,
-            provisioning_profile = provisioning_profile,
-            rule_descriptor = rule_descriptor,
-        )
+        codesign_args = []
+        if not defer_signing_to_bundle:
+            codesign_args = codesigning_support.codesigning_args(
+                build_settings = build_settings,
+                cc_configured_features = cc_configured_features,
+                entitlements = None,
+                full_archive_path = framework_bundle_path,
+                is_framework = True,
+                platform_prerequisites = platform_prerequisites,
+                provisioning_profile = provisioning_profile,
+                rule_descriptor = rule_descriptor,
+            )
         if codesign_args:
             args.add_all(codesign_args)
         else:
@@ -287,12 +301,12 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
         )
 
         # Inputs of the action are all the framework files, plus binaries needed for identifying the
-        # current build's preferred architecture, and the provisioning profile if specified.
+        # current build's preferred architecture, and the provisioning profile when signing.
         input_files = (
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
-        if provisioning_profile:
+        if codesign_args and provisioning_profile:
             input_files.append(provisioning_profile)
 
         apple_support.run(
@@ -328,7 +342,7 @@ def framework_import_bundling_task(
         *,
         actions,
         apple_mac_toolchain_info,
-        build_settings,
+        apple_xplat_toolchain_info,
         cc_configured_features,
         framework_import_providers = [],
         framework_import_providers_to_avoid = [],
@@ -346,7 +360,8 @@ def framework_import_bundling_task(
     Args:
         actions: The actions provider from `ctx.actions`.
         apple_mac_toolchain_info: tools from the shared Apple toolchain.
-        build_settings: A `dict`-like struct describing build settings.
+        apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider, used for build
+            settings and to determine if this bundle is signed with the cross-platform tools.
         cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
             to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
         framework_import_providers: The list of `AppleFrameworkImportInfo` providers through which
@@ -368,7 +383,7 @@ def framework_import_bundling_task(
     return lambda *args, **kwargs: _framework_import_bundling_task_impl(
         actions = actions,
         apple_mac_toolchain_info = apple_mac_toolchain_info,
-        build_settings = build_settings,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         cc_configured_features = cc_configured_features,
         framework_import_providers = framework_import_providers,
         framework_import_providers_to_avoid = framework_import_providers_to_avoid,

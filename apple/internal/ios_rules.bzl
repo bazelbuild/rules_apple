@@ -519,7 +519,7 @@ def _ios_application_impl(ctx):
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            build_settings = apple_xplat_toolchain_info.build_settings,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             cc_configured_features = cc_configured_features,
             framework_import_providers = targets.providers(
                 ctx.attr.deps + ctx.attr.extensions + ctx.attr.frameworks,
@@ -892,7 +892,7 @@ def _ios_app_clip_impl(ctx):
         bundling_tasks.framework_import(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,
-            build_settings = apple_xplat_toolchain_info.build_settings,
+            apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             cc_configured_features = cc_configured_features,
             framework_import_providers = targets.providers(
                 ctx.attr.deps + ctx.attr.frameworks,

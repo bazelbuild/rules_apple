@@ -316,6 +316,20 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    # Verifies that an imported dynamic framework left unsigned by ImportedDynamicFrameworkProcessor
+    # is signed by the bundle's own adhoc_sign pass on xplat and passes `codesign --verify` on
+    # macOS.
+    apple_verification_test(
+        name = "{}_imported_xcframework_xplat_codesigning_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_tree_artifact_codesign_test".format(name),
         build_type = "simulator",
@@ -2579,6 +2593,7 @@ directories.
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ImportedDynamicFrameworkProcessor",
         expected_argv = ["--codesign"],
+        expected_inputs = ["_ios.mobileprovision"],
         tags = [name],
     )
 
@@ -2587,6 +2602,57 @@ directories.
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ImportedDynamicFrameworkProcessor",
         expected_argv = ["--disable-signing"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_imported_xcframework_legacy_signing_excludes_presigned_framework_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ProcessAndSign",
+        expected_content = ["--signed_path"],
+        tags = [name],
+    )
+
+    # When ad-hoc signing runs on xplat, imported frameworks are left unsigned by
+    # ImportedDynamicFrameworkProcessor and signed by the bundle's own signing pass instead.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_imported_xcframework_xplat_codesigning_defers_signing_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_imported_xcframework_xplat_codesigning_signs_framework_in_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ProcessAndSign",
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["--signed_path"],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_outputs_xplat_codesigning_test(
+        name = "{}_imported_xcframework_tree_artifacts_xplat_codesigning_defers_signing_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        tags = [name],
+    )
+
+    # Signing that must happen on a Mac keeps pre-signing imported frameworks.
+    analysis_target_actions_xplat_codesigning_device_test(
+        name = "{}_imported_xcframework_xplat_codesigning_device_presigns_framework_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--codesign"],
+        expected_inputs = ["_ios.mobileprovision"],
+        not_expected_argv = ["--disable-signing"],
         tags = [name],
     )
 
