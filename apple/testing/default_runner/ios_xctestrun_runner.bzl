@@ -65,11 +65,15 @@ def _get_template_substitutions(
     return {"%({})s".format(key): value for key, value in substitutions.items()}
 
 def _get_execution_environment(ctx):
-    xcode_version = str(ctx.attr._xcode_config[XcodeVersionInfo].xcode_version())
-    if not xcode_version:
+    xcode_config = ctx.attr._xcode_config[XcodeVersionInfo]
+    if not xcode_config.xcode_version():
         fail("error: No xcode_version in _xcode_config")
 
-    execution_environment = {"XCODE_VERSION_OVERRIDE": xcode_version}
+    platform = ctx.fragments.apple.single_arch_platform
+    if platform.platform_type != apple_common.platform_type.ios:
+        platform = apple_common.platform.ios_simulator
+    execution_environment = dict(apple_common.apple_host_system_env(xcode_config))
+    execution_environment.update(apple_common.target_apple_env(xcode_config, platform))
     if ctx.attr.export_covered_binaries:
         execution_environment["APPLE_TEST_EXPORT_COVERED_BINARIES"] = "1"
 

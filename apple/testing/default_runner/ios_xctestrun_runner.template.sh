@@ -157,6 +157,11 @@ else
   test_env="$default_test_env"
 fi
 
+# Keep subprocess tool lookup aligned with the Xcode running the tests.
+if [[ -n "${DEVELOPER_DIR:-}" ]]; then
+  test_env="$test_env,DEVELOPER_DIR=$DEVELOPER_DIR"
+fi
+
 passthrough_env=()
 xctestrun_env=""
 saved_IFS=$IFS
