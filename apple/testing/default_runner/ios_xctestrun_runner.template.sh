@@ -309,7 +309,7 @@ else
 fi
 
 sanitizer_dyld_env=""
-readonly sanitizer_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
+readonly sanitizer_root="$(dirname "$test_bundle_binary")/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
   [[ -e "$sanitizer" ]] || continue
 
@@ -320,7 +320,7 @@ for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
 done
 
 main_thread_checker_dyld_env=""
-readonly main_thread_checker_root="$test_tmp_dir/$test_bundle_name.xctest/Frameworks"
+readonly main_thread_checker_root="$(dirname "$test_bundle_binary")/Frameworks"
 main_thread_checker="$main_thread_checker_root/libMainThreadChecker.dylib"
 if [[ -e "$main_thread_checker" ]]; then
     main_thread_checker_dyld_env="$main_thread_checker"
