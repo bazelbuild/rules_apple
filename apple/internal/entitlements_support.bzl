@@ -109,9 +109,11 @@ def _include_debug_entitlements(*, platform_prerequisites):
     if build_settings and build_settings.add_debugger_entitlement:
         return True
 
-    if not platform_prerequisites.objc_fragment.uses_device_debug_entitlements:
-        return False
-    return True
+    return getattr(
+        platform_prerequisites.objc_fragment,
+        "uses_device_debug_entitlements",
+        platform_prerequisites.config_vars["COMPILATION_MODE"] != "opt",
+    )
 
 def _include_app_clip_entitlements(*, product_type):
     """Returns a value indicating whether app clip entitlements should be used.
