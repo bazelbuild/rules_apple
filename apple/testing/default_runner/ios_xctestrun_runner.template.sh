@@ -777,13 +777,6 @@ else
     "$post_action_binary" || post_action_exit_code=$?
 fi
 
-if [[ "$post_action_determines_exit_code" == true ]]; then
-  if [[ "$post_action_exit_code" -ne 0 ]]; then
-    echo "error: post_action exited with '$post_action_exit_code'" >&2
-    exit "$post_action_exit_code"
-  fi
-fi
-
 if [[
   "$test_exit_code" -eq 0 &&
   "$create_xcresult_bundle" == true &&
