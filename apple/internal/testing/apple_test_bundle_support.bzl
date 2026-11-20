@@ -14,6 +14,7 @@
 
 """Helper methods for implementing the test bundles."""
 
+load("@bazel_skylib//lib:structs.bzl", "structs")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "@rules_swift//swift:swift.bzl",
@@ -128,6 +129,27 @@ def _test_host_bundle_id(test_host):
     test_host_bundle_info = test_host[AppleBundleInfo]
     return test_host_bundle_info.bundle_id
 
+def _test_bundle_build_settings(*, build_settings, features):
+    """Returns the build settings to use for a test bundle.
+
+    With the `apple.test_bundle_tree_artifacts` feature enabled, the test bundle is built as a tree
+    artifact, as if `use_tree_artifacts_outputs` were set for this target only. Its test host and any
+    other bundles keep the value of the build setting.
+
+    Args:
+        build_settings: A struct with build settings info from AppleXplatToolsToolchainInfo.
+        features: List of features enabled for the test bundle target.
+
+    Returns:
+        A struct with the build settings for the test bundle.
+    """
+    if (build_settings.use_tree_artifacts_outputs or
+        "apple.test_bundle_tree_artifacts" not in features):
+        return build_settings
+    test_bundle_build_settings = structs.to_dict(build_settings)
+    test_bundle_build_settings["use_tree_artifacts_outputs"] = True
+    return struct(**test_bundle_build_settings)
+
 def _apple_test_bundle_impl(*, ctx, product_type):
     """Implementation for bundling XCTest bundles.
 
@@ -176,7 +198,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
     platform_prerequisites = platform_support.platform_prerequisites(
         apple_fragment = ctx.fragments.apple,
         apple_platform_info = platform_support.apple_platform_info_from_rule_ctx(ctx),
-        build_settings = apple_xplat_toolchain_info.build_settings,
+        build_settings = _test_bundle_build_settings(
+            build_settings = apple_xplat_toolchain_info.build_settings,
+            features = features,
+        ),
         config_vars = ctx.var,
         cpp_fragment = ctx.fragments.cpp,
         # iOS test bundles set `families` as a mandatory attr, other Apple OS test bundles do not

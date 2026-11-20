@@ -38,6 +38,7 @@ bzl_library(
         "//apple/internal:rule_support",
         "//apple/internal:swift_support",
         "//apple/internal/utils:clang_rt_dylibs",
+        "@bazel_skylib//lib:structs",
         "@bazel_skylib//lib:types",
         "@rules_swift//swift",
     ],

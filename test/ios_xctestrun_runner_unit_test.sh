@@ -801,6 +801,23 @@ function test_ios_unit_test_with_host_sim_reuse_disabled_pass() {
   expect_log "Executed 4 tests, with 0 failures"
 }
 
+function test_ios_unit_test_with_host_and_test_bundle_tree_artifacts_pass() {
+  create_sim_runners
+  create_test_host_app
+  create_ios_unit_tests
+  do_ios_test --features=apple.test_bundle_tree_artifacts //ios:PassingWithHost || fail "should pass"
+
+  expect_log "Test Suite 'PassingUnitTest' passed"
+  expect_log "Test Suite 'PassingWithHost.xctest' passed"
+  expect_log "Executed 4 tests, with 0 failures"
+
+  # The test bundle is a tree artifact, and the test host is still an archive.
+  [[ -n "$(find test-out/ -type d -path "*/ios/PassingWithHost.__internal__.__test_bundle_archive-root/PassingWithHost.xctest")" ]] \
+    || fail "Expected PassingWithHost.xctest to be a directory"
+  [[ -n "$(find test-out/ -type f -path "*/ios/app.ipa")" ]] \
+    || fail "Expected app.ipa to be an archive"
+}
+
 function test_ios_unit_test_with_hooks_pass() {
   create_sim_runners
   create_ios_unit_tests
