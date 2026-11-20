@@ -21,9 +21,12 @@ import shutil
 import stat
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 from tools.bundletool import bundletool
+
+_MAX_READ_SIZE = 1024 * 1024
 
 
 def _run_bundler(control):
@@ -161,6 +164,27 @@ class BundlerTest(unittest.TestCase):
       self._assert_zip_contains(z, 'Payload/foo.app/foo.txt')
       self._assert_zip_contains(z, 'Payload/foo.app/bar.txt')
 
+  def test_streams_multi_chunk_disk_file(self):
+    content = 'a' * _MAX_READ_SIZE + 'last chunk'
+    src = self._scratch_file('asset', content)
+    with open(src, 'rb') as source:
+      read = source.read
+
+      def bounded_read(size=-1):
+        self.assertGreater(size, 0)
+        self.assertLessEqual(size, _MAX_READ_SIZE)
+        return read(size)
+
+      with mock.patch.object(source, 'read', side_effect=bounded_read) as reads:
+        with mock.patch.object(bundletool, 'open', return_value=source, create=True):
+          out_zip = _run_bundler({
+              'bundle_merge_files': [{'src': src, 'dest': 'asset'}],
+          })
+        reads.assert_called()
+
+    with zipfile.ZipFile(out_zip) as z:
+      self.assertEqual(content.encode(), z.read('asset'))
+
   def test_bundle_symlinks(self):
     out_zip = _run_bundler({
         'bundle_path': 'Foo.framework',
@@ -256,6 +280,26 @@ class BundlerTest(unittest.TestCase):
     })
     with zipfile.ZipFile(out_zip, 'r') as z:
       self._assert_zip_contains(z, 'Payload/foo.app/foo.bundle/some.exe', True)
+
+  def test_streams_multi_chunk_zip_entry_and_duplicate(self):
+    content = 'a' * _MAX_READ_SIZE + 'last chunk'
+    src = self._scratch_zip('asset.zip', 'asset:' + content)
+    read = zipfile.ZipExtFile.read
+
+    def bounded_read(stream, size=-1):
+      if stream.name == 'asset':
+        self.assertGreater(size, 0)
+        self.assertLessEqual(size, _MAX_READ_SIZE)
+      return read(stream, size)
+
+    with mock.patch.object(zipfile.ZipExtFile, 'read', bounded_read):
+      out_zip = _run_bundler({
+          'bundle_merge_zips': [{'src': src, 'dest': 'bundle'}] * 2,
+          'compress': True,
+      })
+    with zipfile.ZipFile(out_zip) as z:
+      self.assertEqual(['bundle/asset'], z.namelist())
+      self.assertEqual(content.encode(), z.read('bundle/asset'))
 
   def test_root_merge_zips(self):
     support_zip = self._scratch_zip('support.zip', 'SomeSupport/some.dylib')
