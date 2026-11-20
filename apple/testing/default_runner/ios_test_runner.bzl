@@ -52,10 +52,10 @@ def _get_template_substitutions(
 
 def _get_execution_environment(*, xcode_config):
     """Returns environment variables the test runner requires"""
-    execution_environment = {}
-    xcode_version = str(xcode_config.xcode_version())
-    if xcode_version:
-        execution_environment["XCODE_VERSION_OVERRIDE"] = xcode_version
+    execution_environment = dict(apple_common.apple_host_system_env(xcode_config))
+    execution_environment.update(
+        apple_common.target_apple_env(xcode_config, apple_common.platform.ios_simulator),
+    )
 
     return execution_environment
 
