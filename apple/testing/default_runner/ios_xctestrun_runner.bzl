@@ -23,6 +23,7 @@ load(
 def _get_template_substitutions(
         *,
         attachment_lifetime,
+        background_action_binary,
         clean_up_simulator_action_binary,
         command_line_args,
         create_simulator_action_binary,
@@ -42,6 +43,7 @@ def _get_template_substitutions(
         xctrunner_entitlements_template):
     substitutions = {
         "attachment_lifetime": attachment_lifetime,
+        "background_action_binary": background_action_binary,
         "clean_up_simulator_action_binary": clean_up_simulator_action_binary,
         "command_line_args": command_line_args,
         "create_simulator_action_binary": create_simulator_action_binary,
@@ -120,11 +122,17 @@ def _ios_xctestrun_runner_impl(ctx):
         post_action_determines_exit_code = ctx.attr.post_action_determines_exit_code
         runfiles = runfiles.merge(ctx.attr.post_action[DefaultInfo].default_runfiles)
 
+    background_action_binary = ""
+    if ctx.executable.background_action:
+        background_action_binary = ctx.executable.background_action.short_path
+        runfiles = runfiles.merge(ctx.attr.background_action[DefaultInfo].default_runfiles)
+
     ctx.actions.expand_template(
         template = ctx.file._test_template,
         output = ctx.outputs.test_runner_template,
         substitutions = _get_template_substitutions(
             attachment_lifetime = ctx.attr.attachment_lifetime,
+            background_action_binary = background_action_binary,
             clean_up_simulator_action_binary = clean_up_simulator_action[DefaultInfo].files_to_run.executable.short_path,
             command_line_args = " ".join(ctx.attr.command_line_args) if ctx.attr.command_line_args else "",
             create_simulator_action_binary = create_simulator_action[DefaultInfo].files_to_run.executable.short_path,
@@ -168,6 +176,13 @@ ios_xctestrun_runner = rule(
 Attachment lifetime to set in the xctestrun file when running the test bundle - `"keepNever"` (default), `"keepAlways"`
 or `"deleteOnSuccess"`. This affects presence of attachments in the XCResult output. This does not force using
 `xcodebuild` or an XCTestRun file but the value will be used in that case.
+""",
+        ),
+        "background_action": attr.label(
+            cfg = config.exec(exec_group = APPLE_MAC_EXEC_GROUP),
+            executable = True,
+            doc = """
+A binary to run in the background while the tests run, for example to stream the simulator's logs or to record diagnostics when a test hangs. Starts after the `pre_action`, right before the test command, and is sent `SIGTERM` once that command returns; the runner then waits for it to exit before running the `post_action`. Its exit code is ignored. Sets the `$SIMULATOR_UDID`, `$TEST_LOG_FILE` (the file the test output is written to as the tests run) and `$XCTESTRUN_RUNNER_PID` environment variables, in addition to any other variables available to the test runner.
 """,
         ),
         "clean_up_simulator_action": attr.label(

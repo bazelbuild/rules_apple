@@ -113,7 +113,29 @@ ios_xctestrun_runner(
     device_type = "iPhone Xs",
     test_environment = {"RUNNER_ENV_KEY1": "RUNNER_ENV_VALUE1"},
 )
+
+sh_binary(
+  name = "background_action",
+  srcs = ["background_action.sh"],
+)
+
+ios_xctestrun_runner(
+    name = "ios_x86_64_sim_runner_with_background_action",
+    device_type = "iPhone Xs",
+    background_action = ":background_action",
+    post_action = ":post_action",
+)
 EOF
+
+  cat > ios/background_action.sh <<'EOF'
+#!/bin/bash
+trap 'echo "BACKGROUND-ACTION: stopped, test log exists: $([[ -f "$TEST_LOG_FILE" ]] && echo yes || echo no)"; exit 0' TERM
+echo "BACKGROUND-ACTION: started TEST_TARGET=$TEST_TARGET"
+[[ -n "${SIMULATOR_UDID:-}" ]] && echo "BACKGROUND-ACTION: SIMULATOR_UDID is set"
+[[ -n "${XCTESTRUN_RUNNER_PID:-}" ]] && echo "BACKGROUND-ACTION: XCTESTRUN_RUNNER_PID is set"
+while true; do sleep 0.1; done
+EOF
+  chmod +x ios/background_action.sh
 }
 
 function create_test_host_app() {
@@ -369,6 +391,15 @@ ios_unit_test(
     minimum_os_version = "${MIN_OS_IOS}",
     env = test_env,
     runner = ":ios_x86_64_sim_runner_with_hooks",
+)
+
+ios_unit_test(
+    name = "PassingUnitTestWithBackgroundAction",
+    infoplists = ["PassUnitTest-Info.plist"],
+    deps = [":pass_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    env = test_env,
+    runner = ":ios_x86_64_sim_runner_with_background_action",
 )
 
 swift_library(
@@ -811,6 +842,25 @@ function test_ios_unit_test_with_hooks_pass() {
   expect_log "Test Suite 'PassingUnitTestWithHooks.xctest' passed"
   expect_log "Executed 4 tests, with 0 failures"
   expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithHooks"
+}
+
+function test_ios_unit_test_with_background_action_pass() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTestWithBackgroundAction || fail "should pass"
+
+  expect_log "BACKGROUND-ACTION: started TEST_TARGET=//ios:PassingUnitTestWithBackgroundAction"
+  expect_log "BACKGROUND-ACTION: SIMULATOR_UDID is set"
+  expect_log "BACKGROUND-ACTION: XCTESTRUN_RUNNER_PID is set"
+  expect_log "Executed 4 tests, with 0 failures"
+  expect_log "BACKGROUND-ACTION: stopped, test log exists: yes"
+  expect_log "POST-ACTION: TEST_TARGET=//ios:PassingUnitTestWithBackgroundAction"
+
+  local stopped_line post_action_line
+  stopped_line=$(grep -n "BACKGROUND-ACTION: stopped" "$TEST_log" | head -n1 | cut -d: -f1)
+  post_action_line=$(grep -n "POST-ACTION: TEST_TARGET" "$TEST_log" | head -n1 | cut -d: -f1)
+  [[ "$stopped_line" -lt "$post_action_line" ]] \
+    || fail "the background action should stop before the post action runs"
 }
 
 function test_ios_unit_swift_test_pass() {
