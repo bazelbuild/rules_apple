@@ -58,12 +58,15 @@ following keys:
 """
 
 import hashlib
+import io
 import json
 import os
 import stat
 import sys
-from typing import Optional, Union
+from typing import BinaryIO
 import zipfile
+
+_CHUNK_SIZE = 1024 * 1024
 
 BUNDLE_CONFLICT_MSG_TEMPLATE = (
     'Cannot place two files at the same location %r in the archive')
@@ -132,8 +135,9 @@ class Bundler(object):
 
       for s in bundle_symlinks:
         dest = os.path.normpath(os.path.join(bundle_path, s['dest']))
+        target = s['target'].encode('utf-8')
         self._write_entry(
-            dest=dest, data=s['target'].encode('utf-8'), is_symlink=True,
+            dest=dest, source=io.BytesIO(target), size=len(target), is_symlink=True,
             out_zip=out_zip,
             compress=compress)
 
@@ -169,15 +173,16 @@ class Bundler(object):
         for filename in files:
           fsrc = os.path.join(root, filename)
           fdest = os.path.normpath(os.path.join(dest, relpath, filename))
-          fexec = executable or os.access(fsrc, os.X_OK)
-          with open(fsrc, 'rb') as f:
-            self._write_entry(
-                dest=fdest, data=f.read(), is_executable=fexec, out_zip=out_zip, compress=compress)
+          self._add_file(fsrc, fdest, executable, out_zip, compress)
     elif os.path.isfile(src):
-      fexec = executable or os.access(src, os.X_OK)
-      with open(src, 'rb') as f:
-        self._write_entry(
-            dest=dest, data=f.read(), is_executable=fexec, out_zip=out_zip, compress=compress)
+      self._add_file(src, dest, executable, out_zip, compress)
+
+  def _add_file(self, src, dest, executable, out_zip, compress):
+    with open(src, 'rb') as source:
+      self._write_entry(
+          dest=dest, source=source, size=os.fstat(source.fileno()).st_size,
+          is_executable=executable or os.access(src, os.X_OK),
+          out_zip=out_zip, compress=compress)
 
   def _add_zip_contents(self, src, dest, out_zip, compress):
     """Adds the contents of another ZIP file to the output ZIP archive.
@@ -214,27 +219,31 @@ class Bundler(object):
 
         is_symlink = stat.S_ISLNK(unix_permissions)
 
-        self._write_entry(
-            dest=file_dest,
-            data=src_zip.read(src_zipinfo),
-            is_executable=is_executable,
-            is_symlink=is_symlink,
-            out_zip=out_zip,
-            compress=compress)
+        with src_zip.open(src_zipinfo) as source:
+          self._write_entry(
+              dest=file_dest,
+              source=source,
+              size=src_zipinfo.file_size,
+              is_executable=is_executable,
+              is_symlink=is_symlink,
+              out_zip=out_zip,
+              compress=compress)
 
   def _write_entry(
       self,
       *,
-      data: Union[str, bytes],
+      source: BinaryIO,
+      size: int,
       dest: str,
       compress: bool,
-      is_executable: Optional[bool] = False,
-      is_symlink: Optional[bool] = False,
+      is_executable: bool = False,
+      is_symlink: bool = False,
       out_zip: zipfile.ZipFile):
     """Writes the given data as a file in the output ZIP archive.
 
     Args:
-      data: The data to be written in the archive.
+      source: A binary stream positioned at the start of the entry.
+      size: The uncompressed entry size, used to select the ZIP64 header.
       dest: The path inside the archive where the data should be written.
       is_executable: A Boolean value indicating whether or not the file should
           be made executable.
@@ -246,16 +255,17 @@ class Bundler(object):
       BundleConflictError: If two files with different content would be placed
           at the same location in the ZIP file.
     """
-    new_hash = hashlib.md5(data).digest()
-    existing_hash = self._entry_hashes.get(dest)
-    if existing_hash:
-      if existing_hash == new_hash:
-        return
-      raise BundleConflictError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
-
-    self._entry_hashes[dest] = new_hash
+    digest = hashlib.md5()
+    chunks = iter(lambda: source.read(_CHUNK_SIZE), b'')
+    if dest in self._entry_hashes:
+      for chunk in chunks:
+        digest.update(chunk)
+      if digest.digest() != self._entry_hashes[dest]:
+        raise BundleConflictError(BUNDLE_CONFLICT_MSG_TEMPLATE % dest)
+      return
 
     zipinfo = zipfile.ZipInfo(dest)
+    zipinfo.file_size = size
     if compress:
       zipinfo.compress_type = zipfile.ZIP_DEFLATED
     else:
@@ -275,7 +285,11 @@ class Bundler(object):
     if is_symlink:
       zipinfo.external_attr |= stat.S_IFLNK << 16
 
-    out_zip.writestr(zipinfo, data)
+    with out_zip.open(zipinfo, 'w') as entry:
+      for chunk in chunks:
+        entry.write(chunk)
+        digest.update(chunk)
+    self._entry_hashes[dest] = digest.digest()
 
 
 def _main(control_path):

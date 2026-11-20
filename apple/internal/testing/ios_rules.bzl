@@ -89,7 +89,6 @@ def _ios_ui_test_impl(ctx):
     """Implementation of ios_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xcuitest",
     ) + [
         new_iosxctestbundleinfo(),
@@ -99,7 +98,6 @@ def _ios_unit_test_impl(ctx):
     """Implementation of ios_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xctest",
     ) + [
         new_iosxctestbundleinfo(),
@@ -150,6 +148,7 @@ _ios_internal_ui_test_bundle = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see
@@ -226,6 +225,7 @@ _ios_internal_unit_test_bundle = rule_factory.create_apple_rule(
         ),
         {
             "frameworks": attr.label_list(
+                aspects = [framework_provider_aspect],
                 providers = [[AppleBundleInfo, IosFrameworkBundleInfo]],
                 doc = """
 A list of framework targets (see

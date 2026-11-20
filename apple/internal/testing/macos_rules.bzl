@@ -89,7 +89,6 @@ def _macos_ui_test_impl(ctx):
     """Implementation of macos_ui_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xcuitest",
     ) + [
         new_macosxctestbundleinfo(),
@@ -99,7 +98,6 @@ def _macos_unit_test_impl(ctx):
     """Implementation of macos_unit_test."""
     return apple_test_rule_support.apple_test_rule_impl(
         ctx = ctx,
-        requires_dossiers = False,
         test_type = "xctest",
     ) + [
         new_macosxctestbundleinfo(),

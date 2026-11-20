@@ -857,6 +857,15 @@ def _macos_extension_impl(ctx):
         fail("Internal Error: Unexpectedly found product_type " + rule_descriptor.product_type)
 
     processor_partials = [
+        partials.app_intents_metadata_bundle_partial(
+            actions = actions,
+            cc_toolchains = cc_toolchain_forwarder,
+            deps = ctx.split_attr.app_intents,
+            label = label,
+            mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
+            platform_prerequisites = platform_prerequisites,
+            json_tool = ctx.attr._json_tool.files_to_run,
+        ),
         partials.apple_bundle_info_partial(
             actions = actions,
             bundle_extension = bundle_extension,
@@ -2629,6 +2638,9 @@ point (typically expressed through Swift's `@main` attribute).""",
     attrs = [
         apple_support.platform_constraint_attrs(),
         rule_attrs.app_icon_attrs(),
+        rule_attrs.app_intents_attrs(
+            deps_cfg = transition_support.apple_platform_split_transition,
+        ),
         rule_attrs.binary_linking_attrs(
             deps_cfg = transition_support.apple_platform_split_transition,
             extra_deps_aspects = [

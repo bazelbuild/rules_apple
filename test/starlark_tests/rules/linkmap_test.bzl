@@ -64,33 +64,41 @@ def _linkmap_test_impl(ctx):
 
     return analysistest.end(env)
 
-linkmap_test = analysistest.make(
-    _linkmap_test_impl,
-    attrs = {
-        "architectures": attr.string_list(
-            mandatory = False,
-            default = [],
-            doc = """
+def make_linkmap_test(config_settings = {}):
+    return analysistest.make(
+        _linkmap_test_impl,
+        attrs = {
+            "architectures": attr.string_list(
+                mandatory = False,
+                default = [],
+                doc = """
 List of architectures to verify for the given dSYM bundles as provided. Defaults to x86_64 for all
 platforms.
 """,
-        ),
-        "expected_linkmap_names": attr.string_list(
-            mandatory = False,
-            default = [],
-            doc = """
+            ),
+            "expected_linkmap_names": attr.string_list(
+                mandatory = False,
+                default = [],
+                doc = """
 List of linkmap names to verify that linkmaps are created. Defaults to the target name if none is
 provided.
 """,
-        ),
-    },
+            ),
+        },
+        config_settings = {
+            "//command_line_option:macos_cpus": "arm64,x86_64",
+            "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+            "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
+            "//command_line_option:visionos_cpus": "sim_arm64",
+            "//command_line_option:watchos_cpus": "arm64,x86_64",
+        } | config_settings,
+        fragments = ["apple"],
+    )
+
+linkmap_test = make_linkmap_test(
     config_settings = {
         "//command_line_option:objc_generate_linkmap": "true",
-        "//command_line_option:macos_cpus": "arm64,x86_64",
-        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
-        "//command_line_option:tvos_cpus": "sim_arm64,x86_64",
-        "//command_line_option:visionos_cpus": "sim_arm64",
-        "//command_line_option:watchos_cpus": "arm64,x86_64",
     },
-    fragments = ["apple"],
 )
+
+linkmap_attr_test = make_linkmap_test()

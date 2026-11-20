@@ -159,7 +159,7 @@ def _get_template_substitutions(
     }
     return {"%(" + k + ")s": substitutions[k] for k in substitutions}
 
-def _get_coverage_execution_environment(*, covered_binaries):
+def _get_covered_binaries_execution_environment(*, covered_binaries):
     """Returns environment variables required for test coverage support.
 
     Args:
@@ -173,7 +173,6 @@ def _get_coverage_execution_environment(*, covered_binaries):
     covered_binary_paths = [f.short_path for f in covered_binaries.to_list()]
 
     return {
-        "APPLE_COVERAGE": "1",
         "TEST_BINARIES_FOR_LLVM_COV": ";".join(covered_binary_paths),
     }
 
@@ -260,13 +259,11 @@ def _get_simulator_test_environment(
         _get_main_thread_checker_test_environment(features = features),
     )
 
-def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
+def _apple_test_rule_impl(*, ctx, test_type):
     """Generates an implementation for the Apple test rules, given arguments.
 
     Args:
         ctx: A rule context.
-        requires_dossiers: A Boolean to indicate if the test rule depends on dossiers from the test
-            bundle and the optional test host.
         test_type: A String indicating the test type. For example, "xctest" or "xcuitest".
 
     Returns:
@@ -288,6 +285,8 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
 
     direct_runfiles = [test_bundle]
     transitive_runfiles = [test_bundle_target[DefaultInfo].default_runfiles.files]
+
+    requires_dossiers = "disable_legacy_signing" in ctx.features
 
     test_bundle_dossier = None
     if requires_dossiers and AppleCodesigningDossierInfo in test_bundle_target:
@@ -332,24 +331,34 @@ def _apple_test_rule_impl(*, ctx, requires_dossiers, test_type):
         direct_runfiles.append(test_host_artifact)
 
     test_coverage_manifest = None
+    export_covered_binaries = execution_environment.get(
+        "APPLE_TEST_EXPORT_COVERED_BINARIES",
+    ) == "1"
+    if ctx.configuration.coverage_enabled and (
+        ctx.attr.collect_code_coverage or export_covered_binaries
+    ):
+        covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
+
+        execution_environment = dicts.add(
+            execution_environment,
+            _get_covered_binaries_execution_environment(
+                covered_binaries = covered_binaries,
+            ),
+        )
+        transitive_runfiles.append(covered_binaries)
+
     if ctx.configuration.coverage_enabled and ctx.attr.collect_code_coverage:
         test_coverage_manifest = ctx.file.test_coverage_manifest
         if test_coverage_manifest:
             direct_runfiles.append(test_coverage_manifest)
 
-        covered_binaries = test_bundle_target[_CoverageFilesInfo].covered_binaries
-
         execution_environment = dicts.add(
             execution_environment,
-            _get_coverage_execution_environment(
-                covered_binaries = covered_binaries,
-            ),
+            {"APPLE_COVERAGE": "1"},
         )
-
-        transitive_runfiles.extend([
-            covered_binaries,
+        transitive_runfiles.append(
             test_bundle_target[_CoverageFilesInfo].coverage_files,
-        ])
+        )
 
     executable = ctx.actions.declare_file("%s" % ctx.label.name)
     ctx.actions.expand_template(

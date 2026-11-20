@@ -37,6 +37,7 @@ import shutil
 import sys
 import textwrap
 import time
+import zipfile
 from typing import List, Optional
 
 from tools.bitcode_strip import bitcode_strip
@@ -121,11 +122,8 @@ def _update_modified_timestamps(framework_temp_path: str) -> None:
     for root, dirs, files in os.walk(framework_temp_path, topdown=False):
       for file_name in dirs + files:
         file_path = os.path.join(root, file_name)
-        if os.path.islink(file_path):
-          # Skip symlinks, since those were created by this tool.
-          # It's safe to assume so because Bazel resolves symlinks.
-          continue
-        os.utime(file_path, (timestamp, timestamp))
+        os.utime(file_path, (timestamp, timestamp),
+                 follow_symlinks=not os.path.islink(file_path))
     os.utime(framework_temp_path, (timestamp, timestamp))
 
 
@@ -300,11 +298,8 @@ def main() -> None:
     os.remove(args.output_zip)
   os.makedirs(args.temp_path)
 
-  # Stub binaries of embedded static frameworks are generated outside of the
-  # imported framework directory.
-  framework_path = (args.framework_file + [args.framework_binary])[0]
-  framework_directory = framework_path[
-      :framework_path.index(".framework/") + len(".framework")]
+  framework_directory = os.path.normpath(
+      os.path.commonprefix(args.framework_file + [args.framework_binary]))
   framework_name, _ = os.path.splitext(os.path.basename(framework_directory))
   is_versioned_framework = any(map(_is_versioned_file, args.framework_file))
 
@@ -331,7 +326,6 @@ def main() -> None:
             binary=args.framework_binary)
 
     # Copy files from Versions/<version_id>
-    has_versioned_binary = False
     for framework_file in args.framework_file:
       if not _is_versioned_file(framework_file, version):
         # Ignore non-current/effective version framework files.
@@ -351,7 +345,6 @@ def main() -> None:
         continue
 
       if os.path.basename(framework_file) == framework_name:
-        has_versioned_binary = True
         _strip_or_copy_binary(
             framework_binary=framework_file,
             output_path=args.temp_path,
@@ -362,13 +355,6 @@ def main() -> None:
             framework_file,
             executable=False,
             output_path=args.temp_path)
-
-    if not has_versioned_binary:
-      # Stub binaries of embedded static frameworks go in the effective version.
-      versioned_binary = os.path.join(
-          args.temp_path, "Versions", version, framework_name)
-      shutil.copy(args.framework_binary, versioned_binary)
-      os.chmod(versioned_binary, 0o755)
 
     # Create symbolic link from Current to effective version directory.
     symlink_path = os.path.join(args.temp_path, "Versions", "Current")
@@ -393,23 +379,36 @@ def main() -> None:
     if status_code:
       return status_code
 
-  # Update modified timestamps and create archive using ditto.
   _update_modified_timestamps(args.temp_path)
+  _zip_keeping_parent(args.temp_path, args.output_zip)
 
-  # Previous implementation of creating the processed framework archive
-  # using shutil/zip already stripped the extended attributes of the bundle.
-  execute.execute_and_filter_output(
-      cmd_args=[
-          "/usr/bin/ditto",
-          "-c",
-          "-k",  # use PKZip format for bundletool compatibility.
-          "--keepParent",  # preserves the .framework directory.
-          "--norsrc",  # strip resource forks and HFS metadata.
-          "--noextattr",  # strip extended attributes.
-          args.temp_path,
-          args.output_zip
-      ],
-      raise_on_failure=True)
+
+def _zip_keeping_parent(source: str, output_zip: str) -> None:
+  """Zips `source` with its parent directory, keeping symlinks and modes."""
+  parent = os.path.dirname(os.path.abspath(source))
+
+  def info(path: str, name: str) -> zipfile.ZipInfo:
+    st = os.lstat(path)
+    zinfo = zipfile.ZipInfo(name, time.localtime(st.st_mtime)[:6])
+    zinfo.external_attr = (st.st_mode & 0xFFFF) << 16
+    zinfo.create_system = 3  # Unix, so modes and symlinks survive unzip.
+    return zinfo
+
+  with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as out:
+    def add(path: str) -> None:
+      name = os.path.relpath(path, parent)
+      if os.path.islink(path):
+        out.writestr(info(path, name), os.readlink(path))
+      elif os.path.isdir(path):
+        directory = info(path, name + "/")
+        directory.external_attr |= 0x10  # MS-DOS directory.
+        out.writestr(directory, b"")
+        for entry in sorted(os.listdir(path)):
+          add(os.path.join(path, entry))
+      else:
+        out.write(path, name)
+
+    add(os.path.abspath(source))
 
 
 if __name__ == "__main__":

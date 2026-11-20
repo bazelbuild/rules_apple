@@ -101,7 +101,7 @@ def _compile_datamodels(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                dir_name = basename,
+                dir_name = paths.join(parent_dir or "", basename),
             )
             datamodel_parent = paths.join(datamodel_parent or "", basename)
         else:
@@ -109,7 +109,7 @@ def _compile_datamodels(
                 actions = actions,
                 target_name = label_name,
                 output_discriminator = output_discriminator,
-                file_name = datamodel_name + ".mom",
+                file_name = paths.join(parent_dir or "", datamodel_name + ".mom"),
             )
 
         processed_origins[output_file.short_path] = [f.short_path for f in input_files]
@@ -461,6 +461,7 @@ def _metals(
         *,
         actions,
         mac_exec_group,
+        output_discriminator,
         rule_label,
         parent_dir,
         platform_prerequisites,
@@ -474,6 +475,7 @@ def _metals(
     Args:
         actions: The actions provider from `ctx.actions`.
         mac_exec_group: The execution group for Mac tools.
+        output_discriminator: A string distinguishing intermediate files for each XCFramework slice.
         rule_label: The label of the target being analyzed.
         parent_dir: The path under which the library should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
@@ -490,7 +492,7 @@ def _metals(
     metallib_file = intermediates.file(
         actions = actions,
         file_name = metallib_path,
-        output_discriminator = None,
+        output_discriminator = output_discriminator,
         target_name = rule_label.name,
     )
     processed_origins[metallib_file.short_path] = [f.short_path for f in input_files]

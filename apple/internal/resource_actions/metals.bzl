@@ -76,7 +76,8 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
     # Compile each .metal file into a single .air file
     for input_metal in metal_files:
         air_file = actions.declare_file(
-            paths.replace_extension(input_metal.basename, ".air"),
+            output_file.basename + "." + paths.replace_extension(input_metal.basename, ".air"),
+            sibling = output_file,
         )
         air_files.append(air_file)
 

@@ -14,6 +14,7 @@
 
 """iOS coverage Starlark tests."""
 
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load(
     "//test/starlark_tests/rules:apple_coverage_test.bzl",
     "apple_coverage_test",
@@ -24,12 +25,70 @@ _COVERAGE_MAIN = "test/starlark_tests/targets_under_test/ios/CoverageMain.m"
 _COVERAGE_SHARED_LOGIC = "test/starlark_tests/targets_under_test/ios/CoverageSharedLogic.m"
 _COVERAGE_SHARED_SYMBOL = "CoverageSharedLogic.m:-[SharedLogic doSomething]"
 
+def _covered_binaries_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    execution_environment = target[RunEnvironmentInfo].environment
+    asserts.equals(env, "1" if ctx.attr.expect_lcov else None, execution_environment.get("APPLE_COVERAGE"))
+    binaries = execution_environment.get("TEST_BINARIES_FOR_LLVM_COV")
+    if ctx.attr.expect_binaries:
+        asserts.true(env, binaries != None, "Covered binaries must be exported")
+        if binaries:
+            binary_paths = binaries.split(";")
+
+            # Hosted tests must export both the test binary and its host binary.
+            asserts.equals(env, 2, len(binary_paths))
+            runfiles = [f.short_path for f in target[DefaultInfo].default_runfiles.files.to_list()]
+            for binary in binary_paths:
+                asserts.true(env, binary in runfiles, "Missing covered binary in runfiles: " + binary)
+    else:
+        asserts.equals(env, None, binaries)
+    return analysistest.end(env)
+
+_covered_binaries_test = analysistest.make(
+    _covered_binaries_test_impl,
+    attrs = {
+        "expect_binaries": attr.bool(),
+        "expect_lcov": attr.bool(),
+    },
+    config_settings = {"//command_line_option:collect_code_coverage": True},
+)
+
+_covered_binaries_without_instrumentation_test = analysistest.make(
+    _covered_binaries_test_impl,
+    attrs = {
+        "expect_binaries": attr.bool(),
+        "expect_lcov": attr.bool(),
+    },
+    config_settings = {"//command_line_option:collect_code_coverage": False},
+)
+
 def ios_coverage_test_suite(name):
     """Test suite for iOS coverage.
 
     Args:
       name: the base name to be used in things created by this macro
     """
+    for suffix, fixture, expect_binaries, expect_lcov in [
+        ("export_only", "coverage_export_only_test", True, False),
+        ("export_disabled", "coverage_export_disabled_test", False, False),
+        ("default_lcov", "coverage_hosted_test", True, True),
+        ("export_with_lcov", "coverage_export_with_lcov_test", True, True),
+    ]:
+        _covered_binaries_test(
+            name = "{}_{}_environment_test".format(name, suffix),
+            target_under_test = "//test/starlark_tests/targets_under_test/ios:" + fixture,
+            expect_binaries = expect_binaries,
+            expect_lcov = expect_lcov,
+            tags = [name],
+        )
+
+    _covered_binaries_without_instrumentation_test(
+        name = "{}_export_without_instrumentation_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_export_only_test",
+        tags = [name],
+    )
+
     apple_coverage_test(
         name = "{}_standalone_unit_test_coverage".format(name),
         coverage_manifest = [_COVERAGE_SHARED_LOGIC],

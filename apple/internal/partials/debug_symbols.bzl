@@ -327,8 +327,9 @@ def _bundle_dsym_files(
             platform_prerequisites = platform_prerequisites,
         )
         output_files.extend(generated_dsym_binaries)
+
         dsyms_command = (" && ".join([
-            "cp \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
+            "/bin/cp -c \"{dsym_path}\" \"${{OUTPUT_DIR}}/Contents/Resources/DWARF/{dsym_bundle_name}\"".format(
                 dsym_path = dsym_binary.path,
                 dsym_bundle_name = dsym_output_filename,
             )
@@ -447,7 +448,7 @@ def _debug_symbols_partial_impl(
                 direct_dsym_bundles.append(dsym_bundle_dir)
             direct_dsyms.extend(dsym_files)
 
-        if platform_prerequisites.cpp_fragment.objc_generate_linkmap:
+        if linkmaps:
             linkmaps = _collect_linkmaps(
                 actions = actions,
                 debug_output_filename = debug_output_filename,

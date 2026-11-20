@@ -15,8 +15,10 @@
 
 import os
 import shutil
+import stat
 import tempfile
 import unittest
+import zipfile
 from unittest import mock
 
 from tools.imported_dynamic_framework_processor import imported_dynamic_framework_processor
@@ -40,6 +42,45 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     with open(full_path, "w", encoding="utf-8") as fp:
       fp.write(content)
     return full_path
+
+  def test_zip_keeping_parent_streams_regular_files(self):
+    content = "framework-binary" * (128 * 1024)
+    binary = self._scratch_file("Foo.framework/Foo", content)
+    os.chmod(binary, 0o755)
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+    original_open = open
+    read_sizes = []
+
+    def open_with_bounded_reads(path, mode="r", *args, **kwargs):
+      stream = original_open(path, mode, *args, **kwargs)
+      if path != binary or mode != "rb":
+        return stream
+
+      def read(size=-1):
+        read_sizes.append(size)
+        self.assertGreater(size, 0, "Archive reads must be bounded")
+        # The test file is larger than 1 MiB, so this limit prevents reading
+        # the entire file at once.
+        self.assertLessEqual(size, 1024 * 1024)
+        return stream.read(size)
+
+      wrapped = mock.MagicMock(wraps=stream)
+      wrapped.__enter__.return_value = wrapped
+      wrapped.__exit__.side_effect = stream.__exit__
+      wrapped.read.side_effect = read
+      return wrapped
+
+    with mock.patch("builtins.open", side_effect=open_with_bounded_reads):
+      imported_dynamic_framework_processor._zip_keeping_parent(
+          os.path.dirname(binary), output_zip)
+
+    self.assertTrue(read_sizes, "Archive must use the bounded-read wrapper")
+
+    with zipfile.ZipFile(output_zip) as archive:
+      entry = archive.getinfo("Foo.framework/Foo")
+      self.assertEqual(content.encode("utf-8"), archive.read(entry))
+      self.assertEqual(zipfile.ZIP_DEFLATED, entry.compress_type)
+      self.assertEqual(stat.S_IFREG | 0o755, entry.external_attr >> 16)
 
   @mock.patch.object(execute, "execute_and_filter_output")
   def test_get_install_path_for_binary(self, mock_execute):
@@ -270,7 +311,30 @@ class ImportedDynamicFrameworkProcessorTest(unittest.TestCase):
     )
     mock_sign.assert_called_once()
     mock_update_modified_timestamps.assert_called_once_with(temp_path)
-    mock_execute.assert_called_once()
+    with zipfile.ZipFile(output_zip) as archive:
+      current = archive.getinfo("Foo.framework/Versions/Current")
+      self.assertTrue(stat.S_ISLNK(current.external_attr >> 16))
+      self.assertEqual(b"A", archive.read(current))
+
+  def test_zip_of_versioned_framework_has_fixed_symlink_timestamps(self):
+    framework_path = os.path.dirname(
+        self._scratch_file("Foo.framework/Versions/A/Foo", "framework-binary"))
+    framework_path = os.path.dirname(os.path.dirname(framework_path))
+    os.symlink("A", os.path.join(framework_path, "Versions", "Current"))
+    os.symlink("Versions/Current/Foo", os.path.join(framework_path, "Foo"))
+    output_zip = os.path.join(self._scratch_dir, "Foo.zip")
+
+    imported_dynamic_framework_processor._update_modified_timestamps(
+        framework_path)
+    imported_dynamic_framework_processor._zip_keeping_parent(
+        framework_path, output_zip)
+
+    with zipfile.ZipFile(output_zip) as archive:
+      expected = archive.getinfo("Foo.framework/Versions/A/Foo").date_time
+      for name in ("Foo.framework/Versions/Current", "Foo.framework/Foo"):
+        entry = archive.getinfo(name)
+        self.assertTrue(stat.S_ISLNK(entry.external_attr >> 16))
+        self.assertEqual(expected, entry.date_time, name)
 
 if __name__ == "__main__":
   unittest.main()

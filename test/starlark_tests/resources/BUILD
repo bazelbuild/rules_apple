@@ -928,6 +928,15 @@ objc_library(
 )
 
 apple_resource_bundle(
+    name = "resource_bundle_with_metal",
+    resources = [
+        "//test/testdata/resources:metal_hdrs",
+        "//test/testdata/resources:metal_srcs",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
     name = "bundle_library_ios",
     infoplists = [
         "Info-template.plist",
@@ -1582,4 +1591,24 @@ cc_library(
     deps = [
         ":ccinfo_dylibs_mylib-import-with-data",
     ],
+)
+
+apple_resource_bundle(
+    name = "datamodel_bundle",
+    infoplists = ["Info-template.plist"],
+    resources = [
+        ":unversioned_datamodel",
+        ":versioned_datamodel",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "other_datamodel_bundle",
+    infoplists = ["Info-template.plist"],
+    resources = [
+        "//test/testdata/resources:unversioned_datamodel",
+        "//test/testdata/resources:versioned_datamodel",
+    ],
+    tags = common.fixture_tags,
 )

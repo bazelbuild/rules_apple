@@ -42,6 +42,17 @@ def apple_static_xcframework_test_suite(name):
       name: the base name to be used in things created by this macro
     """
     archive_contents_test(
+        name = "{}_metal_resources_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework_with_metal_resources",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_xcframework_with_metal_resources.framework/resource_bundle_with_metal.bundle/default.metallib",
+            "$BUNDLE_ROOT/ios-arm64-simulator/ios_static_xcframework_with_metal_resources.framework/resource_bundle_with_metal.bundle/default.metallib",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
         name = "{}_ios_root_plist_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_xcframework",
