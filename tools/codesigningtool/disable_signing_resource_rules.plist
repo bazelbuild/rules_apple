@@ -6,6 +6,8 @@
 	<dict>
 		<key>.*</key>
 		<false/>
+		<key>.*storyboard</key>
+		<true/>
 	</dict>
 </dict>
 </plist>
