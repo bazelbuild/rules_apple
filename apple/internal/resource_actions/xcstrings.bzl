@@ -16,7 +16,8 @@ def compile_xcstrings(
         input_file,
         output_dir,
         platform_prerequisites,
-        xctoolrunner):
+        xctoolrunner,
+        sdk_tool_files = []):
     args = [
         "xcstringstool",
         "compile",
@@ -31,7 +32,7 @@ def compile_xcstrings(
         arguments = args,
         exec_group = mac_exec_group,
         executable = xctoolrunner,
-        inputs = [input_file],
+        inputs = [input_file] + sdk_tool_files,
         mnemonic = "CompileXCStrings",
         outputs = [output_dir],
         xcode_config = platform_prerequisites.xcode_version_config,

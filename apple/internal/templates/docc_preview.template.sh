@@ -45,7 +45,7 @@ env -i \
   APPLE_SDK_PLATFORM="$platform" \
   APPLE_SDK_VERSION_OVERRIDE="$sdk_version" \
   XCODE_VERSION_OVERRIDE="$xcode_version" \
-  /usr/bin/xcrun docc preview \
+  xcrun docc preview \
   --fallback-display-name "$fallback_display_name" \
   --fallback-bundle-identifier "$fallback_bundle_identifier" \
   --fallback-bundle-version "$fallback_bundle_version" \

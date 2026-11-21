@@ -125,7 +125,7 @@ def main(argv):
     # The tool writes root.ssu.yaml into the --extracted-metadata-path directory, which is a
     # read-only input, unless --deployment-postprocessing is passed.
     returncode, stdout, stderr = execute.execute_and_filter_output([
-        "/usr/bin/xcrun",
+        "xcrun",
         "appintentsnltrainingprocessor",
         "--infoplist-path", args.infoplist,
         "--temp-dir-path", ssu_dir,
