@@ -512,10 +512,13 @@ def _register_binary_linking_action(
         der_entitlements = entitlements_support.generate_der_entitlements(
             actions = ctx.actions,
             apple_fragment = platform_prerequisites.apple_fragment,
+            derq_tool = apple_toolchain_utils.get_xplat_toolchain(ctx).derq_tool,
             entitlements = entitlements,
+            features = platform_prerequisites.features,
             label_name = ctx.label.name,
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             xcode_version_config = platform_prerequisites.xcode_version_config,
+            xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group(ctx),
         )
         linkopts.append(
             "-Wl,-sectcreate,{segment},{section},{file}".format(
