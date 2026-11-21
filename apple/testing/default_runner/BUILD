@@ -47,6 +47,7 @@ bzl_library(
         "//apple:providers",
         "//apple/internal:apple_toolchains",
         "@apple_support//xcode:providers",
+        "@bazel_skylib//lib:shell",
         "@bazel_skylib//rules:common_settings",
     ],
 )
