@@ -46,7 +46,7 @@ def _metal_apple_target_triple(platform_prerequisites):
         version = target_os_version,
     )
 
-def compile_metals(*, actions, mac_exec_group, input_files, output_file, platform_prerequisites, **_kwargs):
+def compile_metals(*, actions, mac_exec_group, input_files, output_file, platform_prerequisites, sdk_tool_files = [], **_kwargs):
     """Creates actions that compile .metal files into a single .metallib file.
 
     Args:
@@ -56,6 +56,7 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
         input_files: The input metal files.
         output_file: The output metallib file.
         **_kwargs: Ignored
+        sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
     """
     air_files = []
     target = _metal_apple_target_triple(platform_prerequisites)
@@ -92,8 +93,8 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
         apple_support.run(
             actions = actions,
             exec_group = mac_exec_group,
-            executable = "/usr/bin/xcrun",
-            inputs = [input_metal] + hdrs,
+            executable = "xcrun",
+            inputs = [input_metal] + hdrs + sdk_tool_files,
             outputs = [air_file],
             arguments = [args],
             mnemonic = "MetalCompile",
@@ -111,8 +112,8 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
     apple_support.run(
         actions = actions,
         exec_group = mac_exec_group,
-        executable = "/usr/bin/xcrun",
-        inputs = air_files,
+        executable = "xcrun",
+        inputs = air_files + sdk_tool_files,
         outputs = [output_file],
         arguments = [args],
         mnemonic = "MetallibCompile",

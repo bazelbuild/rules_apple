@@ -98,7 +98,7 @@ def _apple_metal_library_impl(ctx):
         apple_fragment = platform_prerequisites.apple_fragment,
         arguments = [args],
         exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         inputs = ctx.files.srcs + ctx.files.hdrs,
         mnemonic = "MetallibCompile",
         outputs = [out],
@@ -147,4 +147,5 @@ Compiles Metal shader language sources into a Metal library.
 """,
     fragments = ["apple"],
     implementation = _apple_metal_library_impl,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )

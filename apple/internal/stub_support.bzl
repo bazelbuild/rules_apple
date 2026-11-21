@@ -38,6 +38,7 @@ def _create_stub_binary(
         output_discriminator = None,
         platform_prerequisites,
         rule_label,
+        sdk_tool_files = [],
         xcode_stub_path):
     """Returns a symlinked stub binary from the Xcode distribution.
 
@@ -50,6 +51,7 @@ def _create_stub_binary(
             or `None`.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        sdk_tool_files: Files of Xcode's tools that the action runs, declared as its inputs.
         xcode_stub_path: The Xcode SDK root relative path to where the stub binary is to be copied
             from.
 
@@ -84,6 +86,7 @@ def _create_stub_binary(
                 output_path = binary_artifact.path,
                 xcode_stub_path = xcode_stub_path,
             ),
+            inputs = sdk_tool_files,
             mnemonic = "CopyStubExecutable",
             outputs = [binary_artifact],
             progress_message = "Copying stub executable for %s" % (rule_label),

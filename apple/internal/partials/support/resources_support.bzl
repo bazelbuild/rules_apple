@@ -79,6 +79,7 @@ def _compile_datamodels(
         *,
         actions,
         mac_exec_group,
+        apple_mac_toolchain_info,
         datamodel_groups,
         label_name,
         output_discriminator,
@@ -115,6 +116,7 @@ def _compile_datamodels(
         processed_origins[output_file.short_path] = [f.short_path for f in input_files]
 
         resource_actions.compile_datamodels(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             datamodel_path = datamodel_path,
             input_files = input_files,
@@ -134,6 +136,7 @@ def _compile_mappingmodels(
         *,
         actions,
         mac_exec_group,
+        apple_mac_toolchain_info,
         label_name,
         mappingmodel_groups,
         output_discriminator,
@@ -156,6 +159,7 @@ def _compile_mappingmodels(
         processed_origins[output_file.short_path] = [f.short_path for f in input_files]
 
         resource_actions.compile_mappingmodel(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_files = input_files,
             mac_exec_group = mac_exec_group,
@@ -255,6 +259,7 @@ was declared. Skipping asset catalog compilation.
             )
             processed_origins[png_file.short_path] = f.short_path
             resource_actions.copy_png(
+                sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
                 actions = actions,
                 input_file = f,
                 mac_exec_group = mac_exec_group,
@@ -266,6 +271,7 @@ was declared. Skipping asset catalog compilation.
             asset_files.append(f)
 
     resource_actions.compile_asset_catalog(
+        sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
         actions = actions,
         alternate_icons = alternate_icons,
         alticonstool = apple_mac_toolchain_info.alticonstool,
@@ -354,6 +360,7 @@ def _datamodels(
         datamodels_processed_origins,
     ) = _compile_datamodels(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         datamodel_groups = datamodel_groups,
         label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
@@ -369,6 +376,7 @@ def _datamodels(
         mappingmodels_processed_origins,
     ) = _compile_mappingmodels(
         actions = actions,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         label_name = rule_label.name,
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
@@ -461,6 +469,7 @@ def _metals(
         *,
         actions,
         mac_exec_group,
+        apple_mac_toolchain_info,
         output_discriminator,
         rule_label,
         parent_dir,
@@ -481,6 +490,7 @@ def _metals(
         platform_prerequisites: Struct containing information on the platform being targeted.
         files: The metal files to process.
         output_filename: The output .metallib filename.
+        apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         **_kwargs: Ignored
 
     Returns:
@@ -497,6 +507,7 @@ def _metals(
     )
     processed_origins[metallib_file.short_path] = [f.short_path for f in input_files]
     resource_actions.compile_metals(
+        sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
         actions = actions,
         input_files = input_files,
         mac_exec_group = mac_exec_group,
@@ -549,6 +560,7 @@ def _mlmodels(
         processed_origins[output_plist.short_path] = [file.short_path]
 
         resource_actions.compile_mlmodel(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_file = file,
             mac_exec_group = mac_exec_group,
@@ -645,6 +657,7 @@ def _pngs(
         *,
         actions,
         mac_exec_group,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -664,6 +677,7 @@ def _pngs(
         parent_dir: The path under which the images should be placed.
         platform_prerequisites: Struct containing information on the platform being targeted.
         rule_label: The label of the target being analyzed.
+        apple_mac_toolchain_info: An AppleMacToolsToolchainInfo provider.
         **_kwargs: Extra parameters forwarded to this support macro.
 
     Returns:
@@ -681,6 +695,7 @@ def _pngs(
         )
         processed_origins[png_file.short_path] = [file.short_path]
         resource_actions.copy_png(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_file = file,
             mac_exec_group = mac_exec_group,
@@ -732,6 +747,7 @@ def _storyboards(
         )
         origin_short_paths.append(storyboard.short_path)
         resource_actions.compile_storyboard(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_file = storyboard,
             mac_exec_group = mac_exec_group,
@@ -751,6 +767,7 @@ def _storyboards(
         dir_name = paths.join("storyboards", parent_dir or "", swift_module or ""),
     )
     resource_actions.link_storyboards(
+        sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
         actions = actions,
         mac_exec_group = mac_exec_group,
         output_dir = linked_storyboard_dir,
@@ -771,6 +788,7 @@ def _texture_atlases(
         *,
         actions,
         mac_exec_group,
+        apple_mac_toolchain_info,
         files,
         output_discriminator,
         parent_dir,
@@ -800,6 +818,7 @@ def _texture_atlases(
         )
         processed_origins[atlasc_dir.short_path] = [f.short_path for f in input_files]
         resource_actions.compile_texture_atlas(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_files = input_files,
             input_path = atlas_path,
@@ -843,6 +862,7 @@ def _xibs(
         )
         processed_origins[out_dir.short_path] = [file.short_path]
         resource_actions.compile_xib(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_file = file,
             mac_exec_group = mac_exec_group,
@@ -883,6 +903,7 @@ def _xcstrings(
         )
         processed_origins[out_dir.short_path] = [file.short_path]
         resource_actions.compile_xcstrings(
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             actions = actions,
             input_file = file,
             mac_exec_group = mac_exec_group,

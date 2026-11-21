@@ -21,6 +21,7 @@ toolchain_type(name = "mac_tools_toolchain_type")
 
 toolchain(
     name = "mac_toolchain_declaration",
+    exec_compatible_with = ["@platforms//os:macos"],
     toolchain = ":mac_tools_toolchain",
     toolchain_type = ":mac_tools_toolchain_type",
 )
