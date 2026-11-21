@@ -19,6 +19,7 @@ import shutil
 import stat
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 from tools.bundletool import bundletool_experimental
@@ -86,6 +87,16 @@ class BundlerExperimentalTest(unittest.TestCase):
   def _assert_symlink(self, path, target):
     self.assertTrue(os.path.islink(path), msg=f"{path} should be a symlink")
     self.assertEqual(target, os.readlink(path))
+
+  def test_resolves_bundle_root_once_for_multiple_entries(self):
+    framework_zip = self._scratch_zip("Foo.zip")
+    with mock.patch.object(
+        os.path, "realpath", wraps=os.path.realpath) as realpath:
+      output = self._run_bundler({
+          "bundle_merge_zips": [{"src": framework_zip, "dest": "Frameworks"}],
+      })
+
+    self.assertEqual(1, realpath.call_args_list.count(mock.call(output)))
 
   def test_bundle_merge_files_preserves_symlinked_files_and_directories(self):
     framework_root = os.path.join(self._scratch_dir, "Foo.framework")
