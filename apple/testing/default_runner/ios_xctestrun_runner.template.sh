@@ -507,6 +507,39 @@ if [[ "$build_for_device" == false ]]; then
   fi
 
   simulator_id="$(SIMULATOR_DEVICE_TYPE="%(device_type)s" SIMULATOR_OS_VERSION="%(os_version)s" SIMULATOR_REUSE_SIMULATOR="${reuse_simulator:-}" SIMULATOR_SDK_VERSION="%(sdk_version)s" XCTESTRUN_RUNNER_PID="${BASHPID:-$$}" "%(create_simulator_action_binary)s")"
+
+  # Inside macOS virtual machines a simulator's apsd (the push notification
+  # daemon) retries device activation forever, which keeps it and diagnosticd
+  # busy for as long as the simulator stays booted; with simulators kept
+  # booted between tests (reuse_simulator) that costs CPU the tests could
+  # use. Set SIMULATOR_DISABLE_APSD (e.g. via
+  # --test_env=SIMULATOR_DISABLE_APSD=1) to turn apsd off in the simulator
+  # this test uses. The device remembers a
+  # disabled service across boots, so it is done once per simulator and
+  # recorded in a marker inside the device's data directory, which is erased
+  # together with the setting. Without apsd the simulator cannot register for
+  # or receive remote push notifications, so leave this unset for tests that
+  # depend on them.
+  if [[ -n "${SIMULATOR_DISABLE_APSD:-}" && -n "$simulator_id" ]]; then
+    # Bazel does not hand tests the user's real $HOME, so ask the directory
+    # service where CoreSimulator keeps its devices.
+    apsd_marker="$(dscl . -read "/Users/$(id -un)" NFSHomeDirectory 2>/dev/null | sed 's/^NFSHomeDirectory: //')"
+    apsd_marker="${apsd_marker:-$HOME}/Library/Developer/CoreSimulator/Devices/$simulator_id/data/rules_apple/apsd-disabled"
+    if [[ ! -f "$apsd_marker" ]]; then
+      # `simctl spawn` has no deadline of its own; alarm(2) survives the exec,
+      # so a simulator that stopped responding costs 30 seconds, not the test.
+      if /usr/bin/perl -e 'alarm shift; exec @ARGV' 30 \
+          xcrun simctl spawn "$simulator_id" launchctl disable user/foreground/com.apple.apsd >&2; then
+        # Stop the running instance too; it is not running if this fails.
+        /usr/bin/perl -e 'alarm shift; exec @ARGV' 30 \
+          xcrun simctl spawn "$simulator_id" launchctl bootout user/foreground/com.apple.apsd >/dev/null 2>&1 || true
+        mkdir -p "$(dirname "$apsd_marker")" 2>/dev/null && touch "$apsd_marker" 2>/dev/null || true
+        echo "note: disabled apsd on simulator $simulator_id (SIMULATOR_DISABLE_APSD)"
+      else
+        echo "warning: could not disable apsd on simulator $simulator_id" >&2
+      fi
+    fi
+  fi
 fi
 
 test_exit_code=0
