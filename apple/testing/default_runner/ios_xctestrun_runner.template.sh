@@ -851,12 +851,20 @@ fi
 # When tests crash after they have reportedly completed, XCTest marks them as
 # a success. These 2 cases are Swift fatalErrors, and C++ exceptions. There
 # are likely other cases we can add to this in the future. FB7801959
-if grep -q \
-  -e "^Fatal error:" \
-  -e "^.*:[0-9]\+:\sFatal error:" \
-  -e "^libc++abi.dylib: terminating with uncaught exception" \
-  "$testlog"
-then
+crash_log_patterns=(-e "^libc++abi.dylib: terminating with uncaught exception")
+
+# Expected assertions, such as Nimble's throwAssertion(), can print Swift fatal-error
+# diagnostics without crashing. Set ERROR_ON_SWIFT_FATAL_ERROR_LOG=0 to disable
+# this heuristic; native exit-status and C++ exception checks still apply.
+# https://github.com/bazelbuild/rules_apple/issues/3139
+if [[ "${ERROR_ON_SWIFT_FATAL_ERROR_LOG:-1}" == "1" ]]; then
+  crash_log_patterns+=(
+    -e "^Fatal error:"
+    -e "^.*:[0-9]\+:\sFatal error:"
+  )
+fi
+
+if grep -q "${crash_log_patterns[@]}" "$testlog"; then
   echo "error: log contained test false negative" >&2
   exit 1
 fi
