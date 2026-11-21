@@ -343,6 +343,17 @@ function test_ios_ui_test_pass() {
   expect_log "Executed 2 tests, with 0 failures"
 }
 
+function test_ios_ui_test_pass_tsan() {
+  create_sim_runners
+  create_ios_app
+  create_ios_ui_tests
+  do_ios_test --features=tsan //ios:PassingUITest || fail "should pass"
+
+  expect_log "Test Suite 'PassingUITest' passed"
+  expect_log "Test Suite 'PassingUITest.xctest' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
 function test_ios_ui_swift_test_pass() {
   create_sim_runners
   create_ios_app
