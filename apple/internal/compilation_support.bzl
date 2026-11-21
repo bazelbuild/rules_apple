@@ -190,7 +190,7 @@ def _register_binary_strip_action(
             apple_common.apple_host_system_env(xcode_config) |
             apple_common.target_apple_env(xcode_config, apple_common_platform)
         ),
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         execution_requirements = xcode_config.execution_info(),
         inputs = [binary],
         mnemonic = "ObjcBinarySymbolStrip",

@@ -19,6 +19,27 @@ import re
 import subprocess
 import sys
 
+
+def _ensure_toolchain_path():
+  """Prepend toolchain bin to PATH using DEVELOPER_DIR or xcode-select."""
+  dev_dir = os.environ.get("DEVELOPER_DIR", "")
+  if not dev_dir:
+    try:
+      result = subprocess.run(
+        ["xcode-select", "-p"], capture_output=True, text=True, timeout=5
+      )
+      if result.returncode == 0:
+        dev_dir = result.stdout.strip()
+    except Exception:
+      pass
+  if dev_dir:
+    bin_dir = os.path.join(dev_dir, "Toolchains",
+                           "XcodeDefault.xctoolchain", "usr", "bin")
+    if os.path.isdir(bin_dir) and bin_dir not in os.environ.get("PATH", ""):
+      os.environ["PATH"] = bin_dir + ":" + os.environ.get("PATH", "")
+
+_ensure_toolchain_path()
+
 # LINT.IfChange
 _DEFAULT_TIMEOUT = 900
 

@@ -92,7 +92,7 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
         apple_support.run(
             actions = actions,
             exec_group = mac_exec_group,
-            executable = "/usr/bin/xcrun",
+            executable = "xcrun",
             inputs = [input_metal] + hdrs,
             outputs = [air_file],
             arguments = [args],
@@ -111,7 +111,7 @@ def compile_metals(*, actions, mac_exec_group, input_files, output_file, platfor
     apple_support.run(
         actions = actions,
         exec_group = mac_exec_group,
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         inputs = air_files,
         outputs = [output_file],
         arguments = [args],
