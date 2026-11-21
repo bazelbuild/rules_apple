@@ -631,11 +631,7 @@ def _post_process_and_sign_archive_action(
     input_files = [input_archive]
     processing_tools = []
 
-    execution_requirements = {
-        # Unsure, but may be needed for keychain access, especially for files
-        # that live in $HOME.
-        "no-sandbox": "1",
-    }
+    execution_requirements = {}
 
     signing_command_lines = _codesigning_command(
         bundle_path = archive_codesigning_path,
@@ -650,6 +646,8 @@ def _post_process_and_sign_archive_action(
         signed_frameworks = signed_frameworks,
     )
     if signing_command_lines:
+        # Signing may need keychain access, especially for files that live in $HOME.
+        execution_requirements["no-sandbox"] = "1"
         processing_tools.append(codesigningtool)
         if entitlements:
             input_files.append(entitlements)

@@ -483,11 +483,10 @@ def _bundle_partial_outputs_files(
         if post_processor:
             bundling_tools.append(post_processor)
 
-        execution_requirements = {
-            # Unsure, but may be needed for keychain access, especially for
-            # files that live in $HOME.
-            "no-sandbox": "1",
-        }
+        execution_requirements = {}
+        if codesigning_command:
+            # Signing may need keychain access, especially for files that live in $HOME.
+            execution_requirements["no-sandbox"] = "1"
 
         if (codesigning_command and
             platform_prerequisites.platform.is_device and
