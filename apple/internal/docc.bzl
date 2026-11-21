@@ -214,7 +214,7 @@ fi
         inputs = depset(docc_build_inputs),
         outputs = [doccarchive_dir],
         mnemonic = "DocCConvert",
-        executable = "/usr/bin/xcrun",
+        executable = "xcrun",
         arguments = [arguments],
         progress_message = "Converting .doccarchive for %{label}",
         execution_requirements = execution_requirements,
@@ -381,4 +381,5 @@ The base URL where the source files of the main repository are browsable, for ex
         },
     ),
     executable = True,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )

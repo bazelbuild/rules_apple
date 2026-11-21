@@ -848,7 +848,7 @@ def _process(
             xplat_exec_group = xplat_exec_group,
             bundle_extension = bundle_extension,
             bundle_name = bundle_name,
-            codesign_inputs = codesign_inputs,
+            codesign_inputs = codesign_inputs + apple_mac_toolchain_info.sdk_tool_files,
             codesignopts = codesignopts,
             entitlements = entitlements,
             features = features,
