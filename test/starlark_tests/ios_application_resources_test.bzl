@@ -58,6 +58,39 @@ def ios_application_resources_test_suite(name):
       name: the base name to be used in things created by this macro
     """
 
+    # Resource compilation keeps the bundle's Swift module rather than the consuming app or test name.
+    for consumer in ["app", "unit_test"]:
+        target_name = "{}_with_resource_bundle_swift_module".format(consumer)
+        if consumer == "unit_test":
+            target_name += ".__internal__.__test_bundle"
+        analysis_target_actions_test(
+            name = "{}_resource_bundle_swift_module_{}_test".format(name, consumer),
+            target_under_test = "//test/starlark_tests/targets_under_test/ios:" + target_name,
+            target_mnemonic = "MomCompile",
+            expected_argv = ["--module ResourceModel"],
+            tags = [name],
+        )
+        for resource_type, mnemonic in [
+            ("storyboard", "StoryboardCompile"),
+            ("xib", "XibCompile"),
+        ]:
+            analysis_target_actions_test(
+                name = "{}_resource_bundle_swift_module_{}_{}_test".format(name, consumer, resource_type),
+                target_under_test = "//test/starlark_tests/targets_under_test/ios:" + target_name,
+                target_mnemonic = mnemonic,
+                expected_argv = ["--module ResourceModel"],
+                tags = [name],
+            )
+
+    archive_contents_test(
+        name = "{}_resource_bundle_swift_module_compiled_model_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_resource_bundle_swift_module",
+        text_test_file = "$BUNDLE_ROOT/ResourceModelBundle.bundle/unversioned_datamodel.mom",
+        text_test_values = ["ResourceModel.Entity"],
+        tags = [name],
+    )
+
     # Tests that various nonlocalized resource types are bundled correctly with
     # the application (at the top-level, rather than inside an .lproj directory).
     archive_contents_test(

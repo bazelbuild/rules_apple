@@ -205,6 +205,7 @@ def _apple_resource_aspect_impl(target, ctx):
 
     elif ctx.rule.kind == "apple_resource_bundle":
         default_action = apple_resource_hint_action.resources
+        bucketize_args["swift_module"] = ctx.rule.attr.swift_module or None
         collect_infoplists_args["res_attrs"] = ["infoplists"]
         collect_args["res_attrs"] = ["resources"]
         collect_structured_args["res_attrs"] = ["structured_resources"]
@@ -240,7 +241,6 @@ def _apple_resource_aspect_impl(target, ctx):
                 owner = owner,
                 parent_dir_param = bundle_name,
                 resources = infoplists,
-                **bucketize_args
             )
             apple_resource_infos.append(
                 resources.process_bucketized_data(
