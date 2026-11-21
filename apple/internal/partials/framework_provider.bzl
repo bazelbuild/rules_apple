@@ -44,6 +44,11 @@ def _framework_provider_partial_impl(
     # any_path/MyFramework.framework/MyFramework. The absolute path and files are
     # propagated using the AppleDynamicFrameworkInfo provider.
     framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
+
+    # Custom bundle names can be shared by targets in the same package.
+    # Scope their linker symlinks by target, preserving default linker paths.
+    if rule_label.name != bundle_name:
+        framework_dir = paths.join(rule_label.name, framework_dir)
     framework_file = actions.declare_file(
         paths.join(framework_dir, bundle_name),
     )

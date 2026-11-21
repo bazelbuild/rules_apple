@@ -14,6 +14,7 @@
 
 """ios_framework Starlark tests."""
 
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
@@ -45,6 +46,58 @@ def ios_framework_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+
+    # Variants can share a product name without being embedded together.
+    # Building both catches collisions in their private linker symlinks.
+    build_test(
+        name = "{}_same_bundle_name_default_and_custom_test".format(name),
+        targets = [
+            "//test/starlark_tests/targets_under_test/ios:fmwk",
+            "//test/starlark_tests/targets_under_test/ios:fmwk_same_bundle_name_a",
+        ],
+        tags = [name],
+    )
+
+    build_test(
+        name = "{}_same_bundle_name_two_custom_targets_test".format(name),
+        targets = [
+            "//test/starlark_tests/targets_under_test/ios:fmwk_same_bundle_name_a",
+            "//test/starlark_tests/targets_under_test/ios:fmwk_same_bundle_name_b",
+        ],
+        tags = [name],
+    )
+
+    build_test(
+        name = "{}_same_bundle_name_internal_target_test".format(name),
+        targets = [
+            "//test/starlark_tests/targets_under_test/ios:fmwk",
+            "//test/starlark_tests/targets_under_test/ios:fmwk.__internal__.variant",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_custom_bundle_name_linkmaps_a_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_same_bundle_name_a",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "fmwk_same_bundle_name_a_linkmaps/fmwk_arm64.linkmap",
+            "fmwk_same_bundle_name_a_linkmaps/fmwk_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    analysis_output_group_info_files_test(
+        name = "{}_custom_bundle_name_linkmaps_b_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_same_bundle_name_b",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "fmwk_same_bundle_name_b_linkmaps/fmwk_arm64.linkmap",
+            "fmwk_same_bundle_name_b_linkmaps/fmwk_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_with_dot_in_name_builds_test".format(name),
         build_type = "simulator",
