@@ -672,6 +672,64 @@ ios_unit_test(
 EOF
 }
 
+function create_ios_unit_xctest_argtest() {
+  if [[ ! -f ios/BUILD ]]; then
+    fail "create_sim_runners must be called first."
+  fi
+
+  cat > ios/xctest_arg_unit_test.m <<EOF
+#import <XCTest/XCTest.h>
+
+@interface XCTestArgUnitTest : XCTestCase
+@end
+
+@implementation XCTestArgUnitTest
+- (void)testArguments {
+  NSArray<NSString *> *arguments = [NSProcessInfo processInfo].arguments;
+  XCTAssertTrue([arguments containsObject:@"attribute argument with spaces"]);
+  XCTAssertTrue([arguments containsObject:@"attribute=with=equals"]);
+  XCTAssertTrue([arguments containsObject:@"attribute,with,commas"]);
+  XCTAssertTrue([arguments containsObject:@"attribute's value"]);
+  XCTAssertEqualObjects([[NSUserDefaults standardUserDefaults] stringForKey:@"AppleLocale"], @"fr_FR");
+  XCTAssertEqualObjects([[NSUserDefaults standardUserDefaults] arrayForKey:@"AppleLanguages"], (@[@"de"]));
+  XCTAssertTrue([[NSUserDefaults standardUserDefaults] boolForKey:@"AppleTextDirection"]);
+$([ $# != 0 ] && printf "  XCTAssertTrue([arguments containsObject:@\"%s\"]);\n" "$@")
+}
+@end
+EOF
+
+  cat >> ios/BUILD <<EOF
+ios_xctestrun_runner(
+    name = "ios_sim_runner_with_xctest_args",
+    device_type = "iPhone Xs",
+    xctest_args = [
+        "-AppleLanguages",
+        "(de)",
+        "-AppleLocale",
+        "fr_FR",
+        "-AppleTextDirection",
+        "YES",
+        "attribute argument with spaces",
+        "attribute=with=equals",
+        "attribute,with,commas",
+        "attribute's value",
+    ],
+)
+
+objc_library(
+    name = "xctest_arg_unit_test_lib",
+    srcs = ["xctest_arg_unit_test.m"],
+)
+
+ios_unit_test(
+    name = "XCTestArgUnitTest",
+    deps = [":xctest_arg_unit_test_lib"],
+    minimum_os_version = "${MIN_OS_IOS}",
+    runner = ":ios_sim_runner_with_xctest_args",
+)
+EOF
+}
+
 function create_ios_unit_tests_test_filter() {
   if [[ ! -f ios/BUILD ]]; then
     fail "create_sim_runners must be called first."
@@ -1060,6 +1118,76 @@ function test_ios_unit_test_multiple_command_line_args() {
     --test_arg="--command_line_args=arg2" || fail "should pass"
 
   expect_log "Test Suite 'ArgUnitTest' passed"
+}
+
+function test_ios_unit_test_with_xctest_runner_args() {
+  create_sim_runners
+  create_ios_unit_xctest_argtest
+  do_ios_test //ios:XCTestArgUnitTest || fail "should pass"
+
+  expect_log "Test Suite 'XCTestArgUnitTest' passed"
+  expect_log "Executed 1 test, with 0 failures"
+}
+
+function test_ios_unit_test_with_xctest_runtime_args() {
+  create_sim_runners
+  create_ios_unit_xctest_argtest \
+    "runtime argument with spaces" "runtime=with=equals" "runtime,with,commas" "runtime's value"
+  do_ios_test //ios:XCTestArgUnitTest \
+    --test_arg="--xctest_args=runtime argument with spaces" \
+    --test_arg="--xctest_args=runtime=with=equals" \
+    --test_arg="--xctest_args=runtime,with,commas" \
+    --test_arg="--xctest_args=runtime's value" || fail "should pass"
+
+  expect_log "Test Suite 'XCTestArgUnitTest' passed"
+}
+
+function test_ios_unit_test_with_xctest_selection() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTest \
+    --test_arg="--xctest_args=-XCTest" \
+    --test_arg="--xctest_args=PassingUnitTest/testPass2,PassingUnitTest/testPass3" || fail "should pass"
+
+  expect_log "Test Case '-\[PassingUnitTest testPass2\]' passed"
+  expect_log "Test Case '-\[PassingUnitTest testPass3\]' passed"
+  expect_not_log "Test Case '-\[PassingUnitTest testPass\]' passed"
+  expect_log "Executed 2 tests, with 0 failures"
+}
+
+function test_ios_unit_test_with_xctest_args_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test //ios:FailingUnitTest \
+    --test_arg="--xctest_args=-AppleLocale" \
+    --test_arg="--xctest_args=en_US" || fail "should fail"
+
+  expect_log "Test Suite 'FailingUnitTest' failed"
+  expect_log "Executed 1 test, with 1 failure"
+}
+
+function test_ios_unit_test_with_xctest_selection_no_tests_ran_fail() {
+  create_sim_runners
+  create_ios_unit_tests
+  ! do_ios_test //ios:PassingUnitTest \
+    --test_arg="--xctest_args=-XCTest" \
+    --test_arg="--xctest_args=PassingUnitTest/testInvalid" || fail "should fail"
+
+  expect_log "Executed 0 tests, with 0 failures"
+  expect_log "error: no tests were executed, is the test bundle empty?"
+}
+
+function test_ios_unit_test_xctest_args_ignored_with_xcodebuild_args() {
+  create_sim_runners
+  create_ios_unit_tests
+  do_ios_test //ios:PassingUnitTest \
+    --test_arg="--xctest_args=-XCTest" \
+    --test_arg="--xctest_args=MissingTestClass" \
+    --test_arg="--xcodebuild_args=-parallel-testing-enabled" \
+    --test_arg="--xcodebuild_args=NO" || fail "should pass"
+
+  expect_log "note: Using 'xcodebuild' because '--xcodebuild_args' was provided"
+  expect_log "Executed 4 tests, with 0 failures"
 }
 
 function test_ios_unit_other_arg() {

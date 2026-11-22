@@ -8,6 +8,7 @@ load(
     "XcodeVersionInfo",
     "XcodeVersionPropertiesInfo",
 )
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(
     "//apple:providers.bzl",
@@ -38,6 +39,7 @@ def _get_template_substitutions(
         screen_capture_format,
         sdk_version,
         xcodebuild_args,
+        xctest_args,
         xctestrun_template,
         xctrunner_entitlements_template):
     substitutions = {
@@ -58,6 +60,7 @@ def _get_template_substitutions(
         # "ordered" isn't a special string, but anything besides "random" for this field runs in order
         "test_order": "random" if random else "ordered",
         "xcodebuild_args": xcodebuild_args,
+        "xctest_args": xctest_args,
         "xctestrun_template": xctestrun_template,
         "xctrunner_entitlements_template": xctrunner_entitlements_template,
     }
@@ -140,6 +143,7 @@ def _ios_xctestrun_runner_impl(ctx):
             screen_capture_format = ctx.attr.screen_capture_format,
             sdk_version = sdk_version,
             xcodebuild_args = " ".join(ctx.attr.xcodebuild_args) if ctx.attr.xcodebuild_args else "",
+            xctest_args = shell.array_literal(ctx.attr.xctest_args),
             xctestrun_template = ctx.file._xctestrun_template.short_path,
             xctrunner_entitlements_template = ctx.file._xctrunner_entitlements_template.short_path,
         ),
@@ -300,6 +304,12 @@ into the XCTest invocation.
             doc = """
 Arguments to pass to `xcodebuild` when running the test bundle. This means it
 will always use `xcodebuild test-without-building` to run the test bundle.
+""",
+        ),
+        "xctest_args": attr.string_list(
+            doc = """
+Arguments to pass to `xctest` when running the test bundle. These arguments
+are ignored when using `xcodebuild test-without-building` to run the test bundle.
 """,
         ),
         "_test_template": attr.label(
