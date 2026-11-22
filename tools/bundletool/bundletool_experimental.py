@@ -162,6 +162,7 @@ class Bundler(object):
     if os.path.exists(output_path):
       shutil.rmtree(output_path)
     self._makedirs_safely(output_path)
+    self._bundle_root_real = os.path.realpath(output_path)
 
     for z in bundle_merge_zips:
       self._add_zip_contents(z['src'], z['dest'], output_path)
@@ -284,7 +285,7 @@ class Bundler(object):
           added.
     """
     full_dest = os.path.join(bundle_root, dest)
-    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, dest)
     if (os.path.isfile(full_dest) and
         not filecmp.cmp(full_dest, src, shallow=False)):
       raise BundleConflictError(dest)
@@ -307,8 +308,8 @@ class Bundler(object):
   def _write_symlink(self, dest, target, bundle_root):
     """Writes the given symbolic link in the output bundle."""
     full_dest = os.path.join(bundle_root, dest)
-    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
-    self._validate_symlink_target(full_dest, target, bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, dest)
+    self._validate_symlink_target(full_dest, target, dest)
     if os.path.lexists(full_dest):
       if not os.path.islink(full_dest) or os.readlink(full_dest) != target:
         raise BundleConflictError(dest)
@@ -333,7 +334,7 @@ class Bundler(object):
           at the same location in the ZIP file.
     """
     full_dest = os.path.join(bundle_root, dest)
-    self._validate_dest_in_bundle(full_dest, bundle_root, dest)
+    self._validate_dest_in_bundle(full_dest, dest)
     if os.path.isfile(full_dest):
       with open(full_dest, "rb") as f:
         if f.read() != data:
@@ -348,22 +349,22 @@ class Bundler(object):
     """Returns whether a zip entry stores a symbolic link."""
     return stat.S_ISLNK(zipinfo.external_attr >> 16)
 
-  def _validate_dest_in_bundle(self, full_dest, bundle_root, dest):
+  def _validate_dest_in_bundle(self, full_dest, dest):
     """Validates that a destination path resolves within the bundle root."""
-    bundle_root_real = os.path.realpath(bundle_root)
+    bundle_root = self._bundle_root_real
     dest_real = os.path.realpath(full_dest)
-    if os.path.commonpath([bundle_root_real, dest_real]) != bundle_root_real:
+    if os.path.commonpath([bundle_root, dest_real]) != bundle_root:
       raise BundlePathError(dest)
 
-  def _validate_symlink_target(self, full_dest, target, bundle_root, dest):
+  def _validate_symlink_target(self, full_dest, target, dest):
     """Validates that a symlink target does not escape the bundle root."""
     if os.path.isabs(target):
       raise BundleSymlinkError(dest, target)
 
-    bundle_root_real = os.path.realpath(bundle_root)
+    bundle_root = self._bundle_root_real
     target_path = os.path.normpath(os.path.join(os.path.dirname(full_dest), target))
     target_real = os.path.realpath(target_path)
-    if os.path.commonpath([bundle_root_real, target_real]) != bundle_root_real:
+    if os.path.commonpath([bundle_root, target_real]) != bundle_root:
       raise BundleSymlinkError(dest, target)
 
   def _makedirs_safely(self, path):
