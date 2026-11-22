@@ -310,6 +310,14 @@ def ios_application_test_suite(name):
         tags = [name],
     )
 
+    apple_verification_test(
+        name = "{}_on_demand_resources_codesign_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_on_demand_resources",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
     archive_contents_test(
         name = "{}_pkginfo_contents_test".format(name),
         build_type = "simulator",
