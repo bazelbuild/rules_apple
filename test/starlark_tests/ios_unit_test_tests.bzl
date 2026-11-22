@@ -74,6 +74,29 @@ def ios_unit_test_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    analysis_output_group_info_files_test(
+        name = "{}_generated_bundle_linkmaps_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_no_bundle_loader.__internal__.__test_bundle",
+        output_group_name = "linkmaps",
+        expected_outputs = [
+            "unit_test_no_bundle_loader.__internal__.__test_bundle_linkmaps/unit_test_no_bundle_loader_arm64.linkmap",
+            "unit_test_no_bundle_loader.__internal__.__test_bundle_linkmaps/unit_test_no_bundle_loader_x86_64.linkmap",
+        ],
+        tags = [name],
+    )
+
+    infoplist_contents_test(
+        name = "{}_generated_bundle_dsym_identifier_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test_no_bundle_loader",
+        apple_generate_dsym = True,
+        output_group_name = "dsyms",
+        plist_test_file_shortpath = "test/starlark_tests/targets_under_test/ios/unit_test_no_bundle_loader.__internal__.__test_bundle_dsyms/unit_test_no_bundle_loader.xctest.dSYM/Contents/Info.plist",
+        expected_values = {
+            "CFBundleIdentifier": "com.apple.xcode.dsym.unit_test_no_bundle_loader.xctest.dSYM",
+        },
+        tags = [name],
+    )
+
     apple_verification_test(
         name = "{}_codesign_test".format(name),
         build_type = "simulator",
@@ -143,16 +166,16 @@ def ios_unit_test_test_suite(name):
         expected_outputs = [
             "app.app.dSYM/Contents/Info.plist",
             "app.app.dSYM/Contents/Resources/DWARF/app",
-            "unit_test.xctest.dSYM/Contents/Info.plist",
-            "unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
+            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Info.plist",
+            "unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM/Contents/Resources/DWARF/unit_test",
         ],
         tags = [name],
     )
     apple_dsym_bundle_info_test(
         name = "{}_apple_dsym_bundle_info_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
-        expected_direct_dsyms = ["dSYMs/unit_test.xctest.dSYM"],
-        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/unit_test.xctest.dSYM"],
+        expected_direct_dsyms = ["dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
+        expected_transitive_dsyms = ["dSYMs/app.app.dSYM", "dSYMs/unit_test.__internal__.__test_bundle_dsyms/unit_test.xctest.dSYM"],
         tags = [name],
     )
 

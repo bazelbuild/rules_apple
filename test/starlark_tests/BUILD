@@ -237,6 +237,7 @@ bzl_library(
         "//apple/build_settings",
         "//apple/internal:shared_environment",
         "//test/starlark_tests/rules:test_rules",
+        "@bazel_skylib//rules:build_test",
     ],
 )
 
