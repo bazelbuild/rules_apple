@@ -192,6 +192,11 @@ else
   TEST_ENV="$DEFAULT_ENV"
 fi
 
+# Keep subprocess tool lookup aligned with the Xcode running the tests.
+if [[ -n "${DEVELOPER_DIR:-}" ]]; then
+  TEST_ENV="$TEST_ENV,DEVELOPER_DIR=$DEVELOPER_DIR"
+fi
+
 readonly profraw="$TEST_TMP_DIR/coverage.profraw"
 if [[ "${COVERAGE:-}" -eq 1 ]]; then
   readonly profile_env="LLVM_PROFILE_FILE=$profraw"

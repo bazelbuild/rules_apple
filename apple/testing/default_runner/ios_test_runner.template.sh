@@ -122,6 +122,11 @@ else
   TEST_ENV="$DEFAULT_ENV"
 fi
 
+# Keep subprocess tool lookup aligned with the Xcode running the tests.
+if [[ -n "${DEVELOPER_DIR:-}" ]]; then
+  TEST_ENV="$TEST_ENV,DEVELOPER_DIR=$DEVELOPER_DIR"
+fi
+
 sanitizer_dyld_env=""
 readonly sanitizer_root="${TEST_BUNDLE_PATH}/Frameworks"
 for sanitizer in "$sanitizer_root"/libclang_rt.*.dylib; do
