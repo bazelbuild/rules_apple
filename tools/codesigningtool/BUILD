@@ -1,6 +1,7 @@
 load("@apple_support//rules:toolchain_substitution.bzl", "toolchain_substitution")
 load("@rules_python//python:py_binary.bzl", "py_binary")
 load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
 
 licenses(["notice"])
 
@@ -30,6 +31,13 @@ toolchain_substitution(
     src = "disable_signing_resource_rules.plist",
     var_name = "RESOURCE_RULES",
     visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "codesigningtool_test",
+    srcs = ["codesigningtool_test.py"],
+    python_version = "PY3",
+    deps = [":codesigningtool_lib"],
 )
 
 # Consumed by bazel tests.

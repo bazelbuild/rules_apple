@@ -92,6 +92,14 @@ load(
     "common",
 )
 
+_analysis_skip_signed_framework_verification_test = make_analysis_target_actions_test(
+    config_settings = {
+        "//command_line_option:features": ["apple.skip_signed_framework_verification"],
+        "//command_line_option:ios_multi_cpus": "sim_arm64",
+        build_settings_labels.use_tree_artifacts_outputs: False,
+    },
+)
+
 _analysis_ios_strip_enabled_opt_test = make_analysis_target_actions_test(
     config_settings = {
         "//command_line_option:compilation_mode": "opt",
@@ -160,6 +168,21 @@ def ios_application_test_suite(name):
     Args:
       name: the base name to be used in things created by this macro
     """
+    _analysis_skip_signed_framework_verification_test(
+        name = "{}_skip_signed_framework_verification_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_two_fmwk_provisioned",
+        target_mnemonic = "TemplateExpand",
+        expected_substitutions = {
+            "%signing_command_lines%": [
+                '--directory_to_sign "$WORK_DIR/Payload/app_with_two_fmwk_provisioned.app/Frameworks/" --skip_signed_path_verification --signed_path',
+                '--signed_path "$WORK_DIR/Payload/app_with_two_fmwk_provisioned.app/Frameworks/fmwk_with_provisioning.framework"',
+                '--signed_path "$WORK_DIR/Payload/app_with_two_fmwk_provisioned.app/Frameworks/second_fmwk_with_provisioning.framework"',
+                '--target_to_sign "$WORK_DIR/Payload/app_with_two_fmwk_provisioned.app" --',
+            ],
+        },
+        tags = [name],
+    )
+
     analysis_target_outputs_test(
         name = "{}_ipa_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app",

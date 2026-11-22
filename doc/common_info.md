@@ -298,6 +298,17 @@ ios_application(
 )
 ```
 
+To skip signature verification and re-signing of embedded frameworks already
+marked as signed, add this feature to the app target. Only use it when
+post-processing leaves those frameworks unchanged:
+
+```bzl
+ios_application(
+    ...
+    features = ["apple.skip_signed_framework_verification"],
+)
+```
+
 ### Running applications
 
 When using `bazel run` with Apple application targets, the generated simulator

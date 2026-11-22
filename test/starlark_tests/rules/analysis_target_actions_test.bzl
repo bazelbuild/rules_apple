@@ -109,6 +109,25 @@ def _analysis_target_actions_test_impl(ctx):
             )
             return analysistest.end(env)
 
+    for key, expected_values in ctx.attr.expected_substitutions.items():
+        actual_values = [
+            action.substitutions[key]
+            for action in target_mnemonic_actions
+            if action.substitutions != None and key in action.substitutions
+        ]
+        if not any([all([expected in actual for expected in expected_values]) for actual in actual_values]):
+            unittest.fail(
+                env,
+                "Expected '{}' substitution in a '{}' action for '{}' to contain {}. Actual values: {}".format(
+                    key,
+                    target_mnemonic,
+                    target_under_test.label,
+                    expected_values,
+                    actual_values,
+                ),
+            )
+            return analysistest.end(env)
+
     for not_expected_mnemonic in ctx.attr.not_expected_mnemonic:
         actual_mnemonics = {
             action.mnemonic: action
@@ -160,6 +179,11 @@ space-delimited string.""",
                 doc = """
 A string dictionary representing expected environment values that should be
 present in the action environment values.""",
+            ),
+            "expected_substitutions": attr.string_list_dict(
+                doc = """
+A dictionary mapping template substitution keys to substrings that must all
+appear in that substitution's value in at least one matching action.""",
             ),
             "not_expected_mnemonic": attr.string_list(
                 doc = """
