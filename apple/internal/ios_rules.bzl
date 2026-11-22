@@ -297,6 +297,7 @@ def _ios_application_impl(ctx):
             label = label,
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             nl_training_tool = apple_mac_toolchain_info.app_intents_nl_training_tool,
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             platform_prerequisites = platform_prerequisites,
             json_tool = ctx.attr._json_tool.files_to_run,
         ),
@@ -1383,6 +1384,7 @@ def _ios_extension_impl(ctx):
             label = label,
             mac_exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
             nl_training_tool = apple_mac_toolchain_info.app_intents_nl_training_tool,
+            sdk_tool_files = apple_mac_toolchain_info.sdk_tool_files,
             platform_prerequisites = platform_prerequisites,
             json_tool = ctx.attr._json_tool.files_to_run,
         ),
@@ -2060,6 +2062,7 @@ def _ios_imessage_application_impl(ctx):
         actions = actions,
         platform_prerequisites = platform_prerequisites,
         rule_label = label,
+        sdk_tool_files = apple_toolchain_utils.get_mac_toolchain(ctx).sdk_tool_files,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
 
@@ -2555,6 +2558,7 @@ def _ios_sticker_pack_extension_impl(ctx):
         actions = actions,
         platform_prerequisites = platform_prerequisites,
         rule_label = label,
+        sdk_tool_files = apple_toolchain_utils.get_mac_toolchain(ctx).sdk_tool_files,
         xcode_stub_path = rule_descriptor.stub_binary_path,
     )
 

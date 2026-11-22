@@ -69,6 +69,7 @@ def _environment_plist_impl(ctx):
     environment_plist_tool = apple_toolchain_utils.get_mac_toolchain(ctx).environment_plist_tool
     platform = platform_prerequisites.platform
     sdk_version = platform_prerequisites.sdk_version
+    sdk_tool_files = ctx.files._sdk_tool_files
     apple_support.run(
         actions = ctx.actions,
         apple_fragment = platform_prerequisites.apple_fragment,
@@ -81,6 +82,7 @@ def _environment_plist_impl(ctx):
         ],
         exec_group = apple_toolchain_utils.get_mac_exec_group(ctx),
         executable = environment_plist_tool,
+        inputs = sdk_tool_files,
         outputs = [ctx.outputs.plist],
         xcode_config = platform_prerequisites.xcode_version_config,
     )
@@ -90,6 +92,10 @@ environment_plist = rule(
         apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
         {
+            "_sdk_tool_files": attr.label(
+                default = Label("//apple:sdk_tool_files"),
+                allow_files = True,
+            ),
             "platform_type": attr.string(
                 mandatory = True,
                 doc = """
@@ -107,4 +113,5 @@ amount of duplicative work done generating these plists for the same platforms.
     fragments = ["apple"],
     outputs = {"plist": "%{name}.plist"},
     implementation = _environment_plist_impl,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )

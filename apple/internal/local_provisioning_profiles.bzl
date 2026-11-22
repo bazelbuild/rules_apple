@@ -247,4 +247,5 @@ ios_application(
         ios_extension = _IOS_PROFILE_EXTENSION,
         macos_extension = _MACOS_PROFILE_EXTENSION,
     ),
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )
