@@ -83,7 +83,7 @@ def generate_app_intents_metadata_bundle(
     )
 
     args = actions.args()
-    args.add("/usr/bin/xcrun")
+    args.add("xcrun")
     args.add("appintentsmetadataprocessor")
 
     # FB347041279: Though this is not required for --compile-time-extraction, which is the only

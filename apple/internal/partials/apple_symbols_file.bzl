@@ -78,7 +78,7 @@ def _apple_symbols_file_partial_impl(
             inputs = inputs,
             outputs = [output],
             command = (
-                "mkdir -p {output} && /usr/bin/xcrun symbols -noTextInSOD " +
+                "mkdir -p {output} && xcrun symbols -noTextInSOD " +
                 "-noDaemon -arch all -symbolsPackageDir {output} {inputs} >/dev/null"
             ).format(
                 output = shell.quote(output.path),

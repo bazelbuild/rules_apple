@@ -155,4 +155,5 @@ This target generates a header named `<target_name>.h` that can be imported from
 resides. For example, if this target's label is `//my/package:intent`, you can import the header as
 `#import "my/package/intent.h"`.
 """,
+    toolchains = ["//apple/internal:mac_tools_toolchain_type"],
 )
