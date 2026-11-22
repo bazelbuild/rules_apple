@@ -532,6 +532,33 @@ runfiles will break. To fix this rename the test target to something like `Model
 
 This issue is tracked [here](https://github.com/bazelbuild/bazel/issues/12312)
 
+### Tree artifact test bundles {#apple.test_bundle_tree_artifacts}
+
+By default, test bundles are output as `.zip` archives, which the test runner
+unzips before running the tests. Enabling the
+`apple.test_bundle_tree_artifacts` feature outputs the `.xctest` bundle of
+`<platform>_unit_test` and `<platform>_ui_test` targets as a directory (a
+Bazel tree artifact) instead. This skips zipping and unzipping the bundle, and
+lets a remote cache store and transfer the bundle's files individually.
+
+Unlike the
+`--@rules_apple//apple/build_settings:use_tree_artifacts_outputs`
+build setting, this only affects test bundles. Test hosts, and every other
+bundle, keep the output type set by the build setting.
+
+```shell
+bazel test --features=apple.test_bundle_tree_artifacts //your/target
+```
+
+Or per target:
+
+```bzl
+ios_unit_test(
+    ...
+    features = ["apple.test_bundle_tree_artifacts"],
+)
+```
+
 ### Xcode's Issue navigator
 
 If integrating with Xcode, the relative paths in test binaries can prevent the

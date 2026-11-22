@@ -15,6 +15,10 @@
 """ios_unit_test Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:action_command_line_test.bzl",
     "action_command_line_test",
 )
@@ -38,6 +42,11 @@ load(
 load(
     "//test/starlark_tests/rules:apple_dsym_bundle_info_test.bzl",
     "apple_dsym_bundle_info_test",
+)
+load(
+    "//test/starlark_tests/rules:apple_test_info_test.bzl",
+    "apple_test_info_test",
+    "make_apple_test_info_test",
 )
 load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
@@ -65,6 +74,18 @@ _analysis_target_actions_with_dossier_test = make_analysis_target_actions_test(
 _analysis_runfiles_with_dossier_test = make_analysis_runfiles_test_rule(
     config_settings = {
         "//command_line_option:features": ["disable_legacy_signing"],
+    },
+)
+
+_apple_test_info_with_test_bundle_tree_artifacts_test = make_apple_test_info_test(
+    config_settings = {
+        "//command_line_option:features": ["apple.test_bundle_tree_artifacts"],
+    },
+)
+
+_apple_test_info_with_tree_artifacts_outputs_test = make_apple_test_info_test(
+    config_settings = {
+        build_settings_labels.use_tree_artifacts_outputs: True,
     },
 )
 
@@ -103,6 +124,49 @@ def ios_unit_test_test_suite(name):
         expected_runfiles = [
             "test/starlark_tests/targets_under_test/ios/unit_test.__internal__.__test_bundle_dossier.zip",
         ],
+        tags = [name],
+    )
+
+    apple_test_info_test(
+        name = "{}_test_bundle_and_test_host_are_archives_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_test_bundle = "unit_test.zip",
+        expected_test_bundle_is_directory = False,
+        expected_test_host = "app.ipa",
+        expected_test_host_is_directory = False,
+        tags = [name],
+    )
+
+    _apple_test_info_with_test_bundle_tree_artifacts_test(
+        name = "{}_test_bundle_tree_artifacts_keeps_test_host_archive_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_test_bundle = "unit_test.__internal__.__test_bundle_archive-root/unit_test.xctest",
+        expected_test_bundle_is_directory = True,
+        expected_test_host = "app.ipa",
+        expected_test_host_is_directory = False,
+        tags = [name],
+    )
+
+    _apple_test_info_with_tree_artifacts_outputs_test(
+        name = "{}_tree_artifacts_outputs_test_bundle_and_test_host_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        expected_test_bundle = "unit_test.__internal__.__test_bundle_archive-root/unit_test.xctest",
+        expected_test_bundle_is_directory = True,
+        expected_test_host = "app.app",
+        expected_test_host_is_directory = True,
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_test_bundle_tree_artifacts_contents_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:unit_test",
+        contains = [
+            "$BUNDLE_ROOT/Info.plist",
+            "$BUNDLE_ROOT/unit_test",
+            "$BUNDLE_ROOT/resource_bundle.bundle/Info.plist",
+        ],
+        target_features = ["apple.test_bundle_tree_artifacts"],
         tags = [name],
     )
 
