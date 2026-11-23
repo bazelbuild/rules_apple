@@ -44,7 +44,7 @@ optional DEFLATE compression) without spawning `ProcessAndSign` whenever legacy 
 and no `ipa_post_processor` is present. Enabling this setting requires a `bundletool_swift` binary
 that supports `--control_schema_version=2`.
 """,
-        default = False,
+        default = True,
     ),
     "force_clangrttool_on_mac": struct(
         doc = """

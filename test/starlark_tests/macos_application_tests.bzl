@@ -194,17 +194,15 @@ analysis_failure_message_with_intel_test = make_analysis_failure_message_test(
     },
 )
 
-analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test = make_analysis_target_actions_test(
+analysis_target_actions_disable_legacy_signing_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.direct_bundle_archive: True,
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
     },
 )
 
-analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
+analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_target_actions_test(
     config_settings = {
-        build_settings_labels.direct_bundle_archive: True,
         "//command_line_option:compilation_mode": "opt",
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
@@ -859,7 +857,7 @@ Apple enhanced security features were requested, but the build is missing the re
         ],
     )
 
-    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_test(
+    analysis_target_actions_disable_legacy_signing_test(
         name = "{}_direct_bundle_archive_disable_legacy_signing_skips_process_and_sign_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         target_mnemonic = "BundleApp",
@@ -871,7 +869,7 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
-    analysis_target_actions_direct_bundle_archive_disable_legacy_signing_compressed_test(
+    analysis_target_actions_disable_legacy_signing_compressed_test(
         name = "{}_direct_bundle_archive_disable_legacy_signing_compressed_skips_process_and_sign_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         target_mnemonic = "BundleApp",
@@ -888,18 +886,12 @@ Apple enhanced security features were requested, but the build is missing the re
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
         target_features = ["disable_legacy_signing"],
-        build_settings = {
-            build_settings_labels.direct_bundle_archive: "True",
-        },
         contains = [
             "$CONTENT_ROOT/Info.plist",
             "$CONTENT_ROOT/MacOS/app",
             "$CONTENT_ROOT/PkgInfo",
         ],
-        tags = [
-            name,
-            "needs-latest-apple-tools",
-        ],
+        tags = [name],
     )
 
     native.test_suite(
