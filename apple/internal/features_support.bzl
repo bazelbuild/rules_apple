@@ -129,9 +129,6 @@ def _cc_configured_features(
         features += extra_requested_features
 
     disabled_features = ctx.disabled_features + [
-        # Disabled include scanning (b/321109350) to work around issues with GrepIncludes actions
-        # being routed to the wrong exec platform.
-        "cc_include_scanning",
         # Disabled parse_headers (b/174937981) to avoid validating headers from top-level Apple
         # rules (i.e. legacy uses of ios_framework). Those headers are expected to be as public API
         # i.e. a "swiftinterface" equivalent for (Objective-)C(++) frameworks and are not expected
