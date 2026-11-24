@@ -133,6 +133,7 @@ bzl_library(
     deps = [
         "//apple:linker",
         "//apple/build_settings",
+        "//apple/internal:entitlements_support",
         "//apple/internal:secure_features_support",
         "//apple/internal/aspects:resource_aspect",
         "//test/starlark_tests/rules:test_rules",

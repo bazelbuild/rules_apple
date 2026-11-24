@@ -129,6 +129,14 @@ advertise their required App Intents aspect hints.
 """,
         default = True,
     ),
+    "validate_macos_application_identifier": struct(
+        doc = """
+Enables injecting `com.apple.application-identifier` from the provisioning profile into macOS
+entitlements when omitted and validating `com.apple.application-identifier` against the bundle
+identifier and provisioning profile.
+""",
+        default = True,
+    ),
     "validate_strings_with_plisttool": struct(
         doc = """
 Validates `.strings` and `.stringsdict` files with the Linux `plisttool` in non-optimized builds

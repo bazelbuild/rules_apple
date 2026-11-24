@@ -16,12 +16,17 @@
 
 load(
     "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
     "asserts",
     "unittest",
 )
 load(
     "//apple/build_settings:build_settings.bzl",
     "build_settings_labels",
+)
+load(
+    "//apple/internal:entitlements_support.bzl",
+    "entitlements_support",
 )
 load(
     "//apple/internal:secure_features_support.bzl",
@@ -207,6 +212,87 @@ analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_t
         "//command_line_option:features": ["disable_legacy_signing"],
         "//command_line_option:macos_cpus": "arm64",
     },
+)
+
+def _entitlements_options_action_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target_under_test = analysistest.target_under_test(env)
+    actions = [a for a in target_under_test.actions if a.mnemonic == "ProcessEntitlementsFiles"]
+    if not actions:
+        analysistest.fail(env, "No ProcessEntitlementsFiles action found on target.")
+        return analysistest.end(env)
+
+    json_str = actions[0].argv[-1]
+    if json_str.startswith("'") and json_str.endswith("'"):
+        json_str = json_str[1:-1].replace("'\\''", "'")
+
+    entitlements_options = json.decode(json_str).get("entitlements_options", {})
+    if ctx.attr.expect_validate_macos_application_identifier:
+        asserts.equals(
+            env,
+            True,
+            entitlements_options.get("validate_macos_application_identifier"),
+        )
+    else:
+        asserts.false(
+            env,
+            "validate_macos_application_identifier" in entitlements_options,
+        )
+    return analysistest.end(env)
+
+def _make_entitlements_options_action_test(config_settings = {}):
+    return analysistest.make(
+        _entitlements_options_action_test_impl,
+        attrs = {
+            "expect_validate_macos_application_identifier": attr.bool(mandatory = True),
+        },
+        config_settings = config_settings,
+    )
+
+entitlements_options_action_test = _make_entitlements_options_action_test()
+
+entitlements_options_disable_validate_macos_application_identifier_action_test = _make_entitlements_options_action_test(
+    config_settings = {
+        build_settings_labels.validate_macos_application_identifier: False,
+    },
+)
+
+def _validate_macos_application_identifier_unit_test_impl(ctx):
+    env = unittest.begin(ctx)
+    enabled_settings = struct(validate_macos_application_identifier = True)
+    disabled_settings = struct(validate_macos_application_identifier = False)
+    macos_prereqs = struct(platform_type = "macos")
+    ios_prereqs = struct(platform_type = "ios")
+
+    asserts.true(
+        env,
+        entitlements_support.should_validate_macos_application_identifier(
+            build_settings = enabled_settings,
+            platform_prerequisites = macos_prereqs,
+            rule_label = Label("//test/starlark_tests/targets_under_test/macos:app"),
+        ),
+    )
+    asserts.false(
+        env,
+        entitlements_support.should_validate_macos_application_identifier(
+            build_settings = disabled_settings,
+            platform_prerequisites = macos_prereqs,
+            rule_label = Label("//test/starlark_tests/targets_under_test/macos:app"),
+        ),
+    )
+    asserts.false(
+        env,
+        entitlements_support.should_validate_macos_application_identifier(
+            build_settings = enabled_settings,
+            platform_prerequisites = ios_prereqs,
+            rule_label = Label("//test/starlark_tests/targets_under_test/ios:app"),
+        ),
+    )
+
+    return unittest.end(env)
+
+_validate_macos_application_identifier_unit_test = unittest.make(
+    _validate_macos_application_identifier_unit_test_impl,
 )
 
 analysis_target_actions_macos_signing_test = make_analysis_target_actions_test(
@@ -1022,6 +1108,64 @@ Apple enhanced security features were requested, but the build is missing the re
             "$CONTENT_ROOT/PkgInfo",
         ],
         tags = [name],
+    )
+
+    _validate_macos_application_identifier_unit_test(
+        name = "{}_validate_macos_application_identifier_unit_test".format(name),
+        tags = [name],
+    )
+
+    entitlements_options_action_test(
+        name = "{}_validate_macos_application_identifier_default_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expect_validate_macos_application_identifier = True,
+        tags = [name],
+    )
+
+    entitlements_options_disable_validate_macos_application_identifier_action_test(
+        name = "{}_validate_macos_application_identifier_disabled_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        expect_validate_macos_application_identifier = False,
+        tags = [name],
+    )
+
+    entitlements_options_action_test(
+        name = "{}_validate_macos_application_identifier_omitted_on_ios_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
+        expect_validate_macos_application_identifier = False,
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_validate_macos_application_identifier_injects_entitlement_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.application-identifier"],
+            "ENTITLEMENT_VALUES": ["com.apple.application-identifier=FOOBARBAZ1.*"],
+        },
+        tags = [
+            name,
+            "needs-latest-apple-tools",
+        ],
+    )
+
+    apple_verification_test(
+        name = "{}_validate_macos_application_identifier_disabled_omits_entitlement_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.validate_macos_application_identifier: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ABSENT_ENTITLEMENT_KEYS": ["com.apple.application-identifier"],
+        },
+        tags = [
+            name,
+            "needs-latest-apple-tools",
+        ],
     )
 
     analysis_target_actions_macos_signing_test(

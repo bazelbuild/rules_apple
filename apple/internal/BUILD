@@ -214,6 +214,7 @@ bzl_library(
     srcs = ["entitlements_support.bzl"],
     visibility = [
         "//apple:__subpackages__",
+        "//test:__subpackages__",
     ],
     deps = [
         ":apple_product_type",

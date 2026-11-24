@@ -56,6 +56,8 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+_ALLOWED_USERS_OF_UNVALIDATED_MACOS_APPLICATION_IDENTIFIER = []
+
 _SECURE_FEATURES_KEYS = secure_features_support.ALL_SECURE_FEATURES_ENTITLEMENTS_KEYS
 
 def _tool_validation_mode(*, is_device, rules_mode):
@@ -144,6 +146,30 @@ def _include_app_clip_entitlements(*, product_type):
       True if the app clip entitlements should be included, otherwise False.
     """
     return product_type == apple_product_type.app_clip
+
+def _should_validate_macos_application_identifier(
+        *,
+        build_settings,
+        platform_prerequisites,
+        rule_label):
+    """Returns whether `com.apple.application-identifier` should be injected and validated on macOS.
+
+    Args:
+      build_settings: The `build_settings` struct from `apple_xplat_toolchain_info`.
+      platform_prerequisites: Struct containing information on the platform being targeted.
+      rule_label: The label of the target being analyzed.
+
+    Returns:
+      True if `validate_macos_application_identifier` should be enabled in `entitlements_options`.
+    """
+    if (
+        platform_prerequisites.platform_type != "macos" or
+        not build_settings.validate_macos_application_identifier
+    ):
+        return False
+    label_name = rule_label.name.removesuffix(".__internal__.__test_bundle")
+    label_str = "//{}:{}".format(rule_label.package, label_name)
+    return label_str not in _ALLOWED_USERS_OF_UNVALIDATED_MACOS_APPLICATION_IDENTIFIER
 
 def _extract_signing_info(
         *,
@@ -406,6 +432,12 @@ def _process_entitlements(
         "bundle_id": bundle_id,
         "extra_keys_to_match_profile": extra_keys_to_match_profile,
     }
+    if _should_validate_macos_application_identifier(
+        build_settings = apple_xplat_toolchain_info.build_settings,
+        platform_prerequisites = platform_prerequisites,
+        rule_label = rule_label,
+    ):
+        entitlements_options["validate_macos_application_identifier"] = True
     if signing_info.profile_metadata:
         inputs.append(signing_info.profile_metadata)
         entitlements_options["profile_metadata_file"] = signing_info.profile_metadata.path
@@ -522,4 +554,5 @@ def _generate_der_entitlements(
 entitlements_support = struct(
     generate_der_entitlements = _generate_der_entitlements,
     process_entitlements = _process_entitlements,
+    should_validate_macos_application_identifier = _should_validate_macos_application_identifier,
 )
