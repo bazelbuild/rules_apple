@@ -1124,6 +1124,20 @@ ios_app_clip(
     ],
 )
 
+ios_app_clip(
+    name = "app_clip_no_entitlements_no_profile",
+    bundle_id = "com.google.example.clip",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_application(
     name = "app_with_app_clip_with_swift_support",
     app_clips = [":app_clip_with_swift_support"],
@@ -5283,6 +5297,40 @@ ios_application(
     ],
     minimum_os_version = common.min_os_ios.min_deployment_target,
     provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    secure_features = [
+        "trivial_auto_var_init",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_enhanced_security_app_no_entitlements_no_profile",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    secure_features = [
+        "apple.enable_enhanced_security",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "simple_trivial_auto_var_init_app_no_entitlements_no_profile",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
     secure_features = [
         "trivial_auto_var_init",
     ],

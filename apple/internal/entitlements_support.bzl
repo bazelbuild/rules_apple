@@ -266,9 +266,10 @@ def _process_entitlements(
 
     Entitlements are generated based on a plist-format entitlements file passed
     into the target's entitlements attribute, or extracted from the provisioning
-    profile if that attribute is not present. The team prefix is extracted from
-    the provisioning profile and the following substitutions are performed on the
-    entitlements:
+    profile if that attribute is not present, along with any entitlements forced
+    by `secure_features`, debugger settings, or the product type. The team
+    prefix is extracted from the provisioning profile and the following
+    substitutions are performed on the entitlements:
 
     - "PREFIX.*" -> "PREFIX.BUNDLE_ID" (where BUNDLE_ID is the target's bundle
       ID)
@@ -374,7 +375,7 @@ def _process_entitlements(
     inputs = list(plists)
 
     # Return early if there are no entitlements to use.
-    if not inputs:
+    if not inputs and not forced_plists:
         return None
 
     final_entitlements = actions.declare_file(

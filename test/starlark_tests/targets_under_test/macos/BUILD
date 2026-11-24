@@ -300,6 +300,23 @@ macos_extension(
     ],
 )
 
+macos_extension(
+    name = "extensionkit_ext_enhanced_security_without_entitlements_or_profile",
+    bundle_id = "com.google.example.ext",
+    extensionkit_extension = True,
+    infoplists = [
+        "//test/starlark_tests/resources:ExtensionKitInfo.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    secure_features = [
+        "apple.enable_enhanced_security",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 # ---------------------------------------------------------------------------------------
 # Targets for Apple dynamic framework import tests.
 
@@ -957,6 +974,19 @@ macos_command_line_application(
 )
 
 macos_command_line_application(
+    name = "cmd_app_enhanced_security_without_entitlements_or_profile",
+    bundle_id = "com.google.example",
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    secure_features = [
+        "apple.enable_enhanced_security",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_command_line_application(
     name = "cmd_app_info_and_launchd_plists",
     bundle_id = "com.google.example",
     infoplists = [
@@ -1490,6 +1520,23 @@ macos_application(
     secure_features = [
         "apple.adopt_guard_objects",
         "apple.enable_enhanced_security",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+macos_application(
+    name = "simple_enhanced_security_app_without_entitlements_or_profile",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_macos.min_deployment_target,
+    secure_features = [
+        "apple.enable_enhanced_security",
+        "apple.read_only_platform_memory",
     ],
     tags = common.fixture_tags,
     deps = [

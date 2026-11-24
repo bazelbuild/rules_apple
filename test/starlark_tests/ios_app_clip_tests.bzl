@@ -19,6 +19,10 @@ load(
     "analysis_output_group_info_files_test",
 )
 load(
+    "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
+    "analysis_target_actions_test",
+)
+load(
     "//test/starlark_tests/rules:apple_verification_test.bzl",
     "apple_verification_test",
 )
@@ -78,6 +82,24 @@ def ios_app_clip_test_suite(name):
         env = {
             "ENTITLEMENTS_KEY": ["com.apple.developer.on-demand-install-capable"],
         },
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_app_clip_entitlements_without_entitlements_or_profile_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip_no_entitlements_no_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["com.apple.developer.on-demand-install-capable"],
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_app_clip_entitlements_without_entitlements_or_profile_actions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_clip_no_entitlements_no_profile",
+        target_mnemonic = "ProcessEntitlementsFiles",
         tags = [name],
     )
 

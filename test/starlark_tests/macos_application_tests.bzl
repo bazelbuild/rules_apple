@@ -380,6 +380,76 @@ def macos_application_test_suite(name):
             name,
         ],
     )
+    apple_verification_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app_without_entitlements_or_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process",
+                "com.apple.security.hardened-process.dyld-ro",
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+                "com.apple.security.hardened-process.no-guard-objects",
+            ],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.security.hardened-process=true",
+                "com.apple.security.hardened-process.dyld-ro=true",
+                "com.apple.security.hardened-process.enhanced-security-version-string=2",
+                "com.apple.security.hardened-process.no-guard-objects=true",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+    apple_verification_test(
+        name = "{}_xplat_codesigning_enhanced_security_without_entitlements_or_profile_device_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app_without_entitlements_or_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process",
+                "com.apple.security.hardened-process.dyld-ro",
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+                "com.apple.security.hardened-process.no-guard-objects",
+            ],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.security.hardened-process=true",
+                "com.apple.security.hardened-process.dyld-ro=true",
+                "com.apple.security.hardened-process.enhanced-security-version-string=2",
+                "com.apple.security.hardened-process.no-guard-objects=true",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+    analysis_target_actions_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_actions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app_without_entitlements_or_profile",
+        target_mnemonic = "ProcessEntitlementsFiles",
+        tags = [
+            name,
+        ],
+    )
+    analysis_target_actions_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_dossier_actions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_app_without_entitlements_or_profile",
+        target_mnemonic = "GenerateCodesigningDossier",
+        expected_argv = ["--entitlements-file-path"],
+        expected_inputs = [
+            "simple_enhanced_security_app_without_entitlements_or_profile_entitlements.entitlements",
+        ],
+        not_expected_argv = ["--provisioning-profile-path"],
+        tags = [
+            name,
+        ],
+    )
     analysis_failure_message_test(
         name = "{}_enhanced_security_adopt_guard_objects_missing_xcode_opt_in_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:simple_enhanced_security_adopt_guard_objects_without_opt_in_app",

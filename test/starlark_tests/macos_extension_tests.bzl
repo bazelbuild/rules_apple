@@ -15,6 +15,10 @@
 """macos_extension Starlark tests."""
 
 load(
+    "//test/starlark_tests/rules:apple_verification_test.bzl",
+    "apple_verification_test",
+)
+load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
     "entry_point_test",
@@ -124,6 +128,26 @@ def macos_extension_test_suite(name):
             "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Headers/macOSDynamicFramework.h",
             "$BUNDLE_ROOT/Contents/Frameworks/macOSDynamicFramework.framework/Versions/A/Modules/module.modulemap",
         ],
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_device_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:extensionkit_ext_enhanced_security_without_entitlements_or_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process",
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+                "com.apple.security.hardened-process.no-guard-objects",
+            ],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.security.hardened-process=true",
+                "com.apple.security.hardened-process.enhanced-security-version-string=2",
+                "com.apple.security.hardened-process.no-guard-objects=true",
+            ],
+        },
         tags = [name],
     )
 

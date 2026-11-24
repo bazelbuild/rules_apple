@@ -1774,6 +1774,22 @@ Found "com.bazel.app.example" which does not match previously defined "com.altba
                 ],
             )
 
+    apple_verification_test(
+        name = "{}_debugger_entitlements_forced_without_provisioning_profile_simulator_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.add_debugger_entitlement: "true",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal_no_provisioning_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": ["get-task-allow"],
+        },
+        tags = [
+            name,
+        ],
+    )
+
     # Tests that custom pass-type-identifiers entitlements are verified against a narrowly scoped
     # provisioning profile and do not include unrelated entitlement keys.
     apple_verification_test(
@@ -1868,6 +1884,50 @@ Apple enhanced security features were requested, but the build is missing the re
         target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_trivial_auto_var_init_app",
         contains = [
             "$BUNDLE_ROOT/simple_trivial_auto_var_init_app",
+        ],
+        tags = [
+            name,
+        ],
+    )
+
+    apple_verification_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_simulator_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_no_entitlements_no_profile",
+        verifier_script = "verifier_scripts/entitlements_verifier.sh",
+        env = {
+            "ENTITLEMENTS_KEY": [
+                "com.apple.security.hardened-process",
+                "com.apple.security.hardened-process.enhanced-security-version-string",
+                "com.apple.security.hardened-process.no-guard-objects",
+            ],
+            "ENTITLEMENT_VALUES": [
+                "com.apple.security.hardened-process=true",
+                "com.apple.security.hardened-process.enhanced-security-version-string=2",
+                "com.apple.security.hardened-process.no-guard-objects=true",
+            ],
+        },
+        tags = [
+            name,
+        ],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_enhanced_security_without_entitlements_or_profile_actions_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_enhanced_security_app_no_entitlements_no_profile",
+        target_mnemonic = "ProcessEntitlementsFiles",
+        tags = [
+            name,
+        ],
+    )
+
+    analysis_target_actions_test(
+        name = "{}_trivial_auto_var_init_without_entitlements_or_profile_skips_entitlements_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:simple_trivial_auto_var_init_app_no_entitlements_no_profile",
+        target_mnemonic = "BundleApp",
+        not_expected_mnemonic = [
+            "ProcessDEREntitlements",
+            "ProcessEntitlementsFiles",
         ],
         tags = [
             name,
