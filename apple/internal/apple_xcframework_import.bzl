@@ -61,6 +61,7 @@ load(
     "swift_clang_module_aspect",
 )
 load("@build_bazel_rules_swift//swift:swift_common.bzl", "swift_common")
+load("@rules_cc//cc:build_settings.bzl", "cc")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility([
@@ -851,7 +852,10 @@ Files found:
 def _apple_static_xcframework_import_impl(ctx):
     """Implementation of apple_static_xcframework_import."""
     actions = ctx.actions
-    alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
+    alwayslink = ctx.attr.alwayslink or cc.read_possibly_native_flag(
+        ctx,
+        "incompatible_objc_alwayslink_by_default",
+    )
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     apple_xplat_toolchain_info = apple_toolchain_utils.get_xplat_toolchain(ctx)
     cc_configured_features = features_support.cc_configured_features(
@@ -1059,6 +1063,9 @@ to library targets through the `deps` attribute.
 """,
     implementation = _apple_static_xcframework_import_impl,
     attrs = rule_attrs.common_tool_attrs() | apple_support.platform_constraint_attrs() | {
+        "_incompatible_objc_alwayslink_by_default": attr.label(
+            default = Label("@rules_cc//cc:incompatible_objc_alwayslink_by_default"),
+        ),
         "alwayslink": attr.bool(
             default = False,
             doc = """

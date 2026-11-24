@@ -68,6 +68,7 @@ load(
     "@build_bazel_rules_swift//swift:swift_common.bzl",
     "swift_common",
 )
+load("@rules_cc//cc:build_settings.bzl", "cc")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility([
@@ -218,7 +219,10 @@ There should only be one valid framework binary, given a name that matches its f
 def _apple_static_framework_import_impl(ctx):
     """Implementation for the apple_static_framework_import rule."""
     actions = ctx.actions
-    alwayslink = ctx.attr.alwayslink or ctx.fragments.objc.alwayslink_by_default
+    alwayslink = ctx.attr.alwayslink or cc.read_possibly_native_flag(
+        ctx,
+        "incompatible_objc_alwayslink_by_default",
+    )
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
     )
@@ -427,6 +431,9 @@ apple_static_framework_import = rule(
     implementation = _apple_static_framework_import_impl,
     fragments = ["cpp", "objc"],
     attrs = rule_attrs.common_tool_attrs() | {
+        "_incompatible_objc_alwayslink_by_default": attr.label(
+            default = Label("@rules_cc//cc:incompatible_objc_alwayslink_by_default"),
+        ),
         "expected_secure_features": attr.string_list(
             doc = """
 A list of strings representing the secure features that are expected to be present in the

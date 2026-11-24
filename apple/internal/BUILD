@@ -28,6 +28,7 @@ bzl_library(
         "@bazel_tools//tools/cpp:toolchain_utils_bzl",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
+        "@rules_cc//cc:build_settings",
         "@rules_cc//cc/common",
     ],
 )
@@ -88,6 +89,7 @@ bzl_library(
         "@build_bazel_apple_support//xcode:providers",
         "@build_bazel_rules_swift//swift:swift_clang_module_aspect",
         "@build_bazel_rules_swift//swift:swift_common",
+        "@rules_cc//cc:build_settings",
         "@rules_cc//cc/common",
     ],
 )

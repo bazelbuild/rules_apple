@@ -98,6 +98,9 @@ def _common_linking_api_attrs(*, deps_cfg):
             default =
                 "@build_bazel_rules_apple//apple:default_cc_toolchain_forwarder",
         ),
+        "_incompatible_disallow_sdk_frameworks_attributes": attr.label(
+            default = Label("@rules_cc//cc:incompatible_disallow_sdk_frameworks_attributes"),
+        ),
     }
 
 def _static_library_archive_attrs(*, deps_cfg):
