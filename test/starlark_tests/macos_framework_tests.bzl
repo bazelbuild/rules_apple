@@ -50,6 +50,14 @@ load(
 
 visibility("private")
 
+analysis_target_actions_macos_adhoc_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
@@ -424,6 +432,20 @@ Please address the minimum_os_version on framework //test/starlark_tests/targets
         name = "{}_app_intents_within_load_deferred_framework_fail_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_load_deferred_framework_app_intents",
         expected_error = "An App Intents metadata bundle was found in the following framework that is not directly loaded by an app/extension:",
+        tags = [name],
+    )
+
+    analysis_target_actions_macos_adhoc_signing_test(
+        name = "{}_process_and_sign_legacy_signing_uses_codesign_on_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:fmwk",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 

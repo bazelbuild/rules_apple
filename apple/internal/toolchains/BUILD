@@ -25,6 +25,7 @@ toolchain(
 
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
+    adhoc_sign = "//tools:prebuilt_adhoc_sign",
     bundletool_mac = "//tools:prebuilt_bundletool_swift",
     clangrttool = "//tools:prebuilt_clangrttool_osx",
     codesigningtool = "//tools:prebuilt_codesigntool_osx",

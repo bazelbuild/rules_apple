@@ -28,7 +28,6 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_target_actions_test.bzl",
-    "analysis_target_actions_test",
     "make_analysis_target_actions_test",
 )
 load(
@@ -45,6 +44,22 @@ load(
 )
 
 visibility("private")
+
+analysis_target_actions_macos_adhoc_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_macos_signing_certificate_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.signing_certificate_name: "Apple Development",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
 
 analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
@@ -153,12 +168,27 @@ def macos_dylib_test_suite(name):
         tags = [name],
     )
 
-    analysis_target_actions_test(
+    analysis_target_actions_macos_adhoc_signing_test(
         name = "{}_sign_binary_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
         target_mnemonic = "SignBinary",
         expected_argv = ["--codesign /usr/bin/codesign"],
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_macos_signing_certificate_test(
+        name = "{}_sign_binary_legacy_signing_with_signing_certificate_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:dylib_dead_stripped",
+        target_mnemonic = "SignBinary",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 
@@ -181,7 +211,10 @@ def macos_dylib_test_suite(name):
         target_mnemonic = "SignBinary",
         expected_argv = ["--codesign /usr/bin/codesign"],
         expected_inputs = ["_macos.provisionprofile"],
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 

@@ -122,12 +122,13 @@ def _framework_import_bundling_task_impl(
     # frameworks unsigned here so that the bundle's own signing pass signs them alongside every
     # other embedded framework. This keeps a single tool responsible for every signature in the
     # bundle, and removes the need for the Mac-only codesigningtool in this action.
-    defer_signing_to_bundle = not codesigning_support.resolve_codesigning_config(
+    codesigning_config = codesigning_support.resolve_codesigning_config(
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
-    ).sign_on_mac
+    )
+    defer_signing_to_bundle = not codesigning_config.sign_on_mac
 
     bundling_files_to_bundle = _framework_provider_files_to_bundle(
         deduplicate_short_paths = True,
@@ -282,6 +283,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             codesign_args = codesigning_support.codesigning_args(
                 build_settings = build_settings,
                 cc_configured_features = cc_configured_features,
+                codesign_path = codesigning_config.codesign_path,
                 entitlements = None,
                 full_archive_path = framework_bundle_path,
                 is_framework = True,
@@ -295,7 +297,6 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             # Add the required argument to disable signing.
             args.add("--disable-signing")
 
-        codesigningtool = apple_mac_toolchain_info.codesigningtool
         imported_dynamic_framework_processor = (
             apple_mac_toolchain_info.imported_dynamic_framework_processor
         )
@@ -306,8 +307,12 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
-        if codesign_args and provisioning_profile:
+        if codesign_args and provisioning_profile and not codesigning_config.use_adhoc_sign:
             input_files.append(provisioning_profile)
+
+        tools = []
+        if codesign_args and codesigning_config.use_adhoc_sign:
+            tools.append(apple_mac_toolchain_info.adhoc_sign)
 
         apple_support.run(
             actions = actions,
@@ -319,7 +324,7 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             inputs = input_files,
             mnemonic = "ImportedDynamicFrameworkProcessor",
             outputs = [framework_output],
-            tools = [codesigningtool] if codesign_args else [],
+            tools = tools,
             xcode_config = platform_prerequisites.xcode_version_config,
         )
 

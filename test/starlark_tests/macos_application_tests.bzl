@@ -209,6 +209,40 @@ analysis_target_actions_disable_legacy_signing_compressed_test = make_analysis_t
     },
 )
 
+analysis_target_actions_macos_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_macos_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.signing_certificate_name: "",
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_xplat_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.signing_certificate_name: "",
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 def macos_application_test_suite(name):
     """Test suite for macos_application.
 
@@ -219,6 +253,32 @@ def macos_application_test_suite(name):
         name = "{}_codesign_test".format(name),
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that a macOS app pinned to macOS by ipa_post_processor and ad-hoc signed via
+    # adhoc_sign (ProcessAndSign and BundleTreeApp on Darwin when force_codesigningtool_on_mac is
+    # False) passes `codesign --verify`.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_with_post_processor_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_w_post_processor",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_xplat_codesigning_tree_artifact_with_post_processor_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_w_post_processor",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -891,6 +951,77 @@ Apple enhanced security features were requested, but the build is missing the re
             "$CONTENT_ROOT/MacOS/app",
             "$CONTENT_ROOT/PkgInfo",
         ],
+        tags = [name],
+    )
+
+    analysis_target_actions_macos_signing_test(
+        name = "{}_process_and_sign_unprovisioned_uses_codesign_when_forced_on_mac_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_fmwk",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_macos_signing_test(
+        name = "{}_bundle_tree_app_unprovisioned_uses_codesign_when_forced_on_mac_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_icon_bundle",
+        target_mnemonic = "BundleTreeApp",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_process_and_sign_xplat_codesigning_with_post_processor_uses_adhoc_sign_on_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_w_post_processor",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign", "should_process"],
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-cache",
+            "no-sandbox",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_xplat_codesigning_test(
+        name = "{}_bundle_tree_app_xplat_codesigning_with_post_processor_uses_adhoc_sign_on_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:macos_app_w_post_processor",
+        target_mnemonic = "BundleTreeApp",
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-remote",
+            "no-sandbox",
+        ],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_process_and_sign_provisioned_uses_codesign_on_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
+        target_mnemonic = "ProcessAndSign",
+        expected_argv = ["should_sign"],
+        expected_content = ["/usr/bin/codesign", "--mobileprovision"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_macos.provisionprofile"],
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 

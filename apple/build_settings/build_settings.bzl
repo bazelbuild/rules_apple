@@ -56,10 +56,11 @@ Linux, and should not be used or set by anyone except Apple BUILD rule maintaine
     ),
     "force_codesigningtool_on_mac": struct(
         doc = """
-Indicates that `codesigningtool` should be run on the Mac, rather than on Linux, when ad-hoc signing
-is used. Defaults to `True` while Linux ad-hoc signing (`codesigningtool` and `adhoc_sign`) is being
-validated prior to flipping the default to `False` (b/565907020), after which this flag will serve
-as an emergency valve for Apple BUILD rule maintainers.
+Indicates that `codesigningtool` should run on the Mac with `/usr/bin/codesign`, keeping
+`adhoc_sign` inactive when ad-hoc signing is used. Defaults to `True` while ad-hoc signing
+(`codesigningtool` and `adhoc_sign`) is being validated prior to flipping the default to `False`
+(b/565907020), after which this flag will serve as an emergency valve for Apple BUILD rule
+maintainers.
 """,
         default = True,
     ),

@@ -1928,10 +1928,10 @@ def _macos_command_line_application_impl(ctx):
     if "disable_legacy_signing" not in cc_configured_features.enabled_features:
         codesigning_support.sign_binary_action(
             actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             entitlements = entitlements,
             input_binary = binary_artifact,
-            mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
             mac_exec_group = mac_exec_group,
             output_binary = output_file,
             platform_prerequisites = platform_prerequisites,
@@ -2125,10 +2125,10 @@ def _macos_dylib_impl(ctx):
     if "disable_legacy_signing" not in cc_configured_features.enabled_features:
         codesigning_support.sign_binary_action(
             actions = actions,
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             entitlements = None,
             input_binary = binary_artifact,
-            mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
             mac_exec_group = mac_exec_group,
             output_binary = output_file,
             platform_prerequisites = platform_prerequisites,

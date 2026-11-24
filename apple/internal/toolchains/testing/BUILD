@@ -38,6 +38,7 @@ toolchain(
 
 apple_mac_tools_toolchain(
     name = "mac_tools_toolchain",
+    adhoc_sign = "//tools/adhoc_sign_tool:adhoc_sign_osx",
     bundletool_mac = "//tools/bundletool:bundletool_osx",
     clangrttool = "//tools/clangrttool:clangrttool_osx",
     codesigningtool = "//tools/codesigningtool:codesigntool_osx",

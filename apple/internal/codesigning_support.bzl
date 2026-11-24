@@ -143,38 +143,52 @@ def _is_adhoc_signing(
 def _should_sign_on_mac(
         *,
         apple_xplat_toolchain_info,
-        platform_prerequisites,
-        provisioning_profile):
+        is_adhoc):
     """Returns True if code signing must execute on macOS rather than on xplat."""
-    build_settings = apple_xplat_toolchain_info.build_settings
-    if build_settings.force_codesigningtool_on_mac:
+    if apple_xplat_toolchain_info.build_settings.force_codesigningtool_on_mac:
         return True
 
-    return not _is_adhoc_signing(
-        build_settings = build_settings,
-        platform_prerequisites = platform_prerequisites,
-        provisioning_profile = provisioning_profile,
-    )
+    return not is_adhoc
 
 def _resolve_codesigning_config(
         *,
+        apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         force_sign_on_mac = False,
-        mac_codesigningtool,
         platform_prerequisites,
         provisioning_profile):
     """Resolves the execution mode, tool targets, and codesign binary path for signing."""
-    sign_on_mac = force_sign_on_mac or _should_sign_on_mac(
-        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+    is_adhoc = _is_adhoc_signing(
+        build_settings = apple_xplat_toolchain_info.build_settings,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
     )
+    use_adhoc_sign = (
+        is_adhoc and
+        not apple_xplat_toolchain_info.build_settings.force_codesigningtool_on_mac
+    )
+    sign_on_mac = force_sign_on_mac or _should_sign_on_mac(
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        is_adhoc = is_adhoc,
+    )
     if sign_on_mac:
+        if use_adhoc_sign:
+            return struct(
+                codesign_path = apple_mac_toolchain_info.adhoc_sign.executable.path,
+                codesigningtool = apple_mac_toolchain_info.codesigningtool,
+                sign_on_mac = True,
+                tools = [
+                    apple_mac_toolchain_info.codesigningtool,
+                    apple_mac_toolchain_info.adhoc_sign,
+                ],
+                use_adhoc_sign = True,
+            )
         return struct(
             codesign_path = _MACOS_CODESIGN_PATH,
-            codesigningtool = mac_codesigningtool,
+            codesigningtool = apple_mac_toolchain_info.codesigningtool,
             sign_on_mac = True,
-            tools = [mac_codesigningtool],
+            tools = [apple_mac_toolchain_info.codesigningtool],
+            use_adhoc_sign = False,
         )
     return struct(
         codesign_path = apple_xplat_toolchain_info.adhoc_sign.executable.path,
@@ -184,6 +198,7 @@ def _resolve_codesigning_config(
             apple_xplat_toolchain_info.codesigningtool,
             apple_xplat_toolchain_info.adhoc_sign,
         ],
+        use_adhoc_sign = True,
     )
 
 def _codesign_args_for_path(
@@ -424,6 +439,7 @@ def _codesigning_args(
         *,
         build_settings,
         cc_configured_features,
+        codesign_path,
         entitlements,
         full_archive_path,
         is_framework = False,
@@ -436,6 +452,7 @@ def _codesigning_args(
       build_settings: A `dict`-like struct describing build settings.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
         to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
+      codesign_path: Path to the underlying `codesign` or `adhoc_sign` binary.
       entitlements: The entitlements file to sign with. Can be None.
       full_archive_path: The full path to the codesigning target.
       is_framework: If the target is a framework. False by default.
@@ -468,7 +485,7 @@ def _codesigning_args(
 
     return _codesign_args_for_path(
         build_settings = build_settings,
-        codesign_path = _MACOS_CODESIGN_PATH,
+        codesign_path = codesign_path,
         entitlements_file = entitlements,
         path_to_sign = _path_to_sign(path = full_archive_path),
         platform_prerequisites = platform_prerequisites,
@@ -773,7 +790,7 @@ def _post_process_and_sign_archive_action(
         processing_tools.extend(codesigning_config.tools)
         if entitlements:
             input_files.append(entitlements)
-        if provisioning_profile and sign_on_mac:
+        if provisioning_profile and not codesigning_config.use_adhoc_sign:
             input_files.append(provisioning_profile)
 
     ipa_post_processor_path = ""
@@ -843,7 +860,7 @@ def _post_process_and_sign_archive_action(
     run_on_darwin = any([signing_command_lines and sign_on_mac, ipa_post_processor_path])
     if run_on_darwin:
         execution_requirements = {}
-        if signing_command_lines:
+        if signing_command_lines and not codesigning_config.use_adhoc_sign:
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -883,10 +900,10 @@ def _post_process_and_sign_archive_action(
 def _sign_binary_action(
         *,
         actions,
+        apple_mac_toolchain_info,
         apple_xplat_toolchain_info,
         entitlements,
         input_binary,
-        mac_codesigningtool,
         mac_exec_group,
         output_binary,
         platform_prerequisites,
@@ -897,10 +914,10 @@ def _sign_binary_action(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: An `AppleMacToolsToolchainInfo` provider.
       apple_xplat_toolchain_info: An `AppleXPlatToolsToolchainInfo` provider.
       entitlements: The `File` representing entitlements to use for signing. May be `None`.
       input_binary: The `File` representing the binary to be signed.
-      mac_codesigningtool: The files_to_run for the Mac code signing tool.
       mac_exec_group: The exec group associated with apple_mac_toolchain.
       output_binary: The `File` representing signed binary.
       platform_prerequisites: Struct containing information on the platform being targeted.
@@ -916,8 +933,8 @@ def _sign_binary_action(
 
     build_settings = apple_xplat_toolchain_info.build_settings
     codesigning_config = _resolve_codesigning_config(
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
-        mac_codesigningtool = mac_codesigningtool,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
     )
@@ -938,7 +955,7 @@ def _sign_binary_action(
     direct_inputs = [input_binary]
     if entitlements:
         direct_inputs.append(entitlements)
-    if provisioning_profile and codesigning_config.sign_on_mac:
+    if provisioning_profile and not codesigning_config.use_adhoc_sign:
         direct_inputs.append(provisioning_profile)
 
     command = [
@@ -952,11 +969,8 @@ def _sign_binary_action(
     mnemonic = "SignBinary"
 
     if codesigning_config.sign_on_mac:
-        apple_support.run_shell(
-            actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
-            env = shared_environment.default_env,
-            command = command,
+        execution_requirements = {}
+        if not codesigning_config.use_adhoc_sign:
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.
@@ -964,7 +978,13 @@ def _sign_binary_action(
                 # Unsure, but may be needed for keychain access, especially for files that live in
                 # $HOME.
                 "no-sandbox": "1",
-            },
+            }
+        apple_support.run_shell(
+            actions = actions,
+            apple_platform_info = platform_prerequisites.apple_platform_info,
+            env = shared_environment.default_env,
+            command = command,
+            execution_requirements = execution_requirements,
             inputs = direct_inputs,
             mnemonic = mnemonic,
             outputs = [output_binary],

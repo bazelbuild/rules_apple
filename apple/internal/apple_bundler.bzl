@@ -444,9 +444,9 @@ def _bundle_and_sign_archive(
         xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
     """
     codesigning_config = codesigning_support.resolve_codesigning_config(
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         force_sign_on_mac = bool(ipa_post_processor),
-        mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
     )
@@ -629,9 +629,9 @@ def _bundle_post_process_and_sign(
         )
 
         codesigning_config = codesigning_support.resolve_codesigning_config(
+            apple_mac_toolchain_info = apple_mac_toolchain_info,
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             force_sign_on_mac = bool(ipa_post_processor),
-            mac_codesigningtool = apple_mac_toolchain_info.codesigningtool,
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
         )
@@ -653,7 +653,7 @@ def _bundle_post_process_and_sign(
             if entitlements:
                 extra_input_files.append(entitlements)
 
-            if provisioning_profile and codesigning_config.sign_on_mac:
+            if provisioning_profile and not codesigning_config.use_adhoc_sign:
                 extra_input_files.append(provisioning_profile)
 
         _bundle_task_output_files(

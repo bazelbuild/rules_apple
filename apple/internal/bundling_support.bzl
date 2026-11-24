@@ -501,7 +501,7 @@ def _generate_tree_artifact_bundle_action(
 
     if run_on_darwin:
         execution_requirements = {}
-        if code_signing_commands:
+        if code_signing_commands and not codesigning_config.use_adhoc_sign:
             execution_requirements = {
                 # Added so that the output of this action is not cached remotely, in case multiple
                 # developers sign the same artifact with different identities.

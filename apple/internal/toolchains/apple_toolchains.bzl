@@ -40,6 +40,9 @@ files used as script templates for the purposes of executing Apple actions. Defi
 This toolchain is for the tools (and support files) for actions that *must* run on a Mac.
 """,
     fields = {
+        "adhoc_sign": """\
+The files_to_run for a tool that performs ad-hoc code signing for Apple binaries and bundles.
+""",
         "process_and_sign_template": """\
 A `File` referencing a template for a shell script to process and sign.
 """,
@@ -165,6 +168,7 @@ A function (`def warning_handler(*args, **kwargs)`) that emits warnings or error
 
 def _apple_mac_tools_toolchain_impl(ctx):
     apple_mac_tools_info = AppleMacToolsToolchainInfo(
+        adhoc_sign = ctx.attr.adhoc_sign.files_to_run,
         bundletool_mac = ctx.attr.bundletool_mac.files_to_run,
         clangrttool = ctx.attr.clangrttool.files_to_run,
         codesigningtool = ctx.attr.codesigningtool.files_to_run,
@@ -187,6 +191,14 @@ def _apple_mac_tools_toolchain_impl(ctx):
 
 apple_mac_tools_toolchain = rule(
     attrs = {
+        "adhoc_sign": attr.label(
+            cfg = "exec",
+            executable = True,
+            mandatory = True,
+            doc = """
+A `File` referencing a tool that performs ad-hoc code signing for Apple binaries and bundles.
+""",
+        ),
         "bundletool_mac": attr.label(
             cfg = "exec",
             executable = True,

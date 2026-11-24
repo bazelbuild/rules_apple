@@ -163,6 +163,21 @@ analysis_target_actions_tree_artifacts_outputs_disable_legacy_signing_test = mak
     },
 )
 
+analysis_target_actions_macos_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_outputs_macos_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 analysis_target_actions_xplat_codesigning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.force_codesigningtool_on_mac: False,
@@ -328,6 +343,20 @@ All requested architectures must be either device or simulator architectures."""
             build_settings_labels.force_codesigningtool_on_mac: "False",
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that a bundle pinned to macOS by ipa_post_processor and ad-hoc signed via
+    # adhoc_sign (ProcessAndSign on Darwin when force_codesigningtool_on_mac is False) passes
+    # `codesign --verify`.
+    apple_verification_test(
+        name = "{}_xplat_codesigning_with_post_processor_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
     )
@@ -2286,10 +2315,13 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
-    analysis_target_actions_test(
+    analysis_target_actions_macos_codesigning_test(
         name = "{}_process_and_sign_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         target_mnemonic = "ProcessAndSign",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_ios.mobileprovision"],
         expected_execution_requirements = {
             "no-sandbox": "1",
             "requires-darwin": "",
@@ -2345,9 +2377,14 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
         target_mnemonic = "ProcessAndSign",
         expected_argv = ["should_sign", "should_process"],
-        expected_content = ["/usr/bin/codesign"],
-        not_expected_content = ["adhoc_sign"],
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
         expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-cache",
+            "no-sandbox",
+        ],
         tags = [name],
     )
 
@@ -2361,7 +2398,10 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         expected_content = ["/usr/bin/codesign", "--mobileprovision"],
         not_expected_content = ["adhoc_sign"],
         expected_inputs = ["_ios.mobileprovision"],
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 
@@ -2426,10 +2466,13 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
-    analysis_target_actions_test(
+    analysis_target_actions_macos_codesigning_test(
         name = "{}_direct_bundle_archive_legacy_signing_keeps_process_and_sign_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         target_mnemonic = "ProcessAndSign",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_ios.mobileprovision"],
         expected_execution_requirements = {
             "no-sandbox": "1",
             "requires-darwin": "",
@@ -2470,10 +2513,13 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         tags = [name],
     )
 
-    analysis_target_actions_tree_artifacts_outputs_test(
+    analysis_target_actions_tree_artifacts_outputs_macos_codesigning_test(
         name = "{}_bundle_tree_app_legacy_signing_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_minimal",
         target_mnemonic = "BundleTreeApp",
+        expected_content = ["/usr/bin/codesign"],
+        not_expected_content = ["adhoc_sign"],
+        expected_inputs = ["_ios.mobileprovision"],
         expected_execution_requirements = {
             "no-sandbox": "1",
             "requires-darwin": "",
@@ -2516,9 +2562,14 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         name = "{}_bundle_tree_app_xplat_codesigning_with_post_processor_requires_darwin_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_post_processor",
         target_mnemonic = "BundleTreeApp",
-        expected_content = ["/usr/bin/codesign"],
-        not_expected_content = ["adhoc_sign"],
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
         expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_execution_requirements = [
+            "no-remote",
+            "no-sandbox",
+        ],
         tags = [name],
     )
 
@@ -2529,7 +2580,10 @@ for the `arm64e` architecture requires opting into Apple Enhanced Security by ad
         expected_content = ["/usr/bin/codesign"],
         not_expected_content = ["adhoc_sign"],
         expected_inputs = ["_ios.mobileprovision"],
-        expected_execution_requirements = {"requires-darwin": ""},
+        expected_execution_requirements = {
+            "no-sandbox": "1",
+            "requires-darwin": "",
+        },
         tags = [name],
     )
 
@@ -2587,11 +2641,11 @@ directories.
         tags = [name],
     )
 
-    analysis_target_actions_test(
+    analysis_target_actions_macos_codesigning_test(
         name = "{}_imported_xcframework_legacy_signing_passes_codesign_arg_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ImportedDynamicFrameworkProcessor",
-        expected_argv = ["--codesign"],
+        expected_argv = ["--codesign /usr/bin/codesign"],
         expected_inputs = ["_ios.mobileprovision"],
         tags = [name],
     )
@@ -2605,7 +2659,7 @@ directories.
         tags = [name],
     )
 
-    analysis_target_actions_test(
+    analysis_target_actions_macos_codesigning_test(
         name = "{}_imported_xcframework_legacy_signing_excludes_presigned_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ProcessAndSign",
@@ -2649,7 +2703,7 @@ directories.
         name = "{}_imported_xcframework_xplat_codesigning_device_presigns_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ImportedDynamicFrameworkProcessor",
-        expected_argv = ["--codesign"],
+        expected_argv = ["--codesign /usr/bin/codesign"],
         expected_inputs = ["_ios.mobileprovision"],
         not_expected_argv = ["--disable-signing"],
         tags = [name],
