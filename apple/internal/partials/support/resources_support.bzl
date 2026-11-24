@@ -75,9 +75,27 @@ def _app_intents_resources(*, parent_dir, files):
         resource_trees = resource_trees,
     )
 
+def _copts_for_tool(tool, copts_by_tool, platform_prerequisites):
+    """Returns `<tool>_copts` from the target followed by arguments from the repeatable `<tool>_copt` flag.
+
+    Args:
+        tool: The resource compiler name, such as `actool`.
+        copts_by_tool: Compiler flags from resource bundle attributes, keyed by tool name.
+        platform_prerequisites: Platform information containing the build settings
+            for the current configuration.
+
+    Returns:
+        A list of compiler arguments in order. Each unset option list defaults to empty.
+    """
+    target_copts = copts_by_tool.get(tool, [])
+    build_settings = getattr(platform_prerequisites, "build_settings", None)
+    global_copts = getattr(build_settings, tool + "_copt", [])
+    return target_copts + global_copts
+
 def _compile_datamodels(
         *,
         actions,
+        copts,
         mac_exec_group,
         datamodel_groups,
         label_name,
@@ -116,6 +134,7 @@ def _compile_datamodels(
 
         resource_actions.compile_datamodels(
             actions = actions,
+            copts = copts,
             datamodel_path = datamodel_path,
             input_files = input_files,
             mac_exec_group = mac_exec_group,
@@ -133,6 +152,7 @@ def _compile_datamodels(
 def _compile_mappingmodels(
         *,
         actions,
+        copts,
         mac_exec_group,
         label_name,
         mappingmodel_groups,
@@ -157,6 +177,7 @@ def _compile_mappingmodels(
 
         resource_actions.compile_mappingmodel(
             actions = actions,
+            copts = copts,
             input_files = input_files,
             mac_exec_group = mac_exec_group,
             mappingmodel_path = mappingmodel_path,
@@ -184,6 +205,7 @@ def _asset_catalogs(
         primary_icon_name,
         product_type,
         rule_label,
+        copts_by_tool = {},
         **_kwargs):
     """Processes asset catalog files."""
     processed_origins = {}
@@ -267,6 +289,7 @@ was declared. Skipping asset catalog compilation.
 
     resource_actions.compile_asset_catalog(
         actions = actions,
+        copts = _copts_for_tool("actool", copts_by_tool, platform_prerequisites),
         alternate_icons = alternate_icons,
         alticonstool = apple_mac_toolchain_info.alticonstool,
         asset_files = asset_files,
@@ -310,6 +333,7 @@ def _datamodels(
         platform_prerequisites,
         rule_label,
         swift_module,
+        copts_by_tool = {},
         **_kwargs):
     "Processes datamodel related files."
     datamodel_files = files.to_list()
@@ -354,6 +378,7 @@ def _datamodels(
         datamodels_processed_origins,
     ) = _compile_datamodels(
         actions = actions,
+        copts = _copts_for_tool("momc", copts_by_tool, platform_prerequisites),
         datamodel_groups = datamodel_groups,
         label_name = rule_label.name,
         mac_exec_group = mac_exec_group,
@@ -369,6 +394,7 @@ def _datamodels(
         mappingmodels_processed_origins,
     ) = _compile_mappingmodels(
         actions = actions,
+        copts = _copts_for_tool("mapc", copts_by_tool, platform_prerequisites),
         label_name = rule_label.name,
         output_discriminator = output_discriminator,
         parent_dir = parent_dir,
@@ -523,6 +549,7 @@ def _mlmodels(
         parent_dir,
         platform_prerequisites,
         rule_label,
+        copts_by_tool = {},
         **_kwargs):
     """Processes mlmodel files."""
 
@@ -550,6 +577,7 @@ def _mlmodels(
 
         resource_actions.compile_mlmodel(
             actions = actions,
+            copts = _copts_for_tool("coreml", copts_by_tool, platform_prerequisites),
             input_file = file,
             mac_exec_group = mac_exec_group,
             output_bundle = output_bundle,
@@ -707,6 +735,7 @@ def _storyboards(
         platform_prerequisites,
         rule_label,
         swift_module,
+        copts_by_tool = {},
         **_kwargs):
     """Processes storyboard files."""
     swift_module = swift_module or rule_label.name
@@ -733,6 +762,7 @@ def _storyboards(
         origin_short_paths.append(storyboard.short_path)
         resource_actions.compile_storyboard(
             actions = actions,
+            copts = _copts_for_tool("ibtool", copts_by_tool, platform_prerequisites),
             input_file = storyboard,
             mac_exec_group = mac_exec_group,
             output_dir = storyboardc_dir,
@@ -827,6 +857,7 @@ def _xibs(
         platform_prerequisites,
         rule_label,
         swift_module,
+        copts_by_tool = {},
         **_kwargs):
     """Processes Xib files."""
     swift_module = swift_module or rule_label.name
@@ -844,6 +875,7 @@ def _xibs(
         processed_origins[out_dir.short_path] = [file.short_path]
         resource_actions.compile_xib(
             actions = actions,
+            copts = _copts_for_tool("ibtool", copts_by_tool, platform_prerequisites),
             input_file = file,
             mac_exec_group = mac_exec_group,
             output_dir = out_dir,

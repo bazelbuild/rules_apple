@@ -1997,6 +1997,21 @@ ios_application(
 )
 
 ios_application(
+    name = "app_with_nested_bundle_copts",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = ["//test/starlark_tests/resources:Info.plist"],
+    minimum_os_version = common.min_os_ios.baseline,
+    resources = [
+        "//test/starlark_tests/resources:assets",
+        "//test/starlark_tests/resources:outer_bundle_with_copts",
+        "//test/starlark_tests/resources:second_outer_bundle_with_copts",
+    ],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:objc_main_lib"],
+)
+
+ios_application(
     name = "app_with_resource_bundle_with_bundle_id",
     bundle_id = "com.google.example",
     families = ["iphone"],
@@ -3590,17 +3605,17 @@ generate_dynamic_xcframework(
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
+        "ios_simulator": common.min_os_ios.baseline,
     },
     platforms = {
-        "ios_simulator": [
-            "x86_64",
-            "arm64",
-        ],
         "ios": [
             "arm64",
             "arm64e",
+        ],
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
         ],
     },
     tags = common.fixture_tags,
@@ -4476,17 +4491,17 @@ generate_static_xcframework(
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
+        "ios_simulator": common.min_os_ios.baseline,
     },
     platforms = {
-        "ios_simulator": [
-            "x86_64",
-            "arm64",
-        ],
         "ios": [
             "arm64",
             "arm64e",
+        ],
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
         ],
     },
     tags = common.fixture_tags,
@@ -4628,15 +4643,15 @@ generate_static_xcframework(
     hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
     generate_modulemap = False,
     minimum_os_versions = {
-        "ios_simulator": common.min_os_ios.baseline,
         "ios": common.min_os_ios.baseline,
+        "ios_simulator": common.min_os_ios.baseline,
     },
     platforms = {
+        "ios": ["arm64"],
         "ios_simulator": [
             "x86_64",
             "arm64",
         ],
-        "ios": ["arm64"],
     },
     tags = common.fixture_tags,
 )

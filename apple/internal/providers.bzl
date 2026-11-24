@@ -232,6 +232,11 @@ dependencies of the given target if any were generated.
 AppleDynamicFrameworkInfo, new_appledynamicframeworkinfo = provider(
     doc = "Contains information about an Apple dynamic framework.",
     fields = {
+        "binary": "The dylib binary artifact of the dynamic framework.",
+        "cc_info": """\
+A `CcInfo` which contains information about the transitive dependencies linked
+into the binary.
+""",
         "framework_dirs": """\
 The framework path names used as link inputs in order to link against the
 dynamic framework.
@@ -239,11 +244,6 @@ dynamic framework.
         "framework_files": """\
 The full set of artifacts that should be included as inputs to link against the
 dynamic framework.
-""",
-        "binary": "The dylib binary artifact of the dynamic framework.",
-        "cc_info": """\
-A `CcInfo` which contains information about the transitive dependencies linked
-into the binary.
 """,
     },
     init = _make_banned_init(provider_name = "AppleDynamicFrameworkInfo"),
@@ -308,21 +308,21 @@ Propagated by framework and XCFramework import rules: `apple_dynamic_framework_i
 `apple_static_xcframework_import`
 """,
     fields = {
-        "framework_imports": """
-`depset` of `File`s that represent framework imports that need to be bundled in the top level
-application bundle under the Frameworks directory.
-""",
-        "dsym_imports": """
-Depset of Files that represent dSYM imports that need to be processed to
-provide .symbols files for packaging into the .ipa file if requested in the
-build with --define=apple.package_symbols=(yes|true|1).
-""",
         "build_archs": """
 `depset` of `String`s that represent binary architectures reported from the current build.
 """,
         "debug_info_binaries": """
 Depset of Files that represent framework binaries and dSYM binaries that
 provide debug info.
+""",
+        "dsym_imports": """
+Depset of Files that represent dSYM imports that need to be processed to
+provide .symbols files for packaging into the .ipa file if requested in the
+build with --define=apple.package_symbols=(yes|true|1).
+""",
+        "framework_imports": """
+`depset` of `File`s that represent framework imports that need to be bundled in the top level
+application bundle under the Frameworks directory.
 """,
     },
     init = _make_banned_init(provider_name = "AppleFrameworkImportInfo"),
@@ -415,6 +415,7 @@ Xcode 26+.""",
         "unprocessed": "Generic resources not mapped to the other types.",
         "xcstrings": "String catalog files.",
         "xibs": "XIB Interface files.",
+        "resource_copts": """`depset` of (bundle directory, declaring target label, compiler, argument tuple) entries for deferred resource compilation.""",
         "owners": """`depset` of (resource, owner) pairs.""",
         "processed_origins": """`depset` of (processed resource, resource list) pairs.""",
         "unowned_resources": """`depset` of unowned resources.""",
@@ -467,13 +468,13 @@ In addition to the fields, all the runfiles that the runner target declares will
 test rules runfiles.
 """,
     fields = {
-        "execution_requirements": """
-Optional dictionary that represents the specific hardware requirements for this test.
-""",
         "execution_environment": """
 Optional dictionary with the environment variables that are to be set in the test action, and are
 not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s
 substitution, but will be set in the test action.
+""",
+        "execution_requirements": """
+Optional dictionary that represents the specific hardware requirements for this test.
 """,
         "test_environment": """
 Optional dictionary with the environment variables that are to be propagated into the XCTest

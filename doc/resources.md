@@ -94,6 +94,40 @@ still placed at the root of the application bundle. Also note that the
 storyboard file was compiled into a `.storyboardc` directory. This is the output
 of invoking `ibtoold` on the source storyboard.
 
+### Resource compiler options
+
+Use `actool_copts`, `ibtool_copts`, `momc_copts`, `mapc_copts`, or `coreml_copts`
+on an `apple_resource_bundle` or `apple_precompiled_resource_bundle`. Each list
+element is passed verbatim as one compiler argument.
+
+For an `apple_resource_bundle`, the enclosing target passes the options when it
+compiles resources for that bundle directory, including localized files and files
+from resource groups. Nested bundles use their own options. If multiple regular
+bundle targets share a destination, their option lists are combined. For an
+`apple_precompiled_resource_bundle`, the options apply when the rule compiles
+its direct resources. Give independently configured bundles distinct bundle
+names when packaging them together.
+
+```build
+apple_resource_bundle(
+    name = "Assets",
+    actool_copts = ["--optimization", "space"],
+    resources = glob(["Images.xcassets/**"]),
+)
+```
+
+To pass arguments throughout a build, use the repeatable Starlark flags
+`actool_copt`, `ibtool_copt`, `momc_copt`, `mapc_copt`, and `coreml_copt` in
+`@rules_apple//apple/build_settings`. Each occurrence supplies one argument,
+including any spaces or commas within it. The compiler receives target arguments
+first, followed by command-line arguments in the order specified.
+
+```shell
+bazel build //app:App \
+  --@rules_apple//apple/build_settings:actool_copt=--optimization \
+  --@rules_apple//apple/build_settings:actool_copt=time
+```
+
 ### Structured Resources
 
 If there's a requirement that some resources need to maintain a specific

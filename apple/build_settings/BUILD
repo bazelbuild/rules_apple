@@ -5,6 +5,7 @@ load(
     "@bazel_skylib//rules:common_settings.bzl",
     "bool_flag",
     "bool_setting",
+    "repeatable_string_flag",
     "string_flag",
 )
 load(
@@ -45,6 +46,15 @@ licenses(["notice"])
     )
     for build_flag_name, build_flag_info in build_flags.items()
     if type(build_flag_info.default) == "string"
+]
+
+[
+    repeatable_string_flag(
+        name = build_flag_name,
+        build_setting_default = build_flag_info.default,
+    )
+    for build_flag_name, build_flag_info in build_flags.items()
+    if type(build_flag_info.default) == "list"
 ]
 
 bzl_library(

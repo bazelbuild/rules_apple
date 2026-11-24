@@ -53,6 +53,8 @@ load(
 )
 load(
     "//apple/internal:resources.bzl",
+    "RESOURCE_COMPILER_ATTRS",
+    "resource_copts_from_attrs",
     "resources",
 )
 load(
@@ -165,6 +167,7 @@ def _apple_precompiled_resource_bundle_impl(ctx):
                 buckets = buckets,
                 platform_prerequisites = platform_prerequisites,
                 processing_owner = owner,
+                copts_by_tool = resource_copts_from_attrs(ctx.attr),
                 resource_types_to_process = [
                     "asset_catalogs",
                     "datamodels",
@@ -341,6 +344,7 @@ bundle root in the same structure passed to this argument, so `["res/foo.png"]` 
                 default = "//apple/internal/resource_rules:Info.plist",
             ),
         },
+        RESOURCE_COMPILER_ATTRS,
         apple_support.platform_constraint_attrs(),
         rule_attrs.common_tool_attrs(),
     ),

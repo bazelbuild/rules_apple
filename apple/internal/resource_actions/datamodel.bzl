@@ -30,6 +30,7 @@ load(
 def compile_datamodels(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         datamodel_path,
         input_files,
@@ -41,6 +42,7 @@ def compile_datamodels(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        copts: Additional compiler arguments, in order.
         datamodel_path: The path to the directory containing the datamodels.
         input_files: The list of files to process for the given datamodel.
         mac_exec_group: The execution group for Mac tools.
@@ -59,6 +61,7 @@ def compile_datamodels(
         platform_prerequisites.minimum_os,
         "--module",
         module_name,
+    ] + copts + [
         xctoolrunner_support.prefixed_path(datamodel_path),
         xctoolrunner_support.prefixed_path(output_file.path),
     ]
@@ -79,6 +82,7 @@ def compile_datamodels(
 def compile_mappingmodel(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         input_files,
         mappingmodel_path,
@@ -89,6 +93,7 @@ def compile_mappingmodel(
 
     Args:
         actions: The actions provider from `ctx.actions`.
+        copts: Additional compiler arguments, in order.
         input_files: The list of files to process for the given mapping model.
         mac_exec_group: The execution group for Mac tools.
         mappingmodel_path: The path to the directory containing the mapping model.
@@ -100,6 +105,7 @@ def compile_mappingmodel(
     args.add("mapc")
     args.add(xctoolrunner_support.prefixed_path(mappingmodel_path))
     args.add(xctoolrunner_support.prefixed_path(output_file.path))
+    args.add_all(copts)
 
     apple_support.run(
         actions = actions,

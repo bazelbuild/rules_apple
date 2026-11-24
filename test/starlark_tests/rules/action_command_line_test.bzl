@@ -17,6 +17,13 @@
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "unittest")
 
+def _contains_argv_sequence(argv, sequence):
+    length = len(sequence)
+    for start in range(len(argv) - length + 1):
+        if argv[start:start + length] == sequence:
+            return True
+    return False
+
 def _action_command_line_test_impl(ctx):
     env = analysistest.begin(ctx)
     target_under_test = analysistest.target_under_test(env)
@@ -29,6 +36,19 @@ def _action_command_line_test_impl(ctx):
         for action in actions
         if action.mnemonic == mnemonic
     ]
+    if ctx.attr.output_path_suffix:
+        matching_actions = [
+            action
+            for action in matching_actions
+            if any([f.short_path.endswith(ctx.attr.output_path_suffix) for f in action.outputs.to_list()])
+        ]
+        if not matching_actions:
+            unittest.fail(env, "No {} action on {} produces an output ending in '{}'.".format(
+                mnemonic,
+                target_under_test.label,
+                ctx.attr.output_path_suffix,
+            ))
+            return analysistest.end(env)
     if not matching_actions:
         actual_mnemonics = collections.uniq(
             [action.mnemonic for action in actions],
@@ -76,6 +96,10 @@ def _action_command_line_test_impl(ctx):
         mnemonic,
         str(target_under_test.label),
     )
+
+    sequence = ctx.attr.expected_argv_sequence
+    if sequence and not _contains_argv_sequence(action.argv, sequence):
+        unittest.fail(env, "{}expected consecutive arguments {}, got {}".format(message_prefix, sequence, action.argv))
 
     # Concatenate the arguments into a single string so that we can easily look
     # for subsequences of arguments. Note that we append an extra space to the
@@ -127,6 +151,16 @@ command line, after concatenating all command line arguments into a single
 space-delimited string.
 """,
             ),
+            "expected_argv_sequence": attr.string_list(
+                doc = "Consecutive arguments to match exactly, preserving argument boundaries.",
+            ),
+            "mnemonic": attr.string(
+                mandatory = True,
+                doc = """\
+The mnemonic of the action to be inspected on the target under test. It is
+expected that there will be exactly one of these.
+""",
+            ),
             "not_expected_argv": attr.string_list(
                 mandatory = False,
                 doc = """\
@@ -135,12 +169,8 @@ command line, after concatenating all command line arguments into a single
 space-delimited string.
 """,
             ),
-            "mnemonic": attr.string(
-                mandatory = True,
-                doc = """\
-The mnemonic of the action to be inspected on the target under test. It is
-expected that there will be exactly one of these.
-""",
+            "output_path_suffix": attr.string(
+                doc = "Select the action whose output path ends in this suffix when a mnemonic occurs more than once.",
             ),
         },
         config_settings = config_settings,
