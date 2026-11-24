@@ -48,9 +48,11 @@ load(
 load(
     "//apple/internal:providers.bzl",
     "new_appledsymbundleinfo",
+    "new_appleresourceinfo",
 )
 load(
     "//apple/internal:resources.bzl",
+    "resource_copts_from_attrs",
     "resources",
 )
 load(
@@ -210,6 +212,17 @@ def _apple_resource_aspect_impl(target, ctx):
         collect_structured_args["res_attrs"] = ["structured_resources"]
         process_args["bundle_id"] = ctx.rule.attr.bundle_id or None
         bundle_name = "{}.bundle".format(ctx.rule.attr.bundle_name or ctx.label.name)
+
+        copts_by_tool = resource_copts_from_attrs(ctx.rule.attr)
+        if copts_by_tool:
+            apple_resource_infos.append(new_appleresourceinfo(
+                resource_copts = depset([
+                    (bundle_name, ctx.label, tool, tuple(copts))
+                    for tool, copts in copts_by_tool.items()
+                ]),
+                owners = depset(),
+                unowned_resources = depset(),
+            ))
 
     elif ctx.rule.kind == "apple_precompiled_resource_bundle":
         # If the target already propagates a AppleResourceInfo, do nothing.

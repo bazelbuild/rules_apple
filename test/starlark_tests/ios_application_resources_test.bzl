@@ -19,6 +19,10 @@ load(
     "build_settings_labels",
 )
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
     "make_analysis_failure_message_test",
@@ -48,6 +52,17 @@ _analysis_asset_catalog_thinning_test = make_analysis_target_actions_test(
     config_settings = {
         build_settings_labels.thin_for_device_model: "iPhone14,6",
         build_settings_labels.thin_for_os_version: "15.0",
+    },
+)
+
+_resource_copts_test = make_action_command_line_test_rule(
+    config_settings = {
+        "//command_line_option:platforms": str(Label("@apple_support//platforms:ios_sim_arm64")),
+        build_settings_labels.actool_copt: ["--development-region", "English (United States, US)"],
+        build_settings_labels.coreml_copt: ["--disable-warnings"],
+        build_settings_labels.ibtool_copt: ["--notices"],
+        build_settings_labels.mapc_copt: ["--print-result"],
+        build_settings_labels.momc_copt: ["--no-delete-rule-warnings"],
     },
 )
 
@@ -424,8 +439,8 @@ Found the following legacy .appiconset files: """,
         ],
         plist_test_file = "$CONTENT_ROOT/Info.plist",
         plist_test_values = {
-            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon",
             "CFBundleIcons:CFBundleAlternateIcons:CFBundleIconFiles:0": "app_icon-bazel",
+            "CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0": "app_icon",
         },
         text_test_file = "$BUNDLE_ROOT/Assets.car",
         text_test_values = ["app_icon", "app_icon-bazel"],
@@ -1184,6 +1199,70 @@ intended to be the primary app icon with the primary_app_icon attribute on the r
         ],
         tags = [name],
     )
+
+    global_actool_args = ["--development-region", "English (United States, US)"]
+    inner_actool_args = ["--optimization", "space"] + global_actool_args
+    app_with_bundles = "//test/starlark_tests/targets_under_test/ios:app_with_nested_bundle_copts"
+
+    # Verify that a precompiled bundle passes its own options before the global
+    # options and preserves the region containing spaces and a comma as one argument.
+    _resource_copts_test(
+        name = "{}_precompiled_copts".format(name),
+        target_under_test = "//test/starlark_tests/resources:precompiled_bundle_with_copts",
+        mnemonic = "AssetCatalogCompile",
+        expected_argv_sequence = inner_actool_args,
+        tags = [name],
+    )
+
+    # Verify that nested assets receive the inner bundle's options and global flags.
+    _resource_copts_test(
+        name = "{}_nested_bundle_actool_copts".format(name),
+        target_under_test = app_with_bundles,
+        mnemonic = "AssetCatalogCompile",
+        output_path_suffix = "/Outer.bundle/Inner.bundle/xcassets",
+        expected_argv_sequence = inner_actool_args,
+        not_expected_argv = ["--optimization time"],
+        tags = [name],
+    )
+
+    # Verify that both targets sharing Outer.bundle contribute their options.
+    _resource_copts_test(
+        name = "{}_outer_bundle_copts".format(name),
+        target_under_test = app_with_bundles,
+        mnemonic = "AssetCatalogCompile",
+        output_path_suffix = "/Outer.bundle/xcassets",
+        expected_argv_sequence = ["--optimization", "time", "--optimization", "time"] + global_actool_args,
+        not_expected_argv = ["--optimization space"],
+        tags = [name],
+    )
+
+    # Verify that the app's own catalog receives only the global options.
+    _resource_copts_test(
+        name = "{}_app_uses_global_copts_only".format(name),
+        target_under_test = app_with_bundles,
+        mnemonic = "AssetCatalogCompile",
+        output_path_suffix = "-intermediates/xcassets",
+        expected_argv_sequence = global_actool_args,
+        not_expected_argv = ["--optimization"],
+        tags = [name],
+    )
+
+    # Verify that each nested resource compiler receives its target and global
+    # options in order, including ibtool for a localized XIB from a resource group.
+    for mnemonic, args in [
+        ("MappingModelCompile", ["--mapc-no-warnings", "--print-result"]),
+        ("MlmodelCompile", ["--platform", "iOS", "--deployment-target", common.min_os_ios.baseline, "--disable-warnings"]),
+        ("MomCompile", ["--no-inverse-relationship-warnings", "--no-delete-rule-warnings"]),
+        ("StoryboardCompile", ["--reference-external-strings-file", "--notices"]),
+        ("XibCompile", ["--reference-external-strings-file", "--notices"]),
+    ]:
+        _resource_copts_test(
+            name = "{}_nested_bundle_{}_copts".format(name, mnemonic.lower()),
+            target_under_test = app_with_bundles,
+            mnemonic = mnemonic,
+            expected_argv_sequence = args,
+            tags = [name],
+        )
 
     _analysis_asset_catalog_thinning_test(
         name = "{}_xcasset_actool_thinning_argv".format(name),

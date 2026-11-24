@@ -92,12 +92,30 @@ load(
     "bundle_paths",
 )
 
+_RESOURCE_COMPILERS = ["actool", "coreml", "ibtool", "mapc", "momc"]
+
+RESOURCE_COMPILER_ATTRS = {
+    tool + "_copts": attr.string_list(
+        doc = "Extra arguments for `%s` when compiling resources for this bundle. Each list element is one argument." %
+              ("coremlc" if tool == "coreml" else tool),
+    )
+    for tool in _RESOURCE_COMPILERS
+}
+
 _CACHEABLE_PROVIDER_FIELDS = [
     "infoplists",
     "plists",
     "pngs",
     "strings",
 ]
+
+def resource_copts_from_attrs(attrs):
+    """Returns the compiler argument lists explicitly set on a resource bundle."""
+    return {
+        tool: getattr(attrs, tool + "_copts")
+        for tool in _RESOURCE_COMPILERS
+        if getattr(attrs, tool + "_copts", [])
+    }
 
 def _get_attr_using_list(*, attr, nested_attr, split_attr_key = None):
     """Helper method to always get an attribute as a list within an existing list.
@@ -445,6 +463,7 @@ def _process_bucketized_data(
         bucketized_owners = [],
         buckets,
         bundle_id,
+        copts_by_tool = {},
         output_discriminator = None,
         platform_prerequisites,
         processing_owner = None,
@@ -469,6 +488,7 @@ def _process_bucketized_data(
         buckets: A dictionary with bucketized resources organized by resource
             type.
         bundle_id: The bundle ID to configure for this target.
+        copts_by_tool: Extra arguments by compiler for resources processed by this call.
         mac_exec_group: The execution group for Mac tools.
         output_discriminator: A string to differentiate between different target
             intermediate files or `None`.
@@ -508,6 +528,7 @@ def _process_bucketized_data(
                 "actions": actions,
                 "apple_mac_toolchain_info": apple_mac_toolchain_info,
                 "bundle_id": bundle_id,
+                "copts_by_tool": copts_by_tool,
                 "files": files,
                 "mac_exec_group": mac_exec_group,
                 "output_discriminator": output_discriminator,
@@ -697,6 +718,11 @@ def _merge_providers(*, default_owner = None, providers, validate_all_resources_
             )
 
     return new_appleresourceinfo(
+        resource_copts = depset(transitive = [
+            p.resource_copts
+            for p in providers
+            if getattr(p, "resource_copts", None)
+        ]),
         owners = depset(transitive = transitive_owners),
         unowned_resources = unowned_resources,
         processed_origins = processed_origins,
@@ -777,6 +803,10 @@ def _nest_in_bundle(*, provider_to_nest, nesting_bundle_dir):
             )
 
     return new_appleresourceinfo(
+        resource_copts = depset([
+            (paths.join(nesting_bundle_dir, bundle_dir), label, tool, copts)
+            for bundle_dir, label, tool, copts in getattr(provider_to_nest, "resource_copts", depset()).to_list()
+        ]),
         owners = provider_to_nest.owners,
         unowned_resources = provider_to_nest.unowned_resources,
         processed_origins = getattr(provider_to_nest, "processed_origins", None),
@@ -790,7 +820,7 @@ def _populated_resource_fields(provider):
     return [
         f
         for f in dir(provider)
-        if f not in ["owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
+        if f not in ["resource_copts", "owners", "unowned_resources", "processed_origins", "to_json", "to_proto"]
     ]
 
 def _structured_resources_parent_dir(

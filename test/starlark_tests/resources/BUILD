@@ -649,6 +649,73 @@ filegroup(
     srcs = glob(["assets.xcassets/**"]),
 )
 
+apple_precompiled_resource_bundle(
+    name = "precompiled_bundle_with_copts",
+    actool_copts = [
+        "--optimization",
+        "space",
+    ],
+    resources = [":assets"],
+    tags = common.fixture_tags,
+)
+
+apple_resource_group(
+    name = "localized_compiler_test_resources",
+    resources = ["fr.lproj/view_ios.xib"],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "bundle_with_copts",
+    actool_copts = [
+        "--optimization",
+        "space",
+    ],
+    bundle_name = "Inner",
+    coreml_copts = [
+        "--platform",
+        "iOS",
+        "--deployment-target",
+        common.min_os_ios.baseline,
+    ],
+    ibtool_copts = ["--reference-external-strings-file"],
+    mapc_copts = ["--mapc-no-warnings"],
+    momc_copts = ["--no-inverse-relationship-warnings"],
+    resources = [
+        ":assets",
+        ":localized_compiler_test_resources",
+        ":mapping_model",
+        ":storyboard_ios.storyboard",
+        ":unversioned_datamodel",
+        "//test/testdata/resources:sample.mlmodel",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "outer_bundle_with_copts",
+    actool_copts = [
+        "--optimization",
+        "time",
+    ],
+    bundle_name = "Outer",
+    resources = [
+        ":assets",
+        ":bundle_with_copts",
+    ],
+    tags = common.fixture_tags,
+)
+
+apple_resource_bundle(
+    name = "second_outer_bundle_with_copts",
+    actool_copts = [
+        "--optimization",
+        "time",
+    ],
+    bundle_name = "Outer",
+    tags = common.fixture_tags,
+)
+
 filegroup(
     name = "icon_bundle_assets",
     srcs = glob(["app_icon.icon/**"]),

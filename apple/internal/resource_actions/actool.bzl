@@ -509,6 +509,7 @@ def _alticonstool_args(
 def compile_asset_catalog(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         alternate_icons,
         alticonstool,
@@ -531,6 +532,7 @@ def compile_asset_catalog(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      copts: Additional compiler arguments, in order.
       alternate_icons: Alternate icons files, organized in .alticon directories.
       alticonstool: A files_to_run for the alticonstool tool.
       asset_files: An iterable of files in all asset catalogs that should be
@@ -619,6 +621,8 @@ def compile_asset_catalog(
         args.add("--filter-for-device-model", build_settings.thin_for_device_model)
     if build_settings.thin_for_os_version:
         args.add("--filter-for-device-os-version", build_settings.thin_for_os_version)
+
+    args.add_all(copts)
 
     xcassets = group_files_by_directory(
         asset_files,

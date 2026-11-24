@@ -19,12 +19,19 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 # List of all registered build settings with command line flags at
 # `rules_apple/apple/build_settings/BUILD`.
 build_flags = {
-    "parse_xcframework_info_plist": struct(
+    "actool_copt": struct(
+        doc = "Additional arguments for asset catalog compilation, one per flag occurrence.",
+        default = [],
+    ),
+    "add_debugger_entitlement": struct(
         doc = """
-Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
-parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframework_import.bzl
+Controls whether debug entitlements are added to non-macOS targets.
 """,
         default = False,
+    ),
+    "coreml_copt": struct(
+        doc = "Additional arguments for Core ML model compilation, one per flag occurrence.",
+        default = [],
     ),
     "disable_swift_stdlib_binary_thinning": struct(
         doc = """
@@ -33,56 +40,9 @@ Swift support dylibs.
 """,
         default = False,
     ),
-    "package_swift_support": struct(
-        doc = """
-Packages Swift support dylibs into device application archives.
-""",
-        default = True,
-    ),
-    "locales_to_exclude": struct(
-        doc = """
-Comma-separated locales to exclude from Apple bundle resources.
-""",
-        default = "",
-    ),
-    "locales_to_include": struct(
-        doc = """
-Comma-separated locales to include in Apple bundle resources.
-""",
-        default = "",
-    ),
-    "thin_for_device_model": struct(
-        doc = """
-A target device model string (e.g. 'iPhone14,6') used to thin the application via actool.
-""",
-        default = "",
-    ),
-    "thin_for_os_version": struct(
-        doc = """
-A target OS version string (e.g. '15.0') used to thin the application via actool.
-""",
-        default = "",
-    ),
-    # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
-    # new custom build setting.
-    "signing_certificate_name": struct(
-        doc = """
-Declare a code signing identity, to be used in all code signing flows related to the rules.
-""",
-        default = "",
-    ),
-    # TODO(b/266604130): Migrate users from tree artifacts outputs define flag to build setting.
-    "use_tree_artifacts_outputs": struct(
-        doc = """
-Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
-""",
-        default = False,
-    ),
-    "trim_lproj_locales": struct(
-        doc = """
-Trims nested .lproj localizations based on the top-level bundle localizations.
-""",
-        default = False,
+    "ibtool_copt": struct(
+        doc = "Additional arguments for storyboard and XIB compilation, one per flag occurrence.",
+        default = [],
     ),
     "ios_device": struct(
         doc = """
@@ -106,9 +66,69 @@ The version of iOS to run on the simulator when running or testing.
 """,
         default = "",
     ),
-    "add_debugger_entitlement": struct(
+    "locales_to_exclude": struct(
         doc = """
-Controls whether debug entitlements are added to non-macOS targets.
+Comma-separated locales to exclude from Apple bundle resources.
+""",
+        default = "",
+    ),
+    "locales_to_include": struct(
+        doc = """
+Comma-separated locales to include in Apple bundle resources.
+""",
+        default = "",
+    ),
+    "mapc_copt": struct(
+        doc = "Additional arguments for Core Data mapping model compilation, one per flag occurrence.",
+        default = [],
+    ),
+    "momc_copt": struct(
+        doc = "Additional arguments for Core Data model compilation, one per flag occurrence.",
+        default = [],
+    ),
+    "package_swift_support": struct(
+        doc = """
+Packages Swift support dylibs into device application archives.
+""",
+        default = True,
+    ),
+    "parse_xcframework_info_plist": struct(
+        doc = """
+Configuration for enabling XCFramework import rules use the xcframework_processor_tool to
+parse the XCFramework bundle Info.plist file. See apple/internal/apple_xcframework_import.bzl
+""",
+        default = False,
+    ),
+    # TODO(b/252873771): Clean up all usages of --ios_signing_cert_name and replace them with this
+    # new custom build setting.
+    "signing_certificate_name": struct(
+        doc = """
+Declare a code signing identity, to be used in all code signing flows related to the rules.
+""",
+        default = "",
+    ),
+    "thin_for_device_model": struct(
+        doc = """
+A target device model string (e.g. 'iPhone14,6') used to thin the application via actool.
+""",
+        default = "",
+    ),
+    "thin_for_os_version": struct(
+        doc = """
+A target OS version string (e.g. '15.0') used to thin the application via actool.
+""",
+        default = "",
+    ),
+    "trim_lproj_locales": struct(
+        doc = """
+Trims nested .lproj localizations based on the top-level bundle localizations.
+""",
+        default = False,
+    ),
+    # TODO(b/266604130): Migrate users from tree artifacts outputs define flag to build setting.
+    "use_tree_artifacts_outputs": struct(
+        doc = """
+Enables Bazel's tree artifacts for Apple bundle rules (instead of archives).
 """,
         default = False,
     ),

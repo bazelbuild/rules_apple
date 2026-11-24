@@ -34,6 +34,7 @@ load(
 def compile_storyboard(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         input_file,
         output_dir,
@@ -44,6 +45,7 @@ def compile_storyboard(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      copts: Additional compiler arguments, in order.
       input_file: The storyboard to compile.
       mac_exec_group: The execution group for Mac tools.
       output_dir: The directory where the compiled outputs should be placed.
@@ -73,11 +75,9 @@ def compile_storyboard(
     args.add("--minimum-deployment-target", min_os)
     args.add_all(families, before_each = "--target-device")
 
-    args.add_all([
-        "--module",
-        swift_module,
-        xctoolrunner_support.prefixed_path(input_file.path),
-    ])
+    args.add("--module", swift_module)
+    args.add_all(copts)
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
 
     apple_support.run(
         actions = actions,
@@ -153,6 +153,7 @@ def link_storyboards(
 def compile_xib(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         input_file,
         output_dir,
@@ -163,6 +164,7 @@ def compile_xib(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      copts: Additional compiler arguments, in order.
       input_file: The Xib file to compile.
       mac_exec_group: The execution group for Mac tools.
       output_dir: The file reference for the output directory.
@@ -188,11 +190,9 @@ def compile_xib(
     args.add("--minimum-deployment-target", min_os)
     args.add_all(families, before_each = "--target-device")
 
-    args.add_all([
-        "--module",
-        swift_module,
-        xctoolrunner_support.prefixed_path(input_file.path),
-    ])
+    args.add("--module", swift_module)
+    args.add_all(copts)
+    args.add(xctoolrunner_support.prefixed_path(input_file.path))
 
     apple_support.run(
         actions = actions,

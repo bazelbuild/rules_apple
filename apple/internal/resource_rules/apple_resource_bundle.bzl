@@ -19,6 +19,7 @@ load(
     "//apple/internal:providers.bzl",
     "new_appleresourcebundleinfo",
 )
+load("//apple/internal:resources.bzl", "RESOURCE_COMPILER_ATTRS")
 
 def _apple_resource_bundle_impl(_ctx):
     # All of the resource processing logic for this rule exists in the apple_resource_aspect.
@@ -34,7 +35,7 @@ def _apple_resource_bundle_impl(_ctx):
 
 apple_resource_bundle = rule(
     implementation = _apple_resource_bundle_impl,
-    attrs = {
+    attrs = RESOURCE_COMPILER_ATTRS | {
         "bundle_id": attr.string(
             doc = """
 The bundle ID for this target. It will replace `$(PRODUCT_BUNDLE_IDENTIFIER)` found in the files

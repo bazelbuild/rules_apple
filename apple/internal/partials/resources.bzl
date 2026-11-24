@@ -278,6 +278,10 @@ def _resources_partial_impl(
     locales_included = sets.make(["Base"])
     locales_dropped = sets.make()
 
+    copts_by_bundle = {}
+    for bundle_dir, _, tool, copts in getattr(final_provider, "resource_copts", depset()).to_list():
+        copts_by_bundle.setdefault(bundle_dir, {}).setdefault(tool, []).extend(copts)
+
     def _deduplicated_field_handler(field, deduplicated):
         processing_func, requires_swift_module = PROVIDER_TO_FIELD_ACTION[field]
         for parent_dir, module_name, files in deduplicated:
@@ -307,6 +311,12 @@ def _resources_partial_impl(
                 "product_type": rule_descriptor.product_type,
                 "rule_label": rule_label,
             }
+
+            if copts_by_bundle and parent_dir:
+                # A localized input can sit below several nested bundles.
+                bundle, suffix, _ = (parent_dir + "/").rpartition(".bundle/")
+                if suffix:
+                    processing_args["copts_by_tool"] = copts_by_bundle.get(bundle + ".bundle", {})
 
             # Only pass the Swift module name if the type of resource to process
             # requires it.

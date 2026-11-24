@@ -26,6 +26,7 @@ load(
 def compile_mlmodel(
         *,
         actions,
+        copts = [],
         mac_exec_group,
         input_file,
         output_bundle,
@@ -36,6 +37,7 @@ def compile_mlmodel(
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      copts: Additional compiler arguments, in order.
       input_file: The input mlmodel file.
       mac_exec_group: The execution group for Mac tools.
       output_bundle: The directory reference for the output mlmodelc bundle.
@@ -53,6 +55,8 @@ def compile_mlmodel(
         "--output-partial-info-plist",
         xctoolrunner_support.prefixed_path(output_plist.path),
     )
+
+    args.add_all(copts)
 
     apple_support.run(
         actions = actions,

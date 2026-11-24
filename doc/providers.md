@@ -282,10 +282,10 @@ Contains information about an Apple dynamic framework.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleDynamicFrameworkInfo-framework_dirs"></a>framework_dirs |  The framework path names used as link inputs in order to link against the dynamic framework.    |
-| <a id="AppleDynamicFrameworkInfo-framework_files"></a>framework_files |  The full set of artifacts that should be included as inputs to link against the dynamic framework.    |
 | <a id="AppleDynamicFrameworkInfo-binary"></a>binary |  The dylib binary artifact of the dynamic framework.    |
 | <a id="AppleDynamicFrameworkInfo-cc_info"></a>cc_info |  A `CcInfo` which contains information about the transitive dependencies linked into the binary.    |
+| <a id="AppleDynamicFrameworkInfo-framework_dirs"></a>framework_dirs |  The framework path names used as link inputs in order to link against the dynamic framework.    |
+| <a id="AppleDynamicFrameworkInfo-framework_files"></a>framework_files |  The full set of artifacts that should be included as inputs to link against the dynamic framework.    |
 
 
 <a id="AppleExecutableBinaryInfo"></a>
@@ -396,10 +396,10 @@ Propagated by framework and XCFramework import rules: `apple_dynamic_framework_i
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleFrameworkImportInfo-framework_imports"></a>framework_imports |  `depset` of `File`s that represent framework imports that need to be bundled in the top level application bundle under the Frameworks directory.    |
-| <a id="AppleFrameworkImportInfo-dsym_imports"></a>dsym_imports |  Depset of Files that represent dSYM imports that need to be processed to provide .symbols files for packaging into the .ipa file if requested in the build with --define=apple.package_symbols=(yes\|true\|1).    |
 | <a id="AppleFrameworkImportInfo-build_archs"></a>build_archs |  `depset` of `String`s that represent binary architectures reported from the current build.    |
 | <a id="AppleFrameworkImportInfo-debug_info_binaries"></a>debug_info_binaries |  Depset of Files that represent framework binaries and dSYM binaries that provide debug info.    |
+| <a id="AppleFrameworkImportInfo-dsym_imports"></a>dsym_imports |  Depset of Files that represent dSYM imports that need to be processed to provide .symbols files for packaging into the .ipa file if requested in the build with --define=apple.package_symbols=(yes\|true\|1).    |
+| <a id="AppleFrameworkImportInfo-framework_imports"></a>framework_imports |  `depset` of `File`s that represent framework imports that need to be bundled in the top level application bundle under the Frameworks directory.    |
 
 
 <a id="ApplePlatformInfo"></a>
@@ -514,6 +514,7 @@ Provider that propagates buckets of resources that are differentiated by type.
 | <a id="AppleResourceInfo-unprocessed"></a>unprocessed |  Generic resources not mapped to the other types.    |
 | <a id="AppleResourceInfo-xcstrings"></a>xcstrings |  String catalog files.    |
 | <a id="AppleResourceInfo-xibs"></a>xibs |  XIB Interface files.    |
+| <a id="AppleResourceInfo-resource_copts"></a>resource_copts |  `depset` of (bundle directory, declaring target label, compiler, argument tuple) entries for deferred resource compilation.    |
 | <a id="AppleResourceInfo-owners"></a>owners |  `depset` of (resource, owner) pairs.    |
 | <a id="AppleResourceInfo-processed_origins"></a>processed_origins |  `depset` of (processed resource, resource list) pairs.    |
 | <a id="AppleResourceInfo-unowned_resources"></a>unowned_resources |  `depset` of unowned resources.    |
@@ -620,8 +621,8 @@ test rules runfiles.
 
 | Name  | Description |
 | :------------- | :------------- |
-| <a id="AppleTestRunnerInfo-execution_requirements"></a>execution_requirements |  Optional dictionary that represents the specific hardware requirements for this test.    |
 | <a id="AppleTestRunnerInfo-execution_environment"></a>execution_environment |  Optional dictionary with the environment variables that are to be set in the test action, and are not propagated into the XCTest invocation. These values will _not_ be added into the %(test_env)s substitution, but will be set in the test action.    |
+| <a id="AppleTestRunnerInfo-execution_requirements"></a>execution_requirements |  Optional dictionary that represents the specific hardware requirements for this test.    |
 | <a id="AppleTestRunnerInfo-test_environment"></a>test_environment |  Optional dictionary with the environment variables that are to be propagated into the XCTest invocation. These values will be included in the %(test_env)s substitution and will _not_ be set in the test action.    |
 | <a id="AppleTestRunnerInfo-test_runner_template"></a>test_runner_template |  Required template file that contains the specific mechanism with which the tests will be run. The *_ui_test and *_unit_test rules will substitute the following values:     * %(test_host_path)s:   Path to the app being tested.     * %(test_bundle_path)s: Path to the test bundle that contains the tests.     * %(test_env)s:         Environment variables for the XCTest invocation (e.g FOO=BAR,BAZ=QUX).     * %(test_type)s:        The test type, whether it is unit or UI.    |
 
