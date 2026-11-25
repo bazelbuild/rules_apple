@@ -91,16 +91,21 @@ class _Runtime:
 
 
 def _selected_simulator_runtime(
-    os_version: Optional[str], sdk_version: Optional[str]
+    os_version: Optional[str], sdk_version: Optional[str], device_type: str
 ) -> _Runtime:
     runtimes = json.loads(_simctl(["list", "runtimes", "-j"]))["runtimes"]
     available_runtimes = [
         runtime
         for runtime in runtimes
-        if runtime["platform"] == "iOS" and runtime["isAvailable"]
+        if runtime["platform"] == "iOS"
+        and runtime["isAvailable"]
+        and any(
+            device_type in (supported["name"], supported["identifier"])
+            for supported in runtime.get("supportedDeviceTypes", [])
+        )
     ]
     if not available_runtimes:
-        raise RuntimeError("no available runtimes found")
+        raise RuntimeError(f"no available runtimes found that support {device_type}")
     sdk_runtime_match = None
     if sdk_version:
         sdk_name = f"iphoneos{sdk_version}"
@@ -247,7 +252,7 @@ def _main() -> None:
         os.getenv("SIMULATOR_REUSE_SIMULATOR", default = "1").lower() in ("1", "true")
     )
 
-    selected_runtime = _selected_simulator_runtime(os_version, sdk_version)
+    selected_runtime = _selected_simulator_runtime(os_version, sdk_version, device_type)
     device_name = args.name or _default_device_name(
         device_type, selected_runtime.version
     )
