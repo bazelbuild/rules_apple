@@ -487,9 +487,13 @@ All requested architectures must be either device or simulator architectures."""
         ],
     )
 
+    # Verifies pre-signed imported frameworks are not re-signed by ProcessAndSign.
     apple_verification_test(
         name = "{}_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "True",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -642,9 +646,13 @@ All requested architectures must be either device or simulator architectures."""
         tags = [name],
     )
 
+    # Verifies pre-signed frameworks (including imported frameworks) are not re-signed.
     apple_verification_test(
         name = "{}_fmwk_with_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "True",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_fmwk_importing_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -2758,7 +2766,28 @@ directories.
         tags = [name],
     )
 
+    # Even when ipa_post_processor pins ProcessAndSign to macOS, xplat ad-hoc signing still defers
+    # imported framework signing to the bundle's adhoc_sign pass.
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_imported_fmwk_xplat_codesigning_with_post_processor_defers_signing_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_codesigning_test(
+        name = "{}_imported_fmwk_xplat_codesigning_with_post_processor_signs_framework_in_bundle_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_fmwk",
+        target_mnemonic = "ProcessAndSign",
+        expected_content = ["adhoc_sign"],
+        not_expected_content = ["/usr/bin/codesign", "--signed_path"],
+        tags = [name],
+    )
+
     # Signing that must happen on a Mac keeps pre-signing imported frameworks.
+
     analysis_target_actions_xplat_codesigning_device_test(
         name = "{}_imported_xcframework_xplat_codesigning_device_presigns_framework_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",

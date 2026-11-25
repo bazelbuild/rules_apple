@@ -558,9 +558,13 @@ Apple enhanced security features were requested, but the build is missing the re
         tags = [name],
     )
 
+    # Verifies pre-signed imported frameworks are not re-signed by ProcessAndSign.
     apple_verification_test(
         name = "{}_imported_versioned_fmwk_codesign_test".format(name),
         build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "True",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_versioned_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -569,6 +573,9 @@ Apple enhanced security features were requested, but the build is missing the re
     apple_verification_test(
         name = "{}_imported_versioned_static_framework_xcframework_codesign_test".format(name),
         build_type = "device",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "True",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_static_versioned_xcframework",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],
@@ -698,14 +705,14 @@ Apple enhanced security features were requested, but the build is missing the re
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/B/generated_macos_dynamic_versioned_fmwk",
         ],
         assert_file_permissions = {
-            # regular files
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/Resources/Info.plist": "644",
             "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/A/generated_macos_dynamic_versioned_fmwk": "755",
-            # symbolic links
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk": "120755",
         },
+        is_symlink = [
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_macos_dynamic_versioned_fmwk.framework/generated_macos_dynamic_versioned_fmwk",
+        ],
         tags = [name],
     )
 
@@ -731,14 +738,14 @@ Apple enhanced security features were requested, but the build is missing the re
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/B/generated_static_macos_versioned_xcframework",
         ],
         assert_file_permissions = {
-            # regular files
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist": "644",
             "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/A/generated_static_macos_versioned_xcframework": "755",
-            # symbolic links
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Resources": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework": "120755",
         },
+        is_symlink = [
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_static_macos_versioned_xcframework.framework/generated_static_macos_versioned_xcframework",
+        ],
         tags = [name],
     )
 
@@ -764,14 +771,14 @@ Apple enhanced security features were requested, but the build is missing the re
             "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/B/generated_dynamic_macos_versioned_xcframework",
         ],
         assert_file_permissions = {
-            # regular files
             "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist": "644",
             "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework": "755",
-            # symbolic links
-            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current": "120755",
-            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework": "120755",
         },
+        is_symlink = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
         tags = [name],
     )
 

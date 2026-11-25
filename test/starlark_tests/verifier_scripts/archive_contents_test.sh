@@ -84,6 +84,10 @@ newline=$'\n'
 #      specifies a bundle file path, and value is the expected numerical file
 #      permissions bits. See apple_shell_testutils' assert_permissions_equal
 #      for supported formats.
+#
+#  Symbolic link tests:
+#  - IS_SYMLINK: List of paths within the bundle to verify are symbolic links.
+#      Filenames are expanded with bash.
 
 
 something_tested=false
@@ -394,6 +398,17 @@ if [[ -n "${ASSERT_FILE_PERMISSIONS-}" ]]; then
 
     expanded_path=$(eval echo "$path")
     assert_permissions_equal "$expanded_path" "$expected_permissions"
+  done
+fi
+
+if [[ -n "${IS_SYMLINK-}" ]]; then
+  for path in "${IS_SYMLINK[@]}"
+  do
+    something_tested=true
+    expanded_path=$(eval echo "$path")
+    if [[ ! -L "$expanded_path" ]]; then
+      fail "Expected \"$expanded_path\" to be a symbolic link."
+    fi
   done
 fi
 

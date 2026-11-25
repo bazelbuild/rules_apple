@@ -15,6 +15,10 @@
 """tvos_application Starlark tests."""
 
 load(
+    "//apple/build_settings:build_settings.bzl",
+    "build_settings_labels",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -101,9 +105,13 @@ def tvos_application_test_suite(name):
         tags = [name],
     )
 
+    # Verifies pre-signed imported frameworks are not re-signed by ProcessAndSign.
     apple_verification_test(
         name = "{}_imported_fmwk_codesign_test".format(name),
         build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_codesigningtool_on_mac: "True",
+        },
         target_under_test = "//test/starlark_tests/targets_under_test/tvos:app_with_imported_fmwk",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
         tags = [name],

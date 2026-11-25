@@ -52,6 +52,7 @@ def archive_contents_test(
         not_contains = [],
         is_binary_plist = [],
         is_not_binary_plist = [],
+        is_symlink = [],
         plist_test_file = "",
         plist_test_values = {},
         asset_catalog_test_file = "",
@@ -89,6 +90,8 @@ def archive_contents_test(
             paths are expanded with bash. Test will fail if file doesn't exist.
         is_not_binary_plist:  Optional, List of paths to files to test for the absense of a binary
             plist format. The paths are expanded with bash. Test will fail if file doesn't exist.
+        is_symlink: Optional, List of paths to verify are symbolic links. The paths are expanded
+            with bash. Test will fail if a path is not a symbolic link.
         plist_test_file: Optional, The plist file to test with `plist_test_values`(see next Arg).
         plist_test_values: Optional, The key/value pairs to test. Keys are specified in PlistBuddy
             format(e.g. "UIDeviceFamily:1"). The test will fail if the key does not exist or if
@@ -168,6 +171,7 @@ def archive_contents_test(
         not_contains,
         is_binary_plist,
         is_not_binary_plist,
+        is_symlink,
         plist_test_file,
         asset_catalog_test_file,
         text_test_file,
@@ -197,6 +201,7 @@ def archive_contents_test(
             "CONTAINS": contains,
             "IS_BINARY_PLIST": is_binary_plist,
             "IS_NOT_BINARY_PLIST": is_not_binary_plist,
+            "IS_SYMLINK": is_symlink,
             "MACHO_LOAD_COMMANDS_CONTAIN": macho_load_commands_contain,
             "MACHO_LOAD_COMMANDS_NOT_CONTAIN": macho_load_commands_not_contain,
             "NOT_CONTAINS": not_contains,
