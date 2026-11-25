@@ -491,6 +491,27 @@ def apple_dynamic_xcframework_import_test_suite(name):
         ],
         tags = [name],
     )
+    analysis_output_group_info_files_test(
+        name = "{}_imported_xcframework_binary_named_dsyms_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_binary_named_dsym",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "generated_dynamic_xcframework_with_binary_named_dsym.xcframework/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_binary_named_dsym.dSYM/Contents/Resources/DWARF/generated_dynamic_xcframework_with_binary_named_dsym",
+            "generated_dynamic_xcframework_with_binary_named_dsym.xcframework/ios-arm64_x86_64-simulator/dSYMs/generated_dynamic_xcframework_with_binary_named_dsym.dSYM/Contents/Info.plist",
+            "app_with_imported_xcframework_with_binary_named_dsym.app.dSYM/Contents/Resources/DWARF/app_with_imported_xcframework_with_binary_named_dsym",
+            "app_with_imported_xcframework_with_binary_named_dsym.app.dSYM/Contents/Info.plist",
+        ],
+        tags = [name],
+    )
+    analysis_output_group_info_files_with_xcframework_processor_test(
+        name = "{}_imported_xcframework_binary_named_dsyms_output_group_files_test_with_xcframework_import_tool".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework_with_binary_named_dsym",
+        output_group_name = "dsyms",
+        expected_outputs = [
+            "ios_imported_dynamic_xcframework_with_binary_named_dsym-intermediates/dsym_imports/generated_dynamic_xcframework_with_binary_named_dsym.framework.dSYM",
+        ],
+        tags = [name],
+    )
     analysis_output_group_info_files_with_xcframework_processor_test(
         name = "{}_imported_xcframework_dsyms_output_group_files_test_with_xcframework_import_tool".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",

@@ -193,7 +193,7 @@ def _classify_file_imports(config_vars, import_files):
         if file_extension == "swiftmodule":
             swift_module_imports.append(file)
             continue
-        if file_extension == "swiftinterface" and ".framework.dSYM/" not in file.short_path:
+        if file_extension == "swiftinterface" and ".dSYM/" not in file.short_path:
             swift_interface_imports.append(file)
             continue
         if file_extension in ["swiftdoc", "swiftsourceinfo"]:
@@ -202,7 +202,7 @@ def _classify_file_imports(config_vars, import_files):
         if file_extension == "a":
             binary_imports.append(file)
             continue
-        if ".framework.dSYM/" in file.short_path:
+        if ".dSYM/" in file.short_path:
             dsym_imports.append(file)
             continue
 
@@ -452,10 +452,11 @@ def _get_debug_info_binaries(dsym_binaries, framework_binaries):
     for file in dsym_binaries:
         dsym_bundle_path = bundle_paths.farthest_parent(
             file.short_path,
-            "framework.dSYM",
+            "dSYM",
         )
-        dsym_bundle_basename = paths.basename(dsym_bundle_path)
-        framework_basename = dsym_bundle_basename.rstrip(".dSYM")
+        framework_basename = paths.basename(dsym_bundle_path)[:-len(".dSYM")]
+        if not framework_basename.endswith(".framework"):
+            framework_basename += ".framework"
         if framework_basename not in all_binaries_dict:
             all_binaries_dict[framework_basename] = file
 

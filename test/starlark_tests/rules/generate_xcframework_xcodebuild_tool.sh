@@ -67,7 +67,9 @@ for framework in "${frameworks[@]+"${frameworks[@]}"}"; do
     # -debug-symbols arguments must be positioned next to their respective -framework,
     # and must be absolute physical paths (no symlinks)
     for dsym in "${debug_symbols[@]+"${debug_symbols[@]}"}"; do
-        if [[ "$dsym" == *$framework_target/$framework_name.dSYM ]]; then
+        # A dSYM is named after the framework or after its binary.
+        if [[ "$dsym" == *$framework_target/$framework_name.dSYM ||
+              "$dsym" == *$framework_target/${framework_name%.framework}.dSYM ]]; then
             create_xcframework_args+=("-debug-symbols" "$(realpath "$dsym")")
         fi
     done
