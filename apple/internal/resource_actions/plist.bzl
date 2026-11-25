@@ -19,10 +19,6 @@ load(
     "paths",
 )
 load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
-load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
@@ -60,7 +56,6 @@ def plisttool_action(
         mnemonic = None,
         outputs,
         platform_prerequisites,
-        run_on_mac = False,
         xplat_exec_group):
     """Registers an action that invokes `plisttool`.
 
@@ -78,7 +73,6 @@ def plisttool_action(
       mnemonic: The mnemonic to display when the action executes. Defaults to None.
       outputs: Any `File`s that should be treated as outputs of the underlying action.
       platform_prerequisites: Struct containing information on the platform being targeted.
-      run_on_mac: If True, runs `plisttool` on macOS using `apple_mac_toolchain_info`.
       xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     if (
@@ -91,7 +85,7 @@ def plisttool_action(
         )
     control_args = actions.args()
     control_args.add(json.encode(control))
-    if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac or run_on_mac:
+    if apple_xplat_toolchain_info.build_settings.force_plisttool_on_mac:
         apple_support.run(
             actions = actions,
             apple_platform_info = platform_prerequisites.apple_platform_info,
@@ -201,45 +195,55 @@ def process_strings_with_plisttool(
         mnemonic = mnemonic,
         outputs = [output_file],
         platform_prerequisites = platform_prerequisites,
-        run_on_mac = binary,
         xplat_exec_group = xplat_exec_group,
     )
 
-def compile_plist(*, actions, input_file, output_file, platform_prerequisites):
-    """Creates an action that compiles plist and strings files.
+def compile_plist(
+        *,
+        actions,
+        apple_mac_toolchain_info,
+        apple_xplat_toolchain_info,
+        input_file,
+        mac_exec_group,
+        output_file,
+        platform_prerequisites,
+        rule_label,
+        xplat_exec_group):
+    """Creates an action that compiles plist and strings files into binary.
 
     Args:
       actions: The actions provider from `ctx.actions`.
+      apple_mac_toolchain_info: `struct` of tools from the shared Apple toolchain.
+      apple_xplat_toolchain_info: An AppleXPlatToolsToolchainInfo provider.
       input_file: The property list file that should be converted.
+      mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_file: The file reference for the output plist.
       platform_prerequisites: Struct containing information on the platform being targeted.
+      rule_label: The label of the target being analyzed.
+      xplat_exec_group: A string. The exec_group for actions using xplat toolchain.
     """
     if input_file.basename.endswith(".strings"):
         mnemonic = "CompileStrings"
     else:
         mnemonic = "CompilePlist"
 
-    # This command will check whether the input file is non-empty, and then
-    # execute the version of plutil that takes the file directly. If the file is
-    # empty, it will echo an new line and then pipe it into plutil. We do this
-    # to handle empty files as plutil doesn't handle them very well.
-    plutil_command = "plutil -convert binary1 -o %s --" % shell.quote(output_file.path)
-    complete_command = ("if [[ -s {in_file} ]] ; then {plutil_command} {in_file} ; " +
-                        "elif [[ -f {in_file} ]] ; then echo | {plutil_command} - ; " +
-                        "else exit 1 ; " +
-                        "fi").format(
-        in_file = shell.quote(input_file.path),
-        plutil_command = plutil_command,
+    control = struct(
+        binary = True,
+        individual_plist = input_file.path,
+        output = output_file.path,
+        target = str(rule_label),
     )
-    apple_support.run_shell(
+    plisttool_action(
         actions = actions,
-        apple_platform_info = platform_prerequisites.apple_platform_info,
-        command = complete_command,
-        env = shared_environment.default_env,
+        apple_mac_toolchain_info = apple_mac_toolchain_info,
+        apple_xplat_toolchain_info = apple_xplat_toolchain_info,
+        control = control,
         inputs = [input_file],
+        mac_exec_group = mac_exec_group,
         mnemonic = mnemonic,
         outputs = [output_file],
-        xcode_config = platform_prerequisites.xcode_version_config,
+        platform_prerequisites = platform_prerequisites,
+        xplat_exec_group = xplat_exec_group,
     )
 
 def merge_resource_infoplists(

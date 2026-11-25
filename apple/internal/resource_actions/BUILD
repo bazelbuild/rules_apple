@@ -78,7 +78,6 @@ bzl_library(
         "//apple/internal:providers",
         "//apple/internal:shared_environment",
         "@bazel_skylib//lib:paths",
-        "@bazel_skylib//lib:shell",
         "@bazel_skylib//lib:structs",
         "@build_bazel_apple_support//lib:apple_support",
     ],

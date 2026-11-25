@@ -30,13 +30,6 @@ Forces adding the `get-task-allow` debugger entitlement when true.
 """,
         default = False,
     ),
-    "compile_strings_with_plisttool": struct(
-        doc = """
-Compiles `.strings` and `.stringsdict` files with `plisttool` on the Mac instead of `plutil` in
-optimized builds, using `individual_plist` and `binary=True`.
-""",
-        default = False,
-    ),
     "direct_bundle_archive": struct(
         doc = """
 When true, `BundleApp` (`bundletool_swift archive`) directly produces the final archive (including
@@ -75,9 +68,8 @@ Linux, and should not be used or set by anyone except Apple BUILD rule maintaine
     "force_plisttool_on_mac": struct(
         doc = """
 Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency
-valve so the default can be flipped if we ever have a problem with the Apple
-swift-corelibs-foundation plutil binary on Linux, and should not be used or set by anyone except
-Apple BUILD rule maintainers.
+valve so the default can be flipped if we ever have a problem with the `plisttool` binary on Linux,
+and should not be used or set by anyone except Apple BUILD rule maintainers.
 """,
         default = False,
     ),
@@ -140,8 +132,8 @@ identifier and provisioning profile.
     "validate_strings_with_plisttool": struct(
         doc = """
 Validates `.strings` and `.stringsdict` files with the Linux `plisttool` in non-optimized builds
-(validating and then copying the original bytes). Non-optimized `MergeStrings` emits XML, and
-strings validation is added to `MergeStrings` in both modes.
+(validating and then copying the original bytes), and adds strings validation to `MergeStrings` in
+both optimized and non-optimized builds.
 """,
         default = False,
     ),

@@ -437,10 +437,11 @@ def _plists_and_strings(
         **_kwargs):
     """Processes plists and string files.
 
-    If compilation mode is `opt`, the plist files will be compiled into binary to make them smaller.
-    Otherwise, they will be copied verbatim to avoid the extra processing time, or validated and
-    copied by `plisttool` when `validate_strings_with_plisttool` is enabled. Targets on the strings
-    validation allowlist skip validation.
+    If compilation mode is `opt`, the plist and strings files are compiled into binary via
+    `plisttool` to make them smaller (without running strings validation). Otherwise, they are
+    copied verbatim to avoid the extra processing time, or validated and copied by `plisttool` when
+    `validate_strings_with_plisttool` is enabled. Targets on the strings validation allowlist skip
+    validation.
 
     Args:
         actions: The actions provider from `ctx.actions`.
@@ -462,17 +463,14 @@ def _plists_and_strings(
     is_opt = platform_prerequisites.config_vars["COMPILATION_MODE"] == "opt"
     build_settings = apple_xplat_toolchain_info.build_settings
     file_list = files.to_list()
-    if is_opt:
-        strings_use_plisttool = build_settings.compile_strings_with_plisttool
-    else:
-        strings_use_plisttool = build_settings.validate_strings_with_plisttool
 
-    # Only consult the allowlist when there are strings to validate, since it warns for listed
-    # targets.
-    validation_exempt = (
-        strings_use_plisttool and
+    # Only validate individual strings files in non-optimized builds (and only consult the allowlist
+    # when there are strings to validate, since it warns for listed targets).
+    validate_strings = (
+        not is_opt and
+        build_settings.validate_strings_with_plisttool and
         any([_is_strings_file(f) for f in file_list]) and
-        resource_actions.is_strings_validation_exempt(
+        not resource_actions.is_strings_validation_exempt(
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             rule_label = rule_label,
         )
@@ -480,7 +478,7 @@ def _plists_and_strings(
 
     # If this is not an optimized build and the strings won't be validated, then just copy the
     # files.
-    if not is_opt and (not strings_use_plisttool or validation_exempt):
+    if not is_opt and not validate_strings:
         return _noop(
             parent_dir = parent_dir,
             files = files,
@@ -502,7 +500,7 @@ def _plists_and_strings(
             file_name = paths.join(parent_dir or "", file.basename),
         )
         processed_origins[plist_file.short_path] = [file.short_path]
-        if is_strings and strings_use_plisttool:
+        if is_strings:
             resource_actions.process_strings_with_plisttool(
                 actions = actions,
                 apple_mac_toolchain_info = apple_mac_toolchain_info,
@@ -514,15 +512,20 @@ def _plists_and_strings(
                 output_file = plist_file,
                 platform_prerequisites = platform_prerequisites,
                 rule_label = rule_label,
-                validate_strings = not validation_exempt,
+                validate_strings = validate_strings,
                 xplat_exec_group = xplat_exec_group,
             )
         else:
             resource_actions.compile_plist(
                 actions = actions,
+                apple_mac_toolchain_info = apple_mac_toolchain_info,
+                apple_xplat_toolchain_info = apple_xplat_toolchain_info,
                 input_file = file,
+                mac_exec_group = mac_exec_group,
                 output_file = plist_file,
                 platform_prerequisites = platform_prerequisites,
+                rule_label = rule_label,
+                xplat_exec_group = xplat_exec_group,
             )
         plist_files.append(plist_file)
 
@@ -802,8 +805,6 @@ def _mergeable_strings(
             control_fields["validate_strings"] = True
         plisttool_control = struct(**control_fields)
 
-        # TODO(b/493902338): Route opt (binary) MergeStrings to the Mac to avoid the Linux binary
-        # plist size regression.
         resource_actions.plisttool_action(
             actions = actions,
             apple_mac_toolchain_info = apple_mac_toolchain_info,

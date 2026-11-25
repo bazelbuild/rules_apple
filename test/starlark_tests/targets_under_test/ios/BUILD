@@ -6460,6 +6460,40 @@ ios_application(
 )
 
 write_file(
+    name = "array_root_plist_file",
+    out = "array_root.plist",
+    content = [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+        "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">",
+        "<plist version=\"1.0\">",
+        "<array>",
+        "  <string>first_item</string>",
+        "  <string>second_item</string>",
+        "</array>",
+        "</plist>",
+    ],
+    tags = common.fixture_tags,
+)
+
+ios_application(
+    name = "app_with_array_root_plist",
+    bundle_id = "com.google.example",
+    families = ["iphone"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.min_deployment_target,
+    provisioning_profile = "//test/testdata/provisioning:integration_testing_ios.mobileprovision",
+    resources = [
+        ":array_root.plist",
+    ],
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+write_file(
     name = "invalid_escape_strings_file",
     out = "invalid_escape.strings",
     content = ['"bad_key" = "\\Uključite";\n'],
