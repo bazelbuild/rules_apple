@@ -50,7 +50,7 @@ def _modules_from_avoid_deps(*, avoid_swift_infos):
     avoid_modules = set()
     for swiftinfo in avoid_swift_infos:
         for module in swiftinfo.transitive_modules.to_list():
-            if module.swift:
+            if module.swift and not module.is_system:
                 avoid_modules.add(module.name)
     return avoid_modules
 
@@ -73,7 +73,7 @@ def _swift_include_info(
     transitive_modules_list = transitive_modules.to_list()
 
     for module in transitive_modules_list:
-        if not module.swift or module.name in avoid_modules:
+        if not module.swift or module.is_system or module.name in avoid_modules:
             continue
 
         if swift_module or (found_module_name and module.name != found_module_name):
