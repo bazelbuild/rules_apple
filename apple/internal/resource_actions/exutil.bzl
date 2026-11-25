@@ -161,7 +161,7 @@ def generate_appextension_plist(
         bundle_id,
         label,
         mac_exec_group,
-        module_name,
+        module_name = None,
         platform_prerequisites,
         swiftconstvalues_files):
     """Generates the EXAppExtensionAttributes Info.plist fragment for an extension.
@@ -172,7 +172,7 @@ def generate_appextension_plist(
         bundle_id: The bundle identifier of the extension.
         label: The label of the target being analyzed.
         mac_exec_group: The execution group for Mac tools.
-        module_name: The module name of the Swift executable.
+        module_name: Optional module name of the Swift executable, or `None`.
         platform_prerequisites: The prerequisites related to the Apple platform.
         swiftconstvalues_files: A depset or list of `.swiftconstvalues` File objects.
 
@@ -189,14 +189,11 @@ def generate_appextension_plist(
         target_name = label.name,
     )
 
-    constvalues_files = swiftconstvalues_files
-
-    main_module = module_name
-
     args = actions.args()
     args.add("exutil")
     args.add("generate-appextension-plist")
-    args.add("--module-name", main_module)
+    if module_name:
+        args.add("--module-name", module_name)
     args.add("--toolchain-dir", "{xcode_path}/Toolchains/XcodeDefault.xctoolchain".format(
         xcode_path = apple_support.path_placeholders.xcode(),
     ))
@@ -211,7 +208,7 @@ def generate_appextension_plist(
     args.add("--deployment-target", platform_prerequisites.minimum_os)
     args.add("--bundle-identifier", bundle_id)
     args.add("--output", output_plist.path)
-    args.add_all(constvalues_files)
+    args.add_all(swiftconstvalues_files)
 
     apple_support.run(
         actions = actions,
@@ -220,7 +217,7 @@ def generate_appextension_plist(
         env = shared_environment.default_env,
         executable = apple_mac_toolchain_info.xctoolrunner_alternative,
         exec_group = mac_exec_group,
-        inputs = constvalues_files,
+        inputs = swiftconstvalues_files,
         mnemonic = "AppExtensionPlistGenerator",
         outputs = [output_plist],
         xcode_config = xcode_version_config,

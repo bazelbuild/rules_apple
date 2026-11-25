@@ -15,6 +15,11 @@
 """ios_extension Starlark tests."""
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
+    "asserts",
+)
+load(
     "//test/starlark_tests/rules:analysis_failure_message_test.bzl",
     "analysis_failure_message_test",
 )
@@ -54,6 +59,59 @@ load(
 )
 
 visibility("private")
+
+def _app_extension_plist_generator_action_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "AppExtensionPlistGenerator"
+    ]
+    asserts.equals(env, 1, len(actions))
+    if actions:
+        action = actions[0]
+        asserts.false(
+            env,
+            "--module-name" in action.argv,
+            "AppExtensionPlistGenerator must omit --module-name when module_name is None, got: {}".format(
+                action.argv,
+            ),
+        )
+        constvalues_args = [
+            arg
+            for arg in action.argv
+            if arg.endswith(".swiftconstvalues")
+        ]
+        asserts.equals(
+            env,
+            1,
+            len(constvalues_args),
+            "Expected a single deduplicated .swiftconstvalues argument, got: {}".format(
+                constvalues_args,
+            ),
+        )
+        constvalues_inputs = [
+            f
+            for f in action.inputs.to_list()
+            if f.basename.endswith(".swiftconstvalues")
+        ]
+        asserts.equals(
+            env,
+            1,
+            len(constvalues_inputs),
+            "Expected a single deduplicated .swiftconstvalues input, got: {}".format(
+                constvalues_inputs,
+            ),
+        )
+    return analysistest.end(env)
+
+app_extension_plist_generator_multi_cpus_action_test = analysistest.make(
+    _app_extension_plist_generator_action_test_impl,
+    config_settings = {
+        "//command_line_option:ios_multi_cpus": "sim_arm64,x86_64",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
 
 def ios_extension_test_suite(name):
     """Test suite for ios_extension.
@@ -369,6 +427,12 @@ def ios_extension_test_suite(name):
         expected_values = {
             "EXAppExtensionAttributes:EXExtensionPointIdentifier": "com.apple.example.extension-point",
         },
+        tags = [name],
+    )
+
+    app_extension_plist_generator_multi_cpus_action_test(
+        name = "{}_app_extension_plist_generator_action_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:ext_with_enhanced_security_extension",
         tags = [name],
     )
 

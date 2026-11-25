@@ -31,6 +31,10 @@ load(
     "@build_bazel_rules_apple//apple/internal/resource_actions:exutil.bzl",
     "generate_appextension_plist",
 )
+load(
+    "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
+    "targets",
+)
 
 visibility([
     "@build_bazel_rules_apple//apple/...",
@@ -124,25 +128,33 @@ def _extension_foundation_infoplist(
             swiftconstvalues_files: The list of collected `.swiftconstvalues` `File`s, for
                 re-exporting via `ExtensionFoundationInfo`. Empty when no such dependencies exist.
     """
-    deps_to_iterate = []
-    for targets in split_attr_deps.values():
-        deps_to_iterate.extend(targets)
-
-    module_name = None
-    swiftconstvalues_files = []
-    for dep in deps_to_iterate:
-        if ExtensionFoundationInfo in dep:
-            swiftconstvalues_files.extend(
-                dep[ExtensionFoundationInfo].swiftconstvalues_files.to_list(),
-            )
-        if not module_name and AppExtensionPointInfo in dep:
-            for point in dep[AppExtensionPointInfo].extension_points.to_list():
-                if point.module_name:
-                    module_name = point.module_name
-                    break
-
+    transitive_swiftconstvalues = [
+        provider.swiftconstvalues_files
+        for provider in targets.providers(
+            split_attr_deps,
+            ExtensionFoundationInfo,
+            first_split_only = True,
+        )
+    ]
+    swiftconstvalues_files = depset(
+        transitive = transitive_swiftconstvalues,
+        order = "postorder",
+    ).to_list()
     if not swiftconstvalues_files:
         return struct(resource_providers = [], swiftconstvalues_files = [])
+
+    module_name = None
+    for provider in targets.providers(
+        split_attr_deps,
+        AppExtensionPointInfo,
+        first_split_only = True,
+    ):
+        for point in provider.extension_points.to_list():
+            if point.module_name:
+                module_name = point.module_name
+                break
+        if module_name:
+            break
 
     if not is_extensionkit_extension:
         fail("""\

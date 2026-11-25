@@ -286,6 +286,7 @@ bzl_library(
         "//apple/internal/providers:app_extension_point_info",
         "//apple/internal/providers:extension_foundation_info",
         "//apple/internal/resource_actions:exutil",
+        "//apple/internal/utils:targets",
         "@bazel_skylib//lib:paths",
     ],
 )
