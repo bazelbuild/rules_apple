@@ -184,8 +184,8 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
 
   spurious_patterns = [
       re.compile(x) for x in [
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: \(null\)",
-          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\]\[\]\[\]\[\]: notice: 76x76@1x "
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\](?:\[\])+: notice: \(null\)",
+          r"\[\]\[ipad\]\[76x76\]\[\]\[\]\[1x\](?:\[\])+: notice: 76x76@1x "
           r"app icons only apply to iPad apps targeting releases of iOS prior "
           r"to 10\.0\.",
       ]

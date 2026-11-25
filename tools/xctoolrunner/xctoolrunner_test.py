@@ -57,19 +57,34 @@ class TestIBTOOL(unittest.TestCase):
 class TestACTOOL(unittest.TestCase):
 
   def testFilteringHidesSpurious76x76Notice(self):
+    for slots in ("[][][]", "[][][][]"):
+      with self.subTest(slots=slots):
+        stdout = (
+            "/* com.apple.actool.document.notices */\n"
+            f"[][ipad][76x76][][][1x]{slots}: notice: (null)\n"
+            f"[][ipad][76x76][][][1x]{slots}: notice: 76x76@1x "
+            "app icons only apply to iPad apps targeting releases of iOS "
+            "prior to 10.0.\n"
+        )
+
+        (tool_exit_status, out, err) = xctoolrunner.actool_filtering(
+            0, stdout, "")
+
+        self.assertEqual(tool_exit_status, 0)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "")
+
+  def testFilteringPromotesOther76x76NoticesToErrors(self):
     stdout = (
         "/* com.apple.actool.document.notices */\n"
-        "[][ipad][76x76][][][1x][][][]: notice: (null)\n"
-        "[][ipad][76x76][][][1x][][][]: notice: 76x76@1x "
-        "app icons only apply to iPad apps targeting releases of iOS prior "
-        "to 10.0.\n"
+        "[][ipad][76x76][][][2x][][][][]: notice: (null)\n"
     )
 
     (tool_exit_status, out, err) = xctoolrunner.actool_filtering(
         0, stdout, "")
 
-    self.assertEqual(tool_exit_status, 0)
-    self.assertEqual(out, "")
+    self.assertEqual(tool_exit_status, 1)
+    self.assertEqual(out, "[][ipad][76x76][][][2x][][][][]: error: (null)\n")
     self.assertEqual(err, "")
 
   def testFilteringPromotesWarningsToErrors(self):
