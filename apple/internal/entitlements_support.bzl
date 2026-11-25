@@ -432,12 +432,14 @@ def _process_entitlements(
         "bundle_id": bundle_id,
         "extra_keys_to_match_profile": extra_keys_to_match_profile,
     }
-    if _should_validate_macos_application_identifier(
-        build_settings = apple_xplat_toolchain_info.build_settings,
-        platform_prerequisites = platform_prerequisites,
-        rule_label = rule_label,
-    ):
-        entitlements_options["validate_macos_application_identifier"] = True
+    if platform_prerequisites.platform_type == "macos":
+        entitlements_options["validate_macos_application_identifier"] = (
+            _should_validate_macos_application_identifier(
+                build_settings = apple_xplat_toolchain_info.build_settings,
+                platform_prerequisites = platform_prerequisites,
+                rule_label = rule_label,
+            )
+        )
     if signing_info.profile_metadata:
         inputs.append(signing_info.profile_metadata)
         entitlements_options["profile_metadata_file"] = signing_info.profile_metadata.path

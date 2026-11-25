@@ -227,16 +227,21 @@ def _entitlements_options_action_test_impl(ctx):
         json_str = json_str[1:-1].replace("'\\''", "'")
 
     entitlements_options = json.decode(json_str).get("entitlements_options", {})
-    if ctx.attr.expect_validate_macos_application_identifier:
-        asserts.equals(
-            env,
-            True,
-            entitlements_options.get("validate_macos_application_identifier"),
-        )
-    else:
+    expected = ctx.attr.expected_validate_macos_application_identifier
+    if expected == "omitted":
         asserts.false(
             env,
             "validate_macos_application_identifier" in entitlements_options,
+        )
+    else:
+        asserts.true(
+            env,
+            "validate_macos_application_identifier" in entitlements_options,
+        )
+        asserts.equals(
+            env,
+            expected == "true",
+            entitlements_options.get("validate_macos_application_identifier"),
         )
     return analysistest.end(env)
 
@@ -244,7 +249,10 @@ def _make_entitlements_options_action_test(config_settings = {}):
     return analysistest.make(
         _entitlements_options_action_test_impl,
         attrs = {
-            "expect_validate_macos_application_identifier": attr.bool(mandatory = True),
+            "expected_validate_macos_application_identifier": attr.string(
+                mandatory = True,
+                values = ["true", "false", "omitted"],
+            ),
         },
         config_settings = config_settings,
     )
@@ -1118,21 +1126,21 @@ Apple enhanced security features were requested, but the build is missing the re
     entitlements_options_action_test(
         name = "{}_validate_macos_application_identifier_default_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
-        expect_validate_macos_application_identifier = True,
+        expected_validate_macos_application_identifier = "true",
         tags = [name],
     )
 
     entitlements_options_disable_validate_macos_application_identifier_action_test(
         name = "{}_validate_macos_application_identifier_disabled_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app",
-        expect_validate_macos_application_identifier = False,
+        expected_validate_macos_application_identifier = "false",
         tags = [name],
     )
 
     entitlements_options_action_test(
         name = "{}_validate_macos_application_identifier_omitted_on_ios_action_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_enhanced_security_extension",
-        expect_validate_macos_application_identifier = False,
+        expected_validate_macos_application_identifier = "omitted",
         tags = [name],
     )
 
@@ -1145,10 +1153,7 @@ Apple enhanced security features were requested, but the build is missing the re
             "ENTITLEMENTS_KEY": ["com.apple.application-identifier"],
             "ENTITLEMENT_VALUES": ["com.apple.application-identifier=FOOBARBAZ1.*"],
         },
-        tags = [
-            name,
-            "needs-latest-apple-tools",
-        ],
+        tags = [name],
     )
 
     apple_verification_test(
@@ -1162,10 +1167,7 @@ Apple enhanced security features were requested, but the build is missing the re
         env = {
             "ABSENT_ENTITLEMENT_KEYS": ["com.apple.application-identifier"],
         },
-        tags = [
-            name,
-            "needs-latest-apple-tools",
-        ],
+        tags = [name],
     )
 
     analysis_target_actions_macos_signing_test(
