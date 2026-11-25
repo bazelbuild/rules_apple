@@ -97,7 +97,8 @@ def _classify_xcframework_imports(config_vars, xcframework_imports):
 
         if ".framework/" in file.short_path:
             framework_files.append(file)
-        elif ".framework.dSYM/" in file.short_path:
+        elif ".dSYM/" in file.short_path:
+            # dSYMs/ of an XCFramework names a dSYM after the framework or after its binary.
             dsym_files.append(file)
         else:
             xcframework_files.append(file)

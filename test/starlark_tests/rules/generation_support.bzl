@@ -602,6 +602,7 @@ def _create_dsym(
         apple_fragment,
         base_path = "",
         bundle_name = "",
+        dsym_name = "",
         framework_binary,
         label,
         xcode_config):
@@ -613,12 +614,15 @@ def _create_dsym(
         apple_fragment: An Apple fragment (ctx.fragments.apple).
         base_path: Base path for the generated archive file (optional).
         bundle_name: Name of the framework bundle (optional).
+        dsym_name: Name of the dSYM bundle without the `.dSYM` extension (optional). Defaults to
+            `<bundle_name>.framework`.
         framework_binary: A `File` referring to the framework binary.
         label: Label of the target being built.
         xcode_config: The `apple_common.XcodeVersionConfig` provider from the context.
     """
     bundle_name = bundle_name or label.name
-    bundle_directory = paths.join(base_path, bundle_name + ".framework.dSYM")
+    dsym_name = dsym_name or bundle_name + ".framework"
+    bundle_directory = paths.join(base_path, dsym_name + ".dSYM")
 
     # Generate dSYM bundle's DWARF binary
     dsym_binary_file = intermediates.file(

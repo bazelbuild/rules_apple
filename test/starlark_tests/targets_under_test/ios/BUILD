@@ -3585,6 +3585,54 @@ apple_dynamic_xcframework_import(
     xcframework_imports = [":generated_dynamic_xcframework_with_headers"],
 )
 
+# Objective-C app with an imported XCFramework whose dSYMs are named after the binary.
+ios_application(
+    name = "app_with_imported_xcframework_with_binary_named_dsym",
+    bundle_id = "com.google.example",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        ":ios_imported_dynamic_xcframework_with_binary_named_dsym",
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+apple_dynamic_xcframework_import(
+    name = "ios_imported_dynamic_xcframework_with_binary_named_dsym",
+    features = ["-swift.layering_check"],
+    tags = common.fixture_tags,
+    xcframework_imports = [":generated_dynamic_xcframework_with_binary_named_dsym"],
+)
+
+generate_dynamic_xcframework(
+    name = "generated_dynamic_xcframework_with_binary_named_dsym",
+    srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],
+    hdrs = ["//test/starlark_tests/resources/frameworks:SharedClass.h"],
+    dsym_named_after_binary = True,
+    minimum_os_versions = {
+        "ios_simulator": common.min_os_ios.baseline,
+        "ios": common.min_os_ios.baseline,
+    },
+    platforms = {
+        "ios_simulator": [
+            "x86_64",
+            "arm64",
+        ],
+        "ios": [
+            "arm64",
+            "arm64e",
+        ],
+    },
+    tags = common.fixture_tags,
+)
+
 generate_dynamic_xcframework(
     name = "generated_dynamic_xcframework_with_headers",
     srcs = ["//test/starlark_tests/resources/frameworks:SharedClass.m"],

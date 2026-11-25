@@ -153,7 +153,7 @@ def _create_xcframework(
                     sibling = info_plist,
                 ))
 
-                prefix, ext, _ = file.path.partition(".framework.dSYM")
+                prefix, ext, _ = file.path.partition(".dSYM")
                 dsym_bundle_path = prefix + ext
 
                 sets.insert(dsym_bundles_set, dsym_bundle_path)
@@ -207,6 +207,7 @@ def _generate_dynamic_xcframework_impl(ctx):
     platforms = ctx.attr.platforms
     minimum_os_versions = ctx.attr.minimum_os_versions
     include_versioned_frameworks = ctx.attr.include_versioned_frameworks
+    dsym_name = label.name if ctx.attr.dsym_named_after_binary else ""
 
     if platforms.keys() != minimum_os_versions.keys():
         fail("Attributes: 'platforms' and 'minimum_os_versions' must define the same keys")
@@ -275,6 +276,7 @@ def _generate_dynamic_xcframework_impl(ctx):
                 actions = ctx.actions,
                 apple_fragment = apple_fragment,
                 base_path = library_identifier,
+                dsym_name = dsym_name,
                 framework_binary = binary,
                 label = label,
                 xcode_config = xcode_config,
@@ -629,6 +631,13 @@ represented as a dotted version number as values.
                 doc = """
 Flag to indicate if the framework should include additional versions of the framework under the
 Versions directory. This is only supported for macOS platform.
+                """,
+            ),
+            "dsym_named_after_binary": attr.bool(
+                default = False,
+                doc = """
+Flag to indicate if dSYMs should be named after the framework binary (`<name>.dSYM`) instead of
+the framework (`<name>.framework.dSYM`).
                 """,
             ),
         } | _GENERATE_XCFRAMEWORK_TOOL_ATTRS,
