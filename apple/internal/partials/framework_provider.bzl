@@ -42,8 +42,9 @@ def _framework_provider_partial_impl(
     # Create a directory structure that the linker can use to reference this
     # framework. It follows the pattern of
     # any_path/MyFramework.framework/MyFramework. The absolute path and files are
-    # propagated using the AppleDynamicFrameworkInfo provider.
-    framework_dir = paths.join("frameworks", "%s.framework" % bundle_name)
+    # propagated using the AppleDynamicFrameworkInfo provider. The directory is
+    # per target, so frameworks with the same bundle name can share a package.
+    framework_dir = paths.join("frameworks", rule_label.name, "%s.framework" % bundle_name)
     framework_file = actions.declare_file(
         paths.join(framework_dir, bundle_name),
     )

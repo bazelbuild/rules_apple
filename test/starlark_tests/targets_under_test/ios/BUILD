@@ -2657,6 +2657,78 @@ ios_application(
     ],
 )
 
+ios_framework(
+    name = "fmwk_with_shared_bundle_name_a",
+    bundle_id = "com.google.example.framework.a",
+    bundle_name = "shared_bundle_name_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_framework(
+    name = "fmwk_with_shared_bundle_name_b",
+    bundle_id = "com.google.example.framework.b",
+    bundle_name = "shared_bundle_name_fmwk",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_shared_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_shared_bundle_name_fmwk_a",
+    bundle_id = "com.google.example.a",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":fmwk_with_shared_bundle_name_a"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
+ios_application(
+    name = "app_with_shared_bundle_name_fmwk_b",
+    bundle_id = "com.google.example.b",
+    families = [
+        "iphone",
+        "ipad",
+    ],
+    frameworks = [":fmwk_with_shared_bundle_name_b"],
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    minimum_os_version = common.min_os_ios.baseline,
+    tags = common.fixture_tags,
+    deps = [
+        "//test/starlark_tests/resources:objc_main_lib",
+    ],
+)
+
 ios_application(
     name = "app_with_bundle_only_fmwks",
     bundle_id = "com.google.example",

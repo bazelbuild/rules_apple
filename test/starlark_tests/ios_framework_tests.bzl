@@ -117,6 +117,35 @@ def ios_framework_test_suite(name):
         tags = [name],
     )
 
+    # Two frameworks with the same bundle name in one package build side by side.
+    archive_contents_test(
+        name = "{}_shared_bundle_name_a_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_shared_bundle_name_fmwk_a",
+        binary_test_file = "$BUNDLE_ROOT/app_with_shared_bundle_name_fmwk_a",
+        macho_load_commands_contain = [
+            "name @rpath/shared_bundle_name_fmwk.framework/shared_bundle_name_fmwk (offset 24)",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/shared_bundle_name_fmwk.framework/shared_bundle_name_fmwk",
+        ],
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_shared_bundle_name_b_test".format(name),
+        build_type = "simulator",
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_shared_bundle_name_fmwk_b",
+        binary_test_file = "$BUNDLE_ROOT/app_with_shared_bundle_name_fmwk_b",
+        macho_load_commands_contain = [
+            "name @rpath/shared_bundle_name_fmwk.framework/shared_bundle_name_fmwk (offset 24)",
+        ],
+        contains = [
+            "$BUNDLE_ROOT/Frameworks/shared_bundle_name_fmwk.framework/shared_bundle_name_fmwk",
+        ],
+        tags = [name],
+    )
+
     infoplist_contents_test(
         name = "{}_no_version_plist_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:fmwk_no_version",
