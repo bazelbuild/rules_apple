@@ -529,13 +529,16 @@ def _resources_bundling_task_impl(
                 if not default_lproj in lproj_dirs:
                     fail("No default locale '%s' found in: '%s'. Please define a strings file for '%s' in '%s'" % (default_lproj, owning_dir, default_lproj, owning_dir))
 
-            merged_strings_dir = rule_label.name + "_merged_strings/"
-
             # This verifies that all of the merged string files have the same top-level keys per locale
             # per table.
             for table_name, merged_strings_files in mergeable_strings_table_files.items():
                 if len(merged_strings_files) > 1:
-                    validation_output = actions.declare_file(merged_strings_dir + table_name + ".validation")
+                    validation_output = intermediates.file(
+                        actions = actions,
+                        target_name = rule_label.name,
+                        output_discriminator = output_discriminator,
+                        file_name = "merged_strings/" + table_name + ".validation",
+                    )
                     all_validation_outputs.append(validation_output)
                     actions.run(
                         arguments = ["--output", validation_output.path] + [f.path for f in merged_strings_files],
@@ -620,7 +623,7 @@ with dependencies where applicable. Please add a bundle ID to your target defini
         bundle_files = bundle_files,
         bundle_zips = bundle_zips,
         providers = returned_providers,
-        output_groups = {"_validation": depset(all_validation_outputs)},
+        output_groups = {"_validation": depset(all_validation_outputs)} if all_validation_outputs else {},
     )
 
 def resources_bundling_task(

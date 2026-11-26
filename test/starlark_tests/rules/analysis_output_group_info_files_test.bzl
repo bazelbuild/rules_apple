@@ -15,6 +15,10 @@
 """Starlark test rule for OutputGroupInfo output group files."""
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "asserts",
+)
+load(
     "@build_bazel_rules_apple//test/starlark_tests/rules:analysis_provider_test.bzl",
     "make_provider_test_rule",
 )
@@ -37,6 +41,28 @@ def _get_output_group_files(ctx, provider):
         )
 
     return getattr(provider, output_group_name).to_list()
+
+def _assert_output_group_absent(ctx, env, provider):
+    output_group_name = ctx.attr.output_group_name
+    asserts.false(
+        env,
+        output_group_name in provider,
+        "Expected OutputGroupInfo not to have output group '%s', but found: %s" % (
+            output_group_name,
+            list(provider),
+        ),
+    )
+
+analysis_output_group_info_absent_test = make_provider_test_rule(
+    provider = OutputGroupInfo,
+    assertion_fn = _assert_output_group_absent,
+    attrs = {
+        "output_group_name": attr.string(
+            mandatory = True,
+            doc = "Name of the output group expected to be absent from OutputGroupInfo.",
+        ),
+    },
+)
 
 analysis_output_group_info_files_test = make_provider_test_rule(
     provider = OutputGroupInfo,

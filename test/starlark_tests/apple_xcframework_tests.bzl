@@ -24,6 +24,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_absent_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -54,6 +55,10 @@ load(
 load(
     "//test/starlark_tests/rules:symlink_contents_test.bzl",
     "symlink_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
 )
 load(
     ":common.bzl",
@@ -1493,6 +1498,99 @@ Check the rule definition for each of the dependencies to ensure that they have 
             "RULES_APPLE_USE_ZIP_WRITER": "1",
             "SWIFT_DETERMINISTIC_HASHING": "1",
         },
+        tags = [name],
+    )
+
+    # Verify that _validation is omitted when embedded frameworks produce no validation outputs.
+    analysis_output_group_info_absent_test(
+        name = "{}_no_validation_output_group_when_empty_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework",
+        output_group_name = "_validation",
+        tags = [name],
+    )
+
+    # Verify that _validation outputs (such as VerifyMergeStrings) are propagated per slice on
+    # multi-slice XCFrameworks without output path conflicts.
+    analysis_output_group_info_files_test(
+        name = "{}_mergeable_strings_validation_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        output_group_name = "_validation",
+        expected_outputs = [
+            "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m1.strings.validation",
+            "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m2.strings.validation",
+            "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64_x86_64-simulator/merged_strings/m1.strings.validation",
+            "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64_x86_64-simulator/merged_strings/m2.strings.validation",
+        ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_ios_arm64_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m1.strings.validation",
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_ios_arm64_m2_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m2.strings.validation",
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_ios_sim_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64_x86_64-simulator/merged_strings/m1.strings.validation",
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_ios_sim_m2_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_dynamic_xcframework_with_mergeable_strings-intermediates-ios-arm64_x86_64-simulator/merged_strings/m2.strings.validation",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_mergeable_strings_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mergeable_strings",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_mergeable_strings.framework/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_mergeable_strings.framework/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_mergeable_strings.framework/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_dynamic_xcframework_with_mergeable_strings.framework/fr.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_xcframework_with_mergeable_strings.framework/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_xcframework_with_mergeable_strings.framework/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_xcframework_with_mergeable_strings.framework/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/ios_dynamic_xcframework_with_mergeable_strings.framework/fr.lproj/m2.strings",
+        ],
+        tags = [name],
+    )
+
+    # Verify that _validation outputs are also propagated for mismatched mergeable strings so
+    # VerifyMergeStrings runs during builds of the XCFramework.
+    analysis_output_group_info_files_test(
+        name = "{}_mismatched_mergeable_strings_validation_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_dynamic_xcframework_with_mismatched_mergeable_strings",
+        output_group_name = "_validation",
+        expected_outputs = [
+            "ios_dynamic_xcframework_with_mismatched_mergeable_strings-intermediates-ios-arm64/merged_strings/m1.strings.validation",
+            "ios_dynamic_xcframework_with_mismatched_mergeable_strings-intermediates-ios-x86_64-simulator/merged_strings/m1.strings.validation",
+        ],
         tags = [name],
     )
 

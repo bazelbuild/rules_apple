@@ -705,6 +705,55 @@ apple_xcframework(
     deps = ["//test/starlark_tests/resources:fmwk_lib"],
 )
 
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_mergeable_strings",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": [
+            "arm64",
+            "x86_64",
+        ],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:mergeable_strings_resources",
+    ],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:fmwk_lib"],
+)
+
+apple_xcframework(
+    name = "ios_dynamic_xcframework_with_mismatched_mergeable_strings",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:mergeable_strings_failure_resources",
+    ],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:fmwk_lib"],
+)
+
 apple_static_xcframework(
     name = "multiplatform_static_xcframework",
     bundle_format = "framework",
@@ -777,6 +826,30 @@ apple_static_xcframework(
     resources = [
         "//test/starlark_tests/resources:Another.plist",
         "//test/starlark_tests/resources:resource_bundle",
+    ],
+    tags = common.fixture_tags,
+    deps = ["//test/starlark_tests/resources:fmwk_lib"],
+)
+
+apple_static_xcframework(
+    name = "ios_static_framework_xcframework_with_mergeable_strings",
+    bundle_format = "framework",
+    bundle_id = "com.google.example",
+    infoplists = [
+        "//test/starlark_tests/resources:Info.plist",
+    ],
+    ios = {
+        "simulator": ["x86_64"],
+        "device": ["arm64"],
+    },
+    minimum_os_versions = {
+        "ios": common.min_os_ios.min_deployment_target,
+    },
+    public_hdrs = [
+        "//test/starlark_tests/resources:shared.h",
+    ],
+    resources = [
+        "//test/starlark_tests/resources:mergeable_strings_resources",
     ],
     tags = common.fixture_tags,
     deps = ["//test/starlark_tests/resources:fmwk_lib"],

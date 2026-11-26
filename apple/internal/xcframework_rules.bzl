@@ -1118,6 +1118,10 @@ ignored. Use the "hdrs" attribute on the swift_library defining the module inste
         if package_swiftinterfaces:
             framework_output_groups.append({"package_swiftinterfaces": package_swiftinterfaces})
 
+        validation_outputs = bundler_result.output_groups.get("_validation")
+        if validation_outputs:
+            framework_output_groups.append({"_validation": validation_outputs})
+
         if library_type == _LIBRARY_TYPE.dynamic:
             # Save the dSYMs.
             dsyms = outputs.dsyms(

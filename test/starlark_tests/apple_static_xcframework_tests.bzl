@@ -24,6 +24,7 @@ load(
 )
 load(
     "//test/starlark_tests/rules:analysis_output_group_info_files_test.bzl",
+    "analysis_output_group_info_absent_test",
     "analysis_output_group_info_files_test",
 )
 load(
@@ -41,6 +42,10 @@ load(
 load(
     "//test/starlark_tests/rules:infoplist_contents_test.bzl",
     "infoplist_contents_test",
+)
+load(
+    "//test/starlark_tests/rules:validation_action_artifact_test.bzl",
+    "validation_output_contents_test",
 )
 load(
     ":common.bzl",
@@ -1010,6 +1015,67 @@ Please add a tvos attribute to the rule to declare the platforms to build for th
             "$BUNDLE_ROOT/ios-arm64_arm64e/Headers/static_xcframework_with_generated_public_hdrs/DummyFmwk.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/static_xcframework_with_generated_public_hdrs/SharedClass.h",
             "$BUNDLE_ROOT/ios-arm64_x86_64-simulator/Headers/static_xcframework_with_generated_public_hdrs/DummyFmwk.h",
+        ],
+        tags = [name],
+    )
+
+    # Verify that _validation is omitted when embedded static frameworks produce no validation
+    # outputs.
+    analysis_output_group_info_absent_test(
+        name = "{}_framework_no_validation_output_group_when_empty_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_data_resource_bundle",
+        output_group_name = "_validation",
+        tags = [name],
+    )
+
+    # Verify that _validation outputs (such as VerifyMergeStrings) are propagated per slice on
+    # multi-slice static framework XCFrameworks without output path conflicts.
+    analysis_output_group_info_files_test(
+        name = "{}_framework_mergeable_strings_validation_output_group_files_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_mergeable_strings",
+        output_group_name = "_validation",
+        expected_outputs = [
+            "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m1.strings.validation",
+            "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m2.strings.validation",
+            "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-x86_64-simulator/merged_strings/m1.strings.validation",
+            "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-x86_64-simulator/merged_strings/m2.strings.validation",
+        ],
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_framework_ios_arm64_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-arm64/merged_strings/m1.strings.validation",
+        tags = [name],
+    )
+
+    validation_output_contents_test(
+        name = "{}_framework_ios_x86_64_sim_m1_merge_strings_validation_test".format(name),
+        expected_contents = [
+            "Done",
+        ],
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_mergeable_strings",
+        validation_file_name = "ios_static_framework_xcframework_with_mergeable_strings-intermediates-ios-x86_64-simulator/merged_strings/m1.strings.validation",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_framework_mergeable_strings_archive_contents_test".format(name),
+        build_type = "device",
+        target_under_test = "//test/starlark_tests/targets_under_test/apple:ios_static_framework_xcframework_with_mergeable_strings",
+        contains = [
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_mergeable_strings.framework/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_mergeable_strings.framework/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_mergeable_strings.framework/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-arm64/ios_static_framework_xcframework_with_mergeable_strings.framework/fr.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_mergeable_strings.framework/en.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_mergeable_strings.framework/fr.lproj/m1.strings",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_mergeable_strings.framework/en.lproj/m2.strings",
+            "$BUNDLE_ROOT/ios-x86_64-simulator/ios_static_framework_xcframework_with_mergeable_strings.framework/fr.lproj/m2.strings",
         ],
         tags = [name],
     )

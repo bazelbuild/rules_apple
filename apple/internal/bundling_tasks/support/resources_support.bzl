@@ -755,6 +755,7 @@ def _mergeable_strings(
         apple_xplat_toolchain_info,
         files,
         mac_exec_group,
+        output_discriminator,
         parent_dir,
         platform_prerequisites,
         rule_label,
@@ -787,13 +788,12 @@ def _mergeable_strings(
     )
 
     for table_name, table_files in mergeable_tables.items():
-        merged_strings_dir = rule_label.name + "_merged_strings"
-        if parent_dir:
-            merged_lproj_dir = merged_strings_dir + "/" + parent_dir
-        else:
-            merged_lproj_dir = merged_strings_dir
-
-        merged_strings_file = actions.declare_file(merged_lproj_dir + "/" + table_name)
+        merged_strings_file = intermediates.file(
+            actions = actions,
+            target_name = rule_label.name,
+            output_discriminator = output_discriminator,
+            file_name = paths.join("merged_strings", parent_dir or "", table_name),
+        )
         control_fields = {
             "binary": True,
             "output": merged_strings_file.path,
