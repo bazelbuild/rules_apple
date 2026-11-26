@@ -139,10 +139,6 @@ def _visionos_application_impl(ctx):
         product_type = apple_product_type.application,
     )
 
-    extra_requested_features = []
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
-
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
     mac_exec_group = apple_toolchain_utils.get_mac_exec_group()
@@ -164,7 +160,7 @@ def _visionos_application_impl(ctx):
         ctx = ctx,
         extra_requested_features = [
             "disable_legacy_signing",  # TODO: b/72148898 - Remove when dossier signing by default.
-        ] + extra_requested_features,
+        ],
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     label = ctx.label

@@ -225,9 +225,6 @@ def _macos_application_impl(ctx):
         ctx.attr.extensions +
         ctx.attr.xpc_services
     )
-    extra_requested_features = []
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
 
     actions = ctx.actions
     apple_mac_toolchain_info = apple_toolchain_utils.get_mac_toolchain(ctx)
@@ -252,7 +249,6 @@ def _macos_application_impl(ctx):
     ]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
-        extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     debug_dependencies = embeddable_targets + ctx.attr.additional_contents.keys()

@@ -225,10 +225,6 @@ def _ios_application_impl(ctx):
     xcode_version_config = ctx.attr._xcode_config[XcodeVersionInfo]
     xplat_exec_group = apple_toolchain_utils.get_xplat_exec_group()
 
-    extra_requested_features = []
-    if ctx.attr.testonly:
-        extra_requested_features.append("exported_symbols")
-
     bundle_name, bundle_extension = bundling_support.bundle_full_name(
         custom_bundle_name = ctx.attr.bundle_name,
         label_name = ctx.label.name,
@@ -247,7 +243,6 @@ def _ios_application_impl(ctx):
     ]
     cc_configured_features = features_support.cc_configured_features(
         ctx = ctx,
-        extra_requested_features = extra_requested_features,
     )
     cc_toolchain_forwarder = ctx.split_attr._cc_toolchain_forwarder
     embeddable_targets = (

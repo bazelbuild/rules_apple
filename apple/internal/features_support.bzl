@@ -25,6 +25,12 @@ visibility([
     "@build_bazel_rules_apple//test/...",
 ])
 
+# Enabled by default on `testonly = True` targets so `-bundle_loader` unit test
+# hosts export their symbols. Out-of-process UI test hosts and other standalone
+# `testonly` targets can opt out with
+# `features = ["-apple.testonly_exported_symbols"]`.
+_TESTONLY_EXPORTED_SYMBOLS_FEATURE = "apple.testonly_exported_symbols"
+
 def _validate_feature_usage(*, label, toolchain, requested_features, unsupported_features):
     """Checks the toolchain's allowlists to verify the requested features.
 
@@ -124,7 +130,12 @@ def _cc_configured_features(
         * unsupported_features: The value computed for `cc_common.configure_features(...)`'s
             `unsupported_features` from args above.
     """
-    features = ctx.features
+    features = list(ctx.features)
+    if (
+        ctx.attr.testonly and
+        _TESTONLY_EXPORTED_SYMBOLS_FEATURE not in ctx.disabled_features
+    ):
+        features.append("exported_symbols")
     if extra_requested_features:
         features += extra_requested_features
 
