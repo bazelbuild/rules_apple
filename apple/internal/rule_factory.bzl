@@ -14,7 +14,6 @@
 
 """Helpers for defining Apple bundling rules uniformly."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "use_cpp_toolchain")
 load(
     "@build_bazel_rules_apple//apple/internal:providers.bzl",
     "AppleBundleInfo",
@@ -74,7 +73,7 @@ def _create_apple_rule(
         implementation,
         is_executable = False,
         predeclared_outputs = {},
-        toolchains = use_cpp_toolchain(),
+        toolchains = [],
         attrs):
     """Creates an Apple bundling rule with additional control of the set of rule attributes.
 
@@ -85,8 +84,7 @@ def _create_apple_rule(
         doc: The documentation string for the rule itself.
         implementation: The method to handle the implementation of the given rule. Optional. True
             by default.
-        toolchains: List. A list of toolchains that this rule requires. Optional. If not set, adds
-            the cpp toolchain to the rule definition as its sole requirement.
+        toolchains: List. A list of toolchains that this rule requires. Optional. Empty by default.
         is_executable: Boolean. If set to True, marks the rule as executable. Optional. False by
             default.
         predeclared_outputs: A dictionary of any predeclared outputs that the rule is expected to
@@ -165,7 +163,6 @@ def _create_apple_test_rule(*, cfg = None, doc, implementation, platform_type):
             _CPP_LINK_EXEC_GROUP: exec_group(),
         },
         test = True,
-        toolchains = use_cpp_toolchain(),
         **extra_args
     )
 

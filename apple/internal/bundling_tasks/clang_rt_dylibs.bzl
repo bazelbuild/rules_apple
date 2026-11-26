@@ -44,7 +44,7 @@ def _clang_rt_dylibs_bundling_task_impl(
         apple_xplat_toolchain_info,
         binary_artifact,
         cc_configured_features,
-        dylibs,
+        cc_toolchain_providers,
         label_name,
         mac_exec_group,
         output_discriminator,
@@ -55,6 +55,7 @@ def _clang_rt_dylibs_bundling_task_impl(
     if clang_rt_dylibs.should_package_clang_runtime(
         cc_configured_features = cc_configured_features,
     ):
+        dylibs = clang_rt_dylibs.get_from_toolchains(cc_toolchain_providers)
         clang_rt_zip = intermediates.file(
             actions = actions,
             target_name = label_name,
@@ -107,7 +108,7 @@ def clang_rt_dylibs_bundling_task(
         apple_xplat_toolchain_info,
         binary_artifact,
         cc_configured_features,
-        dylibs,
+        cc_toolchain_providers,
         label_name,
         mac_exec_group,
         output_discriminator = None,
@@ -122,7 +123,8 @@ def clang_rt_dylibs_bundling_task(
       binary_artifact: The main binary artifact for this target.
       cc_configured_features: A struct returned by `features_support.cc_configured_features(...)`
           to capture the rule ctx for a deferred `cc_common.configure_features(...)` call.
-      dylibs: List of dylibs (usually from a toolchain).
+      cc_toolchain_providers: List of `CcToolchainInfo` providers from the target's split C++
+          toolchains.
       label_name: Name of the target being built.
       mac_exec_group: The exec_group associated with apple_mac_toolchain.
       output_discriminator: A string to differentiate between different target intermediate files
@@ -140,7 +142,7 @@ def clang_rt_dylibs_bundling_task(
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
         binary_artifact = binary_artifact,
         cc_configured_features = cc_configured_features,
-        dylibs = dylibs,
+        cc_toolchain_providers = cc_toolchain_providers,
         label_name = label_name,
         mac_exec_group = mac_exec_group,
         output_discriminator = output_discriminator,

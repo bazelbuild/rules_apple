@@ -110,10 +110,6 @@ load(
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
     "targets",
 )
@@ -121,6 +117,7 @@ load(
     "@build_bazel_rules_swift//swift:providers.bzl",
     "SwiftInfo",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 visibility("@build_bazel_rules_apple//apple/...")
@@ -556,7 +553,10 @@ def _apple_test_bundle_impl(*, ctx, product_type):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,

@@ -14,8 +14,6 @@
 
 """Support functions related to getting clang runtime libraries."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-
 visibility("@build_bazel_rules_apple//apple/internal/...")
 
 def _should_package_clang_runtime(*, cc_configured_features):
@@ -34,21 +32,31 @@ def _should_package_clang_runtime(*, cc_configured_features):
             return True
     return False
 
-def _get_from_toolchain(ctx):
-    cc_toolchain = find_cpp_toolchain(ctx)
-    if cc_toolchain:
-        dylibs = [
-            x
-            for x in cc_toolchain.all_files.to_list()
-            if x.basename.startswith("libclang_rt") and x.basename.endswith(".dylib")
-        ]
-    else:
-        dylibs = []
+def _get_from_toolchains(cc_toolchain_providers):
+    """Returns the Clang runtime dylibs from the given C++ toolchains.
 
-    return dylibs
+    Args:
+        cc_toolchain_providers: A list of `CcToolchainInfo` providers from the
+            target's split C++ toolchains.
+
+    Returns:
+        A deduplicated list of `File` objects for `libclang_rt*.dylib`
+        libraries.
+    """
+    all_files = depset(
+        transitive = [
+            cc_toolchain.all_files
+            for cc_toolchain in cc_toolchain_providers
+        ],
+    )
+    return [
+        x
+        for x in all_files.to_list()
+        if x.basename.startswith("libclang_rt") and x.basename.endswith(".dylib")
+    ]
 
 # Define the loadable module that lists the exported symbols in this file.
 clang_rt_dylibs = struct(
     should_package_clang_runtime = _should_package_clang_runtime,
-    get_from_toolchain = _get_from_toolchain,
+    get_from_toolchains = _get_from_toolchains,
 )

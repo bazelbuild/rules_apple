@@ -14,7 +14,6 @@
 
 """Implementation of macOS rules."""
 
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
@@ -400,7 +399,10 @@ def _macos_application_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -734,7 +736,10 @@ def _macos_bundle_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1045,7 +1050,7 @@ def _macos_framework_impl(ctx):
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             cc_linking_contexts = linking_contexts,
-            cc_toolchain = find_cpp_toolchain(ctx),
+            cc_toolchain = cc_toolchain_forwarder.values()[0][cc_common.CcToolchainInfo],
             rule_label = label,
         ),
         bundling_tasks.resources(
@@ -1319,7 +1324,10 @@ def _macos_extension_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1586,7 +1594,10 @@ def _macos_xpc_service_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1955,7 +1966,9 @@ def _macos_command_line_application_impl(ctx):
 
     runfiles = []
     if clang_rt_dylibs.should_package_clang_runtime(cc_configured_features = cc_configured_features):
-        runfiles = clang_rt_dylibs.get_from_toolchain(ctx)
+        runfiles = clang_rt_dylibs.get_from_toolchains(
+            targets.providers(cc_toolchain_forwarder, cc_common.CcToolchainInfo),
+        )
 
     dsyms = outputs.dsyms(
         bundler_result = bundler_result,
@@ -2154,7 +2167,11 @@ def _macos_dylib_impl(ctx):
     if clang_rt_dylibs.should_package_clang_runtime(
         cc_configured_features = cc_configured_features,
     ):
-        runfiles.extend(clang_rt_dylibs.get_from_toolchain(ctx))
+        runfiles.extend(
+            clang_rt_dylibs.get_from_toolchains(
+                targets.providers(cc_toolchain_forwarder, cc_common.CcToolchainInfo),
+            ),
+        )
 
     return [
         new_applebinaryinfo(

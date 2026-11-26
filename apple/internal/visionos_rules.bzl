@@ -113,10 +113,6 @@ load(
     "apple_toolchain_utils",
 )
 load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
-)
-load(
     "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
     "targets",
 )
@@ -266,7 +262,10 @@ def _visionos_application_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,

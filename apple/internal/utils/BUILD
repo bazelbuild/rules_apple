@@ -20,7 +20,6 @@ bzl_library(
 bzl_library(
     name = "clang_rt_dylibs",
     srcs = ["clang_rt_dylibs.bzl"],
-    deps = ["@bazel_tools//tools/cpp:toolchain_utils"],
 )
 
 bzl_library(

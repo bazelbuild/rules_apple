@@ -2053,7 +2053,6 @@ apple_static_xcframework = rule_factory.create_apple_rule(
     doc = "Generates an XCFramework with static libraries for third-party distribution.",
     implementation = _apple_static_xcframework_impl,
     predeclared_outputs = {"archive": "%{name}.xcframework.zip"},
-    toolchains = [],
     attrs = [
         apple_support.platform_constraint_attrs(),
         _xcframework_platform_attrs(),

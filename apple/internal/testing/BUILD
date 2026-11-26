@@ -40,7 +40,6 @@ bzl_library(
         "//apple/internal/providers:embedded_framework_bundle_info",
         "//apple/internal/providers:swift_dylibs_info",
         "//apple/internal/toolchains:apple_toolchains",
-        "//apple/internal/utils:clang_rt_dylibs",
         "//apple/internal/utils:targets",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//lib:types",

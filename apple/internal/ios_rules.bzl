@@ -15,7 +15,6 @@
 """Implementation of iOS rules."""
 
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load(
     "@build_bazel_apple_support//lib:apple_support.bzl",
     "apple_support",
@@ -191,10 +190,6 @@ load(
 load(
     "@build_bazel_rules_apple//apple/internal/toolchains:apple_toolchains.bzl",
     "apple_toolchain_utils",
-)
-load(
-    "@build_bazel_rules_apple//apple/internal/utils:clang_rt_dylibs.bzl",
-    "clang_rt_dylibs",
 )
 load(
     "@build_bazel_rules_apple//apple/internal/utils:targets.bzl",
@@ -482,7 +477,10 @@ def _ios_application_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -854,7 +852,10 @@ def _ios_app_clip_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -1229,7 +1230,7 @@ def _ios_framework_impl(ctx):
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
             cc_linking_contexts = linking_contexts,
-            cc_toolchain = find_cpp_toolchain(ctx),
+            cc_toolchain = cc_toolchain_forwarder.values()[0][cc_common.CcToolchainInfo],
             rule_label = label,
         ),
         bundling_tasks.resources(
@@ -1547,7 +1548,10 @@ def _ios_extension_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
@@ -2028,7 +2032,10 @@ def _ios_imessage_extension_impl(ctx):
             apple_xplat_toolchain_info = apple_xplat_toolchain_info,
             binary_artifact = binary_artifact,
             cc_configured_features = cc_configured_features,
-            dylibs = clang_rt_dylibs.get_from_toolchain(ctx),
+            cc_toolchain_providers = targets.providers(
+                cc_toolchain_forwarder,
+                cc_common.CcToolchainInfo,
+            ),
             label_name = label.name,
             mac_exec_group = mac_exec_group,
             platform_prerequisites = platform_prerequisites,
