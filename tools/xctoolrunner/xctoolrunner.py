@@ -40,6 +40,7 @@ import argparse
 import os
 import re
 import shutil
+import struct
 import sys
 
 from tools.wrapper_common import execute
@@ -306,6 +307,82 @@ def actool_filtering(tool_exit_status, raw_stdout, raw_stderr):
   return (tool_exit_status, "".join(output), "".join(errors_collected))
 
 
+
+def _canonical_car(data):
+  """Returns the Assets.car `data` with a canonical appearance key layout.
+
+  actool inserts the appearance names (UIAppearanceAny, UIAppearanceDark, ...)
+  into the CAR's BOM store in a different order from run to run, so the same
+  asset catalog compiles to different bytes. The key and value blocks are laid
+  out one after another, 16-byte aligned, in insertion order. This lays them
+  out in the order of the tree's (sorted) leaf instead, which is the file
+  actool writes when it happens to insert them in that order. The appearance
+  identifiers themselves are not changed. Anything that doesn't have the
+  expected layout is returned unchanged.
+
+  See https://github.com/bazelbuild/rules_apple/issues/1863.
+  """
+  if data[:8] != b"BOMStore":
+    return data
+  b = bytearray(data)
+  _, index_offset, _, vars_offset, _ = struct.unpack_from(">IIIII", b, 12)
+  names = {}
+  p = vars_offset + 4
+  for _ in range(struct.unpack_from(">I", b, vars_offset)[0]):
+    index, length = struct.unpack_from(">IB", b, p)
+    names[bytes(b[p + 5:p + 5 + length])] = index
+    p += 5 + length
+  if b"APPEARANCEKEYS" not in names:
+    return data
+
+  def block(i):
+    return struct.unpack_from(">II", b, index_offset + 4 + 8 * i)
+
+  def align(n):
+    return (n + 15) & ~15
+
+  tree_offset, _ = block(names[b"APPEARANCEKEYS"])
+  if b[tree_offset:tree_offset + 4] != b"tree":
+    return data
+  leaf_offset, _ = block(struct.unpack_from(">I", b, tree_offset + 8)[0])
+  is_leaf, count = struct.unpack_from(">HH", b, leaf_offset)
+  if is_leaf != 1 or count < 2:
+    return data
+  # (value block, key block) pairs, sorted by key.
+  pairs = [
+      struct.unpack_from(">II", b, leaf_offset + 12 + 8 * j)
+      for j in range(count)
+  ]
+  ids = sorted(i for pair in pairs for i in pair)
+  start = min(block(i)[0] for i in ids)
+  end = align(max(sum(block(i)) for i in ids))
+  contents = [
+      bytes(b[block(i)[0]:sum(block(i))]) for v, k in pairs for i in (k, v)
+  ]
+  if start % 16 or sum(align(len(c)) for c in contents) != end - start:
+    return data
+  b[start:end] = bytes(end - start)
+  offset = start
+  for i, content in zip(ids, contents):
+    b[offset:offset + len(content)] = content
+    struct.pack_into(">II", b, index_offset + 4 + 8 * i, offset, len(content))
+    offset = align(offset + len(content))
+  for j in range(count):
+    struct.pack_into(">II", b, leaf_offset + 12 + 8 * j, ids[2 * j + 1],
+                     ids[2 * j])
+  return bytes(b)
+
+
+def _canonicalize_car(path):
+  """Rewrites the Assets.car at `path` in place with `_canonical_car`."""
+  with open(path, "rb") as f:
+    data = f.read()
+  canonical = _canonical_car(data)
+  if canonical != data:
+    with open(path, "wb") as f:
+      f.write(canonical)
+
+
 def actool(_, toolargs):
   """Assemble the call to "xcrun actool"."""
   xcrunargs = ["xcrun", "actool"]
@@ -334,7 +411,17 @@ def actool(_, toolargs):
   # helps.
   # Yes, IBTOOL appears to be correct here due to "actool" and "ibtool" being
   # based on the same codebase.
-  return _execute_and_filter_with_retry(xcrunargs=xcrunargs, filtering=actool_filtering)
+  return_code = _execute_and_filter_with_retry(
+      xcrunargs=xcrunargs, filtering=actool_filtering)
+  car = os.path.join(output_dir, "Assets.car")
+  if return_code == 0 and os.path.exists(car):
+    # Only makes the output reproducible; never fail a finished compile on it.
+    try:
+      _canonicalize_car(car)
+    except Exception as e:  # pylint: disable=broad-except
+      print(f"xctoolrunner: left {car} as actool wrote it: {e!r}",
+            file=sys.stderr)
+  return return_code
 
 
 def coremlc(_, toolargs):
