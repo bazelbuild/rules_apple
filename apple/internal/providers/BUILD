@@ -27,10 +27,7 @@ bzl_library(
 bzl_library(
     name = "extension_foundation_info",
     srcs = ["extension_foundation_info.bzl"],
-    visibility = [
-        "//apple/hints:__subpackages__",
-        "//apple/internal:__subpackages__",
-    ],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 bzl_library(
@@ -114,10 +111,7 @@ filegroup(
 bzl_library(
     name = "app_extension_point_info",
     srcs = ["app_extension_point_info.bzl"],
-    visibility = [
-        "//apple/hints:__subpackages__",
-        "//apple/internal:__subpackages__",
-    ],
+    visibility = ["//apple/internal:__subpackages__"],
 )
 
 bzl_library(
