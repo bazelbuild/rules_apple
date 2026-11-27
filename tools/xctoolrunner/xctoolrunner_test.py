@@ -13,6 +13,9 @@
 # limitations under the License.
 """Tests for xctoolrunner."""
 
+import itertools
+import os
+import struct
 import tempfile
 import unittest
 
@@ -37,6 +40,91 @@ _MODEL_FAILURE_MSG = (
     "CoreData: warning: no NSValueTransformer with class name "
     "'SomeTransformer' was found for attribute 'value' on entity "
     "'SomeEntity'\n")
+
+
+_APPEARANCES = (
+    (b"UIAppearanceAny", 0),
+    (b"UIAppearanceDark", 1),
+    (b"UIAppearanceLight", 4),
+)
+
+
+def _align(n):
+  return (n + 15) & ~15
+
+
+def _make_car(insertion_order):
+  """Returns a minimal Assets.car BOM store with an APPEARANCEKEYS tree.
+
+  Blocks 1 and 2 are the tree and its leaf; each appearance's key (name) and
+  value (identifier) blocks follow in `insertion_order`, laid out one after
+  another and 16-byte aligned, the way actool writes them.
+  """
+  blocks = {}
+  data = bytearray(512)
+  ids = {}
+  next_id = 3
+  for name, value in insertion_order:
+    ids[name] = (next_id, next_id + 1)
+    next_id += 2
+  leaf = struct.pack(">HHII", 1, len(insertion_order), 0, 0)
+  for name, _ in sorted(insertion_order):
+    key_id, value_id = ids[name]
+    leaf += struct.pack(">II", value_id, key_id)
+  tree = b"tree" + struct.pack(">III", 1, 2, 4096) + bytes(9)
+  for block_id, content in ((1, tree), (2, leaf)):
+    blocks[block_id] = (len(data), len(content))
+    data += content + bytes(_align(len(content)) - len(content))
+  for name, value in insertion_order:
+    key_id, value_id = ids[name]
+    for block_id, content in ((key_id, name), (value_id,
+                                               struct.pack("<H", value))):
+      blocks[block_id] = (len(data), len(content))
+      data += content + bytes(_align(len(content)) - len(content))
+  index_offset = len(data)
+  index = struct.pack(">I", next_id)
+  for block_id in range(next_id):
+    index += struct.pack(">II", *blocks.get(block_id, (0, 0)))
+  data += index
+  vars_offset = len(data)
+  var_name = b"APPEARANCEKEYS"
+  variables = struct.pack(">IIB", 1, 1, len(var_name)) + var_name
+  data += variables
+  struct.pack_into(">8sIIIIII", data, 0, b"BOMStore", 1, next_id,
+                   index_offset, len(index), vars_offset, len(variables))
+  return bytes(data)
+
+
+class TestCanonicalCar(unittest.TestCase):
+
+  def testEveryInsertionOrderGivesTheSameBytes(self):
+    for count in (2, 3):
+      orders = list(itertools.permutations(_APPEARANCES[:count]))
+      raw = {_make_car(order) for order in orders}
+      self.assertEqual(len(raw), len(orders))
+      canonical = {xctoolrunner._canonical_car(car) for car in raw}
+      self.assertEqual(canonical, {_make_car(sorted(_APPEARANCES[:count]))})
+
+  def testIsIdempotent(self):
+    car = xctoolrunner._canonical_car(_make_car(_APPEARANCES[::-1]))
+    self.assertEqual(xctoolrunner._canonical_car(car), car)
+
+  def testLeavesOtherFilesAlone(self):
+    single = _make_car(_APPEARANCES[:1])
+    self.assertEqual(xctoolrunner._canonical_car(single), single)
+    self.assertEqual(xctoolrunner._canonical_car(b"not a car"), b"not a car")
+
+  def testActoolKeepsItsOutputIfTheRewriteFails(self):
+    with tempfile.TemporaryDirectory() as output_dir:
+      car = os.path.join(output_dir, "Assets.car")
+      with open(car, "wb") as f:
+        f.write(b"BOMStore")  # Too short to parse.
+      with mock.patch.object(
+          xctoolrunner, "_execute_and_filter_with_retry", return_value=0):
+        self.assertEqual(xctoolrunner.actool(None, ["--compile", output_dir]),
+                         0)
+      with open(car, "rb") as f:
+        self.assertEqual(f.read(), b"BOMStore")
 
 
 class TestIBTOOL(unittest.TestCase):
