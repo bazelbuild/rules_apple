@@ -22,6 +22,7 @@ apple_xplat_tools_toolchain(
     clangrttool = "//tools/clangrttool:clangrttool_swift",
     codesigningtool = "//tools/codesigningtool:codesigntool_swift",
     derq = "//tools/derq_tool:derq_exec",
+    imported_dynamic_framework_processor = "//tools/imported_dynamic_framework_processor:imported_framework_processor_swift",
     plisttool = "//tools/plist_tool:plisttool",
     provisioning_profile_tool = "//tools/provisioning_profile_tool:provisioning_profile_tool_swift",
     swift_const_values_validation_tool = "//tools/swift_const_values_validation:swift_const_values_validation",

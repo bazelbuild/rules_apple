@@ -141,6 +141,11 @@ object files linked into more than one of them, or `None` if the toolchain does 
 A list of `AppleFeatureAllowlistInfo` providers that allow or prohibit packages
 from requesting or disabling features.
 """,
+        "imported_dynamic_framework_processor": """\
+The files_to_run for a tool to process an imported dynamic framework such that the given framework
+only contains the same slices as the app binary, every file belonging to the dynamic framework is
+copied to a temporary location, and the dynamic framework is zipped as a cacheable artifact.
+""",
         "plisttool": """\
 The files_to_run for a tool to perform plist operations such as variable
 substitution, merging, and conversion of plist files to binary format.
@@ -325,6 +330,7 @@ def _apple_xplat_tools_toolchain_impl(ctx):
             ctx.attr.duplicate_linked_objects_tool.files_to_run if ctx.attr.duplicate_linked_objects_tool else None
         ),
         feature_allowlists = [target[AppleFeatureAllowlistInfo] for target in ctx.attr.feature_allowlists],
+        imported_dynamic_framework_processor = ctx.attr.imported_dynamic_framework_processor.files_to_run,
         plisttool = ctx.attr.plisttool.files_to_run,
         provisioning_profile_tool = ctx.attr.provisioning_profile_tool.files_to_run,
         swift_const_values_validation_tool = ctx.attr.swift_const_values_validation_tool.files_to_run,
@@ -398,6 +404,16 @@ A list of `apple_feature_allowlist` targets that allow or prohibit packages from
 requesting or disabling features.
 """,
             providers = [[AppleFeatureAllowlistInfo]],
+        ),
+        "imported_dynamic_framework_processor": attr.label(
+            cfg = "exec",
+            executable = True,
+            mandatory = True,
+            doc = """
+A `File` referencing a tool to process an imported dynamic framework such that the given framework
+only contains the same slices as the app binary, every file belonging to the dynamic framework is
+copied to a temporary location, and the dynamic framework is zipped as a cacheable artifact.
+""",
         ),
         "plisttool": attr.label(
             cfg = "exec",

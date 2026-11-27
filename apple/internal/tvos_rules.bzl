@@ -477,6 +477,7 @@ def _tvos_application_impl(ctx):
             platform_prerequisites = platform_prerequisites,
             provisioning_profile = provisioning_profile,
             rule_descriptor = rule_descriptor,
+            xplat_exec_group = xplat_exec_group,
         ),
         bundling_tasks.resources(
             actions = actions,

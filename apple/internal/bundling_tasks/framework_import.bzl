@@ -114,14 +114,15 @@ def _framework_import_bundling_task_impl(
         output_discriminator,
         platform_prerequisites,
         provisioning_profile,
-        rule_descriptor):
+        rule_descriptor,
+        xplat_exec_group):
     """Implementation for the framework import file processing bundling task."""
     build_settings = apple_xplat_toolchain_info.build_settings
 
-    # When the bundle would be ad-hoc signed by the cross-platform signing tool, leave imported
-    # frameworks unsigned here so that the bundle's own signing pass signs them alongside every
-    # other embedded framework. This keeps a single tool responsible for every signature in the
-    # bundle, and removes the need for the Mac-only codesigningtool in this action.
+    # When the bundle will be ad-hoc signed off-Mac, leave imported frameworks unsigned here so that
+    # the bundle's own signing pass signs them alongside every other embedded framework. This keeps
+    # a single tool responsible for every signature in the bundle and lets this action run off-Mac
+    # without invoking a signing tool.
     codesigning_config = codesigning_support.resolve_codesigning_config(
         apple_mac_toolchain_info = apple_mac_toolchain_info,
         apple_xplat_toolchain_info = apple_xplat_toolchain_info,
@@ -297,36 +298,48 @@ a framework that is bundled and signed for Xcode that will pass App Store Connec
             # Add the required argument to disable signing.
             args.add("--disable-signing")
 
-        imported_dynamic_framework_processor = (
-            apple_mac_toolchain_info.imported_dynamic_framework_processor
-        )
-
         # Inputs of the action are all the framework files, plus binaries needed for identifying the
         # current build's preferred architecture, and the provisioning profile when signing.
         input_files = (
             files_by_framework[framework_basename] +
             framework_binaries_by_framework[framework_basename]
         )
-        if codesign_args and provisioning_profile and not codesigning_config.use_adhoc_sign:
-            input_files.append(provisioning_profile)
 
-        tools = []
-        if codesign_args and codesigning_config.use_adhoc_sign:
-            tools.append(apple_mac_toolchain_info.adhoc_sign)
+        run_on_darwin = any([
+            build_settings.force_imported_dynamic_framework_processor_on_mac,
+            codesign_args,
+        ])
+        if run_on_darwin:
+            if codesign_args and provisioning_profile and not codesigning_config.use_adhoc_sign:
+                input_files.append(provisioning_profile)
 
-        apple_support.run(
-            actions = actions,
-            apple_platform_info = platform_prerequisites.apple_platform_info,
-            arguments = [args],
-            env = shared_environment.archive_env(build_settings),
-            executable = imported_dynamic_framework_processor,
-            exec_group = mac_exec_group,
-            inputs = input_files,
-            mnemonic = "ImportedDynamicFrameworkProcessor",
-            outputs = [framework_output],
-            tools = tools,
-            xcode_config = platform_prerequisites.xcode_version_config,
-        )
+            tools = []
+            if codesign_args and codesigning_config.use_adhoc_sign:
+                tools.append(apple_mac_toolchain_info.adhoc_sign)
+
+            apple_support.run(
+                actions = actions,
+                apple_platform_info = platform_prerequisites.apple_platform_info,
+                arguments = [args],
+                env = shared_environment.archive_env(build_settings),
+                executable = apple_mac_toolchain_info.imported_dynamic_framework_processor,
+                exec_group = mac_exec_group,
+                inputs = input_files,
+                mnemonic = "ImportedDynamicFrameworkProcessor",
+                outputs = [framework_output],
+                tools = tools,
+                xcode_config = platform_prerequisites.xcode_version_config,
+            )
+        else:
+            actions.run(
+                arguments = [args],
+                env = shared_environment.default_env,
+                exec_group = xplat_exec_group,
+                executable = apple_xplat_toolchain_info.imported_dynamic_framework_processor,
+                inputs = input_files,
+                mnemonic = "ImportedDynamicFrameworkProcessor",
+                outputs = [framework_output],
+            )
 
         if codesign_args:
             signed_frameworks_list.append(framework_basename)
@@ -356,7 +369,8 @@ def framework_import_bundling_task(
         output_discriminator = None,
         platform_prerequisites,
         provisioning_profile,
-        rule_descriptor):
+        rule_descriptor,
+        xplat_exec_group):
     """Constructor for the framework import file processing bundling task.
 
     This bundling task propagates framework import file bundle locations. The files are collected
@@ -381,6 +395,7 @@ def framework_import_bundling_task(
         platform_prerequisites: Struct containing information on the platform being targeted.
         provisioning_profile: File for the provisioning profile.
         rule_descriptor: A rule descriptor for platform and product types from the rule context.
+        xplat_exec_group: A String. The exec_group for actions using the xplat toolchain.
 
     Returns:
         A bundling task that returns the bundle location of the framework import files.
@@ -398,6 +413,7 @@ def framework_import_bundling_task(
         platform_prerequisites = platform_prerequisites,
         provisioning_profile = provisioning_profile,
         rule_descriptor = rule_descriptor,
+        xplat_exec_group = xplat_exec_group,
         *args,
         **kwargs
     )

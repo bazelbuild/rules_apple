@@ -64,6 +64,15 @@ Linux, and should not be used or set by anyone except Apple BUILD rule maintaine
 """,
         default = False,
     ),
+    "force_imported_dynamic_framework_processor_on_mac": struct(
+        doc = """
+Indicates that `imported_dynamic_framework_processor` should be run on the Mac, rather than on
+Linux. This is an emergency valve so the default can be flipped if we ever have a problem with the
+Apple `imported_dynamic_framework_processor` binary on Linux, and should not be used or set by
+anyone except Apple BUILD rule maintainers.
+""",
+        default = True,
+    ),
     "force_plisttool_on_mac": struct(
         doc = """
 Indicates that `plisttool` should be run on the Mac, rather than on Linux. This is an emergency

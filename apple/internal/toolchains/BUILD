@@ -57,6 +57,7 @@ apple_xplat_tools_toolchain(
     clangrttool = "//tools:prebuilt_clangrttool_osx",
     codesigningtool = "//tools:prebuilt_codesigntool_osx",
     derq = "//tools:prebuilt_derq",
+    imported_dynamic_framework_processor = "//tools:prebuilt_imported_framework_processor_osx",
     plisttool = "//tools:prebuilt_plisttool",
     provisioning_profile_tool = "//tools:prebuilt_provisioning_profile_tool_osx",
     swift_const_values_validation_tool = "//tools:prebuilt_swift_const_values_validation",

@@ -337,6 +337,15 @@ analysis_target_actions_tree_artifacts_xplat_codesigning_test = make_analysis_ta
     },
 )
 
+analysis_target_actions_xplat_imported_framework_processor_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 def macos_application_test_suite(name):
     """Test suite for macos_application.
 
@@ -586,6 +595,49 @@ Apple enhanced security features were requested, but the build is missing the re
         build_type = "device",
         target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_imported_versioned_xcframework_xplat_processor_codesign_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_imported_dynamic_framework_processor_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    archive_contents_test(
+        name = "{}_imported_versioned_xcframework_xplat_processor_contents_test".format(name),
+        build_type = "device",
+        build_settings = {
+            build_settings_labels.force_imported_dynamic_framework_processor_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
+        not_contains = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Modules/module.modulemap",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Headers/SharedClass.h",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Modules/module.modulemap",
+        ],
+        assert_file_permissions = {
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/Resources/Info.plist": "644",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/A/generated_dynamic_macos_versioned_xcframework": "755",
+        },
+        is_symlink = [
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Resources",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/Versions/Current",
+            "$CONTENT_ROOT/Frameworks/generated_dynamic_macos_versioned_xcframework.framework/generated_dynamic_macos_versioned_xcframework",
+        ],
         tags = [name],
     )
 
@@ -1245,6 +1297,16 @@ Apple enhanced security features were requested, but the build is missing the re
             "no-sandbox": "1",
             "requires-darwin": "",
         },
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_imported_framework_processor_test(
+        name = "{}_imported_versioned_xcframework_xplat_processor_omits_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/macos:app_with_imported_dynamic_versioned_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_execution_requirements = ["requires-darwin"],
         tags = [name],
     )
 

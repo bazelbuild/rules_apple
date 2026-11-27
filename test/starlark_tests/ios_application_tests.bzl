@@ -54,6 +54,7 @@ load(
 load(
     "//test/starlark_tests/rules:common_verification_tests.bzl",
     "archive_contents_test",
+    "binary_contents_test",
 )
 load(
     "//test/starlark_tests/rules:directory_test.bzl",
@@ -243,6 +244,76 @@ analysis_target_actions_asan_xplat_clangrttool_use_zip_writer_on_mac_test = make
     },
 )
 
+analysis_target_actions_xplat_imported_framework_processor_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_macos_imported_framework_processor_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_macos_imported_framework_processor_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: True,
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_tree_artifacts_xplat_imported_framework_processor_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        build_settings_labels.use_tree_artifacts_outputs: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_imported_framework_processor_device_disable_legacy_signing_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:features": ["disable_legacy_signing"],
+        "//command_line_option:ios_multi_cpus": "arm64",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_imported_framework_processor_device_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        build_settings_labels.signing_certificate_name: "",
+        "//command_line_option:ios_multi_cpus": "arm64",
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_imported_framework_processor_macos_codesigning_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: True,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
+analysis_target_actions_xplat_imported_framework_processor_use_zip_writer_on_mac_test = make_analysis_target_actions_test(
+    config_settings = {
+        build_settings_labels.force_codesigningtool_on_mac: False,
+        build_settings_labels.force_imported_dynamic_framework_processor_on_mac: False,
+        build_settings_labels.use_zip_writer_on_mac: True,
+        "//command_line_option:macos_cpus": "arm64",
+    },
+)
+
 def ios_application_test_suite(name):
     """Test suite for ios_application.
 
@@ -372,6 +443,54 @@ All requested architectures must be either device or simulator architectures."""
         },
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    # Verifies that ImportedDynamicFrameworkProcessor running on xplat produces valid frameworks
+    # (both archive and tree-artifact outputs, plus universal Mach-O slicing) that pass signing and
+    # verification on macOS.
+    apple_verification_test(
+        name = "{}_imported_xcframework_xplat_processor_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_imported_dynamic_framework_processor_on_mac: "False",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    apple_verification_test(
+        name = "{}_imported_xcframework_tree_artifacts_xplat_processor_codesign_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_imported_dynamic_framework_processor_on_mac: "False",
+            build_settings_labels.use_tree_artifacts_outputs: "True",
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        verifier_script = "verifier_scripts/codesign_verifier.sh",
+        tags = [name],
+    )
+
+    binary_contents_test(
+        name = "{}_imported_xcframework_universal_xplat_processor_binary_test".format(name),
+        build_type = "simulator",
+        build_settings = {
+            build_settings_labels.force_imported_dynamic_framework_processor_on_mac: "False",
+        },
+        cpus = {
+            "ios_multi_cpus": [
+                "sim_arm64",
+                "x86_64",
+            ],
+        },
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        binary_test_file = "$BUNDLE_ROOT/Frameworks/generated_dynamic_xcframework_with_headers.framework/generated_dynamic_xcframework_with_headers",
+        binary_contains_file_info = [
+            "Mach-O universal binary with 2 architectures:",
+            "x86_64:Mach-O 64-bit dynamically linked shared library x86_64",
+            "arm64:Mach-O 64-bit dynamically linked shared library arm64",
+        ],
         tags = [name],
     )
 
@@ -2822,7 +2941,7 @@ directories.
         tags = [name],
     )
 
-    analysis_target_actions_use_zip_writer_on_mac_test(
+    analysis_target_actions_macos_imported_framework_processor_use_zip_writer_on_mac_test(
         name = "{}_imported_xcframework_sets_zip_writer_env_when_enabled_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
         target_mnemonic = "ImportedDynamicFrameworkProcessor",
@@ -2830,6 +2949,87 @@ directories.
             "RULES_APPLE_USE_ZIP_WRITER": "1",
             "SWIFT_DETERMINISTIC_HASHING": "1",
         },
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_imported_framework_processor_use_zip_writer_on_mac_test(
+        name = "{}_xplat_imported_xcframework_omits_zip_writer_env_when_enabled_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        not_expected_env = ["RULES_APPLE_USE_ZIP_WRITER"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # When force_imported_dynamic_framework_processor_on_mac is True (the default),
+    # ImportedDynamicFrameworkProcessor stays on macOS even when signing is disabled.
+    analysis_target_actions_macos_imported_framework_processor_test(
+        name = "{}_imported_xcframework_forced_on_mac_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        tags = [name],
+    )
+
+    # When force_imported_dynamic_framework_processor_on_mac is False, unsigned
+    # ImportedDynamicFrameworkProcessor actions (deferred ad-hoc signing and disable_legacy_signing)
+    # run on xplat without requires-darwin.
+    analysis_target_actions_xplat_imported_framework_processor_test(
+        name = "{}_imported_xcframework_xplat_processor_omits_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_tree_artifacts_xplat_imported_framework_processor_test(
+        name = "{}_imported_xcframework_tree_artifacts_xplat_processor_omits_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_imported_framework_processor_device_disable_legacy_signing_test(
+        name = "{}_imported_xcframework_device_disable_legacy_signing_xplat_processor_omits_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--disable-signing"],
+        not_expected_argv = ["--codesign"],
+        not_expected_inputs = ["_ios.mobileprovision"],
+        not_expected_execution_requirements = ["requires-darwin"],
+        tags = [name],
+    )
+
+    # Legacy device signing, force_codesigningtool_on_mac=True, and local Mac hosts keep
+    # ImportedDynamicFrameworkProcessor on macOS even when
+    # force_imported_dynamic_framework_processor_on_mac is False.
+    analysis_target_actions_xplat_imported_framework_processor_device_test(
+        name = "{}_imported_xcframework_device_presigning_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_inputs = ["_ios.mobileprovision"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_argv = ["--disable-signing"],
+        tags = [name],
+    )
+
+    analysis_target_actions_xplat_imported_framework_processor_macos_codesigning_test(
+        name = "{}_imported_xcframework_macos_codesigning_requires_darwin_test".format(name),
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:app_with_imported_xcframework",
+        target_mnemonic = "ImportedDynamicFrameworkProcessor",
+        expected_argv = ["--codesign /usr/bin/codesign"],
+        expected_inputs = ["_ios.mobileprovision"],
+        expected_execution_requirements = {"requires-darwin": ""},
+        not_expected_argv = ["--disable-signing"],
         tags = [name],
     )
 
