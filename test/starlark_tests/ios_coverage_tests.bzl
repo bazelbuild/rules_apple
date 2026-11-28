@@ -16,6 +16,10 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load(
+    "//test/starlark_tests/rules:action_command_line_test.bzl",
+    "make_action_command_line_test_rule",
+)
+load(
     "//test/starlark_tests/rules:apple_coverage_test.bzl",
     "apple_coverage_test",
 )
@@ -63,6 +67,14 @@ _covered_binaries_without_instrumentation_test = analysistest.make(
     config_settings = {"//command_line_option:collect_code_coverage": False},
 )
 
+_coverage_link_test = make_action_command_line_test_rule(
+    config_settings = {"//command_line_option:collect_code_coverage": True},
+)
+
+_no_coverage_link_test = make_action_command_line_test_rule(
+    config_settings = {"//command_line_option:collect_code_coverage": False},
+)
+
 def ios_coverage_test_suite(name):
     """Test suite for iOS coverage.
 
@@ -86,6 +98,23 @@ def ios_coverage_test_suite(name):
     _covered_binaries_without_instrumentation_test(
         name = "{}_export_without_instrumentation_test".format(name),
         target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_export_only_test",
+        tags = [name],
+    )
+
+    _coverage_link_test(
+        name = "{}_swift_app_llvm_coverage_map_link_test".format(name),
+        expected_argv = ["-fprofile-instr-generate"],
+        mnemonic = "ObjcLink",
+        not_expected_argv = ["--coverage"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_swift_app",
+        tags = [name],
+    )
+
+    _no_coverage_link_test(
+        name = "{}_swift_app_no_coverage_link_test".format(name),
+        mnemonic = "ObjcLink",
+        not_expected_argv = ["-fprofile-instr-generate"],
+        target_under_test = "//test/starlark_tests/targets_under_test/ios:coverage_swift_app",
         tags = [name],
     )
 
