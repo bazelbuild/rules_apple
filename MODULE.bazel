@@ -68,6 +68,6 @@ apple_cc_configure = use_extension("@apple_support//crosstool:setup.bzl", "apple
 use_repo(apple_cc_configure, "local_config_apple_cc")
 
 register_toolchains(
-    "//apple/internal:apple_xplat_toolchain",
-    "//apple/internal:mac_toolchain_declaration",
+    "//apple/internal/toolchains:apple_xplat_toolchain",
+    "//apple/internal/toolchains:mac_toolchain_declaration",
 )

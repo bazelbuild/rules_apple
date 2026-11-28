@@ -17,12 +17,9 @@ load(
 
 licenses(["notice"])
 
-toolchain_type(name = "mac_tools_toolchain_type")
-
-toolchain(
-    name = "mac_toolchain_declaration",
-    toolchain = ":mac_tools_toolchain",
-    toolchain_type = ":mac_tools_toolchain_type",
+alias(
+    name = "mac_tools_toolchain_type",
+    actual = "//apple/internal/toolchains:mac_tools_toolchain_type",
 )
 
 apple_mac_tools_toolchain(
@@ -51,15 +48,10 @@ apple_mac_tools_toolchain(
     xctoolrunner = "//tools/xctoolrunner",
 )
 
-toolchain_type(
+alias(
     name = "apple_xplat_toolchain_type",
+    actual = "//apple/internal/toolchains:apple_xplat_toolchain_type",
     visibility = ["//test/ios_unit_test_execution_platforms:__pkg__"],
-)
-
-toolchain(
-    name = "apple_xplat_toolchain",
-    toolchain = "xplat_tools_toolchain",
-    toolchain_type = ":apple_xplat_toolchain_type",
 )
 
 apple_xplat_tools_toolchain(
