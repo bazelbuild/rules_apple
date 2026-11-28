@@ -542,8 +542,15 @@ def _register_binary_linking_action(
         link_inputs.append(bundle_loader_file)
 
     requested_features = list(extra_requested_features)
+    disabled_features = list(extra_disabled_features)
     if ctx.attr.generate_linkmap or ctx.fragments.cpp.objc_generate_linkmap:
         requested_features.append("generate_linkmap")
+
+    # Swift only supports LLVM coverage instrumentation, so the link must use the LLVM coverage
+    # map format; the GCC format does not add the profile runtime to `objc-executable` links.
+    if ctx.configuration.coverage_enabled:
+        requested_features.append("llvm_coverage_map_format")
+        disabled_features.append("gcc_coverage_map_format")
 
     linking_outputs = _link_multi_arch_binary(
         ctx = ctx,
@@ -554,7 +561,7 @@ def _register_binary_linking_action(
         extra_requested_features = requested_features,
         # TODO(321109350): Disable include scanning to work around issue with GrepIncludes actions
         # being routed to the wrong exec platform.
-        extra_disabled_features = extra_disabled_features + ["cc_include_scanning"],
+        extra_disabled_features = disabled_features + ["cc_include_scanning"],
         stamp = stamp,
     )
 
